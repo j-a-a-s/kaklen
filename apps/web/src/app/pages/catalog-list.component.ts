@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { CatalogItem, CatalogItemStatus, CatalogItemType, PaginatedCatalogItems } from "../catalog/catalog.models";
 import { CatalogService } from "../catalog/catalog.service";
+import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 
 @Component({
@@ -14,16 +15,16 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Catálogo</p>
-          <h1>Productos y servicios</h1>
-          <p>Administra precios, costos, códigos y unidades por organización.</p>
+          <p class="eyebrow" i18n="@@catalogEyebrow">Catálogo</p>
+          <h1 i18n="@@catalogTitle">Productos y servicios</h1>
+          <p i18n="@@catalogDescription">Administra precios, costos, códigos y unidades por organización.</p>
         </div>
         <a
           *ngIf="canCreate()"
           class="button-link"
           [routerLink]="['/organizations', organizationId, 'catalog', 'new']"
         >
-          Nuevo item
+          <span i18n="@@newCatalogItemButton">Nuevo item</span>
         </a>
       </section>
 
@@ -31,51 +32,51 @@ import { OrganizationService } from "../organizations/organization.service";
         <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
           <div class="field-grid">
             <label>
-              Buscar
-              <input type="search" formControlName="search" placeholder="Nombre, código o SKU" />
+              <span i18n="@@searchLabel">Buscar</span>
+              <input type="search" formControlName="search" placeholder="Nombre, código o SKU" i18n-placeholder="@@catalogSearchPlaceholder" />
             </label>
             <label>
-              SKU
+              <span i18n="@@skuLabel">SKU</span>
               <input type="search" formControlName="sku" />
             </label>
             <label>
-              Código
+              <span i18n="@@codeLabel">Código</span>
               <input type="search" formControlName="code" />
             </label>
             <label>
-              Tipo
+              <span i18n="@@typeLabel">Tipo</span>
               <select formControlName="type">
-                <option value="">Todos</option>
-                <option value="PRODUCT">Producto</option>
-                <option value="SERVICE">Servicio</option>
+                <option value="" i18n="@@allOption">Todos</option>
+                <option value="PRODUCT" i18n="@@productOption">Producto</option>
+                <option value="SERVICE" i18n="@@serviceOption">Servicio</option>
               </select>
             </label>
             <label>
-              Estado
+              <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
-                <option value="">Todos</option>
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-                <option value="ARCHIVED">Archivado</option>
+                <option value="" i18n="@@allOption">Todos</option>
+                <option value="ACTIVE" i18n="@@activeOption">Activo</option>
+                <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
+                <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
             <label>
-              Precio mínimo
+              <span i18n="@@minPriceLabel">Precio mínimo</span>
               <input type="number" min="0" step="0.01" formControlName="minPrice" />
             </label>
             <label>
-              Precio máximo
+              <span i18n="@@maxPriceLabel">Precio máximo</span>
               <input type="number" min="0" step="0.01" formControlName="maxPrice" />
             </label>
           </div>
           <label class="checkbox-row">
             <input type="checkbox" formControlName="includeArchived" />
-            Incluir archivados
+            <span i18n="@@includeArchivedLabel">Incluir archivados</span>
           </label>
           <div class="row-actions">
-            <button type="submit" [disabled]="loading()">Filtrar</button>
+            <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>
             <button type="button" class="secondary" (click)="resetFilters()" [disabled]="loading()">
-              Limpiar
+              <span i18n="@@clearButton">Limpiar</span>
             </button>
           </div>
         </form>
@@ -89,17 +90,17 @@ import { OrganizationService } from "../organizations/organization.service";
             <strong>{{ item.name }}</strong>
             <small>
               {{ item.code }} · {{ typeLabel(item.type) }} · {{ statusLabel(item.status) }}
-              <span *ngIf="item.sku"> · SKU {{ item.sku }}</span>
+              <span *ngIf="item.sku" i18n="@@skuInlineLabel"> · SKU {{ item.sku }}</span>
             </small>
             <small>{{ moneyLabel(item.price, item.currency) }} · {{ item.unit }}</small>
           </div>
           <div class="row-actions">
-            <a [routerLink]="['/organizations', organizationId, 'catalog', item.id]">Ver</a>
+            <a [routerLink]="['/organizations', organizationId, 'catalog', item.id]" i18n="@@viewLink">Ver</a>
             <a
               *ngIf="canUpdate()"
               [routerLink]="['/organizations', organizationId, 'catalog', item.id, 'edit']"
             >
-              Editar
+              <span i18n="@@editLink">Editar</span>
             </a>
             <button
               *ngIf="canDelete() && item.status !== 'ARCHIVED'"
@@ -108,7 +109,7 @@ import { OrganizationService } from "../organizations/organization.service";
               (click)="archive(item)"
               [disabled]="loading()"
             >
-              Archivar
+              <span i18n="@@archiveButton">Archivar</span>
             </button>
           </div>
         </article>
@@ -116,22 +117,22 @@ import { OrganizationService } from "../organizations/organization.service";
 
       <ng-template #emptyState>
         <section class="dashboard-panel">
-          <p>No hay items para los filtros seleccionados.</p>
+          <p i18n="@@catalogEmpty">No hay items para los filtros seleccionados.</p>
         </section>
       </ng-template>
 
       <section class="pagination-row" *ngIf="catalog().totalPages > 1">
         <button type="button" class="secondary" (click)="goToPage(catalog().page - 1)" [disabled]="catalog().page <= 1">
-          Anterior
+          <span i18n="@@previousPageButton">Anterior</span>
         </button>
-        <span>Página {{ catalog().page }} de {{ catalog().totalPages }}</span>
+        <span i18n="@@paginationLabel">Página {{ catalog().page }} de {{ catalog().totalPages }}</span>
         <button
           type="button"
           class="secondary"
           (click)="goToPage(catalog().page + 1)"
           [disabled]="catalog().page >= catalog().totalPages"
         >
-          Siguiente
+          <span i18n="@@nextPageButton">Siguiente</span>
         </button>
       </section>
     </main>
@@ -184,20 +185,24 @@ export class CatalogListComponent implements OnInit {
   }
 
   typeLabel(type: CatalogItemType): string {
-    return type === "PRODUCT" ? "Producto" : "Servicio";
+    return type === "PRODUCT" ? $localize`:@@productLabel:Producto` : $localize`:@@serviceLabel:Servicio`;
   }
 
   statusLabel(status: CatalogItemStatus): string {
     const labels: Record<CatalogItemStatus, string> = {
-      ACTIVE: "Activo",
-      INACTIVE: "Inactivo",
-      ARCHIVED: "Archivado"
+      ACTIVE: $localize`:@@activeLabel:Activo`,
+      INACTIVE: $localize`:@@inactiveLabel:Inactivo`,
+      ARCHIVED: $localize`:@@archivedLabel:Archivado`
     };
     return labels[status];
   }
 
   moneyLabel(value: string, currency: string): string {
-    return `${Number(value).toLocaleString("es-CL", { minimumFractionDigits: 2 })} ${currency}`;
+    const organization = this.organizationService.activeOrganization();
+    return formatRegionalCurrency(value, {
+      currency,
+      numberFormat: organization?.numberFormat ?? "es"
+    });
   }
 
   async applyFilters(): Promise<void> {
@@ -223,7 +228,7 @@ export class CatalogListComponent implements OnInit {
   }
 
   async archive(item: CatalogItem): Promise<void> {
-    if (!confirm(`¿Archivar ${item.name}?`)) {
+    if (!confirm($localize`:@@archiveCatalogItemConfirm:¿Archivar ${item.name}?`)) {
       return;
     }
     this.loading.set(true);
@@ -232,7 +237,7 @@ export class CatalogListComponent implements OnInit {
       await this.catalogService.archive(this.organizationId, item.id);
       await this.load(this.catalog().page);
     } catch {
-      this.error.set("No fue posible archivar el item.");
+      this.error.set($localize`:@@catalogArchiveError:No fue posible archivar el item.`);
     } finally {
       this.loading.set(false);
     }
@@ -253,7 +258,7 @@ export class CatalogListComponent implements OnInit {
         })
       );
     } catch {
-      this.error.set("No fue posible cargar el catálogo.");
+      this.error.set($localize`:@@catalogLoadError:No fue posible cargar el catálogo.`);
     } finally {
       this.loading.set(false);
     }

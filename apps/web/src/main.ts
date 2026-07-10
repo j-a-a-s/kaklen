@@ -1,7 +1,11 @@
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideRouter, Routes, RouterOutlet, RouterLink, Router } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
-import { Component } from "@angular/core";
+import { Component, DEFAULT_CURRENCY_CODE, LOCALE_ID } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
+import localeEs from "@angular/common/locales/es";
+import localeEn from "@angular/common/locales/en";
+import localePtBr from "@angular/common/locales/pt";
 import { authGuard } from "./app/auth/auth.guard";
 import { authInterceptor } from "./app/auth/auth.interceptor";
 import { DashboardComponent } from "./app/pages/dashboard.component";
@@ -18,6 +22,30 @@ import { ClientsListComponent } from "./app/pages/clients-list.component";
 import { CatalogDetailComponent } from "./app/pages/catalog-detail.component";
 import { CatalogFormComponent } from "./app/pages/catalog-form.component";
 import { CatalogListComponent } from "./app/pages/catalog-list.component";
+import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
+import { SupportedLocale } from "./app/i18n/locale.service";
+
+registerLocaleData(localeEs, "es");
+registerLocaleData(localeEn, "en");
+registerLocaleData(localePtBr, "pt-BR");
+
+const supportedLocales: readonly SupportedLocale[] = ["es", "en", "pt-BR"];
+
+function resolveBootstrapLocale(): SupportedLocale {
+  const storedLocale = localStorage.getItem("kaklen.locale");
+  const exactStoredLocale = supportedLocales.find((locale) => locale === storedLocale);
+  if (exactStoredLocale) {
+    return exactStoredLocale;
+  }
+
+  const browserLanguage = navigator.language;
+  const exactBrowserLocale = supportedLocales.find((locale) => locale === browserLanguage);
+  if (exactBrowserLocale) {
+    return exactBrowserLocale;
+  }
+
+  return browserLanguage.startsWith("pt") ? "pt-BR" : browserLanguage.startsWith("en") ? "en" : "es";
+}
 
 const routes: Routes = [
   { path: "login", component: LoginComponent },
@@ -83,15 +111,16 @@ const routes: Routes = [
 @Component({
   selector: "kaklen-root",
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, LocaleSelectorComponent],
   template: `
     <header class="topbar">
       <a class="brand" routerLink="/dashboard">Kaklen</a>
-      <nav aria-label="Primary">
-        <a routerLink="/login">Login</a>
-        <a routerLink="/register">Register</a>
-        <a routerLink="/organizations">Organizaciones</a>
+      <nav aria-label="Principal" i18n-aria-label="@@primaryNavigationAriaLabel">
+        <a routerLink="/login" i18n="@@navLogin">Iniciar sesión</a>
+        <a routerLink="/register" i18n="@@navRegister">Registro</a>
+        <a routerLink="/organizations" i18n="@@navOrganizations">Organizaciones</a>
       </nav>
+      <kaklen-locale-selector />
     </header>
     <router-outlet />
   `
@@ -99,7 +128,12 @@ const routes: Routes = [
 class AppComponent {}
 
 bootstrapApplication(AppComponent, {
-  providers: [provideRouter(routes), provideHttpClient(withInterceptors([authInterceptor]))]
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    { provide: LOCALE_ID, useFactory: resolveBootstrapLocale },
+    { provide: DEFAULT_CURRENCY_CODE, useValue: "CLP" }
+  ]
 }).catch((error: unknown) => {
   console.error(error);
 });

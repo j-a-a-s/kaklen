@@ -23,3 +23,9 @@ Prisma is the database access layer and PostgreSQL 16 is the local development d
 Status: Accepted
 
 Swagger is enabled at `/docs` so API behavior is inspectable early. Helmet is enabled by default so the API starts from a hardened HTTP baseline.
+
+## 0005. Use Angular Build-Time Localization
+
+Status: Accepted
+
+Kaklen uses Angular localize with XLIFF files for `es`, `en`, and `pt-BR`. The language selector persists the chosen interface language as a UI preference and reloads the application so the localized bundle can be selected by deployment routing. Regional settings remain organization-level data and are not inferred from the interface language. Backend messages remain fallbacks; frontend behavior depends on stable error codes.

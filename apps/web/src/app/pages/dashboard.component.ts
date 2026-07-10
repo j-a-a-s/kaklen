@@ -12,24 +12,24 @@ import { AuthService } from "../auth/auth.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Dashboard</p>
-          <h1>Hello, {{ user()?.firstName || "there" }}</h1>
+          <p class="eyebrow" i18n="@@dashboardEyebrow">Panel</p>
+          <h1 i18n="@@dashboardGreeting">Hola, {{ user()?.firstName || fallbackName }}</h1>
           <p>{{ user()?.email }}</p>
         </div>
         <button type="button" class="secondary" (click)="logout()" [disabled]="loading()">
-          Logout
+          <span i18n="@@logoutButton">Salir</span>
         </button>
       </section>
 
       <section class="dashboard-panel">
-        <h2>Account</h2>
+        <h2 i18n="@@accountTitle">Cuenta</h2>
         <dl *ngIf="user() as currentUser">
           <div>
-            <dt>Status</dt>
+            <dt i18n="@@statusLabel">Estado</dt>
             <dd>{{ currentUser.status }}</dd>
           </div>
           <div>
-            <dt>User ID</dt>
+            <dt i18n="@@userIdLabel">ID de usuario</dt>
             <dd>{{ currentUser.id }}</dd>
           </div>
         </dl>
@@ -40,6 +40,7 @@ import { AuthService } from "../auth/auth.service";
 export class DashboardComponent implements OnInit {
   readonly loading = signal(false);
   readonly user = signal<AuthUser | null>(null);
+  readonly fallbackName = $localize`:@@dashboardFallbackName:usuario`;
 
   constructor(
     private readonly authService: AuthService,

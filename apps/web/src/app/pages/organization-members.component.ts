@@ -13,20 +13,20 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Miembros</p>
-          <h1>Equipo</h1>
+          <p class="eyebrow" i18n="@@membersEyebrow">Miembros</p>
+          <h1 i18n="@@teamTitle">Equipo</h1>
         </div>
       </section>
 
       <section class="dashboard-panel" *ngIf="canInvite()">
-        <h2>Invitar persona</h2>
+        <h2 i18n="@@invitePersonTitle">Invitar persona</h2>
         <form [formGroup]="inviteForm" (ngSubmit)="invite()">
           <label>
-            Email
+            <span i18n="@@emailLabel">Email</span>
             <input type="email" formControlName="email" />
           </label>
           <label>
-            Rol
+            <span i18n="@@roleLabel">Rol</span>
             <select formControlName="role">
               <option value="VIEWER">VIEWER</option>
               <option value="MEMBER">MEMBER</option>
@@ -34,10 +34,10 @@ import { OrganizationService } from "../organizations/organization.service";
               <option value="ADMIN">ADMIN</option>
             </select>
           </label>
-          <button type="submit" [disabled]="inviteForm.invalid || loading()">Invitar</button>
+          <button type="submit" [disabled]="inviteForm.invalid || loading()" i18n="@@inviteButton">Invitar</button>
         </form>
         <p *ngIf="lastInvitation()">
-          Token de prueba: <code>{{ lastInvitation()?.invitationToken }}</code>
+          <ng-container i18n="@@testTokenLabel">Token de prueba:</ng-container> <code>{{ lastInvitation()?.invitationToken }}</code>
         </p>
       </section>
 
@@ -55,7 +55,7 @@ import { OrganizationService } from "../organizations/organization.service";
               <option value="MEMBER">MEMBER</option>
               <option value="VIEWER">VIEWER</option>
             </select>
-            <button type="button" class="secondary" (click)="remove(member)">Quitar</button>
+            <button type="button" class="secondary" (click)="remove(member)" i18n="@@removeButton">Quitar</button>
           </div>
         </article>
       </section>

@@ -14,6 +14,9 @@ export class AuthUserDto implements AuthUser {
   @ApiProperty({ example: "Lovelace" })
   lastName!: string;
 
+  @ApiProperty({ enum: ["es", "en", "pt-BR"], example: "es" })
+  locale!: string;
+
   @ApiProperty({ enum: ["ACTIVE", "DISABLED"] })
   status!: "ACTIVE" | "DISABLED";
 

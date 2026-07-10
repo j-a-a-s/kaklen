@@ -1,7 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OrganizationMembershipStatus, OrganizationRole, OrganizationStatus } from "@prisma/client";
-import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import type { Permission } from "../permissions";
+
+export const SUPPORTED_DATE_FORMATS = ["dd-MM-yyyy", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"] as const;
+export const SUPPORTED_NUMBER_FORMATS = ["es", "en-US", "pt-BR"] as const;
 
 export class CreateOrganizationDto {
   @ApiProperty({ example: "Kaklen Demo" })
@@ -21,6 +24,34 @@ export class CreateOrganizationDto {
   @IsString()
   @MaxLength(40)
   taxId?: string;
+
+  @ApiPropertyOptional({ example: "CL" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  country?: string;
+
+  @ApiPropertyOptional({ example: "CLP" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  currency?: string;
+
+  @ApiPropertyOptional({ example: "America/Santiago" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  timezone?: string;
+
+  @ApiPropertyOptional({ enum: SUPPORTED_DATE_FORMATS, example: "dd-MM-yyyy" })
+  @IsOptional()
+  @IsIn(SUPPORTED_DATE_FORMATS)
+  dateFormat?: string;
+
+  @ApiPropertyOptional({ enum: SUPPORTED_NUMBER_FORMATS, example: "es" })
+  @IsOptional()
+  @IsIn(SUPPORTED_NUMBER_FORMATS)
+  numberFormat?: string;
 }
 
 export class UpdateOrganizationDto {
@@ -42,6 +73,34 @@ export class UpdateOrganizationDto {
   @IsString()
   @MaxLength(40)
   taxId?: string | null;
+
+  @ApiPropertyOptional({ example: "CL" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  country?: string;
+
+  @ApiPropertyOptional({ example: "CLP" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  currency?: string;
+
+  @ApiPropertyOptional({ example: "America/Santiago" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  timezone?: string;
+
+  @ApiPropertyOptional({ enum: SUPPORTED_DATE_FORMATS, example: "dd-MM-yyyy" })
+  @IsOptional()
+  @IsIn(SUPPORTED_DATE_FORMATS)
+  dateFormat?: string;
+
+  @ApiPropertyOptional({ enum: SUPPORTED_NUMBER_FORMATS, example: "es" })
+  @IsOptional()
+  @IsIn(SUPPORTED_NUMBER_FORMATS)
+  numberFormat?: string;
 }
 
 export class InviteMemberDto {
@@ -100,6 +159,15 @@ export class OrganizationResponseDto {
 
   @ApiProperty()
   timezone!: string;
+
+  @ApiProperty({ enum: SUPPORTED_DATE_FORMATS, example: "dd-MM-yyyy" })
+  dateFormat!: string;
+
+  @ApiProperty({ enum: SUPPORTED_NUMBER_FORMATS, example: "es" })
+  numberFormat!: string;
+
+  @ApiProperty({ enum: ["es", "en", "pt-BR"], example: "es" })
+  defaultLocale!: string;
 
   @ApiProperty({ enum: OrganizationStatus })
   status!: OrganizationStatus;

@@ -1,7 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, signal } from "@angular/core";
 import { firstValueFrom, tap } from "rxjs";
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from "./auth.models";
+import { LocaleService } from "../i18n/locale.service";
+import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UpdatePreferencesRequest } from "./auth.models";
 
 const API_URL = "http://localhost:3000/api";
 
@@ -11,7 +12,10 @@ export class AuthService {
   private accessToken: string | null = null;
   private refreshPromise: Promise<AuthResponse> | null = null;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly localeService: LocaleService
+  ) {}
 
   getAccessToken(): string | null {
     return this.accessToken;
@@ -59,12 +63,25 @@ export class AuthService {
     return firstValueFrom(
       this.http
         .get<AuthUser>(`${API_URL}/auth/me`, { withCredentials: true })
-        .pipe(tap((user) => this.user.set(user)))
+        .pipe(tap((user) => this.applyUser(user)))
+    );
+  }
+
+  updatePreferences(payload: UpdatePreferencesRequest): Promise<AuthUser> {
+    return firstValueFrom(
+      this.http
+        .patch<AuthUser>(`${API_URL}/auth/me/preferences`, payload, { withCredentials: true })
+        .pipe(tap((user) => this.applyUser(user)))
     );
   }
 
   private applyAuthResponse(response: AuthResponse): void {
     this.accessToken = response.accessToken;
-    this.user.set(response.user);
+    this.applyUser(response.user);
+  }
+
+  private applyUser(user: AuthUser): void {
+    this.user.set(user);
+    this.localeService.applyUserLocale(user.locale);
   }
 }

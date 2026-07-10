@@ -14,35 +14,35 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">CRM</p>
-          <h1>Clientes</h1>
-          <p>Gestiona personas, empresas e interacciones por organización.</p>
+          <p class="eyebrow" i18n="@@crmEyebrow">CRM</p>
+          <h1 i18n="@@clientsTitle">Clientes</h1>
+          <p i18n="@@clientsDescription">Gestiona personas, empresas e interacciones por organización.</p>
         </div>
         <a
           *ngIf="canCreate()"
           class="button-link"
           [routerLink]="['/organizations', organizationId, 'clients', 'new']"
         >
-          Nuevo cliente
+          <span i18n="@@newClientButton">Nuevo cliente</span>
         </a>
       </section>
 
       <section class="summary-grid" *ngIf="summary() as currentSummary">
         <article>
           <strong>{{ currentSummary.total }}</strong>
-          <small>Total</small>
+          <small i18n="@@totalLabel">Total</small>
         </article>
         <article>
           <strong>{{ currentSummary.leads }}</strong>
-          <small>Leads</small>
+          <small i18n="@@leadsLabel">Leads</small>
         </article>
         <article>
           <strong>{{ currentSummary.active }}</strong>
-          <small>Activos</small>
+          <small i18n="@@activePluralLabel">Activos</small>
         </article>
         <article>
           <strong>{{ currentSummary.inactive }}</strong>
-          <small>Inactivos</small>
+          <small i18n="@@inactivePluralLabel">Inactivos</small>
         </article>
       </section>
 
@@ -50,40 +50,40 @@ import { OrganizationService } from "../organizations/organization.service";
         <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
           <div class="field-grid">
             <label>
-              Buscar
-              <input type="search" formControlName="search" placeholder="Nombre, email o RUT" />
+              <span i18n="@@searchLabel">Buscar</span>
+              <input type="search" formControlName="search" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
             </label>
             <label>
-              Ciudad
+              <span i18n="@@cityLabel">Ciudad</span>
               <input type="search" formControlName="city" />
             </label>
             <label>
-              Tipo
+              <span i18n="@@typeLabel">Tipo</span>
               <select formControlName="type">
-                <option value="">Todos</option>
-                <option value="NATURAL_PERSON">Persona natural</option>
-                <option value="LEGAL_ENTITY">Empresa</option>
+                <option value="" i18n="@@allOption">Todos</option>
+                <option value="NATURAL_PERSON" i18n="@@naturalPersonOption">Persona natural</option>
+                <option value="LEGAL_ENTITY" i18n="@@companyOption">Empresa</option>
               </select>
             </label>
             <label>
-              Estado
+              <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
-                <option value="">Todos</option>
-                <option value="LEAD">Lead</option>
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-                <option value="ARCHIVED">Archivado</option>
+                <option value="" i18n="@@allOption">Todos</option>
+                <option value="LEAD" i18n="@@leadOption">Lead</option>
+                <option value="ACTIVE" i18n="@@activeOption">Activo</option>
+                <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
+                <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
           </div>
           <label class="checkbox-row">
             <input type="checkbox" formControlName="includeArchived" />
-            Incluir archivados
+            <span i18n="@@includeArchivedLabel">Incluir archivados</span>
           </label>
           <div class="row-actions">
-            <button type="submit" [disabled]="loading()">Filtrar</button>
+            <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>
             <button type="button" class="secondary" (click)="resetFilters()" [disabled]="loading()">
-              Limpiar
+              <span i18n="@@clearButton">Limpiar</span>
             </button>
           </div>
         </form>
@@ -102,12 +102,12 @@ import { OrganizationService } from "../organizations/organization.service";
             </small>
           </div>
           <div class="row-actions">
-            <a [routerLink]="['/organizations', organizationId, 'clients', client.id]">Ver</a>
+            <a [routerLink]="['/organizations', organizationId, 'clients', client.id]" i18n="@@viewLink">Ver</a>
             <a
               *ngIf="canUpdate()"
               [routerLink]="['/organizations', organizationId, 'clients', client.id, 'edit']"
             >
-              Editar
+              <span i18n="@@editLink">Editar</span>
             </a>
             <button
               *ngIf="canDelete() && client.status !== 'ARCHIVED'"
@@ -116,7 +116,7 @@ import { OrganizationService } from "../organizations/organization.service";
               (click)="archive(client)"
               [disabled]="loading()"
             >
-              Archivar
+              <span i18n="@@archiveButton">Archivar</span>
             </button>
           </div>
         </article>
@@ -124,22 +124,22 @@ import { OrganizationService } from "../organizations/organization.service";
 
       <ng-template #emptyState>
         <section class="dashboard-panel">
-          <p>No hay clientes para los filtros seleccionados.</p>
+          <p i18n="@@clientsEmpty">No hay clientes para los filtros seleccionados.</p>
         </section>
       </ng-template>
 
       <section class="pagination-row" *ngIf="clients().totalPages > 1">
         <button type="button" class="secondary" (click)="goToPage(clients().page - 1)" [disabled]="clients().page <= 1">
-          Anterior
+          <span i18n="@@previousPageButton">Anterior</span>
         </button>
-        <span>Página {{ clients().page }} de {{ clients().totalPages }}</span>
+        <span i18n="@@paginationLabel">Página {{ clients().page }} de {{ clients().totalPages }}</span>
         <button
           type="button"
           class="secondary"
           (click)="goToPage(clients().page + 1)"
           [disabled]="clients().page >= clients().totalPages"
         >
-          Siguiente
+          <span i18n="@@nextPageButton">Siguiente</span>
         </button>
       </section>
     </main>
@@ -190,15 +190,15 @@ export class ClientsListComponent implements OnInit {
   }
 
   typeLabel(type: ClientType): string {
-    return type === "NATURAL_PERSON" ? "Persona natural" : "Empresa";
+    return type === "NATURAL_PERSON" ? $localize`:@@naturalPersonLabel:Persona natural` : $localize`:@@companyLabel:Empresa`;
   }
 
   statusLabel(status: ClientStatus): string {
     const labels: Record<ClientStatus, string> = {
-      LEAD: "Lead",
-      ACTIVE: "Activo",
-      INACTIVE: "Inactivo",
-      ARCHIVED: "Archivado"
+      LEAD: $localize`:@@leadLabel:Lead`,
+      ACTIVE: $localize`:@@activeLabel:Activo`,
+      INACTIVE: $localize`:@@inactiveLabel:Inactivo`,
+      ARCHIVED: $localize`:@@archivedLabel:Archivado`
     };
     return labels[status];
   }
@@ -223,7 +223,7 @@ export class ClientsListComponent implements OnInit {
   }
 
   async archive(client: Client): Promise<void> {
-    if (!confirm(`¿Archivar a ${client.displayName}?`)) {
+    if (!confirm($localize`:@@archiveClientConfirm:¿Archivar a ${client.displayName}?`)) {
       return;
     }
     this.loading.set(true);
@@ -232,7 +232,7 @@ export class ClientsListComponent implements OnInit {
       await this.clientsService.archive(this.organizationId, client.id);
       await this.load(this.clients().page);
     } catch {
-      this.error.set("No fue posible archivar el cliente.");
+      this.error.set($localize`:@@clientArchiveError:No fue posible archivar el cliente.`);
     } finally {
       this.loading.set(false);
     }
@@ -250,7 +250,7 @@ export class ClientsListComponent implements OnInit {
       this.summary.set(summary);
       this.clients.set(clients);
     } catch {
-      this.error.set("No fue posible cargar los clientes.");
+      this.error.set($localize`:@@clientsLoadError:No fue posible cargar los clientes.`);
     } finally {
       this.loading.set(false);
     }

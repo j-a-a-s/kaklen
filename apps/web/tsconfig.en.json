@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.app.json",
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "i18nInLocale": "en",
+    "i18nInFile": "src/locale/messages.en.xlf",
+    "i18nInFormat": "xlf"
+  }
+}

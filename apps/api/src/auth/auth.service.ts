@@ -12,6 +12,7 @@ import type { AuthResponse, AuthUser } from "@kaklen/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { UpdatePreferencesDto } from "./dto/update-preferences.dto";
 import type { JwtAccessPayload } from "./auth.types";
 
 interface TokenPair {
@@ -151,6 +152,17 @@ export class AuthService {
     return this.toAuthUser(user);
   }
 
+  async updatePreferences(userId: string, dto: UpdatePreferencesDto): Promise<AuthUser> {
+    await this.me(userId);
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { locale: dto.locale }
+    });
+
+    return this.toAuthUser(user);
+  }
+
   private async issueTokens(
     userId: string,
     email: string,
@@ -190,6 +202,7 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      locale: user.locale,
       status: user.status,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString()

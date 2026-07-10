@@ -18,6 +18,29 @@ The web app calls the API health endpoint at `http://localhost:3000/api/health`.
 Angular Web -> NestJS API -> Prisma Client -> PostgreSQL 16
 ```
 
+## Internationalization and Regional Settings
+
+The Angular app supports `es`, `en`, and `pt-BR`; `es` is the default interface language. Visible text is marked with Angular i18n metadata and translated through XLIFF files in `apps/web/src/locale`.
+
+Interface language preference is resolved in this order:
+
+1. `User.locale`
+2. `Organization.defaultLocale`
+3. browser locale
+4. `es`
+
+The visible selector stores the selected interface language in `localStorage` as a visual preference. Authenticated users can persist the preference through `PATCH /api/auth/me/preferences`.
+
+Regional configuration is intentionally separate from interface language. `Organization.country`, `Organization.currency`, `Organization.timezone`, `Organization.dateFormat`, and `Organization.numberFormat` drive operational formats such as money, dates, and numbers. Changing the interface language must not change persisted business formats. Runtime data such as enum values, permission keys, error codes, and technical identifiers remain untranslated.
+
+Localized web builds:
+
+```bash
+pnpm --filter @kaklen/web build:es
+pnpm --filter @kaklen/web build:en
+pnpm --filter @kaklen/web build:pt-BR
+```
+
 ## Development Commands
 
 ```bash

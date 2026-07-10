@@ -27,6 +27,9 @@ export interface Organization {
   country: string;
   currency: string;
   timezone: string;
+  dateFormat: string;
+  numberFormat: string;
+  defaultLocale: string;
   status: "ACTIVE" | "SUSPENDED" | "DELETED";
   createdAt: string;
   updatedAt: string;

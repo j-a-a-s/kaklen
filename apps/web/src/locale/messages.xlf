@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="es" datatype="plaintext" original="ng2.template">
+    <body>
+    <trans-unit id="acceptButton" datatype="html">
+        <source>Aceptar</source>
+      </trans-unit>
+    <trans-unit id="acceptInvitationTitle" datatype="html">
+        <source>Aceptar invitación</source>
+      </trans-unit>
+    <trans-unit id="accountTitle" datatype="html">
+        <source>Cuenta</source>
+      </trans-unit>
+    <trans-unit id="activateOrganizationButton" datatype="html">
+        <source>Activar</source>
+      </trans-unit>
+    <trans-unit id="activeLabel" datatype="html">
+        <source>Activo</source>
+      </trans-unit>
+    <trans-unit id="activeOption" datatype="html">
+        <source>Activo</source>
+      </trans-unit>
+    <trans-unit id="activePluralLabel" datatype="html">
+        <source>Activos</source>
+      </trans-unit>
+    <trans-unit id="addButton" datatype="html">
+        <source>Agregar</source>
+      </trans-unit>
+    <trans-unit id="addressLabel" datatype="html">
+        <source>Dirección</source>
+      </trans-unit>
+    <trans-unit id="allOption" datatype="html">
+        <source>Todos</source>
+      </trans-unit>
+    <trans-unit id="archiveButton" datatype="html">
+        <source>Archivar</source>
+      </trans-unit>
+    <trans-unit id="archiveCatalogItemConfirm" datatype="html">
+        <source>¿Archivar {$INTERPOLATION}?</source>
+      </trans-unit>
+    <trans-unit id="archiveClientConfirm" datatype="html">
+        <source>¿Archivar a {$INTERPOLATION}?</source>
+      </trans-unit>
+    <trans-unit id="archivedLabel" datatype="html">
+        <source>Archivado</source>
+      </trans-unit>
+    <trans-unit id="archivedOption" datatype="html">
+        <source>Archivado</source>
+      </trans-unit>
+    <trans-unit id="backLink" datatype="html">
+        <source>Volver</source>
+      </trans-unit>
+    <trans-unit id="callLabel" datatype="html">
+        <source>Llamada</source>
+      </trans-unit>
+    <trans-unit id="callOption" datatype="html">
+        <source>Llamada</source>
+      </trans-unit>
+    <trans-unit id="cancelLink" datatype="html">
+        <source>Cancelar</source>
+      </trans-unit>
+    <trans-unit id="catalogArchiveError" datatype="html">
+        <source>No fue posible archivar el item.</source>
+      </trans-unit>
+    <trans-unit id="catalogDescription" datatype="html">
+        <source>Administra precios, costos, códigos y unidades por organización.</source>
+      </trans-unit>
+    <trans-unit id="catalogEmpty" datatype="html">
+        <source>No hay items para los filtros seleccionados.</source>
+      </trans-unit>
+    <trans-unit id="catalogEyebrow" datatype="html">
+        <source>Catálogo</source>
+      </trans-unit>
+    <trans-unit id="catalogItemLoadError" datatype="html">
+        <source>No fue posible cargar el item.</source>
+      </trans-unit>
+    <trans-unit id="catalogItemSaveError" datatype="html">
+        <source>No fue posible guardar el item. Revisa el código y los datos ingresados.</source>
+      </trans-unit>
+    <trans-unit id="catalogLoadError" datatype="html">
+        <source>No fue posible cargar el catálogo.</source>
+      </trans-unit>
+    <trans-unit id="catalogSearchPlaceholder" datatype="html">
+        <source>Nombre, código o SKU</source>
+      </trans-unit>
+    <trans-unit id="catalogTitle" datatype="html">
+        <source>Productos y servicios</source>
+      </trans-unit>
+    <trans-unit id="cityLabel" datatype="html">
+        <source>Ciudad</source>
+      </trans-unit>
+    <trans-unit id="clearButton" datatype="html">
+        <source>Limpiar</source>
+      </trans-unit>
+    <trans-unit id="clientArchiveError" datatype="html">
+        <source>No fue posible archivar el cliente.</source>
+      </trans-unit>
+    <trans-unit id="clientEyebrow" datatype="html">
+        <source>Cliente</source>
+      </trans-unit>
+    <trans-unit id="clientLoadError" datatype="html">
+        <source>No fue posible cargar el cliente.</source>
+      </trans-unit>
+    <trans-unit id="clientSaveError" datatype="html">
+        <source>No fue posible guardar el cliente. Revisa los datos e intenta nuevamente.</source>
+      </trans-unit>
+    <trans-unit id="clientsDescription" datatype="html">
+        <source>Gestiona personas, empresas e interacciones por organización.</source>
+      </trans-unit>
+    <trans-unit id="clientsEmpty" datatype="html">
+        <source>No hay clientes para los filtros seleccionados.</source>
+      </trans-unit>
+    <trans-unit id="clientsLoadError" datatype="html">
+        <source>No fue posible cargar los clientes.</source>
+      </trans-unit>
+    <trans-unit id="clientsSearchPlaceholder" datatype="html">
+        <source>Nombre, email o RUT</source>
+      </trans-unit>
+    <trans-unit id="clientsTitle" datatype="html">
+        <source>Clientes</source>
+      </trans-unit>
+    <trans-unit id="codeLabel" datatype="html">
+        <source>Código</source>
+      </trans-unit>
+    <trans-unit id="codeRequired" datatype="html">
+        <source>El código es obligatorio.</source>
+      </trans-unit>
+    <trans-unit id="companyLabel" datatype="html">
+        <source>Empresa</source>
+      </trans-unit>
+    <trans-unit id="companyOption" datatype="html">
+        <source>Empresa</source>
+      </trans-unit>
+    <trans-unit id="costLabel" datatype="html">
+        <source>Costo</source>
+      </trans-unit>
+    <trans-unit id="costValidation" datatype="html">
+        <source>El costo debe ser mayor o igual a 0.</source>
+      </trans-unit>
+    <trans-unit id="countryLabel" datatype="html">
+        <source>País</source>
+      </trans-unit>
+    <trans-unit id="createLabel" datatype="html">
+        <source>Crear</source>
+      </trans-unit>
+    <trans-unit id="createOrganizationLink" datatype="html">
+        <source>Crear organización</source>
+      </trans-unit>
+    <trans-unit id="creatingLabel" datatype="html">
+        <source>Creando...</source>
+      </trans-unit>
+    <trans-unit id="crmEyebrow" datatype="html">
+        <source>CRM</source>
+      </trans-unit>
+    <trans-unit id="currencyLabel" datatype="html">
+        <source>Moneda</source>
+      </trans-unit>
+    <trans-unit id="currencyRequired" datatype="html">
+        <source>La moneda es obligatoria.</source>
+      </trans-unit>
+    <trans-unit id="dashboardEyebrow" datatype="html">
+        <source>Panel</source>
+      </trans-unit>
+    <trans-unit id="dashboardFallbackName" datatype="html">
+        <source>usuario</source>
+      </trans-unit>
+    <trans-unit id="dashboardGreeting" datatype="html">
+        <source>Hola, {{ user()?.firstName || fallbackName }}</source>
+      </trans-unit>
+    <trans-unit id="dataTitle" datatype="html">
+        <source>Datos</source>
+      </trans-unit>
+    <trans-unit id="descriptionLabel" datatype="html">
+        <source>Descripción</source>
+      </trans-unit>
+    <trans-unit id="descriptionRequired" datatype="html">
+        <source>La descripción es obligatoria.</source>
+      </trans-unit>
+    <trans-unit id="editCatalogItemTitle" datatype="html">
+        <source>Editar item</source>
+      </trans-unit>
+    <trans-unit id="editClientTitle" datatype="html">
+        <source>Editar cliente</source>
+      </trans-unit>
+    <trans-unit id="editLink" datatype="html">
+        <source>Editar</source>
+      </trans-unit>
+    <trans-unit id="emailInteractionLabel" datatype="html">
+        <source>Email</source>
+      </trans-unit>
+    <trans-unit id="emailLabel" datatype="html">
+        <source>Email</source>
+      </trans-unit>
+    <trans-unit id="emailOption" datatype="html">
+        <source>Email</source>
+      </trans-unit>
+    <trans-unit id="emailValidation" datatype="html">
+        <source>Ingresa un email válido.</source>
+      </trans-unit>
+    <trans-unit id="emptyDescriptionLabel" datatype="html">
+        <source>Sin descripción</source>
+      </trans-unit>
+    <trans-unit id="emptyNotesLabel" datatype="html">
+        <source>Sin notas</source>
+      </trans-unit>
+    <trans-unit id="emptySkuLabel" datatype="html">
+        <source>Sin SKU</source>
+      </trans-unit>
+    <trans-unit id="emptySubjectLabel" datatype="html">
+        <source>Sin asunto</source>
+      </trans-unit>
+    <trans-unit id="emptyValueLabel" datatype="html">
+        <source>Sin informar</source>
+      </trans-unit>
+    <trans-unit id="filterButton" datatype="html">
+        <source>Filtrar</source>
+      </trans-unit>
+    <trans-unit id="firstNameLabel" datatype="html">
+        <source>Nombre</source>
+      </trans-unit>
+    <trans-unit id="firstNameValidation" datatype="html">
+        <source>El nombre es obligatorio.</source>
+      </trans-unit>
+    <trans-unit id="inactiveLabel" datatype="html">
+        <source>Inactivo</source>
+      </trans-unit>
+    <trans-unit id="inactiveOption" datatype="html">
+        <source>Inactivo</source>
+      </trans-unit>
+    <trans-unit id="inactivePluralLabel" datatype="html">
+        <source>Inactivos</source>
+      </trans-unit>
+    <trans-unit id="includeArchivedLabel" datatype="html">
+        <source>Incluir archivados</source>
+      </trans-unit>
+    <trans-unit id="interactionAddError" datatype="html">
+        <source>No fue posible agregar la interacción.</source>
+      </trans-unit>
+    <trans-unit id="inventoryLabel" datatype="html">
+        <source>Inventario</source>
+      </trans-unit>
+    <trans-unit id="invitationEyebrow" datatype="html">
+        <source>Invitación</source>
+      </trans-unit>
+    <trans-unit id="invitationInvalidError" datatype="html">
+        <source>La invitación no es válida o expiró.</source>
+      </trans-unit>
+    <trans-unit id="inviteButton" datatype="html">
+        <source>Invitar</source>
+      </trans-unit>
+    <trans-unit id="invitePersonTitle" datatype="html">
+        <source>Invitar persona</source>
+      </trans-unit>
+    <trans-unit id="languageSelectorAriaLabel" datatype="html">
+        <source>Seleccionar idioma</source>
+      </trans-unit>
+    <trans-unit id="languageSelectorLabel" datatype="html">
+        <source>Idioma</source>
+      </trans-unit>
+    <trans-unit id="lastNameLabel" datatype="html">
+        <source>Apellido</source>
+      </trans-unit>
+    <trans-unit id="lastNameValidation" datatype="html">
+        <source>El apellido es obligatorio.</source>
+      </trans-unit>
+    <trans-unit id="leadLabel" datatype="html">
+        <source>Lead</source>
+      </trans-unit>
+    <trans-unit id="leadOption" datatype="html">
+        <source>Lead</source>
+      </trans-unit>
+    <trans-unit id="leadsLabel" datatype="html">
+        <source>Leads</source>
+      </trans-unit>
+    <trans-unit id="legalNameLabel" datatype="html">
+        <source>Razón social</source>
+      </trans-unit>
+    <trans-unit id="legalNameRequired" datatype="html">
+        <source>La razón social es obligatoria.</source>
+      </trans-unit>
+    <trans-unit id="localeEnglish" datatype="html">
+        <source>English</source>
+      </trans-unit>
+    <trans-unit id="localePortuguese" datatype="html">
+        <source>Português</source>
+      </trans-unit>
+    <trans-unit id="localeSpanish" datatype="html">
+        <source>Español</source>
+      </trans-unit>
+    <trans-unit id="locationLabel" datatype="html">
+        <source>Ubicación</source>
+      </trans-unit>
+    <trans-unit id="loginError" datatype="html">
+        <source>Email o contraseña inválidos.</source>
+      </trans-unit>
+    <trans-unit id="loginEyebrow" datatype="html">
+        <source>Bienvenido de vuelta</source>
+      </trans-unit>
+    <trans-unit id="loginSubmit" datatype="html">
+        <source>Ingresar</source>
+      </trans-unit>
+    <trans-unit id="loginSubmitting" datatype="html">
+        <source>Ingresando...</source>
+      </trans-unit>
+    <trans-unit id="loginSwitch" datatype="html">
+        <source>¿Aún no tienes cuenta? Crea una</source>
+      </trans-unit>
+    <trans-unit id="loginTitle" datatype="html">
+        <source>Iniciar sesión</source>
+      </trans-unit>
+    <trans-unit id="logoutButton" datatype="html">
+        <source>Salir</source>
+      </trans-unit>
+    <trans-unit id="maxPriceLabel" datatype="html">
+        <source>Precio máximo</source>
+      </trans-unit>
+    <trans-unit id="meetingLabel" datatype="html">
+        <source>Reunión</source>
+      </trans-unit>
+    <trans-unit id="meetingOption" datatype="html">
+        <source>Reunión</source>
+      </trans-unit>
+    <trans-unit id="membersEyebrow" datatype="html">
+        <source>Miembros</source>
+      </trans-unit>
+    <trans-unit id="membersLink" datatype="html">
+        <source>Miembros</source>
+      </trans-unit>
+    <trans-unit id="minPriceLabel" datatype="html">
+        <source>Precio mínimo</source>
+      </trans-unit>
+    <trans-unit id="nameLabel" datatype="html">
+        <source>Nombre</source>
+      </trans-unit>
+    <trans-unit id="nameRequired" datatype="html">
+        <source>El nombre es obligatorio.</source>
+      </trans-unit>
+    <trans-unit id="naturalPersonLabel" datatype="html">
+        <source>Persona natural</source>
+      </trans-unit>
+    <trans-unit id="naturalPersonOption" datatype="html">
+        <source>Persona natural</source>
+      </trans-unit>
+    <trans-unit id="navOrganizations" datatype="html">
+        <source>Organizaciones</source>
+      </trans-unit>
+    <trans-unit id="navRegister" datatype="html">
+        <source>Registro</source>
+      </trans-unit>
+    <trans-unit id="newCatalogItemButton" datatype="html">
+        <source>Nuevo item</source>
+      </trans-unit>
+    <trans-unit id="newCatalogItemTitle" datatype="html">
+        <source>Nuevo item</source>
+      </trans-unit>
+    <trans-unit id="newClientButton" datatype="html">
+        <source>Nuevo cliente</source>
+      </trans-unit>
+    <trans-unit id="newClientTitle" datatype="html">
+        <source>Nuevo cliente</source>
+      </trans-unit>
+    <trans-unit id="newInteractionTitle" datatype="html">
+        <source>Nueva interacción</source>
+      </trans-unit>
+    <trans-unit id="newOrganizationEyebrow" datatype="html">
+        <source>Nueva organización</source>
+      </trans-unit>
+    <trans-unit id="newOrganizationTitle" datatype="html">
+        <source>Crear organización</source>
+      </trans-unit>
+    <trans-unit id="nextPageButton" datatype="html">
+        <source>Siguiente</source>
+      </trans-unit>
+    <trans-unit id="noteLabel" datatype="html">
+        <source>Nota</source>
+      </trans-unit>
+    <trans-unit id="noteOption" datatype="html">
+        <source>Nota</source>
+      </trans-unit>
+    <trans-unit id="notesLabel" datatype="html">
+        <source>Notas</source>
+      </trans-unit>
+    <trans-unit id="organizationCreateError" datatype="html">
+        <source>No pudimos crear la organización.</source>
+      </trans-unit>
+    <trans-unit id="organizationNameLabel" datatype="html">
+        <source>Nombre</source>
+      </trans-unit>
+    <trans-unit id="organizationSaveError" datatype="html">
+        <source>No pudimos guardar los cambios.</source>
+      </trans-unit>
+    <trans-unit id="organizationsEmpty" datatype="html">
+        <source>Aún no tienes organizaciones.</source>
+      </trans-unit>
+    <trans-unit id="organizationSettingsTitle" datatype="html">
+        <source>Organización</source>
+      </trans-unit>
+    <trans-unit id="organizationsEyebrow" datatype="html">
+        <source>Organizaciones</source>
+      </trans-unit>
+    <trans-unit id="organizationsLoadError" datatype="html">
+        <source>No pudimos cargar tus organizaciones.</source>
+      </trans-unit>
+    <trans-unit id="organizationsLoading" datatype="html">
+        <source>Cargando organizaciones...</source>
+      </trans-unit>
+    <trans-unit id="organizationsTitle" datatype="html">
+        <source>Elige tu espacio de trabajo</source>
+      </trans-unit>
+    <trans-unit id="organizationUpdated" datatype="html">
+        <source>Organización actualizada.</source>
+      </trans-unit>
+    <trans-unit id="paginationLabel" datatype="html">
+        <source>Página {{ clients().page }} de {{ clients().totalPages }}</source>
+      </trans-unit>
+    <trans-unit id="passwordLabel" datatype="html">
+        <source>Contraseña</source>
+      </trans-unit>
+    <trans-unit id="passwordValidation" datatype="html">
+        <source>La contraseña debe tener al menos 8 caracteres.</source>
+      </trans-unit>
+    <trans-unit id="phoneLabel" datatype="html">
+        <source>Teléfono</source>
+      </trans-unit>
+    <trans-unit id="previousPageButton" datatype="html">
+        <source>Anterior</source>
+      </trans-unit>
+    <trans-unit id="priceLabel" datatype="html">
+        <source>Precio</source>
+      </trans-unit>
+    <trans-unit id="priceValidation" datatype="html">
+        <source>El precio debe ser mayor o igual a 0.</source>
+      </trans-unit>
+    <trans-unit id="primaryNavigationAriaLabel" datatype="html">
+        <source>Principal</source>
+      </trans-unit>
+    <trans-unit id="productInventoryHint" datatype="html">
+        <source>Los productos controlan inventario.</source>
+      </trans-unit>
+    <trans-unit id="productLabel" datatype="html">
+        <source>Producto</source>
+      </trans-unit>
+    <trans-unit id="productOption" datatype="html">
+        <source>Producto</source>
+      </trans-unit>
+    <trans-unit id="regionLabel" datatype="html">
+        <source>Región</source>
+      </trans-unit>
+    <trans-unit id="registerError" datatype="html">
+        <source>No fue posible crear la cuenta con esas credenciales.</source>
+      </trans-unit>
+    <trans-unit id="registerEyebrow" datatype="html">
+        <source>Comienza con Kaklen</source>
+      </trans-unit>
+    <trans-unit id="registerSubmit" datatype="html">
+        <source>Crear cuenta</source>
+      </trans-unit>
+    <trans-unit id="registerSubmitting" datatype="html">
+        <source>Creando...</source>
+      </trans-unit>
+    <trans-unit id="registerSwitch" datatype="html">
+        <source>¿Ya tienes cuenta? Ingresa</source>
+      </trans-unit>
+    <trans-unit id="registerTitle" datatype="html">
+        <source>Crear cuenta</source>
+      </trans-unit>
+    <trans-unit id="removeButton" datatype="html">
+        <source>Quitar</source>
+      </trans-unit>
+    <trans-unit id="roleLabel" datatype="html">
+        <source>Rol</source>
+      </trans-unit>
+    <trans-unit id="saveButton" datatype="html">
+        <source>Guardar</source>
+      </trans-unit>
+    <trans-unit id="searchLabel" datatype="html">
+        <source>Buscar</source>
+      </trans-unit>
+    <trans-unit id="serviceInventoryHint" datatype="html">
+        <source>Los servicios no controlan inventario.</source>
+      </trans-unit>
+    <trans-unit id="serviceLabel" datatype="html">
+        <source>Servicio</source>
+      </trans-unit>
+    <trans-unit id="serviceOption" datatype="html">
+        <source>Servicio</source>
+      </trans-unit>
+    <trans-unit id="settingsEyebrow" datatype="html">
+        <source>Ajustes</source>
+      </trans-unit>
+    <trans-unit id="settingsLink" datatype="html">
+        <source>Ajustes</source>
+      </trans-unit>
+    <trans-unit id="skuInlineLabel" datatype="html">
+        <source>· SKU {{ item.sku }}</source>
+      </trans-unit>
+    <trans-unit id="skuLabel" datatype="html">
+        <source>SKU</source>
+      </trans-unit>
+    <trans-unit id="statusLabel" datatype="html">
+        <source>Estado</source>
+      </trans-unit>
+    <trans-unit id="subjectLabel" datatype="html">
+        <source>Asunto</source>
+      </trans-unit>
+    <trans-unit id="taxIdLabel" datatype="html">
+        <source>RUT o tax ID</source>
+      </trans-unit>
+    <trans-unit id="taxLabel" datatype="html">
+        <source>Impuesto</source>
+      </trans-unit>
+    <trans-unit id="taxPercentLabel" datatype="html">
+        <source>Impuesto %</source>
+      </trans-unit>
+    <trans-unit id="taxValidation" datatype="html">
+        <source>El impuesto debe estar entre 0 y 100.</source>
+      </trans-unit>
+    <trans-unit id="teamTitle" datatype="html">
+        <source>Equipo</source>
+      </trans-unit>
+    <trans-unit id="testTokenLabel" datatype="html">
+        <source>Token de prueba:</source>
+      </trans-unit>
+    <trans-unit id="tokenLabel" datatype="html">
+        <source>Token</source>
+      </trans-unit>
+    <trans-unit id="totalLabel" datatype="html">
+        <source>Total</source>
+      </trans-unit>
+    <trans-unit id="trackedInventoryLabel" datatype="html">
+        <source>Controlado</source>
+      </trans-unit>
+    <trans-unit id="typeLabel" datatype="html">
+        <source>Tipo</source>
+      </trans-unit>
+    <trans-unit id="unitLabel" datatype="html">
+        <source>Unidad</source>
+      </trans-unit>
+    <trans-unit id="unitPlaceholder" datatype="html">
+        <source>unidad, hora, kg</source>
+      </trans-unit>
+    <trans-unit id="untrackedInventoryLabel" datatype="html">
+        <source>No controlado</source>
+      </trans-unit>
+    <trans-unit id="userIdLabel" datatype="html">
+        <source>ID de usuario</source>
+      </trans-unit>
+    <trans-unit id="viewLink" datatype="html">
+        <source>Ver</source>
+      </trans-unit>
+    <trans-unit id="whatsappLabel" datatype="html">
+        <source>WhatsApp</source>
+      </trans-unit>
+    <trans-unit id="whatsappOption" datatype="html">
+        <source>WhatsApp</source>
+      </trans-unit>
+    <trans-unit id="dateFormatLabel" datatype="html">
+        <source>Formato de fecha</source>
+      </trans-unit>
+    <trans-unit id="numberFormatLabel" datatype="html">
+        <source>Formato numérico</source>
+      </trans-unit>
+    <trans-unit id="timezoneLabel" datatype="html">
+        <source>Zona horaria</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

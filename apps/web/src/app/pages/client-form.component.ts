@@ -14,98 +14,98 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">CRM</p>
-          <h1>{{ clientId ? "Editar cliente" : "Nuevo cliente" }}</h1>
+          <p class="eyebrow" i18n="@@crmEyebrow">CRM</p>
+          <h1>{{ titleLabel() }}</h1>
         </div>
-        <a [routerLink]="['/organizations', organizationId, 'clients']">Volver</a>
+        <a [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@backLink">Volver</a>
       </section>
 
       <section class="dashboard-panel">
         <form [formGroup]="clientForm" (ngSubmit)="save()">
           <div class="field-grid">
             <label>
-              Tipo
+              <span i18n="@@typeLabel">Tipo</span>
               <select formControlName="type">
-                <option value="NATURAL_PERSON">Persona natural</option>
-                <option value="LEGAL_ENTITY">Empresa</option>
+                <option value="NATURAL_PERSON" i18n="@@naturalPersonOption">Persona natural</option>
+                <option value="LEGAL_ENTITY" i18n="@@companyOption">Empresa</option>
               </select>
             </label>
             <label>
-              Estado
+              <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
-                <option value="LEAD">Lead</option>
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-                <option value="ARCHIVED">Archivado</option>
+                <option value="LEAD" i18n="@@leadOption">Lead</option>
+                <option value="ACTIVE" i18n="@@activeOption">Activo</option>
+                <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
+                <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
           </div>
 
           <div class="field-grid" *ngIf="clientForm.controls.type.value === 'NATURAL_PERSON'">
             <label>
-              Nombre
+              <span i18n="@@firstNameLabel">Nombre</span>
               <input formControlName="firstName" maxlength="80" />
-              <small *ngIf="showError('firstName')">El nombre es obligatorio.</small>
+              <small *ngIf="showError('firstName')" i18n="@@firstNameValidation">El nombre es obligatorio.</small>
             </label>
             <label>
-              Apellido
+              <span i18n="@@lastNameLabel">Apellido</span>
               <input formControlName="lastName" maxlength="80" />
-              <small *ngIf="showError('lastName')">El apellido es obligatorio.</small>
+              <small *ngIf="showError('lastName')" i18n="@@lastNameValidation">El apellido es obligatorio.</small>
             </label>
           </div>
 
           <label *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'">
-            Razón social
+            <span i18n="@@legalNameLabel">Razón social</span>
             <input formControlName="legalName" maxlength="160" />
-            <small *ngIf="showError('legalName')">La razón social es obligatoria.</small>
+            <small *ngIf="showError('legalName')" i18n="@@legalNameRequired">La razón social es obligatoria.</small>
           </label>
 
           <div class="field-grid">
             <label>
-              RUT o tax ID
+              <span i18n="@@taxIdLabel">RUT o tax ID</span>
               <input formControlName="taxId" maxlength="40" />
             </label>
             <label>
-              Email
+              <span i18n="@@emailLabel">Email</span>
               <input type="email" formControlName="email" />
-              <small *ngIf="showError('email')">Ingresa un email válido.</small>
+              <small *ngIf="showError('email')" i18n="@@emailValidation">Ingresa un email válido.</small>
             </label>
             <label>
-              Teléfono
+              <span i18n="@@phoneLabel">Teléfono</span>
               <input formControlName="phone" maxlength="40" />
             </label>
             <label>
-              WhatsApp
+              <span i18n="@@whatsappLabel">WhatsApp</span>
               <input formControlName="whatsapp" maxlength="40" />
             </label>
             <label>
-              País
+              <span i18n="@@countryLabel">País</span>
               <input formControlName="country" maxlength="80" />
             </label>
             <label>
-              Región
+              <span i18n="@@regionLabel">Región</span>
               <input formControlName="region" maxlength="120" />
             </label>
             <label>
-              Ciudad
+              <span i18n="@@cityLabel">Ciudad</span>
               <input formControlName="city" maxlength="120" />
             </label>
             <label>
-              Dirección
+              <span i18n="@@addressLabel">Dirección</span>
               <input formControlName="address" maxlength="240" />
             </label>
           </div>
 
           <label>
-            Notas
+            <span i18n="@@notesLabel">Notas</span>
             <textarea formControlName="notes" maxlength="2000"></textarea>
           </label>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <div class="row-actions">
-            <button type="submit" [disabled]="loading() || clientForm.invalid">Guardar</button>
-            <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'clients']">Cancelar</a>
+            <button type="submit" [disabled]="loading() || clientForm.invalid" i18n="@@saveButton">Guardar</button>
+            <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@cancelLink">Cancelar</a>
           </div>
         </form>
       </section>
@@ -174,7 +174,7 @@ export class ClientFormComponent implements OnInit {
         : await this.clientsService.create(this.organizationId, payload);
       await this.router.navigate(["/organizations", this.organizationId, "clients", client.id]);
     } catch {
-      this.error.set("No fue posible guardar el cliente. Revisa los datos e intenta nuevamente.");
+      this.error.set($localize`:@@clientSaveError:No fue posible guardar el cliente. Revisa los datos e intenta nuevamente.`);
     } finally {
       this.loading.set(false);
     }
@@ -203,7 +203,7 @@ export class ClientFormComponent implements OnInit {
       });
       this.applyTypeValidators();
     } catch {
-      this.error.set("No fue posible cargar el cliente.");
+      this.error.set($localize`:@@clientLoadError:No fue posible cargar el cliente.`);
     } finally {
       this.loading.set(false);
     }
@@ -247,6 +247,10 @@ export class ClientFormComponent implements OnInit {
       address: this.optional(value.address),
       notes: this.optional(value.notes)
     };
+  }
+
+  titleLabel(): string {
+    return this.clientId ? $localize`:@@editClientTitle:Editar cliente` : $localize`:@@newClientTitle:Nuevo cliente`;
   }
 
   private optional(value: string): string | undefined {

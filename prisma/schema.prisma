@@ -13,6 +13,7 @@ model User {
   firstName                  String
   lastName                   String
   passwordHash               String
+  locale                     String                   @default("es")
   status                     UserStatus               @default(ACTIVE)
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
@@ -52,6 +53,9 @@ model Organization {
   country     String                   @default("CL")
   currency    String                   @default("CLP")
   timezone    String                   @default("America/Santiago")
+  dateFormat  String                   @default("dd-MM-yyyy")
+  numberFormat String                  @default("es")
+  defaultLocale String                  @default("es")
   status      OrganizationStatus       @default(ACTIVE)
   createdByUserId String
   createdAt   DateTime                 @default(now())

@@ -11,15 +11,15 @@ import { OrganizationService } from "../organizations/organization.service";
   template: `
     <main class="auth-shell">
       <section class="auth-panel">
-        <p class="eyebrow">Invitación</p>
-        <h1>Aceptar invitación</h1>
+        <p class="eyebrow" i18n="@@invitationEyebrow">Invitación</p>
+        <h1 i18n="@@acceptInvitationTitle">Aceptar invitación</h1>
         <form [formGroup]="form" (ngSubmit)="accept()">
           <label>
-            Token
+            <span i18n="@@tokenLabel">Token</span>
             <input formControlName="token" />
           </label>
           <p class="form-error" *ngIf="message()">{{ message() }}</p>
-          <button type="submit" [disabled]="form.invalid || loading()">Aceptar</button>
+          <button type="submit" [disabled]="form.invalid || loading()" i18n="@@acceptButton">Aceptar</button>
         </form>
       </section>
     </main>
@@ -45,7 +45,7 @@ export class AcceptInvitationComponent {
       await this.organizationService.setActiveOrganization(organization.id);
       await this.router.navigate(["/organizations", organization.id, "members"]);
     } catch {
-      this.message.set("La invitación no es válida o expiró.");
+      this.message.set($localize`:@@invitationInvalidError:La invitación no es válida o expiró.`);
     } finally {
       this.loading.set(false);
     }

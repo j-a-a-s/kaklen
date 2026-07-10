@@ -14,82 +14,82 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Catálogo</p>
-          <h1>{{ itemId ? "Editar item" : "Nuevo item" }}</h1>
+          <p class="eyebrow" i18n="@@catalogEyebrow">Catálogo</p>
+          <h1>{{ titleLabel() }}</h1>
         </div>
-        <a [routerLink]="['/organizations', organizationId, 'catalog']">Volver</a>
+        <a [routerLink]="['/organizations', organizationId, 'catalog']" i18n="@@backLink">Volver</a>
       </section>
 
       <section class="dashboard-panel">
         <form [formGroup]="catalogForm" (ngSubmit)="save()">
           <div class="field-grid">
             <label>
-              Tipo
+              <span i18n="@@typeLabel">Tipo</span>
               <select formControlName="type">
-                <option value="PRODUCT">Producto</option>
-                <option value="SERVICE">Servicio</option>
+                <option value="PRODUCT" i18n="@@productOption">Producto</option>
+                <option value="SERVICE" i18n="@@serviceOption">Servicio</option>
               </select>
               <small>{{ inventoryLabel() }}</small>
             </label>
             <label>
-              Estado
+              <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-                <option value="ARCHIVED">Archivado</option>
+                <option value="ACTIVE" i18n="@@activeOption">Activo</option>
+                <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
+                <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
             <label>
-              Código
+              <span i18n="@@codeLabel">Código</span>
               <input formControlName="code" maxlength="80" />
-              <small *ngIf="showError('code')">El código es obligatorio.</small>
+              <small *ngIf="showError('code')" i18n="@@codeRequired">El código es obligatorio.</small>
             </label>
             <label>
-              SKU
+              <span i18n="@@skuLabel">SKU</span>
               <input formControlName="sku" maxlength="80" />
             </label>
             <label>
-              Nombre
+              <span i18n="@@nameLabel">Nombre</span>
               <input formControlName="name" maxlength="160" />
-              <small *ngIf="showError('name')">El nombre es obligatorio.</small>
+              <small *ngIf="showError('name')" i18n="@@nameRequired">El nombre es obligatorio.</small>
             </label>
             <label>
-              Unidad
-              <input formControlName="unit" maxlength="40" placeholder="unidad, hora, kg" />
-              <small *ngIf="showError('unit')">La unidad es obligatoria.</small>
+              <span i18n="@@unitLabel">Unidad</span>
+              <input formControlName="unit" maxlength="40" placeholder="unidad, hora, kg" i18n-placeholder="@@unitPlaceholder" />
+              <small *ngIf="showError('unit')" i18n="@@unitRequired">La unidad es obligatoria.</small>
             </label>
             <label>
-              Costo
+              <span i18n="@@costLabel">Costo</span>
               <input type="number" min="0" step="0.01" formControlName="cost" />
-              <small *ngIf="showError('cost')">El costo debe ser mayor o igual a 0.</small>
+              <small *ngIf="showError('cost')" i18n="@@costValidation">El costo debe ser mayor o igual a 0.</small>
             </label>
             <label>
-              Precio
+              <span i18n="@@priceLabel">Precio</span>
               <input type="number" min="0" step="0.01" formControlName="price" />
-              <small *ngIf="showError('price')">El precio debe ser mayor o igual a 0.</small>
+              <small *ngIf="showError('price')" i18n="@@priceValidation">El precio debe ser mayor o igual a 0.</small>
             </label>
             <label>
-              Impuesto %
+              <span i18n="@@taxPercentLabel">Impuesto %</span>
               <input type="number" min="0" max="100" step="0.01" formControlName="taxPercent" />
-              <small *ngIf="showError('taxPercent')">El impuesto debe estar entre 0 y 100.</small>
+              <small *ngIf="showError('taxPercent')" i18n="@@taxValidation">El impuesto debe estar entre 0 y 100.</small>
             </label>
             <label>
-              Moneda
+              <span i18n="@@currencyLabel">Moneda</span>
               <input formControlName="currency" maxlength="3" />
-              <small *ngIf="showError('currency')">La moneda es obligatoria.</small>
+              <small *ngIf="showError('currency')" i18n="@@currencyRequired">La moneda es obligatoria.</small>
             </label>
           </div>
 
           <label>
-            Descripción
+            <span i18n="@@descriptionLabel">Descripción</span>
             <textarea formControlName="description" maxlength="2000"></textarea>
           </label>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <div class="row-actions">
-            <button type="submit" [disabled]="loading() || catalogForm.invalid">Guardar</button>
-            <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'catalog']">Cancelar</a>
+            <button type="submit" [disabled]="loading() || catalogForm.invalid" i18n="@@saveButton">Guardar</button>
+            <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'catalog']" i18n="@@cancelLink">Cancelar</a>
           </div>
         </form>
       </section>
@@ -136,8 +136,8 @@ export class CatalogFormComponent implements OnInit {
 
   inventoryLabel(): string {
     return this.catalogForm.controls.type.value === "PRODUCT"
-      ? "Los productos controlan inventario."
-      : "Los servicios no controlan inventario.";
+      ? $localize`:@@productInventoryHint:Los productos controlan inventario.`
+      : $localize`:@@serviceInventoryHint:Los servicios no controlan inventario.`;
   }
 
   showError(controlName: keyof typeof this.catalogForm.controls): boolean {
@@ -159,7 +159,7 @@ export class CatalogFormComponent implements OnInit {
         : await this.catalogService.create(this.organizationId, payload);
       await this.router.navigate(["/organizations", this.organizationId, "catalog", item.id]);
     } catch {
-      this.error.set("No fue posible guardar el item. Revisa el código y los datos ingresados.");
+      this.error.set($localize`:@@catalogItemSaveError:No fue posible guardar el item. Revisa el código y los datos ingresados.`);
     } finally {
       this.loading.set(false);
     }
@@ -184,7 +184,7 @@ export class CatalogFormComponent implements OnInit {
         currency: item.currency
       });
     } catch {
-      this.error.set("No fue posible cargar el item.");
+      this.error.set($localize`:@@catalogItemLoadError:No fue posible cargar el item.`);
     } finally {
       this.loading.set(false);
     }
@@ -205,6 +205,10 @@ export class CatalogFormComponent implements OnInit {
       taxPercent: value.taxPercent,
       currency: value.currency.trim().toUpperCase()
     };
+  }
+
+  titleLabel(): string {
+    return this.itemId ? $localize`:@@editCatalogItemTitle:Editar item` : $localize`:@@newCatalogItemTitle:Nuevo item`;
   }
 
   private optional(value: string): string | undefined {

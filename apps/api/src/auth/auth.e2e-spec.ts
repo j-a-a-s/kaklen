@@ -29,6 +29,7 @@ class FakePrismaService {
         firstName: data.firstName,
         lastName: data.lastName,
         passwordHash: data.passwordHash,
+        locale: data.locale ?? "es",
         status: UserStatus.ACTIVE,
         createdAt: now,
         updatedAt: now
@@ -47,6 +48,24 @@ class FakePrismaService {
           return idMatches && statusMatches;
         }) ?? null
       );
+    },
+    update: async ({
+      where,
+      data
+    }: {
+      where: Prisma.UserWhereUniqueInput;
+      data: Prisma.UserUpdateInput;
+    }): Promise<User> => {
+      const user = this.users.find((item) => item.id === where.id);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (typeof data.locale === "string") {
+        user.locale = data.locale;
+      }
+      user.updatedAt = new Date();
+      return user;
     }
   };
 
@@ -210,6 +229,34 @@ describe("Auth E2E", () => {
 
   it("rejects /me without a JWT", async () => {
     await request(server).get("/api/auth/me").expect(401);
+  });
+
+  it("updates locale preferences for the authenticated user", async () => {
+    const registered = await request(server)
+      .post("/api/auth/register")
+      .send(registerPayload("ada@example.com"))
+      .expect(201);
+
+    const response = await request(server)
+      .patch("/api/auth/me/preferences")
+      .set("Authorization", `Bearer ${registered.body.accessToken}`)
+      .send({ locale: "pt-BR" })
+      .expect(200);
+
+    expect(response.body.locale).toBe("pt-BR");
+  });
+
+  it("rejects unsupported locale preferences", async () => {
+    const registered = await request(server)
+      .post("/api/auth/register")
+      .send(registerPayload("ada@example.com"))
+      .expect(201);
+
+    await request(server)
+      .patch("/api/auth/me/preferences")
+      .set("Authorization", `Bearer ${registered.body.accessToken}`)
+      .send({ locale: "fr" })
+      .expect(400);
   });
 
   it("logs out and clears the refresh cookie", async () => {
