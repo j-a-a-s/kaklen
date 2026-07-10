@@ -1,11 +1,3 @@
-export interface HealthResponse {
-  status: "ok";
-  service: string;
-  timestamp: string;
-}
-
-export const KAKLEN_API_PREFIX = "api";
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -21,6 +13,12 @@ export interface AuthResponse {
   accessToken: string;
 }
 
-export interface MessageResponse {
-  message: string;
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest extends LoginRequest {
+  firstName: string;
+  lastName: string;
 }
