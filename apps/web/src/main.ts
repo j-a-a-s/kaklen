@@ -25,6 +25,10 @@ import { CatalogListComponent } from "./app/pages/catalog-list.component";
 import { QuotationDetailComponent } from "./app/pages/quotation-detail.component";
 import { QuotationFormComponent } from "./app/pages/quotation-form.component";
 import { QuotationListComponent } from "./app/pages/quotation-list.component";
+import { EventCalendarComponent } from "./app/pages/event-calendar.component";
+import { EventDetailComponent } from "./app/pages/event-detail.component";
+import { EventFormComponent } from "./app/pages/event-form.component";
+import { EventListComponent } from "./app/pages/event-list.component";
 import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
 import { SupportedLocale } from "./app/i18n/locale.service";
 
@@ -124,6 +128,31 @@ const routes: Routes = [
   {
     path: "organizations/:organizationId/quotations/:quotationId/edit",
     component: QuotationFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/events",
+    component: EventListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/events/new",
+    component: EventFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/events/calendar",
+    component: EventCalendarComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/events/:eventId",
+    component: EventDetailComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/events/:eventId/edit",
+    component: EventFormComponent,
     canActivate: [authGuard]
   },
   { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },

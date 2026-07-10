@@ -23,6 +23,11 @@ export const PERMISSIONS = [
   "quotations.approve",
   "quotations.reject",
   "quotations.delete",
+  "events.read",
+  "events.create",
+  "events.update",
+  "events.manage",
+  "events.delete",
   "wallet.read",
   "wallet.manage"
 ] as const;
@@ -49,6 +54,10 @@ export const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> =
     "quotations.send",
     "quotations.approve",
     "quotations.reject",
+    "events.read",
+    "events.create",
+    "events.update",
+    "events.manage",
     "wallet.read"
   ],
   MEMBER: [
@@ -62,9 +71,12 @@ export const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> =
     "quotations.read",
     "quotations.create",
     "quotations.update",
+    "events.read",
+    "events.create",
+    "events.update",
     "wallet.read"
   ],
-  VIEWER: ["organization.read", "clients.read", "catalog.read", "quotations.read"]
+  VIEWER: ["organization.read", "clients.read", "catalog.read", "quotations.read", "events.read"]
 };
 
 export function permissionsForRole(role: OrganizationRole): readonly Permission[] {

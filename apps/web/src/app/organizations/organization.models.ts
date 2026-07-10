@@ -22,6 +22,11 @@ export type Permission =
   | "quotations.approve"
   | "quotations.reject"
   | "quotations.delete"
+  | "events.read"
+  | "events.create"
+  | "events.update"
+  | "events.manage"
+  | "events.delete"
   | "wallet.read"
   | "wallet.manage";
 

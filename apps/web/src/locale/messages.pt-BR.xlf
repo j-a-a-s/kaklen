@@ -946,6 +946,238 @@
         <source>No fue posible cargar la cotización.</source>
         <target>Não foi possível carregar a cotação.</target>
       </trans-unit>
+    <trans-unit id="eventsEyebrow" datatype="html">
+        <source>Eventos</source>
+        <target>Eventos</target>
+      </trans-unit>
+    <trans-unit id="eventsTitle" datatype="html">
+        <source>Operaciones de eventos</source>
+        <target>Operações de eventos</target>
+      </trans-unit>
+    <trans-unit id="eventsDescription" datatype="html">
+        <source>Planifica eventos, tareas, recursos, participantes y cronogramas por organización.</source>
+        <target>Planeje eventos, tarefas, recursos, participantes e cronogramas por organização.</target>
+      </trans-unit>
+    <trans-unit id="eventCalendarButton" datatype="html">
+        <source>Calendario</source>
+        <target>Calendário</target>
+      </trans-unit>
+    <trans-unit id="newEventButton" datatype="html">
+        <source>Nuevo evento</source>
+        <target>Novo evento</target>
+      </trans-unit>
+    <trans-unit id="confirmedLabel" datatype="html">
+        <source>Confirmados</source>
+        <target>Confirmados</target>
+      </trans-unit>
+    <trans-unit id="inProgressLabel" datatype="html">
+        <source>En curso</source>
+        <target>Em andamento</target>
+      </trans-unit>
+    <trans-unit id="completedLabel" datatype="html">
+        <source>Completados</source>
+        <target>Concluídos</target>
+      </trans-unit>
+    <trans-unit id="eventSearchPlaceholder" datatype="html">
+        <source>Código, nombre o cliente</source>
+        <target>Código, nome ou cliente</target>
+      </trans-unit>
+    <trans-unit id="eventsEmpty" datatype="html">
+        <source>No hay eventos para los filtros seleccionados.</source>
+        <target>Não há eventos para os filtros selecionados.</target>
+      </trans-unit>
+    <trans-unit id="eventsLoadError" datatype="html">
+        <source>No fue posible cargar los eventos.</source>
+        <target>Não foi possível carregar os eventos.</target>
+      </trans-unit>
+    <trans-unit id="noClientLabel" datatype="html">
+        <source>Sin cliente</source>
+        <target>Sem cliente</target>
+      </trans-unit>
+    <trans-unit id="eventFormDescription" datatype="html">
+        <source>Define fechas, cliente, lugar y presupuesto operativo.</source>
+        <target>Defina datas, cliente, local e orçamento operacional.</target>
+      </trans-unit>
+    <trans-unit id="approvedQuotationLabel" datatype="html">
+        <source>Cotización aprobada</source>
+        <target>Cotação aprovada</target>
+      </trans-unit>
+    <trans-unit id="noneOption" datatype="html">
+        <source>Ninguna</source>
+        <target>Nenhuma</target>
+      </trans-unit>
+    <trans-unit id="startAtLabel" datatype="html">
+        <source>Inicio</source>
+        <target>Início</target>
+      </trans-unit>
+    <trans-unit id="endAtLabel" datatype="html">
+        <source>Término</source>
+        <target>Término</target>
+      </trans-unit>
+    <trans-unit id="venueNameLabel" datatype="html">
+        <source>Lugar</source>
+        <target>Local</target>
+      </trans-unit>
+    <trans-unit id="budgetLabel" datatype="html">
+        <source>Presupuesto</source>
+        <target>Orçamento</target>
+      </trans-unit>
+    <trans-unit id="contactNameLabel" datatype="html">
+        <source>Contacto</source>
+        <target>Contato</target>
+      </trans-unit>
+    <trans-unit id="contactEmailLabel" datatype="html">
+        <source>Email contacto</source>
+        <target>Email do contato</target>
+      </trans-unit>
+    <trans-unit id="contactPhoneLabel" datatype="html">
+        <source>Teléfono contacto</source>
+        <target>Telefone do contato</target>
+      </trans-unit>
+    <trans-unit id="eventSaveError" datatype="html">
+        <source>No fue posible guardar el evento.</source>
+        <target>Não foi possível salvar o evento.</target>
+      </trans-unit>
+    <trans-unit id="createEventTitle" datatype="html">
+        <source>Nuevo evento</source>
+        <target>Novo evento</target>
+      </trans-unit>
+    <trans-unit id="editEventTitle" datatype="html">
+        <source>Editar evento</source>
+        <target>Editar evento</target>
+      </trans-unit>
+    <trans-unit id="backToListButton" datatype="html">
+        <source>Volver al listado</source>
+        <target>Voltar à lista</target>
+      </trans-unit>
+    <trans-unit id="noVenueLabel" datatype="html">
+        <source>Sin lugar</source>
+        <target>Sem local</target>
+      </trans-unit>
+    <trans-unit id="noCityLabel" datatype="html">
+        <source>Sin ciudad</source>
+        <target>Sem cidade</target>
+      </trans-unit>
+    <trans-unit id="noBudgetLabel" datatype="html">
+        <source>Sin presupuesto</source>
+        <target>Sem orçamento</target>
+      </trans-unit>
+    <trans-unit id="confirmButton" datatype="html">
+        <source>Confirmar</source>
+        <target>Confirmar</target>
+      </trans-unit>
+    <trans-unit id="startEventButton" datatype="html">
+        <source>Iniciar</source>
+        <target>Iniciar</target>
+      </trans-unit>
+    <trans-unit id="completeButton" datatype="html">
+        <source>Completar</source>
+        <target>Concluir</target>
+      </trans-unit>
+    <trans-unit id="eventStatusError" datatype="html">
+        <source>No fue posible cambiar el estado del evento.</source>
+        <target>Não foi possível alterar o status do evento.</target>
+      </trans-unit>
+    <trans-unit id="archiveEventConfirm" datatype="html">
+        <source>¿Archivar este evento?</source>
+        <target>Arquivar este evento?</target>
+      </trans-unit>
+    <trans-unit id="tasksTitle" datatype="html">
+        <source>Tareas</source>
+        <target>Tarefas</target>
+      </trans-unit>
+    <trans-unit id="titleLabel" datatype="html">
+        <source>Título</source>
+        <target>Título</target>
+      </trans-unit>
+    <trans-unit id="priorityLabel" datatype="html">
+        <source>Prioridad</source>
+        <target>Prioridade</target>
+      </trans-unit>
+    <trans-unit id="lowPriorityLabel" datatype="html">
+        <source>Baja</source>
+        <target>Baixa</target>
+      </trans-unit>
+    <trans-unit id="mediumPriorityLabel" datatype="html">
+        <source>Media</source>
+        <target>Média</target>
+      </trans-unit>
+    <trans-unit id="highPriorityLabel" datatype="html">
+        <source>Alta</source>
+        <target>Alta</target>
+      </trans-unit>
+    <trans-unit id="urgentPriorityLabel" datatype="html">
+        <source>Urgente</source>
+        <target>Urgente</target>
+      </trans-unit>
+    <trans-unit id="addTaskButton" datatype="html">
+        <source>Agregar tarea</source>
+        <target>Adicionar tarefa</target>
+      </trans-unit>
+    <trans-unit id="participantsTitle" datatype="html">
+        <source>Participantes</source>
+        <target>Participantes</target>
+      </trans-unit>
+    <trans-unit id="clientContactRoleLabel" datatype="html">
+        <source>Contacto cliente</source>
+        <target>Contato do cliente</target>
+      </trans-unit>
+    <trans-unit id="coordinatorRoleLabel" datatype="html">
+        <source>Coordinador</source>
+        <target>Coordenador</target>
+      </trans-unit>
+    <trans-unit id="staffRoleLabel" datatype="html">
+        <source>Staff</source>
+        <target>Equipe</target>
+      </trans-unit>
+    <trans-unit id="supplierRoleLabel" datatype="html">
+        <source>Proveedor</source>
+        <target>Fornecedor</target>
+      </trans-unit>
+    <trans-unit id="guestRoleLabel" datatype="html">
+        <source>Invitado</source>
+        <target>Convidado</target>
+      </trans-unit>
+    <trans-unit id="addParticipantButton" datatype="html">
+        <source>Agregar participante</source>
+        <target>Adicionar participante</target>
+      </trans-unit>
+    <trans-unit id="resourcesTitle" datatype="html">
+        <source>Recursos</source>
+        <target>Recursos</target>
+      </trans-unit>
+    <trans-unit id="addResourceButton" datatype="html">
+        <source>Agregar recurso</source>
+        <target>Adicionar recurso</target>
+      </trans-unit>
+    <trans-unit id="timelineTitle" datatype="html">
+        <source>Cronograma</source>
+        <target>Cronograma</target>
+      </trans-unit>
+    <trans-unit id="addTimelineEntryButton" datatype="html">
+        <source>Agregar al cronograma</source>
+        <target>Adicionar ao cronograma</target>
+      </trans-unit>
+    <trans-unit id="eventCalendarEyebrow" datatype="html">
+        <source>Calendario</source>
+        <target>Calendário</target>
+      </trans-unit>
+    <trans-unit id="eventCalendarTitle" datatype="html">
+        <source>Calendario de eventos</source>
+        <target>Calendário de eventos</target>
+      </trans-unit>
+    <trans-unit id="eventCalendarAriaLabel" datatype="html">
+        <source>Calendario de eventos</source>
+        <target>Calendário de eventos</target>
+      </trans-unit>
+    <trans-unit id="weeklyViewTitle" datatype="html">
+        <source>Vista semanal</source>
+        <target>Visão semanal</target>
+      </trans-unit>
+    <trans-unit id="eventCalendarLoadError" datatype="html">
+        <source>No fue posible cargar el calendario.</source>
+        <target>Não foi possível carregar o calendário.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
