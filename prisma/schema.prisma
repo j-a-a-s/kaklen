@@ -8,9 +8,249 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                         String                   @id @default(uuid())
+  email                      String                   @unique
+  firstName                  String
+  lastName                   String
+  passwordHash               String
+  locale                     String                   @default("es")
+  status                     UserStatus               @default(ACTIVE)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  refreshTokens              RefreshToken[]
+  createdOrganizations       Organization[]           @relation("OrganizationCreator")
+  organizationMemberships    OrganizationMembership[]
+  organizationInvitations    OrganizationInvitation[] @relation("InvitationSender")
+  organizationAuditLogs      OrganizationAuditLog[]   @relation("OrganizationAuditActor")
+  createdClients             Client[]                 @relation("ClientCreator")
+  clientInteractions         ClientInteraction[]
+  createdCatalogItems        CatalogItem[]            @relation("CatalogItemCreator")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Organization {
+  id          String                   @id @default(uuid())
+  name        String
+  slug        String                   @unique
+  legalName   String?
+  taxId       String?
+  country     String                   @default("CL")
+  currency    String                   @default("CLP")
+  timezone    String                   @default("America/Santiago")
+  dateFormat  String                   @default("dd-MM-yyyy")
+  numberFormat String                  @default("es")
+  defaultLocale String                  @default("es")
+  status      OrganizationStatus       @default(ACTIVE)
+  createdByUserId String
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  deletedAt   DateTime?
+  createdBy   User                     @relation("OrganizationCreator", fields: [createdByUserId], references: [id])
+  memberships OrganizationMembership[]
+  invitations OrganizationInvitation[]
+  auditLogs   OrganizationAuditLog[]
+  clients     Client[]
+  clientInteractions ClientInteraction[]
+  catalogItems CatalogItem[]
+
+  @@index([createdByUserId])
+}
+
+model OrganizationMembership {
+  id             String                       @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole
+  status         OrganizationMembershipStatus @default(ACTIVE)
+  joinedAt       DateTime                     @default(now())
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model OrganizationInvitation {
+  id             String           @id @default(uuid())
+  organizationId String
+  email          String
+  role           OrganizationRole
+  tokenHash      String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  invitedByUserId String
+  createdAt      DateTime         @default(now())
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      User             @relation("InvitationSender", fields: [invitedByUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model OrganizationAuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  actorUserId    String
+  action         String
+  targetType     String
+  targetId       String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User         @relation("OrganizationAuditActor", fields: [actorUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([actorUserId])
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum OrganizationMembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
+}
+
+model Client {
+  id              String              @id @default(uuid())
+  organizationId  String
+  type            ClientType
+  status          ClientStatus        @default(LEAD)
+  displayName     String
+  firstName       String?
+  lastName        String?
+  legalName       String?
+  taxId           String?
+  email           String?
+  phone           String?
+  whatsapp        String?
+  country         String              @default("CL")
+  region          String?
+  city            String?
+  address         String?
+  notes           String?
+  createdByUserId String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  archivedAt      DateTime?
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User                @relation("ClientCreator", fields: [createdByUserId], references: [id])
+  interactions    ClientInteraction[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, displayName])
+  @@index([organizationId, taxId])
+}
+
+model ClientInteraction {
+  id             String                @id @default(uuid())
+  organizationId String
+  clientId       String
+  userId         String
+  type           ClientInteractionType
+  subject        String?
+  description    String
+  occurredAt     DateTime
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client         Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user           User                  @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, clientId])
+  @@index([organizationId, occurredAt])
+}
+
+enum ClientType {
+  NATURAL_PERSON
+  LEGAL_ENTITY
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientInteractionType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  WHATSAPP
+}
+
+model CatalogItem {
+  id              String            @id @default(uuid())
+  organizationId  String
+  type            CatalogItemType
+  status          CatalogItemStatus @default(ACTIVE)
+  sku             String?
+  code            String
+  name            String
+  description     String?
+  unit            String
+  cost            Decimal           @db.Decimal(12, 2)
+  price           Decimal           @db.Decimal(12, 2)
+  taxPercent      Decimal           @db.Decimal(5, 2)
+  currency        String
+  trackInventory  Boolean
+  createdByUserId String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  archivedAt      DateTime?
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User              @relation("CatalogItemCreator", fields: [createdByUserId], references: [id])
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@index([organizationId, code])
+  @@index([organizationId, sku])
+  @@index([organizationId, name])
+}
+
+enum CatalogItemType {
+  PRODUCT
+  SERVICE
+}
+
+enum CatalogItemStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }

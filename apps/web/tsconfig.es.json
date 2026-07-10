@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.app.json",
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "i18nInLocale": "es"
+  }
+}

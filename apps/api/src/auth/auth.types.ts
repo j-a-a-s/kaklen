@@ -1,0 +1,14 @@
+import type { Request } from "express";
+
+export interface JwtAccessPayload {
+  sub: string;
+  email: string;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: JwtAccessPayload;
+}
+
+export type CookieRequest = Request & {
+  cookies: Record<string, string | undefined>;
+};

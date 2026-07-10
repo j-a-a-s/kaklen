@@ -20,6 +20,17 @@ pnpm install
 cp .env.example .env
 ```
 
+Para autenticacion local, ajusta estos valores en `.env` antes de exponer el servicio:
+
+```bash
+JWT_ACCESS_SECRET="usa-un-secreto-largo-y-unico"
+JWT_REFRESH_SECRET="usa-otro-secreto-largo-y-unico"
+AUTH_ALLOWED_ORIGINS="http://localhost:4200"
+COOKIE_SECURE=false
+ORGANIZATION_INVITATION_EXPIRES_SECONDS=259200
+APP_WEB_URL=http://localhost:4200
+```
+
 3. Levantar PostgreSQL:
 
 ```bash
@@ -67,3 +78,13 @@ POSTGRES_PORT=55432 pnpm dev
 - API: http://localhost:3000/api/health
 - Swagger: http://localhost:3000/docs
 - Web: http://localhost:4200
+- Auth: http://localhost:3000/api/auth/login
+- Organizaciones: http://localhost:3000/api/organizations
+
+## Builds localizados
+
+```bash
+pnpm --filter @kaklen/web build:es
+pnpm --filter @kaklen/web build:en
+pnpm --filter @kaklen/web build:pt-BR
+```
