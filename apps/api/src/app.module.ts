@@ -6,8 +6,9 @@ import { OrganizationsModule } from "./organizations/organizations.module";
 import { ClientsModule } from "./clients/clients.module";
 import { CatalogModule } from "./catalog/catalog.module";
 import { QuotationsModule } from "./quotations/quotations.module";
+import { EventsModule } from "./events/events.module";
 
 @Module({
-  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule]
+  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule]
 })
 export class AppModule {}

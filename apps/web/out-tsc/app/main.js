@@ -25,6 +25,10 @@ import { CatalogListComponent } from "./app/pages/catalog-list.component";
 import { QuotationDetailComponent } from "./app/pages/quotation-detail.component";
 import { QuotationFormComponent } from "./app/pages/quotation-form.component";
 import { QuotationListComponent } from "./app/pages/quotation-list.component";
+import { EventCalendarComponent } from "./app/pages/event-calendar.component";
+import { EventDetailComponent } from "./app/pages/event-detail.component";
+import { EventFormComponent } from "./app/pages/event-form.component";
+import { EventListComponent } from "./app/pages/event-list.component";
 import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
 import * as i0 from "@angular/core";
 registerLocaleData(localeEs, "es");
@@ -120,6 +124,31 @@ const routes = [
         component: QuotationFormComponent,
         canActivate: [authGuard]
     },
+    {
+        path: "organizations/:organizationId/events",
+        component: EventListComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/events/new",
+        component: EventFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/events/calendar",
+        component: EventCalendarComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/events/:eventId",
+        component: EventDetailComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/events/:eventId/edit",
+        component: EventFormComponent,
+        canActivate: [authGuard]
+    },
     { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },
     { path: "", pathMatch: "full", redirectTo: "login" },
     { path: "**", redirectTo: "login" }
@@ -200,7 +229,7 @@ class AppComponent {
   `
             }]
     }], null, null); })();
-(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 151 }); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 180 }); })();
 bootstrapApplication(AppComponent, {
     providers: [
         provideRouter(routes),
