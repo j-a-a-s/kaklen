@@ -1,11 +1,8 @@
 node_modules
-.pnpm-store
 dist
 out-tsc
 .turbo
 .angular
-.env
-.env.local
 coverage
+pnpm-lock.yaml
 *.log
-*.tsbuildinfo
