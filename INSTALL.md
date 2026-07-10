@@ -80,3 +80,11 @@ POSTGRES_PORT=55432 pnpm dev
 - Web: http://localhost:4200
 - Auth: http://localhost:3000/api/auth/login
 - Organizaciones: http://localhost:3000/api/organizations
+
+## Builds localizados
+
+```bash
+pnpm --filter @kaklen/web build:es
+pnpm --filter @kaklen/web build:en
+pnpm --filter @kaklen/web build:pt-BR
+```

@@ -12,15 +12,15 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Organizaciones</p>
-          <h1>Elige tu espacio de trabajo</h1>
+          <p class="eyebrow" i18n="@@organizationsEyebrow">Organizaciones</p>
+          <h1 i18n="@@organizationsTitle">Elige tu espacio de trabajo</h1>
         </div>
-        <a class="button-link" routerLink="/organizations/new">Crear organización</a>
+        <a class="button-link" routerLink="/organizations/new" i18n="@@createOrganizationLink">Crear organización</a>
       </section>
 
-      <section class="dashboard-panel" *ngIf="loading()">Cargando organizaciones...</section>
+      <section class="dashboard-panel" *ngIf="loading()" i18n="@@organizationsLoading">Cargando organizaciones...</section>
       <section class="dashboard-panel" *ngIf="error()">{{ error() }}</section>
-      <section class="dashboard-panel" *ngIf="!loading() && organizations().length === 0">
+      <section class="dashboard-panel" *ngIf="!loading() && organizations().length === 0" i18n="@@organizationsEmpty">
         Aún no tienes organizaciones.
       </section>
 
@@ -31,9 +31,9 @@ import { OrganizationService } from "../organizations/organization.service";
             <small>{{ organization.slug }}</small>
           </div>
           <div class="row-actions">
-            <button type="button" class="secondary" (click)="activate(organization)">Activar</button>
-            <a [routerLink]="['/organizations', organization.id, 'members']">Miembros</a>
-            <a [routerLink]="['/organizations', organization.id, 'settings']">Ajustes</a>
+            <button type="button" class="secondary" (click)="activate(organization)" i18n="@@activateOrganizationButton">Activar</button>
+            <a [routerLink]="['/organizations', organization.id, 'members']" i18n="@@membersLink">Miembros</a>
+            <a [routerLink]="['/organizations', organization.id, 'settings']" i18n="@@settingsLink">Ajustes</a>
           </div>
         </article>
       </section>
@@ -52,7 +52,7 @@ export class OrganizationsListComponent implements OnInit {
     try {
       this.organizations.set(await this.organizationService.list());
     } catch {
-      this.error.set("No pudimos cargar tus organizaciones.");
+      this.error.set($localize`:@@organizationsLoadError:No pudimos cargar tus organizaciones.`);
     } finally {
       this.loading.set(false);
     }

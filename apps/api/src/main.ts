@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { readApiConfig } from "@kaklen/config";
 import { KAKLEN_API_PREFIX } from "@kaklen/shared";
 import { AppModule } from "./app.module";
+import { ApiErrorFilter } from "./common/api-error.filter";
 
 async function bootstrap(): Promise<void> {
   const config = readApiConfig(process.env);
@@ -24,6 +25,7 @@ async function bootstrap(): Promise<void> {
       transform: true
     })
   );
+  app.useGlobalFilters(new ApiErrorFilter());
   app.setGlobalPrefix(KAKLEN_API_PREFIX);
 
   const swaggerConfig = new DocumentBuilder()

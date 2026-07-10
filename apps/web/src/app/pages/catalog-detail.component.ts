@@ -3,6 +3,7 @@ import { Component, OnInit, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { CatalogItem, CatalogItemStatus, CatalogItemType } from "../catalog/catalog.models";
 import { CatalogService } from "../catalog/catalog.service";
+import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 
 @Component({
@@ -13,18 +14,18 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="item() as currentItem">
         <div>
-          <p class="eyebrow">Catálogo</p>
+          <p class="eyebrow" i18n="@@catalogEyebrow">Catálogo</p>
           <h1>{{ currentItem.name }}</h1>
           <p>{{ currentItem.code }} · {{ typeLabel(currentItem.type) }} · {{ statusLabel(currentItem.status) }}</p>
         </div>
         <div class="row-actions">
-          <a [routerLink]="['/organizations', organizationId, 'catalog']">Volver</a>
+        <a [routerLink]="['/organizations', organizationId, 'catalog']" i18n="@@backLink">Volver</a>
           <a
             *ngIf="canUpdate()"
             class="button-link"
             [routerLink]="['/organizations', organizationId, 'catalog', currentItem.id, 'edit']"
           >
-            Editar
+            <span i18n="@@editLink">Editar</span>
           </a>
         </div>
       </section>
@@ -32,35 +33,35 @@ import { OrganizationService } from "../organizations/organization.service";
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
       <section class="dashboard-panel" *ngIf="item() as currentItem">
-        <h2>Datos</h2>
+        <h2 i18n="@@dataTitle">Datos</h2>
         <dl class="detail-grid">
           <div>
-            <dt>SKU</dt>
-            <dd>{{ currentItem.sku || "Sin SKU" }}</dd>
+            <dt i18n="@@skuLabel">SKU</dt>
+            <dd>{{ currentItem.sku || emptySkuLabel }}</dd>
           </div>
           <div>
-            <dt>Unidad</dt>
+            <dt i18n="@@unitLabel">Unidad</dt>
             <dd>{{ currentItem.unit }}</dd>
           </div>
           <div>
-            <dt>Costo</dt>
+            <dt i18n="@@costLabel">Costo</dt>
             <dd>{{ moneyLabel(currentItem.cost, currentItem.currency) }}</dd>
           </div>
           <div>
-            <dt>Precio</dt>
+            <dt i18n="@@priceLabel">Precio</dt>
             <dd>{{ moneyLabel(currentItem.price, currentItem.currency) }}</dd>
           </div>
           <div>
-            <dt>Impuesto</dt>
+            <dt i18n="@@taxLabel">Impuesto</dt>
             <dd>{{ currentItem.taxPercent }}%</dd>
           </div>
           <div>
-            <dt>Inventario</dt>
-            <dd>{{ currentItem.trackInventory ? "Controlado" : "No controlado" }}</dd>
+            <dt i18n="@@inventoryLabel">Inventario</dt>
+            <dd>{{ currentItem.trackInventory ? trackedInventoryLabel : untrackedInventoryLabel }}</dd>
           </div>
           <div>
-            <dt>Descripción</dt>
-            <dd>{{ currentItem.description || "Sin descripción" }}</dd>
+            <dt i18n="@@descriptionLabel">Descripción</dt>
+            <dd>{{ currentItem.description || emptyDescriptionLabel }}</dd>
           </div>
         </dl>
       </section>
@@ -70,6 +71,10 @@ import { OrganizationService } from "../organizations/organization.service";
 export class CatalogDetailComponent implements OnInit {
   readonly item = signal<CatalogItem | null>(null);
   readonly error = signal("");
+  readonly emptySkuLabel = $localize`:@@emptySkuLabel:Sin SKU`;
+  readonly emptyDescriptionLabel = $localize`:@@emptyDescriptionLabel:Sin descripción`;
+  readonly trackedInventoryLabel = $localize`:@@trackedInventoryLabel:Controlado`;
+  readonly untrackedInventoryLabel = $localize`:@@untrackedInventoryLabel:No controlado`;
   organizationId = "";
   itemId = "";
 
@@ -91,20 +96,24 @@ export class CatalogDetailComponent implements OnInit {
   }
 
   typeLabel(type: CatalogItemType): string {
-    return type === "PRODUCT" ? "Producto" : "Servicio";
+    return type === "PRODUCT" ? $localize`:@@productLabel:Producto` : $localize`:@@serviceLabel:Servicio`;
   }
 
   statusLabel(status: CatalogItemStatus): string {
     const labels: Record<CatalogItemStatus, string> = {
-      ACTIVE: "Activo",
-      INACTIVE: "Inactivo",
-      ARCHIVED: "Archivado"
+      ACTIVE: $localize`:@@activeLabel:Activo`,
+      INACTIVE: $localize`:@@inactiveLabel:Inactivo`,
+      ARCHIVED: $localize`:@@archivedLabel:Archivado`
     };
     return labels[status];
   }
 
   moneyLabel(value: string, currency: string): string {
-    return `${Number(value).toLocaleString("es-CL", { minimumFractionDigits: 2 })} ${currency}`;
+    const organization = this.organizationService.activeOrganization();
+    return formatRegionalCurrency(value, {
+      currency,
+      numberFormat: organization?.numberFormat ?? "es"
+    });
   }
 
   private async load(): Promise<void> {
@@ -112,7 +121,7 @@ export class CatalogDetailComponent implements OnInit {
     try {
       this.item.set(await this.catalogService.get(this.organizationId, this.itemId));
     } catch {
-      this.error.set("No fue posible cargar el item.");
+      this.error.set($localize`:@@catalogItemLoadError:No fue posible cargar el item.`);
     }
   }
 }

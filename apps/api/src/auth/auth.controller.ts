@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -28,6 +29,7 @@ import type { AuthenticatedRequest, CookieRequest } from "./auth.types";
 import { AuthResponseDto, AuthUserDto, MessageResponseDto } from "./dto/auth-response.dto";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { UpdatePreferencesDto } from "./dto/update-preferences.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
 const REFRESH_COOKIE_NAME = "kaklen_refresh_token";
@@ -121,6 +123,19 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: "Access token is missing or invalid" })
   me(@Req() request: AuthenticatedRequest): Promise<AuthUserDto> {
     return this.authService.me(request.user.sub);
+  }
+
+  @Patch("me/preferences")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update current user preferences" })
+  @ApiOkResponse({ type: AuthUserDto })
+  @ApiUnauthorizedResponse({ description: "Access token is missing or invalid" })
+  updatePreferences(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: UpdatePreferencesDto
+  ): Promise<AuthUserDto> {
+    return this.authService.updatePreferences(request.user.sub, dto);
   }
 
   private setRefreshCookie(response: Response, refreshToken: string): void {

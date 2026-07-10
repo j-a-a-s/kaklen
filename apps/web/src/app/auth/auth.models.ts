@@ -3,6 +3,7 @@ export interface AuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  locale: string;
   status: "ACTIVE" | "DISABLED";
   createdAt: string;
   updatedAt: string;
@@ -21,4 +22,8 @@ export interface LoginRequest {
 export interface RegisterRequest extends LoginRequest {
   firstName: string;
   lastName: string;
+}
+
+export interface UpdatePreferencesRequest {
+  locale: string;
 }

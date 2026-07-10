@@ -28,6 +28,7 @@ class FakePrismaService {
         firstName: data.firstName,
         lastName: data.lastName,
         passwordHash: data.passwordHash,
+        locale: data.locale ?? "es",
         status: UserStatus.ACTIVE,
         createdAt: now,
         updatedAt: now
@@ -46,6 +47,24 @@ class FakePrismaService {
           return idMatches && statusMatches;
         }) ?? null
       );
+    },
+    update: async ({
+      where,
+      data
+    }: {
+      where: Prisma.UserWhereUniqueInput;
+      data: Prisma.UserUpdateInput;
+    }): Promise<User> => {
+      const user = this.users.find((item) => item.id === where.id);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (typeof data.locale === "string") {
+        user.locale = data.locale;
+      }
+      user.updatedAt = new Date();
+      return user;
     }
   };
 
@@ -208,6 +227,19 @@ describe("AuthService", () => {
     await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(
       UnauthorizedException
     );
+  });
+
+  it("updates the authenticated user locale preference", async () => {
+    const registered = await service.register({
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      password: "correct-password"
+    });
+
+    const updated = await service.updatePreferences(registered.user.id, { locale: "pt-BR" });
+
+    expect(updated.locale).toBe("pt-BR");
   });
 });
 

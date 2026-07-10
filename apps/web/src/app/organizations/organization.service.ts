@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, computed, signal } from "@angular/core";
 import { firstValueFrom, tap } from "rxjs";
+import { LocaleService } from "../i18n/locale.service";
 import {
   Organization,
   OrganizationInvitation,
@@ -23,13 +24,17 @@ export class OrganizationService {
       null
   );
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly localeService: LocaleService
+  ) {}
 
   async list(): Promise<Organization[]> {
     const organizations = await firstValueFrom(
       this.http.get<Organization[]>(`${API_URL}/organizations`, { withCredentials: true })
     );
     this.organizations.set(organizations);
+    this.localeService.applyOrganizationDefault(this.activeOrganization()?.defaultLocale ?? organizations[0]?.defaultLocale);
 
     if (!this.activeOrganizationId() && organizations[0]) {
       await this.setActiveOrganization(organizations[0].id);
@@ -41,6 +46,7 @@ export class OrganizationService {
   async setActiveOrganization(organizationId: string): Promise<void> {
     this.activeOrganizationId.set(organizationId);
     localStorage.setItem(ACTIVE_ORGANIZATION_KEY, organizationId);
+    this.localeService.applyOrganizationDefault(this.activeOrganization()?.defaultLocale);
     await this.loadPermissions(organizationId);
   }
 
@@ -62,7 +68,16 @@ export class OrganizationService {
 
   update(
     organizationId: string,
-    payload: { name?: string; legalName?: string | null; taxId?: string | null }
+    payload: {
+      name?: string;
+      legalName?: string | null;
+      taxId?: string | null;
+      country?: string;
+      currency?: string;
+      timezone?: string;
+      dateFormat?: string;
+      numberFormat?: string;
+    }
   ): Promise<Organization> {
     return firstValueFrom(
       this.http

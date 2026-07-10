@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Client, ClientInteraction, ClientInteractionType } from "../clients/client.models";
 import { ClientsService } from "../clients/clients.service";
+import { formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 
 @Component({
@@ -14,18 +15,18 @@ import { OrganizationService } from "../organizations/organization.service";
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="client() as currentClient">
         <div>
-          <p class="eyebrow">Cliente</p>
+          <p class="eyebrow" i18n="@@clientEyebrow">Cliente</p>
           <h1>{{ currentClient.displayName }}</h1>
-          <p>{{ currentClient.type === "NATURAL_PERSON" ? "Persona natural" : "Empresa" }} · {{ currentClient.status }}</p>
+          <p>{{ typeLabel(currentClient.type) }} · {{ currentClient.status }}</p>
         </div>
         <div class="row-actions">
-          <a [routerLink]="['/organizations', organizationId, 'clients']">Volver</a>
+          <a [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@backLink">Volver</a>
           <a
             *ngIf="canUpdate()"
             class="button-link"
             [routerLink]="['/organizations', organizationId, 'clients', currentClient.id, 'edit']"
           >
-            Editar
+            <span i18n="@@editLink">Editar</span>
           </a>
         </div>
       </section>
@@ -33,62 +34,62 @@ import { OrganizationService } from "../organizations/organization.service";
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
       <section class="dashboard-panel" *ngIf="client() as currentClient">
-        <h2>Datos</h2>
+        <h2 i18n="@@dataTitle">Datos</h2>
         <dl class="detail-grid">
           <div>
-            <dt>Tax ID</dt>
-            <dd>{{ currentClient.taxId || "Sin informar" }}</dd>
+            <dt i18n="@@taxIdLabel">Tax ID</dt>
+            <dd>{{ currentClient.taxId || emptyValueLabel }}</dd>
           </div>
           <div>
-            <dt>Email</dt>
-            <dd>{{ currentClient.email || "Sin informar" }}</dd>
+            <dt i18n="@@emailLabel">Email</dt>
+            <dd>{{ currentClient.email || emptyValueLabel }}</dd>
           </div>
           <div>
-            <dt>Teléfono</dt>
-            <dd>{{ currentClient.phone || "Sin informar" }}</dd>
+            <dt i18n="@@phoneLabel">Teléfono</dt>
+            <dd>{{ currentClient.phone || emptyValueLabel }}</dd>
           </div>
           <div>
-            <dt>WhatsApp</dt>
-            <dd>{{ currentClient.whatsapp || "Sin informar" }}</dd>
+            <dt i18n="@@whatsappLabel">WhatsApp</dt>
+            <dd>{{ currentClient.whatsapp || emptyValueLabel }}</dd>
           </div>
           <div>
-            <dt>Ubicación</dt>
+            <dt i18n="@@locationLabel">Ubicación</dt>
             <dd>{{ locationLabel(currentClient) }}</dd>
           </div>
           <div>
-            <dt>Notas</dt>
-            <dd>{{ currentClient.notes || "Sin notas" }}</dd>
+            <dt i18n="@@notesLabel">Notas</dt>
+            <dd>{{ currentClient.notes || emptyNotesLabel }}</dd>
           </div>
         </dl>
       </section>
 
       <section class="dashboard-panel" *ngIf="canUpdate()">
-        <h2>Nueva interacción</h2>
+        <h2 i18n="@@newInteractionTitle">Nueva interacción</h2>
         <form [formGroup]="interactionForm" (ngSubmit)="addInteraction()">
           <div class="field-grid">
             <label>
-              Tipo
+              <span i18n="@@typeLabel">Tipo</span>
               <select formControlName="type">
-                <option value="NOTE">Nota</option>
-                <option value="CALL">Llamada</option>
-                <option value="EMAIL">Email</option>
-                <option value="MEETING">Reunión</option>
-                <option value="WHATSAPP">WhatsApp</option>
+                <option value="NOTE" i18n="@@noteOption">Nota</option>
+                <option value="CALL" i18n="@@callOption">Llamada</option>
+                <option value="EMAIL" i18n="@@emailOption">Email</option>
+                <option value="MEETING" i18n="@@meetingOption">Reunión</option>
+                <option value="WHATSAPP" i18n="@@whatsappOption">WhatsApp</option>
               </select>
             </label>
             <label>
-              Asunto
+              <span i18n="@@subjectLabel">Asunto</span>
               <input formControlName="subject" maxlength="160" />
             </label>
           </div>
           <label>
-            Descripción
+            <span i18n="@@descriptionLabel">Descripción</span>
             <textarea formControlName="description" maxlength="2000"></textarea>
             <small *ngIf="interactionForm.controls.description.invalid && interactionForm.controls.description.touched">
-              La descripción es obligatoria.
+              <span i18n="@@descriptionRequired">La descripción es obligatoria.</span>
             </small>
           </label>
-          <button type="submit" [disabled]="loading() || interactionForm.invalid">Agregar</button>
+          <button type="submit" [disabled]="loading() || interactionForm.invalid" i18n="@@addButton">Agregar</button>
         </form>
       </section>
 
@@ -96,7 +97,7 @@ import { OrganizationService } from "../organizations/organization.service";
         <article class="item-row" *ngFor="let interaction of interactions()">
           <div>
             <strong>{{ interactionLabel(interaction.type) }}</strong>
-            <small>{{ interaction.occurredAt | date: "short" }} · {{ interaction.subject || "Sin asunto" }}</small>
+            <small>{{ dateLabel(interaction.occurredAt) }} · {{ interaction.subject || emptySubjectLabel }}</small>
             <p>{{ interaction.description }}</p>
           </div>
         </article>
@@ -109,6 +110,9 @@ export class ClientDetailComponent implements OnInit {
   readonly error = signal("");
   readonly client = signal<Client | null>(null);
   readonly interactions = signal<ClientInteraction[]>([]);
+  readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
+  readonly emptyNotesLabel = $localize`:@@emptyNotesLabel:Sin notas`;
+  readonly emptySubjectLabel = $localize`:@@emptySubjectLabel:Sin asunto`;
   readonly interactionForm = new FormGroup({
     type: new FormControl<ClientInteractionType>("NOTE", { nonNullable: true }),
     subject: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
@@ -137,17 +141,29 @@ export class ClientDetailComponent implements OnInit {
     return this.organizationService.hasPermission("clients.update");
   }
 
+  typeLabel(type: Client["type"]): string {
+    return type === "NATURAL_PERSON" ? $localize`:@@naturalPersonLabel:Persona natural` : $localize`:@@companyLabel:Empresa`;
+  }
+
   locationLabel(client: Client): string {
     return [client.address, client.city, client.region, client.country].filter(Boolean).join(", ");
   }
 
+  dateLabel(value: string): string {
+    const organization = this.organizationService.activeOrganization();
+    return formatRegionalDate(value, {
+      dateFormat: organization?.dateFormat ?? "dd-MM-yyyy",
+      numberFormat: organization?.numberFormat ?? "es"
+    });
+  }
+
   interactionLabel(type: ClientInteractionType): string {
     const labels: Record<ClientInteractionType, string> = {
-      NOTE: "Nota",
-      CALL: "Llamada",
-      EMAIL: "Email",
-      MEETING: "Reunión",
-      WHATSAPP: "WhatsApp"
+      NOTE: $localize`:@@noteLabel:Nota`,
+      CALL: $localize`:@@callLabel:Llamada`,
+      EMAIL: $localize`:@@emailInteractionLabel:Email`,
+      MEETING: $localize`:@@meetingLabel:Reunión`,
+      WHATSAPP: $localize`:@@whatsappLabel:WhatsApp`
     };
     return labels[type];
   }
@@ -169,7 +185,7 @@ export class ClientDetailComponent implements OnInit {
       this.interactionForm.reset({ type: "NOTE", subject: "", description: "" });
       await this.loadInteractions();
     } catch {
-      this.error.set("No fue posible agregar la interacción.");
+      this.error.set($localize`:@@interactionAddError:No fue posible agregar la interacción.`);
     } finally {
       this.loading.set(false);
     }
@@ -186,7 +202,7 @@ export class ClientDetailComponent implements OnInit {
       this.client.set(client);
       this.interactions.set(interactions);
     } catch {
-      this.error.set("No fue posible cargar el cliente.");
+      this.error.set($localize`:@@clientLoadError:No fue posible cargar el cliente.`);
     } finally {
       this.loading.set(false);
     }

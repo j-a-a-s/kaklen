@@ -17,24 +17,24 @@ interface OrganizationForm {
   template: `
     <main class="auth-shell">
       <section class="auth-panel">
-        <p class="eyebrow">Nueva organización</p>
-        <h1>Crear organización</h1>
+        <p class="eyebrow" i18n="@@newOrganizationEyebrow">Nueva organización</p>
+        <h1 i18n="@@newOrganizationTitle">Crear organización</h1>
         <form [formGroup]="form" (ngSubmit)="submit()">
           <label>
-            Nombre
+            <span i18n="@@organizationNameLabel">Nombre</span>
             <input formControlName="name" />
           </label>
           <label>
-            Razón social
+            <span i18n="@@legalNameLabel">Razón social</span>
             <input formControlName="legalName" />
           </label>
           <label>
-            RUT o tax ID
+            <span i18n="@@taxIdLabel">RUT o tax ID</span>
             <input formControlName="taxId" />
           </label>
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
           <button type="submit" [disabled]="form.invalid || loading()">
-            {{ loading() ? "Creando..." : "Crear" }}
+            {{ submitLabel() }}
           </button>
         </form>
       </section>
@@ -68,9 +68,13 @@ export class OrganizationNewComponent {
       await this.organizationService.setActiveOrganization(organization.id);
       await this.router.navigate(["/organizations", organization.id, "members"]);
     } catch {
-      this.error.set("No pudimos crear la organización.");
+      this.error.set($localize`:@@organizationCreateError:No pudimos crear la organización.`);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  submitLabel(): string {
+    return this.loading() ? $localize`:@@creatingLabel:Creando...` : $localize`:@@createLabel:Crear`;
   }
 }

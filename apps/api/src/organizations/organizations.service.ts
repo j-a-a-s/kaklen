@@ -48,6 +48,11 @@ export class OrganizationsService {
           slug,
           legalName: dto.legalName?.trim() || null,
           taxId: dto.taxId?.trim() || null,
+          country: dto.country?.trim().toUpperCase(),
+          currency: dto.currency?.trim().toUpperCase(),
+          timezone: dto.timezone?.trim(),
+          dateFormat: dto.dateFormat,
+          numberFormat: dto.numberFormat,
           createdByUserId: userId
         }
       });
@@ -98,7 +103,12 @@ export class OrganizationsService {
         data: {
           name: dto.name?.trim(),
           legalName: dto.legalName === undefined ? undefined : dto.legalName?.trim() || null,
-          taxId: dto.taxId === undefined ? undefined : dto.taxId?.trim() || null
+          taxId: dto.taxId === undefined ? undefined : dto.taxId?.trim() || null,
+          country: dto.country?.trim().toUpperCase(),
+          currency: dto.currency?.trim().toUpperCase(),
+          timezone: dto.timezone?.trim(),
+          dateFormat: dto.dateFormat,
+          numberFormat: dto.numberFormat
         }
       });
       await this.audit(tx, organizationId, actorUserId, "organization.updated", "organization", organizationId);
@@ -383,6 +393,9 @@ export class OrganizationsService {
       country: organization.country,
       currency: organization.currency,
       timezone: organization.timezone,
+      dateFormat: organization.dateFormat,
+      numberFormat: organization.numberFormat,
+      defaultLocale: organization.defaultLocale,
       status: organization.status,
       createdAt: organization.createdAt.toISOString(),
       updatedAt: organization.updatedAt.toISOString()

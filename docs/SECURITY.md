@@ -21,6 +21,8 @@ The committed `.env.example` contains only development defaults.
 
 The NestJS API enables Helmet by default. CORS is limited to the local Angular development origin in the foundation setup.
 
+Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The frontend must translate user-facing errors from stable `code` values instead of relying on backend message text.
+
 ## Dependency Updates
 
 Dependabot is configured for:

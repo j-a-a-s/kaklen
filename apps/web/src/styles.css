@@ -93,6 +93,19 @@ button.secondary {
   gap: 14px;
 }
 
+.locale-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2a3445;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.locale-selector select {
+  min-height: 36px;
+}
+
 .auth-shell,
 .dashboard-shell {
   width: min(100%, 1120px);
@@ -103,6 +116,12 @@ button.secondary {
 .auth-panel {
   width: min(100%, 460px);
   margin: 0 auto;
+}
+
+.auth-language {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .eyebrow {

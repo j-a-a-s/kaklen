@@ -11,6 +11,7 @@ export interface AuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  locale: string;
   status: "ACTIVE" | "DISABLED";
   createdAt: string;
   updatedAt: string;
@@ -38,6 +39,9 @@ export interface OrganizationSummary {
   country: string;
   currency: string;
   timezone: string;
+  dateFormat: string;
+  numberFormat: string;
+  defaultLocale: string;
   status: OrganizationStatus;
   role: OrganizationRole;
   createdAt: string;

@@ -3,6 +3,7 @@ import { Component, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
+import { LocaleSelectorComponent } from "../i18n/locale-selector.component";
 
 interface RegisterForm {
   firstName: FormControl<string>;
@@ -14,56 +15,59 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, LocaleSelectorComponent],
   template: `
     <main class="auth-shell">
       <section class="auth-panel" aria-labelledby="register-title">
-        <p class="eyebrow">Start with Kaklen</p>
-        <h1 id="register-title">Create account</h1>
+        <div class="auth-language">
+          <kaklen-locale-selector />
+        </div>
+        <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
+        <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <div class="field-grid">
             <label>
-              First name
+              <span i18n="@@firstNameLabel">Nombre</span>
               <input type="text" formControlName="firstName" autocomplete="given-name" />
-              <small *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid">
-                First name is required.
+              <small *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid" i18n="@@firstNameValidation">
+                El nombre es obligatorio.
               </small>
             </label>
 
             <label>
-              Last name
+              <span i18n="@@lastNameLabel">Apellido</span>
               <input type="text" formControlName="lastName" autocomplete="family-name" />
-              <small *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid">
-                Last name is required.
+              <small *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid" i18n="@@lastNameValidation">
+                El apellido es obligatorio.
               </small>
             </label>
           </div>
 
           <label>
-            Email
+            <span i18n="@@emailLabel">Email</span>
             <input type="email" formControlName="email" autocomplete="email" />
-            <small *ngIf="form.controls.email.touched && form.controls.email.invalid">
-              Enter a valid email.
+            <small *ngIf="form.controls.email.touched && form.controls.email.invalid" i18n="@@emailValidation">
+              Ingresa un email válido.
             </small>
           </label>
 
           <label>
-            Password
+            <span i18n="@@passwordLabel">Contraseña</span>
             <input type="password" formControlName="password" autocomplete="new-password" />
-            <small *ngIf="form.controls.password.touched && form.controls.password.invalid">
-              Password must be at least 8 characters.
+            <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
+              La contraseña debe tener al menos 8 caracteres.
             </small>
           </label>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <button type="submit" [disabled]="form.invalid || loading()">
-            {{ loading() ? "Creating..." : "Create account" }}
+            {{ submitLabel() }}
           </button>
         </form>
 
-        <p class="switch-link">Already registered? <a routerLink="/login">Sign in</a></p>
+        <p class="switch-link" i18n="@@registerSwitch">¿Ya tienes cuenta? <a routerLink="/login">Ingresa</a></p>
       </section>
     </main>
   `
@@ -108,9 +112,13 @@ export class RegisterComponent {
       await this.authService.register(this.form.getRawValue());
       await this.router.navigateByUrl("/dashboard");
     } catch {
-      this.error.set("Unable to create account with these credentials.");
+      this.error.set($localize`:@@registerError:No fue posible crear la cuenta con esas credenciales.`);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  submitLabel(): string {
+    return this.loading() ? $localize`:@@registerSubmitting:Creando...` : $localize`:@@registerSubmit:Crear cuenta`;
   }
 }

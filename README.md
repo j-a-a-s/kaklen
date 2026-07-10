@@ -11,6 +11,7 @@ La autenticacion expone:
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
+- `PATCH /api/auth/me/preferences`
 
 `/api/auth/refresh` y `/api/auth/logout` validan el header `Origin` contra
 `AUTH_ALLOWED_ORIGINS`. Para desarrollo local:
@@ -18,6 +19,28 @@ La autenticacion expone:
 ```bash
 AUTH_ALLOWED_ORIGINS="http://localhost:4200"
 COOKIE_SECURE=false
+```
+
+## Internacionalizacion y configuracion regional
+
+La web soporta `es`, `en` y `pt-BR`, con `es` como idioma de interfaz predeterminado.
+El selector visible guarda la preferencia en `localStorage` solo como preferencia visual y, cuando hay usuario autenticado, actualiza `PATCH /api/auth/me/preferences`.
+
+Prioridad de locale:
+
+1. `User.locale`
+2. `Organization.defaultLocale`
+3. locale del navegador
+4. `es`
+
+La configuracion regional de negocio es independiente del idioma de interfaz. `Organization.country`, `currency`, `timezone`, `dateFormat` y `numberFormat` controlan fechas, numeros y moneda.
+
+Builds localizados:
+
+```bash
+pnpm --filter @kaklen/web build:es
+pnpm --filter @kaklen/web build:en
+pnpm --filter @kaklen/web build:pt-BR
 ```
 
 ## Organizaciones y RBAC
