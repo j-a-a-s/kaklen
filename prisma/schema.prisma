@@ -21,6 +21,8 @@ model User {
   organizationMemberships    OrganizationMembership[]
   organizationInvitations    OrganizationInvitation[] @relation("InvitationSender")
   organizationAuditLogs      OrganizationAuditLog[]   @relation("OrganizationAuditActor")
+  createdClients             Client[]                 @relation("ClientCreator")
+  clientInteractions         ClientInteraction[]
 }
 
 model RefreshToken {
@@ -58,6 +60,8 @@ model Organization {
   memberships OrganizationMembership[]
   invitations OrganizationInvitation[]
   auditLogs   OrganizationAuditLog[]
+  clients     Client[]
+  clientInteractions ClientInteraction[]
 
   @@index([createdByUserId])
 }
@@ -130,4 +134,75 @@ enum OrganizationRole {
   MANAGER
   MEMBER
   VIEWER
+}
+
+model Client {
+  id              String              @id @default(uuid())
+  organizationId  String
+  type            ClientType
+  status          ClientStatus        @default(LEAD)
+  displayName     String
+  firstName       String?
+  lastName        String?
+  legalName       String?
+  taxId           String?
+  email           String?
+  phone           String?
+  whatsapp        String?
+  country         String              @default("CL")
+  region          String?
+  city            String?
+  address         String?
+  notes           String?
+  createdByUserId String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  archivedAt      DateTime?
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User                @relation("ClientCreator", fields: [createdByUserId], references: [id])
+  interactions    ClientInteraction[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, displayName])
+  @@index([organizationId, taxId])
+}
+
+model ClientInteraction {
+  id             String                @id @default(uuid())
+  organizationId String
+  clientId       String
+  userId         String
+  type           ClientInteractionType
+  subject        String?
+  description    String
+  occurredAt     DateTime
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client         Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user           User                  @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, clientId])
+  @@index([organizationId, occurredAt])
+}
+
+enum ClientType {
+  NATURAL_PERSON
+  LEGAL_ENTITY
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientInteractionType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  WHATSAPP
 }
