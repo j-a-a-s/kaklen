@@ -8,15 +8,19 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  firstName     String
-  lastName      String
-  passwordHash  String
-  status        UserStatus     @default(ACTIVE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  refreshTokens RefreshToken[]
+  id                         String                   @id @default(uuid())
+  email                      String                   @unique
+  firstName                  String
+  lastName                   String
+  passwordHash               String
+  status                     UserStatus               @default(ACTIVE)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  refreshTokens              RefreshToken[]
+  createdOrganizations       Organization[]           @relation("OrganizationCreator")
+  organizationMemberships    OrganizationMembership[]
+  organizationInvitations    OrganizationInvitation[] @relation("InvitationSender")
+  organizationAuditLogs      OrganizationAuditLog[]   @relation("OrganizationAuditActor")
 }
 
 model RefreshToken {
@@ -34,4 +38,96 @@ model RefreshToken {
 enum UserStatus {
   ACTIVE
   DISABLED
+}
+
+model Organization {
+  id          String                   @id @default(uuid())
+  name        String
+  slug        String                   @unique
+  legalName   String?
+  taxId       String?
+  country     String                   @default("CL")
+  currency    String                   @default("CLP")
+  timezone    String                   @default("America/Santiago")
+  status      OrganizationStatus       @default(ACTIVE)
+  createdByUserId String
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  deletedAt   DateTime?
+  createdBy   User                     @relation("OrganizationCreator", fields: [createdByUserId], references: [id])
+  memberships OrganizationMembership[]
+  invitations OrganizationInvitation[]
+  auditLogs   OrganizationAuditLog[]
+
+  @@index([createdByUserId])
+}
+
+model OrganizationMembership {
+  id             String                       @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole
+  status         OrganizationMembershipStatus @default(ACTIVE)
+  joinedAt       DateTime                     @default(now())
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model OrganizationInvitation {
+  id             String           @id @default(uuid())
+  organizationId String
+  email          String
+  role           OrganizationRole
+  tokenHash      String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  invitedByUserId String
+  createdAt      DateTime         @default(now())
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy      User             @relation("InvitationSender", fields: [invitedByUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model OrganizationAuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  actorUserId    String
+  action         String
+  targetType     String
+  targetId       String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User         @relation("OrganizationAuditActor", fields: [actorUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([actorUserId])
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum OrganizationMembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
 }

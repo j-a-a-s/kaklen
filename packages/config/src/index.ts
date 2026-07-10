@@ -12,6 +12,11 @@ export interface AuthConfig {
   authAllowedOrigins: string[];
 }
 
+export interface OrganizationConfig {
+  organizationInvitationExpiresSeconds: number;
+  appWebUrl: string;
+}
+
 export function readApiConfig(env: Record<string, string | undefined>): ApiConfig {
   const port = Number(env.API_PORT ?? 3000);
   const databaseUrl =
@@ -24,6 +29,25 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
   return {
     port,
     databaseUrl
+  };
+}
+
+export function readOrganizationConfig(env: Record<string, string | undefined>): OrganizationConfig {
+  const organizationInvitationExpiresSeconds = Number(
+    env.ORGANIZATION_INVITATION_EXPIRES_SECONDS ?? 259200
+  );
+  const appWebUrl = env.APP_WEB_URL ?? "http://localhost:4200";
+
+  if (
+    !Number.isInteger(organizationInvitationExpiresSeconds) ||
+    organizationInvitationExpiresSeconds <= 0
+  ) {
+    throw new Error("ORGANIZATION_INVITATION_EXPIRES_SECONDS must be a positive integer");
+  }
+
+  return {
+    organizationInvitationExpiresSeconds,
+    appWebUrl
   };
 }
 

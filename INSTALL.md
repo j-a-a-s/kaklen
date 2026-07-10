@@ -27,6 +27,8 @@ JWT_ACCESS_SECRET="usa-un-secreto-largo-y-unico"
 JWT_REFRESH_SECRET="usa-otro-secreto-largo-y-unico"
 AUTH_ALLOWED_ORIGINS="http://localhost:4200"
 COOKIE_SECURE=false
+ORGANIZATION_INVITATION_EXPIRES_SECONDS=259200
+APP_WEB_URL=http://localhost:4200
 ```
 
 3. Levantar PostgreSQL:
@@ -77,3 +79,4 @@ POSTGRES_PORT=55432 pnpm dev
 - Swagger: http://localhost:3000/docs
 - Web: http://localhost:4200
 - Auth: http://localhost:3000/api/auth/login
+- Organizaciones: http://localhost:3000/api/organizations

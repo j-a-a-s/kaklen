@@ -21,7 +21,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -44,6 +45,17 @@ button.secondary {
   border: 1px solid #cbd5df;
   background: #ffffff;
   color: #18202f;
+}
+
+.button-link {
+  display: inline-grid;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #287f71;
+  color: #ffffff;
+  padding: 0 16px;
 }
 
 .topbar {
@@ -130,6 +142,15 @@ input {
   color: #18202f;
 }
 
+select {
+  min-height: 44px;
+  border: 1px solid #cbd5df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #18202f;
+  padding: 8px 10px;
+}
+
 input:focus {
   border-color: #287f71;
   outline: 3px solid rgb(40 127 113 / 18%);
@@ -176,6 +197,36 @@ small,
   color: #4d5b6f;
 }
 
+.list-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.item-row {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #d6dde6;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.item-row strong,
+.item-row small {
+  display: block;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+code {
+  overflow-wrap: anywhere;
+}
+
 dl {
   display: grid;
   gap: 14px;
@@ -206,6 +257,11 @@ dd {
 
   .dashboard-header {
     grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .item-row {
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
 }
