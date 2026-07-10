@@ -23,6 +23,7 @@ model User {
   organizationAuditLogs      OrganizationAuditLog[]   @relation("OrganizationAuditActor")
   createdClients             Client[]                 @relation("ClientCreator")
   clientInteractions         ClientInteraction[]
+  createdCatalogItems        CatalogItem[]            @relation("CatalogItemCreator")
 }
 
 model RefreshToken {
@@ -62,6 +63,7 @@ model Organization {
   auditLogs   OrganizationAuditLog[]
   clients     Client[]
   clientInteractions ClientInteraction[]
+  catalogItems CatalogItem[]
 
   @@index([createdByUserId])
 }
@@ -205,4 +207,46 @@ enum ClientInteractionType {
   EMAIL
   MEETING
   WHATSAPP
+}
+
+model CatalogItem {
+  id              String            @id @default(uuid())
+  organizationId  String
+  type            CatalogItemType
+  status          CatalogItemStatus @default(ACTIVE)
+  sku             String?
+  code            String
+  name            String
+  description     String?
+  unit            String
+  cost            Decimal           @db.Decimal(12, 2)
+  price           Decimal           @db.Decimal(12, 2)
+  taxPercent      Decimal           @db.Decimal(5, 2)
+  currency        String
+  trackInventory  Boolean
+  createdByUserId String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  archivedAt      DateTime?
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User              @relation("CatalogItemCreator", fields: [createdByUserId], references: [id])
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@index([organizationId, code])
+  @@index([organizationId, sku])
+  @@index([organizationId, name])
+}
+
+enum CatalogItemType {
+  PRODUCT
+  SERVICE
+}
+
+enum CatalogItemStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }

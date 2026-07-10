@@ -12,6 +12,10 @@ export const PERMISSIONS = [
   "clients.create",
   "clients.update",
   "clients.delete",
+  "catalog.read",
+  "catalog.create",
+  "catalog.update",
+  "catalog.delete",
   "wallet.read",
   "wallet.manage"
 ] as const;
@@ -28,6 +32,10 @@ export const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> =
     "clients.create",
     "clients.update",
     "clients.delete",
+    "catalog.read",
+    "catalog.create",
+    "catalog.update",
+    "catalog.delete",
     "wallet.read"
   ],
   MEMBER: [
@@ -35,9 +43,12 @@ export const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> =
     "clients.read",
     "clients.create",
     "clients.update",
+    "catalog.read",
+    "catalog.create",
+    "catalog.update",
     "wallet.read"
   ],
-  VIEWER: ["organization.read", "clients.read"]
+  VIEWER: ["organization.read", "clients.read", "catalog.read"]
 };
 
 export function permissionsForRole(role: OrganizationRole): readonly Permission[] {

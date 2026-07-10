@@ -19,4 +19,9 @@ describe("organization permissions", () => {
     expect(roleHasPermissions(OrganizationRole.MEMBER, ["clients.update"])).toBe(true);
     expect(roleHasPermissions(OrganizationRole.MEMBER, ["organization.members.invite"])).toBe(false);
   });
+
+  it("allows VIEWER to read catalog but not modify it", () => {
+    expect(roleHasPermissions(OrganizationRole.VIEWER, ["catalog.read"])).toBe(true);
+    expect(roleHasPermissions(OrganizationRole.VIEWER, ["catalog.update"])).toBe(false);
+  });
 });
