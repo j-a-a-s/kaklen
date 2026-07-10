@@ -11,6 +11,10 @@ export type Permission =
   | "clients.create"
   | "clients.update"
   | "clients.delete"
+  | "catalog.read"
+  | "catalog.create"
+  | "catalog.update"
+  | "catalog.delete"
   | "wallet.read"
   | "wallet.manage";
 

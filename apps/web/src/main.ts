@@ -15,6 +15,9 @@ import { OrganizationsListComponent } from "./app/pages/organizations-list.compo
 import { ClientDetailComponent } from "./app/pages/client-detail.component";
 import { ClientFormComponent } from "./app/pages/client-form.component";
 import { ClientsListComponent } from "./app/pages/clients-list.component";
+import { CatalogDetailComponent } from "./app/pages/catalog-detail.component";
+import { CatalogFormComponent } from "./app/pages/catalog-form.component";
+import { CatalogListComponent } from "./app/pages/catalog-list.component";
 
 const routes: Routes = [
   { path: "login", component: LoginComponent },
@@ -50,6 +53,26 @@ const routes: Routes = [
   {
     path: "organizations/:organizationId/clients/:clientId/edit",
     component: ClientFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/catalog",
+    component: CatalogListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/catalog/new",
+    component: CatalogFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/catalog/:itemId",
+    component: CatalogDetailComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/catalog/:itemId/edit",
+    component: CatalogFormComponent,
     canActivate: [authGuard]
   },
   { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },

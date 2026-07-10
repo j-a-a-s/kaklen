@@ -15,6 +15,9 @@ import { OrganizationsListComponent } from "./app/pages/organizations-list.compo
 import { ClientDetailComponent } from "./app/pages/client-detail.component";
 import { ClientFormComponent } from "./app/pages/client-form.component";
 import { ClientsListComponent } from "./app/pages/clients-list.component";
+import { CatalogDetailComponent } from "./app/pages/catalog-detail.component";
+import { CatalogFormComponent } from "./app/pages/catalog-form.component";
+import { CatalogListComponent } from "./app/pages/catalog-list.component";
 import * as i0 from "@angular/core";
 const routes = [
     { path: "login", component: LoginComponent },
@@ -50,6 +53,26 @@ const routes = [
     {
         path: "organizations/:organizationId/clients/:clientId/edit",
         component: ClientFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/catalog",
+        component: CatalogListComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/catalog/new",
+        component: CatalogFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/catalog/:itemId",
+        component: CatalogDetailComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/catalog/:itemId/edit",
+        component: CatalogFormComponent,
         canActivate: [authGuard]
     },
     { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },
@@ -93,7 +116,7 @@ class AppComponent {
   `
             }]
     }], null, null); })();
-(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 76 }); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 99 }); })();
 bootstrapApplication(AppComponent, {
     providers: [provideRouter(routes), provideHttpClient(withInterceptors([authInterceptor]))]
 }).catch((error) => {
