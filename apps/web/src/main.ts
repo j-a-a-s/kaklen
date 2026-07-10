@@ -7,11 +7,29 @@ import { authInterceptor } from "./app/auth/auth.interceptor";
 import { DashboardComponent } from "./app/pages/dashboard.component";
 import { LoginComponent } from "./app/pages/login.component";
 import { RegisterComponent } from "./app/pages/register.component";
+import { AcceptInvitationComponent } from "./app/pages/accept-invitation.component";
+import { OrganizationMembersComponent } from "./app/pages/organization-members.component";
+import { OrganizationNewComponent } from "./app/pages/organization-new.component";
+import { OrganizationSettingsComponent } from "./app/pages/organization-settings.component";
+import { OrganizationsListComponent } from "./app/pages/organizations-list.component";
 
 const routes: Routes = [
   { path: "login", component: LoginComponent },
   { path: "register", component: RegisterComponent },
   { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
+  { path: "organizations", component: OrganizationsListComponent, canActivate: [authGuard] },
+  { path: "organizations/new", component: OrganizationNewComponent, canActivate: [authGuard] },
+  {
+    path: "organizations/:organizationId/settings",
+    component: OrganizationSettingsComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/members",
+    component: OrganizationMembersComponent,
+    canActivate: [authGuard]
+  },
+  { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },
   { path: "", pathMatch: "full", redirectTo: "login" },
   { path: "**", redirectTo: "login" }
 ];
@@ -26,6 +44,7 @@ const routes: Routes = [
       <nav aria-label="Primary">
         <a routerLink="/login">Login</a>
         <a routerLink="/register">Register</a>
+        <a routerLink="/organizations">Organizaciones</a>
       </nav>
     </header>
     <router-outlet />
