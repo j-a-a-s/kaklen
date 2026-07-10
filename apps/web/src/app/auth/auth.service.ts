@@ -1,10 +1,11 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, signal } from "@angular/core";
 import { firstValueFrom, tap } from "rxjs";
+import { API_BASE_URL } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UpdatePreferencesRequest } from "./auth.models";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = API_BASE_URL;
 
 @Injectable({ providedIn: "root" })
 export class AuthService {

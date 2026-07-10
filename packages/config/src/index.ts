@@ -1,6 +1,17 @@
 export interface ApiConfig {
+  nodeEnv: "development" | "test" | "production";
   port: number;
   databaseUrl: string;
+  databaseSsl: boolean;
+  appVersion: string;
+  commitSha: string;
+  corsAllowedOrigins: string[];
+  awsRegion: string;
+  awsS3Bucket: string;
+  awsS3Endpoint?: string;
+  awsCloudFrontDomain?: string;
+  logLevel: "debug" | "info" | "warn" | "error";
+  trustProxy: boolean;
 }
 
 export interface AuthConfig {
@@ -17,18 +28,50 @@ export interface OrganizationConfig {
   appWebUrl: string;
 }
 
+const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen@localhost:5432/kaklen?schema=public";
+const LOCAL_ORIGIN = "http://localhost:4200";
+
 export function readApiConfig(env: Record<string, string | undefined>): ApiConfig {
-  const port = Number(env.API_PORT ?? 3000);
-  const databaseUrl =
-    env.DATABASE_URL ?? "postgresql://kaklen:kaklen@localhost:5432/kaklen?schema=public";
+  const nodeEnv = parseNodeEnv(env.NODE_ENV);
+  const isProduction = nodeEnv === "production";
+  const port = Number(env.PORT ?? env.API_PORT ?? 3000);
+  const databaseUrl = requireString(env, "DATABASE_URL", isProduction, LOCAL_DATABASE_URL);
+  const databaseSsl = parseBoolean(env.DATABASE_SSL, isProduction);
+  const appVersion = requireString(env, "APP_VERSION", isProduction, env.npm_package_version ?? "0.1.0");
+  const commitSha = requireString(env, "COMMIT_SHA", isProduction, "local");
+  const corsAllowedOrigins = parseList(
+    requireString(env, "CORS_ALLOWED_ORIGINS", isProduction, env.AUTH_ALLOWED_ORIGINS ?? LOCAL_ORIGIN)
+  );
+  const awsRegion = requireString(env, "AWS_REGION", isProduction, "us-east-1");
+  const awsS3Bucket = requireString(env, "AWS_S3_BUCKET", isProduction, "kaklen-local");
+  const logLevel = parseLogLevel(env.LOG_LEVEL ?? (isProduction ? "info" : "debug"));
 
   if (!Number.isInteger(port) || port <= 0) {
-    throw new Error("API_PORT must be a positive integer");
+    throw new Error("PORT must be a positive integer");
+  }
+
+  if (isProduction && !databaseSsl) {
+    throw new Error("DATABASE_SSL must be true in production");
+  }
+
+  if (corsAllowedOrigins.length === 0) {
+    throw new Error("CORS_ALLOWED_ORIGINS must include at least one origin");
   }
 
   return {
+    nodeEnv,
     port,
-    databaseUrl
+    databaseUrl,
+    databaseSsl,
+    appVersion,
+    commitSha,
+    corsAllowedOrigins,
+    awsRegion,
+    awsS3Bucket,
+    awsS3Endpoint: optionalString(env.AWS_S3_ENDPOINT),
+    awsCloudFrontDomain: optionalString(env.AWS_CLOUDFRONT_DOMAIN),
+    logLevel,
+    trustProxy: parseBoolean(env.TRUST_PROXY, false)
   };
 }
 
@@ -49,6 +92,52 @@ export function readOrganizationConfig(env: Record<string, string | undefined>):
     organizationInvitationExpiresSeconds,
     appWebUrl
   };
+}
+
+function parseNodeEnv(value: string | undefined): ApiConfig["nodeEnv"] {
+  if (value === "production" || value === "test" || value === "development") {
+    return value;
+  }
+  return "development";
+}
+
+function parseLogLevel(value: string): ApiConfig["logLevel"] {
+  if (value === "debug" || value === "info" || value === "warn" || value === "error") {
+    return value;
+  }
+  throw new Error("LOG_LEVEL must be debug, info, warn, or error");
+}
+
+function parseBoolean(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) {
+    return fallback;
+  }
+  return ["1", "true", "yes"].includes(value.toLowerCase());
+}
+
+function parseList(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function requireString(
+  env: Record<string, string | undefined>,
+  key: string,
+  required: boolean,
+  fallback: string
+): string {
+  const value = optionalString(env[key]);
+  if (!value && required) {
+    throw new Error(`${key} is required in production`);
+  }
+  return value ?? fallback;
+}
+
+function optionalString(value: string | undefined): string | undefined {
+  const cleaned = value?.trim();
+  return cleaned ? cleaned : undefined;
 }
 
 export function readAuthConfig(env: Record<string, string | undefined>): AuthConfig {

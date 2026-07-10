@@ -2,9 +2,10 @@ import { HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
 import { inject } from "@angular/core";
 import { from, throwError } from "rxjs";
 import { catchError, switchMap } from "rxjs/operators";
+import { API_BASE_URL } from "../config/runtime-config";
 import { AuthService } from "./auth.service";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = API_BASE_URL;
 const RETRY_HEADER = "x-kaklen-auth-retry";
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {

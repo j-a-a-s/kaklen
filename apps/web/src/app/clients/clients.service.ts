@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { firstValueFrom } from "rxjs";
+import { API_BASE_URL } from "../config/runtime-config";
 import {
   Client,
   ClientInteraction,
@@ -11,7 +12,7 @@ import {
   PaginatedClients
 } from "./client.models";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = API_BASE_URL;
 
 export interface ClientPayload {
   type: ClientType;

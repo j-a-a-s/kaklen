@@ -8,6 +8,10 @@
     "build": "turbo run build --concurrency=1",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "web:runtime-config": "node scripts/write-runtime-config.mjs",
+    "db:generate": "pnpm prisma:generate",
+    "db:migrate:deploy": "DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required} prisma migrate deploy",
+    "db:status": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate status",
     "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma generate",
     "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate dev --name init",
     "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma studio"

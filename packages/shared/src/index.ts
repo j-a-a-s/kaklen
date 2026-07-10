@@ -1,6 +1,8 @@
 export interface HealthResponse {
-  status: "ok";
+  status: "ok" | "error";
   service: string;
+  version: string;
+  commitSha: string;
   timestamp: string;
 }
 

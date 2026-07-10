@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, computed, signal } from "@angular/core";
 import { firstValueFrom, tap } from "rxjs";
+import { API_BASE_URL } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import {
   Organization,
@@ -10,7 +11,7 @@ import {
   Permission
 } from "./organization.models";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = API_BASE_URL;
 const ACTIVE_ORGANIZATION_KEY = "kaklen.activeOrganizationId";
 
 @Injectable({ providedIn: "root" })

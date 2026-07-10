@@ -1,23 +1,36 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ValidationPipe } from "@nestjs/common";
+import { json, urlencoded } from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { readApiConfig } from "@kaklen/config";
 import { KAKLEN_API_PREFIX } from "@kaklen/shared";
 import { AppModule } from "./app.module";
 import { ApiErrorFilter } from "./common/api-error.filter";
+import { requestLoggingMiddleware } from "./common/runtime-logging";
 
 async function bootstrap(): Promise<void> {
   const config = readApiConfig(process.env);
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+  app.enableShutdownHooks();
+  const expressApp = app.getHttpAdapter().getInstance();
+  if (config.trustProxy && typeof expressApp.set === "function") {
+    expressApp.set("trust proxy", 1);
+  }
+  app.use(json({ limit: "1mb" }));
+  app.use(urlencoded({ extended: true, limit: "1mb" }));
   app.use(helmet());
   app.use(cookieParser());
+  app.use(requestLoggingMiddleware);
   app.enableCors({
-    origin: ["http://localhost:4200"],
+    origin: config.corsAllowedOrigins,
     credentials: true
   });
+  if (typeof expressApp.disable === "function") {
+    expressApp.disable("x-powered-by");
+  }
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
