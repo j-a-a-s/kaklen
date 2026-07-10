@@ -22,6 +22,9 @@ import { ClientsListComponent } from "./app/pages/clients-list.component";
 import { CatalogDetailComponent } from "./app/pages/catalog-detail.component";
 import { CatalogFormComponent } from "./app/pages/catalog-form.component";
 import { CatalogListComponent } from "./app/pages/catalog-list.component";
+import { QuotationDetailComponent } from "./app/pages/quotation-detail.component";
+import { QuotationFormComponent } from "./app/pages/quotation-form.component";
+import { QuotationListComponent } from "./app/pages/quotation-list.component";
 import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
 import * as i0 from "@angular/core";
 registerLocaleData(localeEs, "es");
@@ -95,6 +98,26 @@ const routes = [
     {
         path: "organizations/:organizationId/catalog/:itemId/edit",
         component: CatalogFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/quotations",
+        component: QuotationListComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/quotations/new",
+        component: QuotationFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/quotations/:quotationId",
+        component: QuotationDetailComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: "organizations/:organizationId/quotations/:quotationId/edit",
+        component: QuotationFormComponent,
         canActivate: [authGuard]
     },
     { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },
@@ -177,7 +200,7 @@ class AppComponent {
   `
             }]
     }], null, null); })();
-(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 128 }); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 151 }); })();
 bootstrapApplication(AppComponent, {
     providers: [
         provideRouter(routes),

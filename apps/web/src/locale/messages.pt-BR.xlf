@@ -750,6 +750,202 @@
         <source>Zona horaria</source>
         <target>Fuso horário</target>
       </trans-unit>
+    <trans-unit id="quotationsEyebrow" datatype="html">
+        <source>Cotizaciones</source>
+        <target>Cotações</target>
+      </trans-unit>
+    <trans-unit id="quotationsTitle" datatype="html">
+        <source>Cotizaciones</source>
+        <target>Cotações</target>
+      </trans-unit>
+    <trans-unit id="quotationsDescription" datatype="html">
+        <source>Crea, envía y controla propuestas comerciales por organización.</source>
+        <target>Crie, envie e acompanhe propostas comerciais por organização.</target>
+      </trans-unit>
+    <trans-unit id="newQuotationButton" datatype="html">
+        <source>Nueva cotización</source>
+        <target>Nova cotação</target>
+      </trans-unit>
+    <trans-unit id="draftLabel" datatype="html">
+        <source>Borrador</source>
+        <target>Rascunhos</target>
+      </trans-unit>
+    <trans-unit id="sentLabel" datatype="html">
+        <source>Enviada</source>
+        <target>Enviadas</target>
+      </trans-unit>
+    <trans-unit id="approvedLabel" datatype="html">
+        <source>Aprobada</source>
+        <target>Aprovadas</target>
+      </trans-unit>
+    <trans-unit id="approvedAmountLabel" datatype="html">
+        <source>Monto aprobado</source>
+        <target>Valor aprovado</target>
+      </trans-unit>
+    <trans-unit id="rejectedLabel" datatype="html">
+        <source>Rechazada</source>
+        <target>Rejeitada</target>
+      </trans-unit>
+    <trans-unit id="cancelledLabel" datatype="html">
+        <source>Cancelada</source>
+        <target>Cancelada</target>
+      </trans-unit>
+    <trans-unit id="quotationsEmpty" datatype="html">
+        <source>No hay cotizaciones para los filtros seleccionados.</source>
+        <target>Nenhuma cotação corresponde aos filtros selecionados.</target>
+      </trans-unit>
+    <trans-unit id="quotationSearchPlaceholder" datatype="html">
+        <source>Número o cliente</source>
+        <target>Número ou cliente</target>
+      </trans-unit>
+    <trans-unit id="quotationsLoadError" datatype="html">
+        <source>No fue posible cargar las cotizaciones.</source>
+        <target>Não foi possível carregar as cotações.</target>
+      </trans-unit>
+    <trans-unit id="expiredLabel" datatype="html">
+        <source>Expirada</source>
+        <target>Expirada</target>
+      </trans-unit>
+    <trans-unit id="quotationFormDescription" datatype="html">
+        <source>Los totales se recalculan en backend al guardar.</source>
+        <target>Os totais são recalculados pelo backend ao salvar.</target>
+      </trans-unit>
+    <trans-unit id="clientLabel" datatype="html">
+        <source>Cliente</source>
+        <target>Cliente</target>
+      </trans-unit>
+    <trans-unit id="selectClientOption" datatype="html">
+        <source>Selecciona cliente</source>
+        <target>Selecione cliente</target>
+      </trans-unit>
+    <trans-unit id="issueDateLabel" datatype="html">
+        <source>Fecha de emisión</source>
+        <target>Data de emissão</target>
+      </trans-unit>
+    <trans-unit id="validUntilLabel" datatype="html">
+        <source>Válida hasta</source>
+        <target>Válida até</target>
+      </trans-unit>
+    <trans-unit id="catalogItemLabel" datatype="html">
+        <source>Producto o servicio</source>
+        <target>Produto ou serviço</target>
+      </trans-unit>
+    <trans-unit id="customItemOption" datatype="html">
+        <source>Ítem personalizado</source>
+        <target>Item personalizado</target>
+      </trans-unit>
+    <trans-unit id="customOption" datatype="html">
+        <source>Personalizado</source>
+        <target>Personalizado</target>
+      </trans-unit>
+    <trans-unit id="quantityLabel" datatype="html">
+        <source>Cantidad</source>
+        <target>Quantidade</target>
+      </trans-unit>
+    <trans-unit id="unitPriceLabel" datatype="html">
+        <source>Precio unitario</source>
+        <target>Preço unitário</target>
+      </trans-unit>
+    <trans-unit id="discountTypeLabel" datatype="html">
+        <source>Tipo de descuento</source>
+        <target>Tipo de desconto</target>
+      </trans-unit>
+    <trans-unit id="discountNoneOption" datatype="html">
+        <source>Sin descuento</source>
+        <target>Sem desconto</target>
+      </trans-unit>
+    <trans-unit id="discountPercentageOption" datatype="html">
+        <source>Porcentaje</source>
+        <target>Porcentagem</target>
+      </trans-unit>
+    <trans-unit id="discountFixedOption" datatype="html">
+        <source>Monto fijo</source>
+        <target>Valor fixo</target>
+      </trans-unit>
+    <trans-unit id="discountValueLabel" datatype="html">
+        <source>Descuento</source>
+        <target>Desconto</target>
+      </trans-unit>
+    <trans-unit id="addItemButton" datatype="html">
+        <source>Agregar ítem</source>
+        <target>Adicionar item</target>
+      </trans-unit>
+    <trans-unit id="termsLabel" datatype="html">
+        <source>Términos</source>
+        <target>Termos</target>
+      </trans-unit>
+    <trans-unit id="saveQuotationButton" datatype="html">
+        <source>Guardar cotización</source>
+        <target>Salvar cotação</target>
+      </trans-unit>
+    <trans-unit id="newQuotationTitle" datatype="html">
+        <source>Nueva cotización</source>
+        <target>Nova cotação</target>
+      </trans-unit>
+    <trans-unit id="editQuotationTitle" datatype="html">
+        <source>Editar cotización</source>
+        <target>Editar cotação</target>
+      </trans-unit>
+    <trans-unit id="quotationSaveError" datatype="html">
+        <source>No fue posible guardar la cotización.</source>
+        <target>Não foi possível salvar a cotação.</target>
+      </trans-unit>
+    <trans-unit id="sendQuotationButton" datatype="html">
+        <source>Enviar</source>
+        <target>Enviar</target>
+      </trans-unit>
+    <trans-unit id="approveQuotationButton" datatype="html">
+        <source>Aprobar</source>
+        <target>Aprovar</target>
+      </trans-unit>
+    <trans-unit id="rejectQuotationButton" datatype="html">
+        <source>Rechazar</source>
+        <target>Rejeitar</target>
+      </trans-unit>
+    <trans-unit id="cancelQuotationButton" datatype="html">
+        <source>Cancelar</source>
+        <target>Cancelar</target>
+      </trans-unit>
+    <trans-unit id="newVersionButton" datatype="html">
+        <source>Nueva versión</source>
+        <target>Nova versão</target>
+      </trans-unit>
+    <trans-unit id="downloadPdfButton" datatype="html">
+        <source>Descargar PDF</source>
+        <target>Baixar PDF</target>
+      </trans-unit>
+    <trans-unit id="subtotalLabel" datatype="html">
+        <source>Subtotal</source>
+        <target>Subtotal</target>
+      </trans-unit>
+    <trans-unit id="discountTotalLabel" datatype="html">
+        <source>Descuentos</source>
+        <target>Descontos</target>
+      </trans-unit>
+    <trans-unit id="taxTotalLabel" datatype="html">
+        <source>Impuestos</source>
+        <target>Impostos</target>
+      </trans-unit>
+    <trans-unit id="statusHistoryTitle" datatype="html">
+        <source>Historial</source>
+        <target>Histórico</target>
+      </trans-unit>
+    <trans-unit id="emptyNoteLabel" datatype="html">
+        <source>Sin nota</source>
+        <target>Sem nota</target>
+      </trans-unit>
+    <trans-unit id="quotationStatusError" datatype="html">
+        <source>No fue posible cambiar el estado.</source>
+        <target>Não foi possível alterar o status.</target>
+      </trans-unit>
+    <trans-unit id="quotationVersionError" datatype="html">
+        <source>No fue posible crear una nueva versión.</source>
+        <target>Não foi possível criar uma nova versão.</target>
+      </trans-unit>
+    <trans-unit id="quotationLoadError" datatype="html">
+        <source>No fue posible cargar la cotización.</source>
+        <target>Não foi possível carregar a cotação.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

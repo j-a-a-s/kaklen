@@ -15,6 +15,13 @@ export type Permission =
   | "catalog.create"
   | "catalog.update"
   | "catalog.delete"
+  | "quotations.read"
+  | "quotations.create"
+  | "quotations.update"
+  | "quotations.send"
+  | "quotations.approve"
+  | "quotations.reject"
+  | "quotations.delete"
   | "wallet.read"
   | "wallet.manage";
 
