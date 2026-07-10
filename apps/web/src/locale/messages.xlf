@@ -563,6 +563,153 @@
     <trans-unit id="timezoneLabel" datatype="html">
         <source>Zona horaria</source>
       </trans-unit>
+    <trans-unit id="quotationsEyebrow" datatype="html">
+        <source>Cotizaciones</source>
+      </trans-unit>
+    <trans-unit id="quotationsTitle" datatype="html">
+        <source>Cotizaciones</source>
+      </trans-unit>
+    <trans-unit id="quotationsDescription" datatype="html">
+        <source>Crea, envía y controla propuestas comerciales por organización.</source>
+      </trans-unit>
+    <trans-unit id="newQuotationButton" datatype="html">
+        <source>Nueva cotización</source>
+      </trans-unit>
+    <trans-unit id="draftLabel" datatype="html">
+        <source>Borrador</source>
+      </trans-unit>
+    <trans-unit id="sentLabel" datatype="html">
+        <source>Enviada</source>
+      </trans-unit>
+    <trans-unit id="approvedLabel" datatype="html">
+        <source>Aprobada</source>
+      </trans-unit>
+    <trans-unit id="approvedAmountLabel" datatype="html">
+        <source>Monto aprobado</source>
+      </trans-unit>
+    <trans-unit id="rejectedLabel" datatype="html">
+        <source>Rechazada</source>
+      </trans-unit>
+    <trans-unit id="cancelledLabel" datatype="html">
+        <source>Cancelada</source>
+      </trans-unit>
+    <trans-unit id="quotationsEmpty" datatype="html">
+        <source>No hay cotizaciones para los filtros seleccionados.</source>
+      </trans-unit>
+    <trans-unit id="quotationSearchPlaceholder" datatype="html">
+        <source>Número o cliente</source>
+      </trans-unit>
+    <trans-unit id="quotationsLoadError" datatype="html">
+        <source>No fue posible cargar las cotizaciones.</source>
+      </trans-unit>
+    <trans-unit id="expiredLabel" datatype="html">
+        <source>Expirada</source>
+      </trans-unit>
+    <trans-unit id="quotationFormDescription" datatype="html">
+        <source>Los totales se recalculan en backend al guardar.</source>
+      </trans-unit>
+    <trans-unit id="clientLabel" datatype="html">
+        <source>Cliente</source>
+      </trans-unit>
+    <trans-unit id="selectClientOption" datatype="html">
+        <source>Selecciona cliente</source>
+      </trans-unit>
+    <trans-unit id="issueDateLabel" datatype="html">
+        <source>Fecha de emisión</source>
+      </trans-unit>
+    <trans-unit id="validUntilLabel" datatype="html">
+        <source>Válida hasta</source>
+      </trans-unit>
+    <trans-unit id="catalogItemLabel" datatype="html">
+        <source>Producto o servicio</source>
+      </trans-unit>
+    <trans-unit id="customItemOption" datatype="html">
+        <source>Ítem personalizado</source>
+      </trans-unit>
+    <trans-unit id="customOption" datatype="html">
+        <source>Personalizado</source>
+      </trans-unit>
+    <trans-unit id="quantityLabel" datatype="html">
+        <source>Cantidad</source>
+      </trans-unit>
+    <trans-unit id="unitPriceLabel" datatype="html">
+        <source>Precio unitario</source>
+      </trans-unit>
+    <trans-unit id="discountTypeLabel" datatype="html">
+        <source>Tipo de descuento</source>
+      </trans-unit>
+    <trans-unit id="discountNoneOption" datatype="html">
+        <source>Sin descuento</source>
+      </trans-unit>
+    <trans-unit id="discountPercentageOption" datatype="html">
+        <source>Porcentaje</source>
+      </trans-unit>
+    <trans-unit id="discountFixedOption" datatype="html">
+        <source>Monto fijo</source>
+      </trans-unit>
+    <trans-unit id="discountValueLabel" datatype="html">
+        <source>Descuento</source>
+      </trans-unit>
+    <trans-unit id="addItemButton" datatype="html">
+        <source>Agregar ítem</source>
+      </trans-unit>
+    <trans-unit id="termsLabel" datatype="html">
+        <source>Términos</source>
+      </trans-unit>
+    <trans-unit id="saveQuotationButton" datatype="html">
+        <source>Guardar cotización</source>
+      </trans-unit>
+    <trans-unit id="newQuotationTitle" datatype="html">
+        <source>Nueva cotización</source>
+      </trans-unit>
+    <trans-unit id="editQuotationTitle" datatype="html">
+        <source>Editar cotización</source>
+      </trans-unit>
+    <trans-unit id="quotationSaveError" datatype="html">
+        <source>No fue posible guardar la cotización.</source>
+      </trans-unit>
+    <trans-unit id="sendQuotationButton" datatype="html">
+        <source>Enviar</source>
+      </trans-unit>
+    <trans-unit id="approveQuotationButton" datatype="html">
+        <source>Aprobar</source>
+      </trans-unit>
+    <trans-unit id="rejectQuotationButton" datatype="html">
+        <source>Rechazar</source>
+      </trans-unit>
+    <trans-unit id="cancelQuotationButton" datatype="html">
+        <source>Cancelar</source>
+      </trans-unit>
+    <trans-unit id="newVersionButton" datatype="html">
+        <source>Nueva versión</source>
+      </trans-unit>
+    <trans-unit id="downloadPdfButton" datatype="html">
+        <source>Descargar PDF</source>
+      </trans-unit>
+    <trans-unit id="subtotalLabel" datatype="html">
+        <source>Subtotal</source>
+      </trans-unit>
+    <trans-unit id="discountTotalLabel" datatype="html">
+        <source>Descuentos</source>
+      </trans-unit>
+    <trans-unit id="taxTotalLabel" datatype="html">
+        <source>Impuestos</source>
+      </trans-unit>
+    <trans-unit id="statusHistoryTitle" datatype="html">
+        <source>Historial</source>
+      </trans-unit>
+    <trans-unit id="emptyNoteLabel" datatype="html">
+        <source>Sin nota</source>
+      </trans-unit>
+    <trans-unit id="quotationStatusError" datatype="html">
+        <source>No fue posible cambiar el estado.</source>
+      </trans-unit>
+    <trans-unit id="quotationVersionError" datatype="html">
+        <source>No fue posible crear una nueva versión.</source>
+      </trans-unit>
+    <trans-unit id="quotationLoadError" datatype="html">
+        <source>No fue posible cargar la cotización.</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

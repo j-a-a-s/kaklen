@@ -25,6 +25,8 @@ model User {
   createdClients             Client[]                 @relation("ClientCreator")
   clientInteractions         ClientInteraction[]
   createdCatalogItems        CatalogItem[]            @relation("CatalogItemCreator")
+  createdQuotations          Quotation[]              @relation("QuotationCreator")
+  quotationStatusChanges     QuotationStatusHistory[] @relation("QuotationStatusChanger")
 }
 
 model RefreshToken {
@@ -68,6 +70,8 @@ model Organization {
   clients     Client[]
   clientInteractions ClientInteraction[]
   catalogItems CatalogItem[]
+  quotations  Quotation[]
+  quotationStatusHistory QuotationStatusHistory[]
 
   @@index([createdByUserId])
 }
@@ -167,6 +171,7 @@ model Client {
   organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy       User                @relation("ClientCreator", fields: [createdByUserId], references: [id])
   interactions    ClientInteraction[]
+  quotations      Quotation[]
 
   @@index([organizationId])
   @@index([organizationId, status])
@@ -234,6 +239,7 @@ model CatalogItem {
   archivedAt      DateTime?
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy       User              @relation("CatalogItemCreator", fields: [createdByUserId], references: [id])
+  quotationItems  QuotationItem[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -253,4 +259,106 @@ enum CatalogItemStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
+}
+
+model Quotation {
+  id              String                   @id @default(uuid())
+  organizationId  String
+  clientId        String
+  number          String
+  version         Int                      @default(1)
+  status          QuotationStatus          @default(DRAFT)
+  issueDate       DateTime
+  validUntil      DateTime
+  currency        String
+  subtotal        Decimal                  @db.Decimal(14, 2)
+  discountTotal   Decimal                  @db.Decimal(14, 2)
+  taxTotal        Decimal                  @db.Decimal(14, 2)
+  total           Decimal                  @db.Decimal(14, 2)
+  notes           String?
+  terms           String?
+  createdByUserId String
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  sentAt          DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  archivedAt      DateTime?
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client          Client                   @relation(fields: [clientId], references: [id])
+  createdBy       User                     @relation("QuotationCreator", fields: [createdByUserId], references: [id])
+  items           QuotationItem[]
+  history         QuotationStatusHistory[]
+
+  @@unique([organizationId, number, version])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, clientId])
+  @@index([organizationId, issueDate])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, number])
+}
+
+model QuotationItem {
+  id             String                @id @default(uuid())
+  quotationId    String
+  catalogItemId  String?
+  type           QuotationItemType
+  code           String?
+  name           String
+  description    String?
+  quantity       Decimal               @db.Decimal(12, 3)
+  unit           String
+  unitPrice      Decimal               @db.Decimal(14, 2)
+  discountType   QuotationDiscountType @default(NONE)
+  discountValue  Decimal               @db.Decimal(14, 2)
+  taxPercent     Decimal               @db.Decimal(5, 2)
+  subtotal       Decimal               @db.Decimal(14, 2)
+  discountTotal  Decimal               @db.Decimal(14, 2)
+  taxTotal       Decimal               @db.Decimal(14, 2)
+  total          Decimal               @db.Decimal(14, 2)
+  sortOrder      Int
+  quotation      Quotation             @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  catalogItem    CatalogItem?          @relation(fields: [catalogItemId], references: [id])
+
+  @@index([quotationId])
+  @@index([catalogItemId])
+}
+
+model QuotationStatusHistory {
+  id              String           @id @default(uuid())
+  organizationId  String
+  quotationId     String
+  previousStatus  QuotationStatus?
+  newStatus       QuotationStatus
+  changedByUserId String
+  note            String?
+  createdAt       DateTime         @default(now())
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quotation       Quotation        @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  changedBy       User             @relation("QuotationStatusChanger", fields: [changedByUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([quotationId])
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum QuotationItemType {
+  PRODUCT
+  SERVICE
+  CUSTOM
+}
+
+enum QuotationDiscountType {
+  NONE
+  PERCENTAGE
+  FIXED
 }
