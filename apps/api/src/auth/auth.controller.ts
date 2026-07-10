@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -13,11 +14,13 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCookieAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import type { Response } from "express";
 import { readAuthConfig } from "@kaklen/config";
 import { AuthService } from "./auth.service";
@@ -31,12 +34,14 @@ const REFRESH_COOKIE_NAME = "kaklen_refresh_token";
 
 @ApiTags("auth")
 @Controller("auth")
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: "Register a new user" })
-  @ApiOkResponse({ type: AuthResponseDto })
+  @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: "Email is already registered" })
   async register(
     @Body() dto: RegisterDto,
@@ -53,6 +58,7 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: "Login with email and password" })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: "Invalid credentials" })
@@ -71,6 +77,7 @@ export class AuthController {
 
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @ApiCookieAuth(REFRESH_COOKIE_NAME)
   @ApiOperation({ summary: "Rotate refresh token and issue a new access token" })
   @ApiOkResponse({ type: AuthResponseDto })
@@ -79,6 +86,7 @@ export class AuthController {
     @Req() request: CookieRequest,
     @Res({ passthrough: true }) response: Response
   ): Promise<AuthResponseDto> {
+    this.assertAllowedOrigin(request);
     const result = await this.authService.refresh(request.cookies?.[REFRESH_COOKIE_NAME]);
     this.setRefreshCookie(response, result.refreshToken);
 
@@ -90,6 +98,7 @@ export class AuthController {
 
   @Post("logout")
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @ApiCookieAuth(REFRESH_COOKIE_NAME)
   @ApiOperation({ summary: "Revoke the current refresh token" })
   @ApiOkResponse({ type: MessageResponseDto })
@@ -97,6 +106,7 @@ export class AuthController {
     @Req() request: CookieRequest,
     @Res({ passthrough: true }) response: Response
   ): Promise<MessageResponseDto> {
+    this.assertAllowedOrigin(request);
     await this.authService.logout(request.cookies?.[REFRESH_COOKIE_NAME]);
     this.clearRefreshCookie(response);
 
@@ -132,5 +142,18 @@ export class AuthController {
       sameSite: "lax",
       path: "/api/auth"
     });
+  }
+
+  private assertAllowedOrigin(request: CookieRequest): void {
+    const origin = request.headers.origin;
+
+    if (!origin) {
+      return;
+    }
+
+    const config = readAuthConfig(process.env);
+    if (!config.authAllowedOrigins.includes(origin)) {
+      throw new ForbiddenException("Origin is not allowed");
+    }
   }
 }

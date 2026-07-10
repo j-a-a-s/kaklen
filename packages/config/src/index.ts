@@ -9,6 +9,7 @@ export interface AuthConfig {
   jwtAccessExpiresSeconds: number;
   jwtRefreshExpiresSeconds: number;
   cookieSecure: boolean;
+  authAllowedOrigins: string[];
 }
 
 export function readApiConfig(env: Record<string, string | undefined>): ApiConfig {
@@ -34,6 +35,10 @@ export function readAuthConfig(env: Record<string, string | undefined>): AuthCon
   const jwtAccessExpiresSeconds = Number(env.JWT_ACCESS_EXPIRES_SECONDS ?? 900);
   const jwtRefreshExpiresSeconds = Number(env.JWT_REFRESH_EXPIRES_SECONDS ?? 604800);
   const cookieSecure = (env.COOKIE_SECURE ?? "false").toLowerCase() === "true";
+  const authAllowedOrigins = (env.AUTH_ALLOWED_ORIGINS ?? "http://localhost:4200")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
 
   if (jwtAccessSecret.length < 32) {
     throw new Error("JWT_ACCESS_SECRET must be at least 32 characters");
@@ -56,6 +61,7 @@ export function readAuthConfig(env: Record<string, string | undefined>): AuthCon
     jwtRefreshSecret,
     jwtAccessExpiresSeconds,
     jwtRefreshExpiresSeconds,
-    cookieSecure
+    cookieSecure,
+    authAllowedOrigins
   };
 }
