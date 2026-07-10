@@ -3,6 +3,14 @@ export interface ApiConfig {
   databaseUrl: string;
 }
 
+export interface AuthConfig {
+  jwtAccessSecret: string;
+  jwtRefreshSecret: string;
+  jwtAccessExpiresSeconds: number;
+  jwtRefreshExpiresSeconds: number;
+  cookieSecure: boolean;
+}
+
 export function readApiConfig(env: Record<string, string | undefined>): ApiConfig {
   const port = Number(env.API_PORT ?? 3000);
   const databaseUrl =
@@ -15,5 +23,39 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
   return {
     port,
     databaseUrl
+  };
+}
+
+export function readAuthConfig(env: Record<string, string | undefined>): AuthConfig {
+  const jwtAccessSecret =
+    env.JWT_ACCESS_SECRET ?? "local-access-secret-change-me-at-least-32-characters";
+  const jwtRefreshSecret =
+    env.JWT_REFRESH_SECRET ?? "local-refresh-secret-change-me-at-least-32-characters";
+  const jwtAccessExpiresSeconds = Number(env.JWT_ACCESS_EXPIRES_SECONDS ?? 900);
+  const jwtRefreshExpiresSeconds = Number(env.JWT_REFRESH_EXPIRES_SECONDS ?? 604800);
+  const cookieSecure = (env.COOKIE_SECURE ?? "false").toLowerCase() === "true";
+
+  if (jwtAccessSecret.length < 32) {
+    throw new Error("JWT_ACCESS_SECRET must be at least 32 characters");
+  }
+
+  if (jwtRefreshSecret.length < 32) {
+    throw new Error("JWT_REFRESH_SECRET must be at least 32 characters");
+  }
+
+  if (!Number.isInteger(jwtAccessExpiresSeconds) || jwtAccessExpiresSeconds <= 0) {
+    throw new Error("JWT_ACCESS_EXPIRES_SECONDS must be a positive integer");
+  }
+
+  if (!Number.isInteger(jwtRefreshExpiresSeconds) || jwtRefreshExpiresSeconds <= 0) {
+    throw new Error("JWT_REFRESH_EXPIRES_SECONDS must be a positive integer");
+  }
+
+  return {
+    jwtAccessSecret,
+    jwtRefreshSecret,
+    jwtAccessExpiresSeconds,
+    jwtRefreshExpiresSeconds,
+    cookieSecure
   };
 }

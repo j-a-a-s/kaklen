@@ -3,7 +3,11 @@ module.exports = {
   rootDir: ".",
   testRegex: ".*\\.spec\\.ts$",
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
+  },
+  moduleNameMapper: {
+    "^@kaklen/config$": "<rootDir>/../../packages/config/src/index.ts",
+    "^@kaklen/shared$": "<rootDir>/../../packages/shared/src/index.ts"
   },
   collectCoverageFrom: ["src/**/*.(t|j)s"],
   testEnvironment: "node"

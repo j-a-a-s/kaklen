@@ -1,63 +1,40 @@
-import { CommonModule } from "@angular/common";
-import { Component, signal } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
-import type { HealthResponse } from "@kaklen/shared";
+import { provideRouter, Routes, RouterOutlet, RouterLink, Router } from "@angular/router";
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { Component } from "@angular/core";
+import { authGuard } from "./app/auth/auth.guard";
+import { authInterceptor } from "./app/auth/auth.interceptor";
+import { DashboardComponent } from "./app/pages/dashboard.component";
+import { LoginComponent } from "./app/pages/login.component";
+import { RegisterComponent } from "./app/pages/register.component";
+
+const routes: Routes = [
+  { path: "login", component: LoginComponent },
+  { path: "register", component: RegisterComponent },
+  { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
+  { path: "", pathMatch: "full", redirectTo: "login" },
+  { path: "**", redirectTo: "login" }
+];
 
 @Component({
   selector: "kaklen-root",
   standalone: true,
-  imports: [CommonModule],
+  imports: [RouterOutlet, RouterLink],
   template: `
-    <main class="shell">
-      <section class="hero" aria-labelledby="title">
-        <p class="eyebrow">Kaklen Foundation</p>
-        <h1 id="title">Base ejecutable para construir producto.</h1>
-        <p class="summary">
-          Angular 20 conectado a una API NestJS 11 con Prisma, PostgreSQL, Swagger y Helmet.
-        </p>
-
-        <div class="status-panel">
-          <span class="status-dot" [class.status-dot--ok]="health()?.status === 'ok'"></span>
-          <div>
-            <strong>{{ statusLabel() }}</strong>
-            <small>{{ health()?.timestamp || "Esperando respuesta de la API" }}</small>
-          </div>
-        </div>
-      </section>
-    </main>
+    <header class="topbar">
+      <a class="brand" routerLink="/dashboard">Kaklen</a>
+      <nav aria-label="Primary">
+        <a routerLink="/login">Login</a>
+        <a routerLink="/register">Register</a>
+      </nav>
+    </header>
+    <router-outlet />
   `
 })
-class AppComponent {
-  readonly health = signal<HealthResponse | null>(null);
-  readonly error = signal<string | null>(null);
+class AppComponent {}
 
-  constructor() {
-    void this.loadHealth();
-  }
-
-  statusLabel(): string {
-    if (this.health()?.status === "ok") {
-      return "API saludable";
-    }
-
-    return this.error() ?? "Conectando con la API";
-  }
-
-  private async loadHealth(): Promise<void> {
-    try {
-      const response = await fetch("http://localhost:3000/api/health");
-
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
-      }
-
-      this.health.set((await response.json()) as HealthResponse);
-    } catch {
-      this.error.set("API no disponible");
-    }
-  }
-}
-
-bootstrapApplication(AppComponent).catch((error: unknown) => {
+bootstrapApplication(AppComponent, {
+  providers: [provideRouter(routes), provideHttpClient(withInterceptors([authInterceptor]))]
+}).catch((error: unknown) => {
   console.error(error);
 });
