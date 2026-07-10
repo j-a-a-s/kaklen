@@ -7,8 +7,9 @@ import { ClientsModule } from "./clients/clients.module";
 import { CatalogModule } from "./catalog/catalog.module";
 import { QuotationsModule } from "./quotations/quotations.module";
 import { EventsModule } from "./events/events.module";
+import { StorageModule } from "./storage/storage.module";
 
 @Module({
-  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule]
+  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule, StorageModule]
 })
 export class AppModule {}

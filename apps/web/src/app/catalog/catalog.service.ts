@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { firstValueFrom } from "rxjs";
+import { API_BASE_URL } from "../config/runtime-config";
 import { CatalogItem, CatalogItemStatus, CatalogItemType, PaginatedCatalogItems } from "./catalog.models";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = API_BASE_URL;
 
 export interface CatalogItemPayload {
   type: CatalogItemType;

@@ -16,5 +16,18 @@ services:
       timeout: 5s
       retries: 10
 
+  localstack:
+    image: localstack/localstack:3
+    profiles:
+      - aws
+    environment:
+      SERVICES: s3
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - kaklen-localstack-data:/var/lib/localstack
+
 volumes:
   kaklen-postgres-data:
+  kaklen-localstack-data:
