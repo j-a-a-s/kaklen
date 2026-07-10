@@ -12,6 +12,9 @@ import { OrganizationMembersComponent } from "./app/pages/organization-members.c
 import { OrganizationNewComponent } from "./app/pages/organization-new.component";
 import { OrganizationSettingsComponent } from "./app/pages/organization-settings.component";
 import { OrganizationsListComponent } from "./app/pages/organizations-list.component";
+import { ClientDetailComponent } from "./app/pages/client-detail.component";
+import { ClientFormComponent } from "./app/pages/client-form.component";
+import { ClientsListComponent } from "./app/pages/clients-list.component";
 
 const routes: Routes = [
   { path: "login", component: LoginComponent },
@@ -27,6 +30,26 @@ const routes: Routes = [
   {
     path: "organizations/:organizationId/members",
     component: OrganizationMembersComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/clients",
+    component: ClientsListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/clients/new",
+    component: ClientFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/clients/:clientId",
+    component: ClientDetailComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: "organizations/:organizationId/clients/:clientId/edit",
+    component: ClientFormComponent,
     canActivate: [authGuard]
   },
   { path: "accept-invitation", component: AcceptInvitationComponent, canActivate: [authGuard] },
