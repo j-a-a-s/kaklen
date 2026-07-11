@@ -12,6 +12,9 @@
     "db:generate": "pnpm prisma:generate",
     "db:migrate:deploy": "DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required} prisma migrate deploy",
     "db:status": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate status",
+    "doctor": "node scripts/doctor.mjs",
+    "setup": "node scripts/init-local.mjs",
+    "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",
     "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma generate",
     "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate dev --name init",
     "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma studio"
@@ -20,6 +23,7 @@
     "@prisma/client": "^6.11.1"
   },
   "devDependencies": {
+    "pg": "^8.16.3",
     "prisma": "^6.11.1",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"

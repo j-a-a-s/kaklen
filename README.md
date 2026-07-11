@@ -2,6 +2,76 @@
 
 Foundation monorepo para Kaklen con API NestJS, web Angular, Prisma y PostgreSQL.
 
+## Primer inicio
+
+```bash
+git clone git@github.com:j-a-a-s/kaklen.git
+cd kaklen
+cp .env.example .env
+pnpm install
+pnpm run setup
+pnpm dev
+```
+
+`pnpm run setup` levanta PostgreSQL con Docker Compose, verifica `DATABASE_URL`, repara `.env` si detecta credenciales antiguas en el contenedor local, genera Prisma Client y ejecuta migraciones.
+
+Comandos utiles:
+
+- `pnpm run doctor`: diagnostica Node, pnpm, Docker, PostgreSQL, `DATABASE_URL`, Prisma y variables criticas.
+- `node scripts/check-db.mjs`: prueba solo la conexion PostgreSQL.
+- `pnpm verify`: ejecuta doctor, lint, test y build.
+
+## Solucion de problemas
+
+Ejecuta primero:
+
+```bash
+pnpm run doctor
+```
+
+Si Docker esta instalado pero apagado, abre Docker Desktop y vuelve a ejecutar:
+
+```bash
+pnpm run setup
+```
+
+## Errores comunes
+
+### P1000
+
+Credenciales invalidas para PostgreSQL. Suele ocurrir cuando un contenedor antiguo fue creado con otra contraseña.
+
+Solucion:
+
+```bash
+pnpm run setup
+```
+
+El setup inspecciona el contenedor local de PostgreSQL y actualiza `DATABASE_URL` en `.env` cuando puede confirmar las credenciales reales.
+
+### P1001
+
+El servidor PostgreSQL no esta disponible.
+
+Solucion:
+
+```bash
+docker compose up -d postgres
+pnpm run doctor
+```
+
+### P1003
+
+La base de datos no existe.
+
+Solucion:
+
+```bash
+pnpm run setup
+```
+
+El setup intentara crear la base indicada por `DATABASE_URL` cuando las credenciales permitan conectarse a la base administrativa `postgres`.
+
 ## Auth
 
 La autenticacion expone:

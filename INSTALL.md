@@ -1,90 +1,36 @@
 # Instalacion
 
-## Requisitos
-
-- Node.js 22 LTS o superior.
-- pnpm 9 o superior.
-- Docker y Docker Compose.
-
-## Pasos
-
-1. Instalar dependencias:
+1. Clonar el repositorio:
 
 ```bash
-pnpm install
+git clone git@github.com:j-a-a-s/kaklen.git
+cd kaklen
 ```
 
-2. Crear archivo de entorno:
+2. Crear el archivo de entorno:
 
 ```bash
 cp .env.example .env
 ```
 
-Para autenticacion local, ajusta estos valores en `.env` antes de exponer el servicio:
+3. Instalar dependencias:
 
 ```bash
-JWT_ACCESS_SECRET="usa-un-secreto-largo-y-unico"
-JWT_REFRESH_SECRET="usa-otro-secreto-largo-y-unico"
-AUTH_ALLOWED_ORIGINS="http://localhost:4200"
-COOKIE_SECURE=false
-ORGANIZATION_INVITATION_EXPIRES_SECONDS=259200
-APP_WEB_URL=http://localhost:4200
+pnpm install
 ```
 
-3. Levantar PostgreSQL:
+4. Preparar PostgreSQL y Prisma:
 
 ```bash
-docker compose up -d
+pnpm run setup
 ```
 
-Si ya tienes otro PostgreSQL usando `5432`, usa un puerto alternativo:
-
-```bash
-POSTGRES_PORT=55432 docker compose up -d
-```
-
-4. Generar cliente Prisma:
-
-```bash
-pnpm prisma:generate
-```
-
-5. Ejecutar migracion inicial:
-
-```bash
-pnpm prisma:migrate
-```
-
-Si usaste un puerto alternativo para Docker, ejecuta:
-
-```bash
-POSTGRES_PORT=55432 pnpm prisma:migrate
-```
-
-6. Levantar desarrollo:
+5. Levantar desarrollo:
 
 ```bash
 pnpm dev
 ```
 
-Si usaste un puerto alternativo para Docker, ejecuta:
+## Nota sobre pnpm setup
 
-```bash
-POSTGRES_PORT=55432 pnpm dev
-```
-
-## Validacion
-
-- API: http://localhost:3000/api/health
-- Swagger: http://localhost:3000/docs
-- Web: http://localhost:4200
-- Auth: http://localhost:3000/api/auth/login
-- Organizaciones: http://localhost:3000/api/organizations
-
-## Builds localizados
-
-```bash
-pnpm --filter @kaklen/web build:es
-pnpm --filter @kaklen/web build:en
-pnpm --filter @kaklen/web build:pt-BR
-```
+`pnpm setup` es un comando reservado de pnpm para configurar el gestor de paquetes en el sistema. El script de Kaklen debe ejecutarse como `pnpm run setup`.

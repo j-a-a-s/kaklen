@@ -53,4 +53,35 @@ async function bootstrap(): Promise<void> {
   await app.listen(config.port);
 }
 
-void bootstrap();
+void bootstrap().catch((error: unknown) => {
+  const message = messageForBootstrapError(error);
+  console.error(message);
+  if ((process.env.LOG_LEVEL ?? "").toLowerCase() === "debug") {
+    console.error(error);
+  }
+  process.exit(1);
+});
+
+function messageForBootstrapError(error: unknown): string {
+  const code = prismaErrorCode(error);
+  if (code === "P1000") {
+    return "No fue posible conectarse a PostgreSQL. Credenciales invalidas en DATABASE_URL.";
+  }
+  if (code === "P1001") {
+    return "El servidor PostgreSQL no esta disponible. Verifique Docker y DATABASE_URL.";
+  }
+  if (code === "P1003") {
+    return "La base de datos no existe. Ejecute pnpm setup para crearla cuando sea posible.";
+  }
+  return "No fue posible iniciar Kaklen API. Ejecute pnpm doctor para diagnosticar el entorno local.";
+}
+
+function prismaErrorCode(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error && typeof error.code === "string") {
+    return error.code;
+  }
+  if (error && typeof error === "object" && "errorCode" in error && typeof error.errorCode === "string") {
+    return error.errorCode;
+  }
+  return undefined;
+}
