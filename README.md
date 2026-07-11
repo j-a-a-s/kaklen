@@ -13,7 +13,7 @@ pnpm run setup
 pnpm dev
 ```
 
-`pnpm run setup` levanta PostgreSQL con Docker Compose, verifica `DATABASE_URL`, repara `.env` si detecta credenciales antiguas en el contenedor local, genera Prisma Client y ejecuta migraciones.
+`pnpm run setup` verifica `DATABASE_URL` contra PostgreSQL real, compara las credenciales con el contenedor activo cuando existe, levanta PostgreSQL con Docker Compose si no responde, genera Prisma Client y ejecuta migraciones. No modifica `.env` automaticamente.
 
 Comandos utiles:
 
@@ -47,7 +47,7 @@ Solucion:
 pnpm run setup
 ```
 
-El setup inspecciona el contenedor local de PostgreSQL y actualiza `DATABASE_URL` en `.env` cuando puede confirmar las credenciales reales.
+El setup inspecciona el contenedor local de PostgreSQL y avisa si `DATABASE_URL` no coincide con `POSTGRES_USER`, `POSTGRES_PASSWORD` o `POSTGRES_DB`. No muestra la password completa ni modifica `.env` automaticamente.
 
 ### P1001
 

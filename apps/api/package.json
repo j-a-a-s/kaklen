@@ -5,8 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} nest start --watch",
-    "start": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} node dist/main.js",
+    "dev": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} nest start --watch",
+    "start": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} node dist/main.js",
     "test": "jest --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },

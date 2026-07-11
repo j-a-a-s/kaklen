@@ -2,7 +2,11 @@
 import {
   checkDatabase,
   commandOk,
+  compareDatabaseUrlWithContainer,
   formatDatabaseTarget,
+  formatDatabaseTargetDetails,
+  inspectPostgresContainerEnv,
+  isMigrationDriftOutput,
   loadLocalEnv,
   parseDatabaseUrl,
   readDatabaseUrl,
@@ -22,10 +26,12 @@ async function checkCommand(label, command, args) {
   }
 }
 
+console.log("KAKLEN DOCTOR");
+console.log("");
+
 await checkCommand("Node", "node", ["--version"]);
-await checkCommand("PNPM", "pnpm", ["--version"]);
-await checkCommand("Docker", "docker", ["--version"]);
-await checkCommand("Docker Compose", "docker", ["compose", "version"]);
+await checkCommand("pnpm", "pnpm", ["--version"]);
+await checkCommand("Docker CLI", "docker", ["--version"]);
 const dockerDaemon = await commandOk("docker", ["info"]);
 if (dockerDaemon.ok) {
   console.log("✓ Docker daemon activo");
@@ -33,12 +39,14 @@ if (dockerDaemon.ok) {
   console.log("✗ Docker daemon no esta activo");
   errors.push("Abra Docker Desktop o inicie el servicio Docker antes de ejecutar pnpm run setup.");
 }
+await checkCommand("Docker Compose", "docker", ["compose", "version"]);
 
 const env = loadLocalEnv();
 const databaseUrl = readDatabaseUrl(env);
 const parsed = parseDatabaseUrl(databaseUrl);
 if (parsed) {
-  console.log(`✓ DATABASE_URL: ${formatDatabaseTarget(parsed)}`);
+  console.log("✓ DATABASE_URL");
+  formatDatabaseTargetDetails(parsed, env.DATABASE_SSL ?? "false").forEach((line) => console.log(`  ${line}`));
 } else {
   console.log("✗ DATABASE_URL invalida");
   errors.push("DATABASE_URL no es valida.");
@@ -70,10 +78,30 @@ if ((env.JWT_REFRESH_SECRET ?? "").length < 32) {
 
 const db = await checkDatabase(databaseUrl);
 if (db.ok) {
-  console.log("✓ PostgreSQL encontrado");
+  console.log("✓ Conexion TCP a PostgreSQL");
+  console.log("✓ Autenticacion PostgreSQL");
+  console.log(`✓ Base de datos ${db.parsed.database}`);
 } else {
   console.log(`✗ PostgreSQL: ${db.message}`);
   errors.push(`${db.message} ${suggestionForCheck(db)}`);
+}
+
+if (dockerDaemon.ok) {
+  const containerEnv = await inspectPostgresContainerEnv();
+  if (containerEnv) {
+    const comparison = compareDatabaseUrlWithContainer(databaseUrl, containerEnv);
+    if (comparison.matches) {
+      console.log("✓ DATABASE_URL coincide con el contenedor PostgreSQL activo");
+    } else {
+      console.log("✗ Las credenciales de DATABASE_URL no coinciden con el contenedor PostgreSQL activo.");
+      console.log(`  usuario esperado: ${containerEnv.user}`);
+      console.log(`  base esperada: ${containerEnv.database}`);
+      console.log(`  host: ${comparison.parsed?.host ?? "desconocido"}`);
+      console.log(`  port: ${comparison.parsed?.port ?? "desconocido"}`);
+      comparison.mismatches.forEach((item) => console.log(`  - ${item}`));
+      errors.push("DATABASE_URL no coincide con el contenedor PostgreSQL activo.");
+    }
+  }
 }
 
 const prisma = await commandOk("pnpm", ["exec", "prisma", "--version"]);
@@ -82,6 +110,17 @@ if (prisma.ok) {
 } else {
   console.log("✗ Prisma no disponible");
   errors.push("Prisma no esta disponible. Ejecute pnpm install.");
+}
+
+const migrations = await commandOk("pnpm", ["db:status"]);
+if (migrations.ok) {
+  console.log("✓ Migraciones Prisma verificables");
+} else if (isMigrationDriftOutput(migrations.output)) {
+  console.log("✗ Historial de migraciones divergente");
+  errors.push("La base local tiene migraciones que no existen en prisma/migrations. Si no necesita conservar datos locales, ejecute prisma migrate reset y luego pnpm run setup.");
+} else {
+  console.log("✗ No fue posible verificar migraciones Prisma");
+  errors.push("Ejecute pnpm run setup cuando PostgreSQL este disponible.");
 }
 
 if (warnings.length > 0) {

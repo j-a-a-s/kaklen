@@ -28,7 +28,7 @@ export interface OrganizationConfig {
   appWebUrl: string;
 }
 
-const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen@localhost:5432/kaklen?schema=public";
+const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
 const LOCAL_ORIGIN = "http://localhost:4200";
 
 export function readApiConfig(env: Record<string, string | undefined>): ApiConfig {

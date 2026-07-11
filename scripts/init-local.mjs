@@ -1,53 +1,77 @@
 #!/usr/bin/env node
 import {
-  buildDatabaseUrlFromParts,
   checkDatabase,
   commandOk,
+  compareDatabaseUrlWithContainer,
   createDatabaseIfMissing,
+  formatDatabaseTargetDetails,
   inspectPostgresContainerEnv,
+  isMigrationDriftOutput,
+  loadLocalEnv,
+  parseDatabaseUrl,
   readDatabaseUrl,
+  setupFailureMessage,
   run,
   suggestionForCheck,
-  tableCount,
-  updateEnvDatabaseUrl
+  summarizeCommandFailure,
+  tableCount
 } from "./local-db-utils.mjs";
 
 async function main() {
-  console.log("Verificando entorno local...");
+  console.log("KAKLEN SETUP");
+  console.log("");
 
   await requireCommand("Docker", "docker", ["--version"], "Docker no esta disponible.");
   await requireCommand("Docker Compose", "docker", ["compose", "version"], "Docker Compose no esta disponible.");
   await requireCommand("Docker daemon", "docker", ["info"], "Docker esta instalado pero el daemon no esta activo. Abra Docker Desktop y vuelva a ejecutar pnpm run setup.");
 
-  console.log("Levantando PostgreSQL local si es necesario...");
-  try {
-    await run("docker", ["compose", "up", "-d", "postgres"], { timeoutMs: 60000 });
-  } catch {
-    console.error("✗ No fue posible levantar PostgreSQL con Docker Compose.");
-    console.error("Sugerencia: abra Docker Desktop y ejecute pnpm run setup nuevamente.");
-    process.exit(1);
-  }
+  const env = loadLocalEnv();
+  const databaseUrl = readDatabaseUrl(env);
+  const parsed = parseDatabaseUrl(databaseUrl);
+  console.log("DATABASE_URL");
+  formatDatabaseTargetDetails(parsed, env.DATABASE_SSL ?? "false").forEach((line) => console.log(`  ${line}`));
 
-  let databaseUrl = readDatabaseUrl();
-  let check = await waitForDatabase(databaseUrl);
-
-  if (!check.ok && check.type === "auth") {
-    console.log("Credenciales invalidas. Buscando credenciales reales del contenedor PostgreSQL...");
-    const containerEnv = await inspectPostgresContainerEnv();
-    if (containerEnv) {
-      const candidate = buildDatabaseUrlFromParts(databaseUrl, containerEnv);
-      const candidateCheck = await waitForDatabase(candidate);
-      if (candidateCheck.ok || candidateCheck.type === "missing-db") {
-        updateEnvDatabaseUrl(candidate);
-        databaseUrl = candidate;
-        check = candidateCheck;
-        console.log("✓ .env actualizado con las credenciales del contenedor local");
-      }
+  const containerEnv = await inspectPostgresContainerEnv();
+  if (containerEnv) {
+    const comparison = compareDatabaseUrlWithContainer(databaseUrl, containerEnv);
+    if (!comparison.matches) {
+      console.error("✗ Las credenciales de DATABASE_URL no coinciden con el contenedor PostgreSQL activo.");
+      console.error(`  usuario esperado: ${containerEnv.user}`);
+      console.error(`  base esperada: ${containerEnv.database}`);
+      console.error(`  host: ${comparison.parsed?.host ?? "desconocido"}`);
+      console.error(`  port: ${comparison.parsed?.port ?? "desconocido"}`);
+      comparison.mismatches.forEach((item) => console.error(`  - ${item}`));
+      console.error("");
+      console.error("Actualice .env o recree el contenedor local con docker compose.");
+      process.exit(1);
     }
   }
 
+  let check = await waitForDatabase(databaseUrl);
+  if (!check.ok && ["unavailable", "timeout"].includes(check.type)) {
+    console.log("PostgreSQL no responde todavia. Levantando servicio local con Docker Compose...");
+    try {
+      await run("docker", ["compose", "up", "-d", "postgres"], { timeoutMs: 60000 });
+    } catch (error) {
+      console.error("✗ No fue posible levantar PostgreSQL con Docker Compose.");
+      const detail = firstNonEmptyLine(`${error?.stderr ?? ""}\n${error?.stdout ?? ""}\n${error?.message ?? ""}`);
+      if (detail) {
+        console.error(`Detalle: ${detail}`);
+      }
+      console.error("Sugerencia: abra Docker Desktop y ejecute pnpm run setup nuevamente.");
+      process.exit(1);
+    }
+    check = await waitForDatabase(databaseUrl);
+  }
+
+  if (!check.ok && check.type === "auth") {
+    console.error(`✗ ${setupFailureMessage(check)}`);
+    process.exit(1);
+  }
+
   if (!check.ok && check.type === "missing-db") {
-    console.log(`La base ${check.parsed.database} no existe. Intentando crearla...`);
+    console.log(`✗ La base de datos ${check.parsed.database} no existe.`);
+    console.log("Intentando crearla con las credenciales configuradas...");
     await createDatabaseIfMissing(databaseUrl);
     check = await waitForDatabase(databaseUrl);
   }
@@ -60,12 +84,16 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("✓ PostgreSQL listo");
+  console.log("✓ PostgreSQL disponible");
+  console.log("✓ Credenciales válidas");
+  console.log(`✓ Base de datos ${check.parsed.database}`);
   console.log("Generando Prisma Client...");
-  await run("pnpm", ["prisma:generate"], { timeoutMs: 60000 });
+  await runRequired("pnpm", ["prisma:generate"], { timeoutMs: 60000, env: { DATABASE_URL: databaseUrl } }, "No fue posible generar Prisma Client.");
+  console.log("✓ Prisma Client");
 
   console.log("Ejecutando migraciones Prisma...");
-  await run("pnpm", ["prisma:migrate"], { timeoutMs: 120000 });
+  await runRequired("pnpm", ["prisma:migrate"], { timeoutMs: 120000, env: { DATABASE_URL: databaseUrl } }, "No fue posible aplicar migraciones Prisma.");
+  console.log("✓ Migraciones aplicadas");
 
   const count = await tableCount(databaseUrl);
   if (count <= 0) {
@@ -73,9 +101,12 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`✓ Tablas verificadas: ${count}`);
+  console.log(`✓ Tablas accesibles: ${count}`);
   console.log("");
   console.log("Proyecto listo para ejecutar.");
+  console.log("");
+  console.log("Siguiente paso:");
+  console.log("pnpm dev");
 }
 
 async function requireCommand(label, command, args, message) {
@@ -84,7 +115,7 @@ async function requireCommand(label, command, args, message) {
     console.error(`✗ ${message}`);
     process.exit(1);
   }
-  console.log(`✓ ${label} disponible`);
+  console.log(`✓ ${label}`);
 }
 
 async function waitForDatabase(databaseUrl) {
@@ -96,6 +127,23 @@ async function waitForDatabase(databaseUrl) {
   return last;
 }
 
+async function runRequired(command, args, options, message) {
+  try {
+    return await run(command, args, options);
+  } catch (error) {
+    const lines = summarizeCommandFailure(error);
+    const output = lines.join("\n");
+    console.error(`✗ ${message}`);
+    if (isMigrationDriftOutput(output)) {
+      console.error("La base local tiene un historial de migraciones que no coincide con prisma/migrations.");
+      console.error("Sugerencia: si no necesita conservar esos datos locales, ejecute prisma migrate reset y luego pnpm run setup.");
+      process.exit(1);
+    }
+    lines.slice(0, 8).forEach((line) => console.error(line));
+    process.exit(1);
+  }
+}
+
 await main().catch((error) => {
   console.error("✗ No fue posible preparar el entorno local.");
   if (process.env.LOG_LEVEL === "debug") {
@@ -103,3 +151,7 @@ await main().catch((error) => {
   }
   process.exit(1);
 });
+
+function firstNonEmptyLine(output) {
+  return output.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim() ?? "";
+}

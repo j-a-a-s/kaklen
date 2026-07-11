@@ -6,18 +6,18 @@
   "scripts": {
     "dev": "turbo run build --filter='./packages/*' && turbo run dev --filter='./apps/*' --parallel",
     "build": "turbo run build --concurrency=1",
-    "test": "turbo run test",
+    "test": "node --test scripts/*.test.mjs && turbo run test",
     "lint": "turbo run lint",
     "web:runtime-config": "node scripts/write-runtime-config.mjs",
     "db:generate": "pnpm prisma:generate",
     "db:migrate:deploy": "DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required} prisma migrate deploy",
-    "db:status": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate status",
+    "db:status": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma migrate status",
     "doctor": "node scripts/doctor.mjs",
     "setup": "node scripts/init-local.mjs",
     "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",
-    "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma generate",
-    "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma migrate dev --name init",
-    "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen@localhost:${POSTGRES_PORT:-5432}/kaklen?schema=public} prisma studio"
+    "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma generate",
+    "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma migrate dev --name init",
+    "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1"
