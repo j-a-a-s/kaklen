@@ -3,19 +3,45 @@ import { Injectable, signal } from "@angular/core";
 import { firstValueFrom, tap } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
+import { OrganizationService } from "../organizations/organization.service";
 import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UpdatePreferencesRequest } from "./auth.models";
 
 const API_URL = API_BASE_URL;
+const PRIVATE_STORAGE_KEYS = new Set([
+  "kaklen.activeOrganizationId",
+  "kaklen.user",
+  "kaklen.auth",
+  "kaklen.accessToken",
+  "kaklen.refreshToken",
+  "kaklen.permissions",
+  "kaklen.membership",
+  "kaklen.activeMembershipId",
+  "kaklen.onboarding",
+  "kaklen.privateNavigation"
+]);
+const PRIVATE_STORAGE_PREFIXES = [
+  "kaklen.user.",
+  "kaklen.auth.",
+  "kaklen.organization.",
+  "kaklen.organizations.",
+  "kaklen.permission.",
+  "kaklen.permissions.",
+  "kaklen.membership.",
+  "kaklen.onboarding.",
+  "kaklen.privateNavigation."
+];
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
   readonly user = signal<AuthUser | null>(null);
   private accessToken: string | null = null;
   private refreshPromise: Promise<AuthResponse> | null = null;
+  private sessionVersion = 0;
 
   constructor(
     private readonly http: HttpClient,
-    private readonly localeService: LocaleService
+    private readonly localeService: LocaleService,
+    private readonly organizationService: OrganizationService
   ) {}
 
   getAccessToken(): string | null {
@@ -40,10 +66,11 @@ export class AuthService {
 
   refresh(): Promise<AuthResponse> {
     if (!this.refreshPromise) {
+      const refreshSessionVersion = this.sessionVersion;
       this.refreshPromise = firstValueFrom(
         this.http
           .post<AuthResponse>(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
-          .pipe(tap((response) => this.applyAuthResponse(response)))
+          .pipe(tap((response) => this.applyAuthResponse(response, refreshSessionVersion)))
       ).finally(() => {
         this.refreshPromise = null;
       });
@@ -53,11 +80,15 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    await firstValueFrom(
-      this.http.post(`${API_URL}/auth/logout`, {}, { withCredentials: true })
-    ).catch(() => undefined);
-    this.accessToken = null;
-    this.user.set(null);
+    try {
+      await firstValueFrom(
+        this.http.post(`${API_URL}/auth/logout`, {}, { withCredentials: true })
+      );
+    } catch {
+      return;
+    } finally {
+      this.clearSessionState();
+    }
   }
 
   me(): Promise<AuthUser> {
@@ -76,7 +107,10 @@ export class AuthService {
     );
   }
 
-  private applyAuthResponse(response: AuthResponse): void {
+  private applyAuthResponse(response: AuthResponse, expectedSessionVersion = this.sessionVersion): void {
+    if (expectedSessionVersion !== this.sessionVersion) {
+      return;
+    }
     this.accessToken = response.accessToken;
     this.applyUser(response.user);
   }
@@ -84,5 +118,30 @@ export class AuthService {
   private applyUser(user: AuthUser): void {
     this.user.set(user);
     this.localeService.applyUserLocale(user.locale);
+  }
+
+  private clearSessionState(): void {
+    this.sessionVersion += 1;
+    this.accessToken = null;
+    this.refreshPromise = null;
+    this.user.set(null);
+    this.organizationService.clearSessionContext();
+    this.clearPrivateStorage(localStorage);
+    this.clearPrivateStorage(sessionStorage);
+  }
+
+  private clearPrivateStorage(storage: Storage): void {
+    const keysToRemove: string[] = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && this.isPrivateSessionStorageKey(key)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  }
+
+  private isPrivateSessionStorageKey(key: string): boolean {
+    return PRIVATE_STORAGE_KEYS.has(key) || PRIVATE_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix));
   }
 }

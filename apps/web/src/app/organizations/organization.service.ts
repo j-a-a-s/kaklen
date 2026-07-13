@@ -163,6 +163,13 @@ export class OrganizationService {
     return this.permissions().includes(permission);
   }
 
+  clearSessionContext(): void {
+    this.organizations.set([]);
+    this.activeOrganizationId.set(null);
+    this.permissions.set([]);
+    localStorage.removeItem(ACTIVE_ORGANIZATION_KEY);
+  }
+
   private async loadPermissions(organizationId: string): Promise<void> {
     const response = await firstValueFrom(
       this.http.get<{ permissions: Permission[] }>(

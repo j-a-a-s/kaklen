@@ -3,7 +3,6 @@ import { Component, HostListener, OnDestroy, OnInit, signal } from "@angular/cor
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
-import { LocaleSelectorComponent } from "../i18n/locale-selector.component";
 import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
 import { VersionService } from "../version/version.service";
@@ -16,13 +15,10 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LocaleSelectorComponent, VersionBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent],
   template: `
     <main class="auth-shell">
       <section class="auth-panel" aria-labelledby="login-title">
-        <div class="auth-language">
-          <kaklen-locale-selector />
-        </div>
         <p class="eyebrow" i18n="@@loginEyebrow">Bienvenido de vuelta</p>
         <h1 id="login-title" i18n="@@loginTitle">Iniciar sesión</h1>
 

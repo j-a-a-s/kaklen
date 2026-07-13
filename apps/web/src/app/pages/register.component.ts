@@ -3,7 +3,6 @@ import { Component, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
-import { LocaleSelectorComponent } from "../i18n/locale-selector.component";
 
 interface RegisterForm {
   firstName: FormControl<string>;
@@ -15,13 +14,10 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LocaleSelectorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <main class="auth-shell">
       <section class="auth-panel" aria-labelledby="register-title">
-        <div class="auth-language">
-          <kaklen-locale-selector />
-        </div>
         <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
         <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
 

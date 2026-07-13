@@ -185,7 +185,7 @@ const routes: Routes = [
           ☰
         </button>
         <a class="brand" routerLink="/dashboard">Kaklen</a>
-        <span class="organization-pill" *ngIf="activeOrganizationName()">{{ activeOrganizationName() }}</span>
+        <span class="organization-pill" *ngIf="isAuthenticated() && activeOrganizationName()">{{ activeOrganizationName() }}</span>
       </div>
 
       <nav *ngIf="!isAuthenticated()" aria-label="Principal" i18n-aria-label="@@primaryNavigationAriaLabel">
@@ -262,7 +262,7 @@ class AppComponent {
   async logout(): Promise<void> {
     await this.auth.logout();
     this.closeMenu();
-    await this.router.navigateByUrl("/login");
+    await this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 }
 
