@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { LocaleSelectorComponent } from "../i18n/locale-selector.component";
+import { VersionBadgeComponent } from "../version/version-badge.component";
 
 interface LoginForm {
   email: FormControl<string>;
@@ -13,7 +14,7 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LocaleSelectorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, LocaleSelectorComponent, VersionBadgeComponent],
   template: `
     <main class="auth-shell">
       <section class="auth-panel" aria-labelledby="login-title">
@@ -48,6 +49,7 @@ interface LoginForm {
         </form>
 
         <p class="switch-link" i18n="@@loginSwitch">¿Aún no tienes cuenta? <a routerLink="/register">Crea una</a></p>
+        <kaklen-version-badge />
       </section>
     </main>
   `

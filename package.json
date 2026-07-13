@@ -5,9 +5,13 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "dev": "turbo run build --filter='./packages/*' && turbo run dev --filter='./apps/*' --parallel",
+    "dev:fresh": "node scripts/dev-fresh.mjs",
     "build": "turbo run build --concurrency=1",
+    "build:fresh": "node scripts/build-fresh.mjs",
     "test": "node --test scripts/*.test.mjs && turbo run test",
     "lint": "turbo run lint",
+    "clean": "pnpm clean:dev",
+    "clean:dev": "node scripts/clean-dev.mjs",
     "web:runtime-config": "node scripts/write-runtime-config.mjs",
     "db:generate": "pnpm prisma:generate",
     "db:migrate:deploy": "DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required} prisma migrate deploy",

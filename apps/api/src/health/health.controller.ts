@@ -18,6 +18,7 @@ export class HealthController {
         service: "kaklen-api",
         version: "0.1.0",
         commitSha: "local",
+        buildTime: "2026-07-09T00:00:00.000Z",
         timestamp: "2026-07-09T00:00:00.000Z"
       }
     }

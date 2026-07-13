@@ -1,6 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["API_PORT", "DATABASE_URL", "POSTGRES_PORT", "WEB_PORT"],
+  "globalPassThroughEnv": [
+    "API_PORT",
+    "APP_VERSION",
+    "BUILD_TIME",
+    "COMMIT_SHA",
+    "DATABASE_URL",
+    "POSTGRES_PORT",
+    "PUBLIC_APP_ENVIRONMENT",
+    "WEB_PORT"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

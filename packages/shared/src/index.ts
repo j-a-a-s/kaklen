@@ -3,6 +3,7 @@ export interface HealthResponse {
   service: string;
   version: string;
   commitSha: string;
+  buildTime: string;
   timestamp: string;
 }
 

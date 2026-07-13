@@ -5,6 +5,7 @@ export interface ApiConfig {
   databaseSsl: boolean;
   appVersion: string;
   commitSha: string;
+  buildTime: string;
   corsAllowedOrigins: string[];
   awsRegion: string;
   awsS3Bucket: string;
@@ -39,6 +40,7 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
   const databaseSsl = parseBoolean(env.DATABASE_SSL, isProduction);
   const appVersion = requireString(env, "APP_VERSION", isProduction, env.npm_package_version ?? "0.1.0");
   const commitSha = requireString(env, "COMMIT_SHA", isProduction, "local");
+  const buildTime = env.BUILD_TIME ?? new Date().toISOString();
   const corsAllowedOrigins = parseList(
     requireString(env, "CORS_ALLOWED_ORIGINS", isProduction, env.AUTH_ALLOWED_ORIGINS ?? LOCAL_ORIGIN)
   );
@@ -65,6 +67,7 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
     databaseSsl,
     appVersion,
     commitSha,
+    buildTime,
     corsAllowedOrigins,
     awsRegion,
     awsS3Bucket,

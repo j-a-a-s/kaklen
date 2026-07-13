@@ -7,6 +7,8 @@ export interface AppNotification {
   kind: NotificationKind;
   message: string;
   durationMs: number;
+  actionLabel?: string;
+  action?: () => void;
 }
 
 const DURATIONS: Record<NotificationKind, number> = {
@@ -22,20 +24,20 @@ export class NotificationService {
   private nextId = 1;
   private lastMessage = "";
 
-  success(message: string): void {
-    this.show("success", message);
+  success(message: string, actionLabel?: string, action?: () => void): void {
+    this.show("success", message, actionLabel, action);
   }
 
-  error(message: string): void {
-    this.show("error", message);
+  error(message: string, actionLabel?: string, action?: () => void): void {
+    this.show("error", message, actionLabel, action);
   }
 
-  warning(message: string): void {
-    this.show("warning", message);
+  warning(message: string, actionLabel?: string, action?: () => void): void {
+    this.show("warning", message, actionLabel, action);
   }
 
-  info(message: string): void {
-    this.show("info", message);
+  info(message: string, actionLabel?: string, action?: () => void): void {
+    this.show("info", message, actionLabel, action);
   }
 
   fromError(error: unknown): void {
@@ -49,7 +51,12 @@ export class NotificationService {
     this.notifications.update((items) => items.filter((item) => item.id !== id));
   }
 
-  private show(kind: NotificationKind, message: string): void {
+  runAction(notification: AppNotification): void {
+    notification.action?.();
+    this.dismiss(notification.id);
+  }
+
+  private show(kind: NotificationKind, message: string, actionLabel?: string, action?: () => void): void {
     if (message === this.lastMessage) {
       return;
     }
@@ -58,16 +65,20 @@ export class NotificationService {
       id: this.nextId,
       kind,
       message,
-      durationMs: DURATIONS[kind]
+      durationMs: action ? 0 : DURATIONS[kind],
+      actionLabel,
+      action
     };
     this.nextId += 1;
     this.notifications.update((items) => [...items, notification]);
-    window.setTimeout(() => {
-      this.dismiss(notification.id);
-      if (this.lastMessage === message) {
-        this.lastMessage = "";
-      }
-    }, notification.durationMs);
+    if (!action) {
+      window.setTimeout(() => {
+        this.dismiss(notification.id);
+        if (this.lastMessage === message) {
+          this.lastMessage = "";
+        }
+      }, notification.durationMs);
+    }
   }
 }
 

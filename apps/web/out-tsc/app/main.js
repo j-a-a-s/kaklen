@@ -31,11 +31,13 @@ import { EventFormComponent } from "./app/pages/event-form.component";
 import { EventListComponent } from "./app/pages/event-list.component";
 import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
 import { NotificationContainerComponent } from "./app/shared/notifications/notification-container.component";
+import { VersionBadgeComponent } from "./app/version/version-badge.component";
 import * as i0 from "@angular/core";
 import * as i1 from "./app/auth/auth.service";
 import * as i2 from "./app/organizations/organization.service";
 import * as i3 from "@angular/router";
-import * as i4 from "@angular/common";
+import * as i4 from "./app/version/version.service";
+import * as i5 from "@angular/common";
 const _c0 = a0 => ["/organizations", a0];
 const _c1 = a0 => ["/organizations", a0, "clients"];
 const _c2 = a0 => ["/organizations", a0, "catalog"];
@@ -45,7 +47,7 @@ const _c5 = a0 => ["/organizations", a0, "members"];
 const _c6 = a0 => ["/organizations", a0, "settings"];
 function AppComponent_button_2_Template(rf, ctx) { if (rf & 1) {
     const _r1 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "button", 21);
+    i0.ɵɵelementStart(0, "button", 22);
     i0.ɵɵlistener("click", function AppComponent_button_2_Template_button_click_0_listener() { i0.ɵɵrestoreView(_r1); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.toggleMenu()); });
     i0.ɵɵtext(1, " \u2630 ");
     i0.ɵɵelementEnd();
@@ -54,7 +56,7 @@ function AppComponent_button_2_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵattribute("aria-expanded", ctx_r1.menuOpen());
 } }
 function AppComponent_span_5_Template(rf, ctx) { if (rf & 1) {
-    i0.ɵɵelementStart(0, "span", 22);
+    i0.ɵɵelementStart(0, "span", 23);
     i0.ɵɵtext(1);
     i0.ɵɵelementEnd();
 } if (rf & 2) {
@@ -63,15 +65,15 @@ function AppComponent_span_5_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵtextInterpolate(ctx_r1.activeOrganizationName());
 } }
 function AppComponent_nav_6_Template(rf, ctx) { if (rf & 1) {
-    i0.ɵɵelementStart(0, "nav", 23)(1, "a", 24);
+    i0.ɵɵelementStart(0, "nav", 24)(1, "a", 25);
     i0.ɵɵi18n(2, 0);
     i0.ɵɵelementEnd();
-    i0.ɵɵelementStart(3, "a", 25);
+    i0.ɵɵelementStart(3, "a", 26);
     i0.ɵɵi18n(4, 1);
     i0.ɵɵelementEnd()();
 } }
 function AppComponent_nav_7_span_3_Template(rf, ctx) { if (rf & 1) {
-    i0.ɵɵelementStart(0, "span", 30);
+    i0.ɵɵelementStart(0, "span", 31);
     i0.ɵɵtext(1);
     i0.ɵɵelementEnd();
 } if (rf & 2) {
@@ -81,11 +83,11 @@ function AppComponent_nav_7_span_3_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_nav_7_Template(rf, ctx) { if (rf & 1) {
     const _r3 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "nav", 26)(1, "a", 27);
+    i0.ɵɵelementStart(0, "nav", 27)(1, "a", 28);
     i0.ɵɵi18n(2, 2);
     i0.ɵɵelementEnd();
-    i0.ɵɵtemplate(3, AppComponent_nav_7_span_3_Template, 2, 2, "span", 28);
-    i0.ɵɵelementStart(4, "button", 29);
+    i0.ɵɵtemplate(3, AppComponent_nav_7_span_3_Template, 2, 2, "span", 29);
+    i0.ɵɵelementStart(4, "button", 30);
     i0.ɵɵlistener("click", function AppComponent_nav_7_Template_button_click_4_listener() { i0.ɵɵrestoreView(_r3); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.logout()); });
     i0.ɵɵi18n(5, 3);
     i0.ɵɵelementEnd()();
@@ -96,7 +98,7 @@ function AppComponent_nav_7_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_4_Template(rf, ctx) { if (rf & 1) {
     const _r6 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_4_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r6); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 5);
     i0.ɵɵelementEnd();
@@ -106,7 +108,7 @@ function AppComponent_aside_10_a_4_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_5_Template(rf, ctx) { if (rf & 1) {
     const _r8 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_5_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r8); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 6);
     i0.ɵɵelementEnd();
@@ -116,7 +118,7 @@ function AppComponent_aside_10_a_5_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_6_Template(rf, ctx) { if (rf & 1) {
     const _r9 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_6_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r9); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 7);
     i0.ɵɵelementEnd();
@@ -126,7 +128,7 @@ function AppComponent_aside_10_a_6_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_7_Template(rf, ctx) { if (rf & 1) {
     const _r10 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_7_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r10); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 8);
     i0.ɵɵelementEnd();
@@ -136,7 +138,7 @@ function AppComponent_aside_10_a_7_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_8_Template(rf, ctx) { if (rf & 1) {
     const _r11 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_8_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r11); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 9);
     i0.ɵɵelementEnd();
@@ -146,7 +148,7 @@ function AppComponent_aside_10_a_8_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_a_9_Template(rf, ctx) { if (rf & 1) {
     const _r12 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "a", 33);
+    i0.ɵɵelementStart(0, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_a_9_Template_a_click_0_listener() { i0.ɵɵrestoreView(_r12); const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(1, 10);
     i0.ɵɵelementEnd();
@@ -156,11 +158,11 @@ function AppComponent_aside_10_a_9_Template(rf, ctx) { if (rf & 1) {
 } }
 function AppComponent_aside_10_Template(rf, ctx) { if (rf & 1) {
     const _r5 = i0.ɵɵgetCurrentView();
-    i0.ɵɵelementStart(0, "aside", 31)(1, "nav", 32)(2, "a", 33);
+    i0.ɵɵelementStart(0, "aside", 32)(1, "nav", 33)(2, "a", 34);
     i0.ɵɵlistener("click", function AppComponent_aside_10_Template_a_click_2_listener() { i0.ɵɵrestoreView(_r5); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.closeMenu()); });
     i0.ɵɵi18n(3, 4);
     i0.ɵɵelementEnd();
-    i0.ɵɵtemplate(4, AppComponent_aside_10_a_4_Template, 2, 3, "a", 34)(5, AppComponent_aside_10_a_5_Template, 2, 3, "a", 34)(6, AppComponent_aside_10_a_6_Template, 2, 3, "a", 34)(7, AppComponent_aside_10_a_7_Template, 2, 3, "a", 34)(8, AppComponent_aside_10_a_8_Template, 2, 3, "a", 34)(9, AppComponent_aside_10_a_9_Template, 2, 3, "a", 34);
+    i0.ɵɵtemplate(4, AppComponent_aside_10_a_4_Template, 2, 3, "a", 35)(5, AppComponent_aside_10_a_5_Template, 2, 3, "a", 35)(6, AppComponent_aside_10_a_6_Template, 2, 3, "a", 35)(7, AppComponent_aside_10_a_7_Template, 2, 3, "a", 35)(8, AppComponent_aside_10_a_8_Template, 2, 3, "a", 35)(9, AppComponent_aside_10_a_9_Template, 2, 3, "a", 35);
     i0.ɵɵelementEnd()();
 } if (rf & 2) {
     const organizationId_r7 = ctx.ngIf;
@@ -180,6 +182,11 @@ function AppComponent_aside_10_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵproperty("ngIf", ctx_r1.can("organization.members.read"));
     i0.ɵɵadvance();
     i0.ɵɵproperty("ngIf", ctx_r1.can("organization.update"));
+} }
+function AppComponent_footer_13_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "footer", 36);
+    i0.ɵɵelement(1, "kaklen-version-badge");
+    i0.ɵɵelementEnd();
 } }
 registerLocaleData(localeEs, "es");
 registerLocaleData(localeEn, "en");
@@ -308,11 +315,14 @@ class AppComponent {
     auth;
     organizationService;
     router;
+    versionService;
     menuOpen = signal(false, ...(ngDevMode ? [{ debugName: "menuOpen" }] : []));
-    constructor(auth, organizationService, router) {
+    constructor(auth, organizationService, router, versionService) {
         this.auth = auth;
         this.organizationService = organizationService;
         this.router = router;
+        this.versionService = versionService;
+        this.versionService.start();
     }
     isAuthenticated() {
         return this.auth.user() !== null;
@@ -337,8 +347,8 @@ class AppComponent {
         this.closeMenu();
         await this.router.navigateByUrl("/login");
     }
-    static ɵfac = function AppComponent_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || AppComponent)(i0.ɵɵdirectiveInject(i1.AuthService), i0.ɵɵdirectiveInject(i2.OrganizationService), i0.ɵɵdirectiveInject(i3.Router)); };
-    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: AppComponent, selectors: [["kaklen-root"]], decls: 14, vars: 7, consts: () => { let i18n_0; if (typeof ngI18nClosureMode !== "undefined" && ngI18nClosureMode) {
+    static ɵfac = function AppComponent_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || AppComponent)(i0.ɵɵdirectiveInject(i1.AuthService), i0.ɵɵdirectiveInject(i2.OrganizationService), i0.ɵɵdirectiveInject(i3.Router), i0.ɵɵdirectiveInject(i4.VersionService)); };
+    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: AppComponent, selectors: [["kaklen-root"]], decls: 15, vars: 8, consts: () => { let i18n_0; if (typeof ngI18nClosureMode !== "undefined" && ngI18nClosureMode) {
             /**
              * @suppress {msgDescriptions}
              */
@@ -473,7 +483,7 @@ class AppComponent {
         }
         else {
             i18n_14 = $localize `:@@navSettings␟59f3f6b3de471952371db79ea2da4defccd30d3f␟6076319951837431770:Configuración`;
-        } return [i18n_3, i18n_4, i18n_5, i18n_6, i18n_8, i18n_9, i18n_10, i18n_11, i18n_12, i18n_13, i18n_14, [1, "topbar"], [1, "topbar-left"], ["type", "button", "class", "icon-button mobile-menu-button", "aria-controls", "authenticated-navigation", "aria-label", i18n_0, 3, "click", 4, "ngIf"], ["routerLink", "/dashboard", 1, "brand"], ["class", "organization-pill", 4, "ngIf"], ["aria-label", i18n_1, 4, "ngIf"], ["class", "topbar-actions", "aria-label", i18n_2, 4, "ngIf"], [1, "app-layout"], ["id", "authenticated-navigation", "class", "app-sidebar", 3, "open", 4, "ngIf"], [1, "app-content"], ["type", "button", "aria-controls", "authenticated-navigation", "aria-label", i18n_0, 1, "icon-button", "mobile-menu-button", 3, "click"], [1, "organization-pill"], ["aria-label", i18n_1], ["routerLink", "/login"], ["routerLink", "/register"], ["aria-label", i18n_2, 1, "topbar-actions"], ["routerLink", "/organizations"], ["class", "user-chip", 4, "ngIf"], ["type", "button", 1, "secondary", "compact-button", 3, "click"], [1, "user-chip"], ["id", "authenticated-navigation", 1, "app-sidebar"], ["aria-label", i18n_7], ["routerLinkActive", "active", 3, "click", "routerLink"], ["routerLinkActive", "active", 3, "routerLink", "click", 4, "ngIf"]]; }, template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
+        } return [i18n_3, i18n_4, i18n_5, i18n_6, i18n_8, i18n_9, i18n_10, i18n_11, i18n_12, i18n_13, i18n_14, [1, "topbar"], [1, "topbar-left"], ["type", "button", "class", "icon-button mobile-menu-button", "aria-controls", "authenticated-navigation", "aria-label", i18n_0, 3, "click", 4, "ngIf"], ["routerLink", "/dashboard", 1, "brand"], ["class", "organization-pill", 4, "ngIf"], ["aria-label", i18n_1, 4, "ngIf"], ["class", "topbar-actions", "aria-label", i18n_2, 4, "ngIf"], [1, "app-layout"], ["id", "authenticated-navigation", "class", "app-sidebar", 3, "open", 4, "ngIf"], [1, "app-content"], ["class", "app-footer", 4, "ngIf"], ["type", "button", "aria-controls", "authenticated-navigation", "aria-label", i18n_0, 1, "icon-button", "mobile-menu-button", 3, "click"], [1, "organization-pill"], ["aria-label", i18n_1], ["routerLink", "/login"], ["routerLink", "/register"], ["aria-label", i18n_2, 1, "topbar-actions"], ["routerLink", "/organizations"], ["class", "user-chip", 4, "ngIf"], ["type", "button", 1, "secondary", "compact-button", 3, "click"], [1, "user-chip"], ["id", "authenticated-navigation", 1, "app-sidebar"], ["aria-label", i18n_7], ["routerLinkActive", "active", 3, "click", "routerLink"], ["routerLinkActive", "active", 3, "routerLink", "click", 4, "ngIf"], [1, "app-footer"]]; }, template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
             i0.ɵɵelementStart(0, "header", 11)(1, "div", 12);
             i0.ɵɵtemplate(2, AppComponent_button_2_Template, 2, 1, "button", 13);
             i0.ɵɵelementStart(3, "a", 14);
@@ -488,8 +498,9 @@ class AppComponent {
             i0.ɵɵtemplate(10, AppComponent_aside_10_Template, 10, 11, "aside", 19);
             i0.ɵɵelementStart(11, "main", 20);
             i0.ɵɵelement(12, "router-outlet");
+            i0.ɵɵtemplate(13, AppComponent_footer_13_Template, 2, 0, "footer", 21);
             i0.ɵɵelementEnd()();
-            i0.ɵɵelement(13, "kaklen-notification-container");
+            i0.ɵɵelement(14, "kaklen-notification-container");
         } if (rf & 2) {
             i0.ɵɵadvance(2);
             i0.ɵɵproperty("ngIf", ctx.isAuthenticated() && ctx.activeOrganizationId());
@@ -503,14 +514,16 @@ class AppComponent {
             i0.ɵɵclassProp("with-navigation", ctx.isAuthenticated() && ctx.activeOrganizationId());
             i0.ɵɵadvance();
             i0.ɵɵproperty("ngIf", ctx.isAuthenticated() && ctx.activeOrganizationId());
-        } }, dependencies: [CommonModule, i4.NgIf, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent], encapsulation: 2 });
+            i0.ɵɵadvance(3);
+            i0.ɵɵproperty("ngIf", ctx.isAuthenticated());
+        } }, dependencies: [CommonModule, i5.NgIf, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent, VersionBadgeComponent], encapsulation: 2 });
 }
 (() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadata(AppComponent, [{
         type: Component,
         args: [{
                 selector: "kaklen-root",
                 standalone: true,
-                imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent],
+                imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent, VersionBadgeComponent],
                 template: `
     <header class="topbar">
       <div class="topbar-left">
@@ -563,13 +576,16 @@ class AppComponent {
 
       <main class="app-content">
         <router-outlet />
+        <footer class="app-footer" *ngIf="isAuthenticated()">
+          <kaklen-version-badge />
+        </footer>
       </main>
     </div>
     <kaklen-notification-container />
   `
             }]
-    }], () => [{ type: i1.AuthService }, { type: i2.OrganizationService }, { type: i3.Router }], null); })();
-(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 229 }); })();
+    }], () => [{ type: i1.AuthService }, { type: i2.OrganizationService }, { type: i3.Router }, { type: i4.VersionService }], null); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(AppComponent, { className: "AppComponent", filePath: "src/main.ts", lineNumber: 234 }); })();
 bootstrapApplication(AppComponent, {
     providers: [
         provideRouter(routes),

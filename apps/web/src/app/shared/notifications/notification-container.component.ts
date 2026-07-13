@@ -18,6 +18,9 @@ import { NotificationService } from "./notification.service";
         role="status"
       >
         <span>{{ notification.message }}</span>
+        <button *ngIf="notification.actionLabel" type="button" class="toast-action" (click)="notifications.runAction(notification)">
+          {{ notification.actionLabel }}
+        </button>
         <button type="button" class="toast-close" (click)="notifications.dismiss(notification.id)" aria-label="Cerrar" i18n-aria-label="@@closeNotificationLabel">×</button>
       </article>
     </section>

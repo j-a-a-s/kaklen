@@ -36,6 +36,7 @@ export class HealthService {
       service: "kaklen-api",
       version: config.appVersion,
       commitSha: config.commitSha,
+      buildTime: config.buildTime,
       timestamp: new Date().toISOString()
     };
   }

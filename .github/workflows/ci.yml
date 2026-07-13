@@ -27,19 +27,19 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: kaklen
+          POSTGRES_DB: kaklen_dev
           POSTGRES_USER: kaklen
-          POSTGRES_PASSWORD: kaklen
+          POSTGRES_PASSWORD: kaklen_dev_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U kaklen -d kaklen"
+          --health-cmd "pg_isready -U kaklen -d kaklen_dev"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://kaklen:kaklen@localhost:5432/kaklen?schema=public
+      DATABASE_URL: postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public
       DATABASE_SSL: "false"
       API_PORT: 3000
       PORT: 3000
@@ -48,7 +48,6 @@ jobs:
       CORS_ALLOWED_ORIGINS: http://localhost:4200
       AWS_REGION: us-east-1
       AWS_S3_BUCKET: kaklen-ci
-      APP_VERSION: 0.1.0
       COMMIT_SHA: ${{ github.sha }}
 
     steps:
@@ -72,6 +71,14 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma:generate
 
+      - name: Prepare build metadata
+        run: |
+          echo "APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+          echo "BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")" >> "$GITHUB_ENV"
+
+      - name: Generate runtime config
+        run: pnpm web:runtime-config
+
       - name: Run lint
         run: pnpm lint
 
@@ -89,3 +96,10 @@ jobs:
 
       - name: Build API Docker image
         run: docker build --platform linux/amd64 -f apps/api/Dockerfile -t kaklen-api:ci .
+
+      - name: Build metadata summary
+        run: |
+          echo "### Kaklen build" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Version: $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: ${COMMIT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build time: $BUILD_TIME" >> "$GITHUB_STEP_SUMMARY"

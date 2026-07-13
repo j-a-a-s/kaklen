@@ -35,6 +35,8 @@ import { AuthService } from "./app/auth/auth.service";
 import { OrganizationService } from "./app/organizations/organization.service";
 import { Permission } from "./app/organizations/organization.models";
 import { NotificationContainerComponent } from "./app/shared/notifications/notification-container.component";
+import { VersionBadgeComponent } from "./app/version/version-badge.component";
+import { VersionService } from "./app/version/version.service";
 
 registerLocaleData(localeEs, "es");
 registerLocaleData(localeEn, "en");
@@ -168,7 +170,7 @@ const routes: Routes = [
 @Component({
   selector: "kaklen-root",
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent, VersionBadgeComponent],
   template: `
     <header class="topbar">
       <div class="topbar-left">
@@ -221,6 +223,9 @@ const routes: Routes = [
 
       <main class="app-content">
         <router-outlet />
+        <footer class="app-footer" *ngIf="isAuthenticated()">
+          <kaklen-version-badge />
+        </footer>
       </main>
     </div>
     <kaklen-notification-container />
@@ -232,8 +237,11 @@ class AppComponent {
   constructor(
     readonly auth: AuthService,
     private readonly organizationService: OrganizationService,
-    private readonly router: Router
-  ) {}
+    private readonly router: Router,
+    private readonly versionService: VersionService
+  ) {
+    this.versionService.start();
+  }
 
   isAuthenticated(): boolean {
     return this.auth.user() !== null;

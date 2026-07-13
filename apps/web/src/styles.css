@@ -215,6 +215,26 @@ button.secondary {
   margin-bottom: 20px;
 }
 
+.version-badge {
+  display: grid;
+  gap: 4px;
+  margin-top: 24px;
+  color: #68768a;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.version-badge span,
+.version-badge small {
+  overflow-wrap: anywhere;
+}
+
+.app-footer {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: 0 20px 32px;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   color: #287f71;
@@ -416,7 +436,7 @@ small,
 
 .toast {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: center;
   border: 1px solid #cbd5df;
@@ -450,6 +470,11 @@ small,
   border: 1px solid #cbd5df;
   background: #ffffff;
   color: #18202f;
+}
+
+.toast-action {
+  min-height: 36px;
+  padding: 0 12px;
 }
 
 code {

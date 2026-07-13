@@ -10,7 +10,7 @@ cd kaklen
 cp .env.example .env
 pnpm install
 pnpm run setup
-pnpm dev
+pnpm dev:fresh
 ```
 
 `pnpm run setup` verifica `DATABASE_URL` contra PostgreSQL real, compara las credenciales con el contenedor activo cuando existe, levanta PostgreSQL con Docker Compose si no responde, genera Prisma Client y ejecuta migraciones. No modifica `.env` automaticamente.
@@ -19,7 +19,33 @@ Comandos utiles:
 
 - `pnpm run doctor`: diagnostica Node, pnpm, Docker, PostgreSQL, `DATABASE_URL`, Prisma y variables criticas.
 - `node scripts/check-db.mjs`: prueba solo la conexion PostgreSQL.
+- `pnpm dev:fresh`: limpia artefactos regenerables, regenera runtime config, ejecuta Prisma generate y levanta desarrollo.
+- `pnpm clean:dev`: limpia caches locales sin borrar `.env`, `node_modules`, datos ni volumenes Docker.
 - `pnpm verify`: ejecuta doctor, lint, test y build.
+
+## Uso diario recomendado
+
+Usa siempre:
+
+```bash
+pnpm dev:fresh
+```
+
+La pantalla de login muestra la version y commit cargados, por ejemplo:
+
+```text
+Kaklen v0.1.0
+Commit 95b0798
+```
+
+Si sospechas cache del navegador o builds antiguos:
+
+```bash
+pnpm clean:dev
+pnpm dev:fresh
+```
+
+No uses `git reset --hard` para limpiar cache local. Tampoco borres `node_modules` salvo que el problema sea de dependencias. Para comparar frontend y API, revisa la version visible en login y `GET /api/health`; en desarrollo Kaklen avisa si los commits no coinciden.
 
 ## Solucion de problemas
 
