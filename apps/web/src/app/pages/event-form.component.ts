@@ -9,6 +9,7 @@ import { EventsService } from "../events/events.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-event-form",
@@ -96,7 +97,9 @@ import { QuotationsService } from "../quotations/quotations.service";
           </label>
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
           <div class="row-actions">
-            <button type="submit" [disabled]="loading() || form.invalid" i18n="@@saveChangesButton">Guardar cambios</button>
+            <button type="submit" [disabled]="loading() || form.invalid">
+              {{ loading() ? savingLabel : saveChangesLabel }}
+            </button>
             <button type="button" class="secondary" (click)="back()" i18n="@@cancelButton">Cancelar</button>
           </div>
         </form>
@@ -111,6 +114,8 @@ export class EventFormComponent implements OnInit {
   readonly approvedQuotations = signal<Quotation[]>([]);
   readonly createTitle = $localize`:@@createEventTitle:Nuevo evento`;
   readonly editTitle = $localize`:@@editEventTitle:Editar evento`;
+  readonly saveChangesLabel = $localize`:@@saveChangesButton:Guardar cambios`;
+  readonly savingLabel = $localize`:@@savingButton:Guardando...`;
   organizationId = "";
   eventId = "";
   readonly form = new FormGroup({
@@ -138,7 +143,8 @@ export class EventFormComponent implements OnInit {
     private readonly organizationService: OrganizationService,
     private readonly clientsService: ClientsService,
     private readonly quotationsService: QuotationsService,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -148,6 +154,10 @@ export class EventFormComponent implements OnInit {
     const organization = this.organizationService.activeOrganization();
     this.form.patchValue({ timezone: organization?.timezone ?? "America/Santiago", currency: organization?.currency ?? "CLP" });
     await this.loadOptions();
+    const quotationId = this.route.snapshot.queryParamMap.get("quotationId");
+    if (quotationId) {
+      this.form.controls.quotationId.setValue(quotationId);
+    }
     if (this.eventId) {
       const event = await this.eventsService.get(this.organizationId, this.eventId);
       this.form.patchValue({
@@ -182,8 +192,14 @@ export class EventFormComponent implements OnInit {
         : quotationId
           ? await this.eventsService.createFromQuotation(this.organizationId, quotationId, payload)
           : await this.eventsService.create(this.organizationId, payload);
+      this.notifications.success(
+        this.eventId
+          ? $localize`:@@eventUpdatedSuccess:Evento actualizado correctamente.`
+          : $localize`:@@eventCreatedSuccess:Evento creado correctamente.`
+      );
       await this.router.navigate(["/organizations", this.organizationId, "events", event.id]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@eventSaveError:No fue posible guardar el evento.`);
     } finally {
       this.loading.set(false);

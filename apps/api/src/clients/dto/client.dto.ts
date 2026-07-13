@@ -15,6 +15,7 @@ import {
   ValidateIf
 } from "class-validator";
 import { Type } from "class-transformer";
+import { IsChileanRutWhen } from "../../common/validation/chilean-rut";
 
 export class CreateClientDto {
   @ApiProperty({ enum: ClientType })
@@ -48,6 +49,12 @@ export class CreateClientDto {
   @IsOptional()
   @IsString()
   @MaxLength(40)
+  @IsChileanRutWhen(
+    (dto) =>
+      (dto as CreateClientDto).country === undefined ||
+      String((dto as CreateClientDto).country).toUpperCase() === "CL",
+    { message: "RUT_INVALID" }
+  )
   taxId?: string;
 
   @ApiPropertyOptional()
@@ -131,6 +138,12 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   @MaxLength(40)
+  @IsChileanRutWhen(
+    (dto) =>
+      (dto as UpdateClientDto).country === undefined ||
+      String((dto as UpdateClientDto).country).toUpperCase() === "CL",
+    { message: "RUT_INVALID" }
+  )
   taxId?: string;
 
   @ApiPropertyOptional()

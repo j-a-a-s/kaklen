@@ -1,8 +1,9 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { AuthUser } from "../auth/auth.models";
 import { AuthService } from "../auth/auth.service";
+import { OrganizationService } from "../organizations/organization.service";
 
 @Component({
   selector: "kaklen-dashboard",
@@ -44,12 +45,18 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly organizationService: OrganizationService
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.loading.set(true);
     try {
+      const organizationId = this.route.snapshot.paramMap.get("organizationId");
+      if (organizationId) {
+        await this.organizationService.setActiveOrganization(organizationId);
+      }
       this.user.set(await this.authService.me());
     } finally {
       this.loading.set(false);

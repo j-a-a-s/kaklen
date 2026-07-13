@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { CatalogItemStatus, CatalogItemType } from "../catalog/catalog.models";
 import { CatalogItemPayload, CatalogService } from "../catalog/catalog.service";
 import { OrganizationService } from "../organizations/organization.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-catalog-form",
@@ -88,7 +89,9 @@ import { OrganizationService } from "../organizations/organization.service";
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <div class="row-actions">
-            <button type="submit" [disabled]="loading() || catalogForm.invalid" i18n="@@saveButton">Guardar</button>
+            <button type="submit" [disabled]="loading() || catalogForm.invalid">
+              {{ loading() ? savingLabel : saveLabel }}
+            </button>
             <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'catalog']" i18n="@@cancelLink">Cancelar</a>
           </div>
         </form>
@@ -99,6 +102,8 @@ import { OrganizationService } from "../organizations/organization.service";
 export class CatalogFormComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly saveLabel = $localize`:@@saveButton:Guardar`;
+  readonly savingLabel = $localize`:@@savingButton:Guardando...`;
   readonly catalogForm = new FormGroup({
     type: new FormControl<CatalogItemType>("PRODUCT", { nonNullable: true }),
     status: new FormControl<CatalogItemStatus>("ACTIVE", { nonNullable: true }),
@@ -122,7 +127,8 @@ export class CatalogFormComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly catalogService: CatalogService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -157,8 +163,10 @@ export class CatalogFormComponent implements OnInit {
       const item = this.itemId
         ? await this.catalogService.update(this.organizationId, this.itemId, payload)
         : await this.catalogService.create(this.organizationId, payload);
+      this.notifications.success(this.successMessage(item.type));
       await this.router.navigate(["/organizations", this.organizationId, "catalog", item.id]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@catalogItemSaveError:No fue posible guardar el item. Revisa el código y los datos ingresados.`);
     } finally {
       this.loading.set(false);
@@ -209,6 +217,15 @@ export class CatalogFormComponent implements OnInit {
 
   titleLabel(): string {
     return this.itemId ? $localize`:@@editCatalogItemTitle:Editar item` : $localize`:@@newCatalogItemTitle:Nuevo item`;
+  }
+
+  private successMessage(type: CatalogItemType): string {
+    if (this.itemId) {
+      return $localize`:@@catalogUpdatedSuccess:Elemento actualizado correctamente.`;
+    }
+    return type === "PRODUCT"
+      ? $localize`:@@catalogProductCreatedSuccess:Producto creado correctamente.`
+      : $localize`:@@catalogServiceCreatedSuccess:Servicio creado correctamente.`;
   }
 
   private optional(value: string): string | undefined {

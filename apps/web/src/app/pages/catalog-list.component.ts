@@ -6,6 +6,7 @@ import { CatalogItem, CatalogItemStatus, CatalogItemType, PaginatedCatalogItems 
 import { CatalogService } from "../catalog/catalog.service";
 import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-catalog-list",
@@ -24,7 +25,7 @@ import { OrganizationService } from "../organizations/organization.service";
           class="button-link"
           [routerLink]="['/organizations', organizationId, 'catalog', 'new']"
         >
-          <span i18n="@@newCatalogItemButton">Nuevo item</span>
+          <span i18n="@@newCatalogItemButton">Nuevo producto o servicio</span>
         </a>
       </section>
 
@@ -163,7 +164,8 @@ export class CatalogListComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly catalogService: CatalogService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -236,7 +238,9 @@ export class CatalogListComponent implements OnInit {
     try {
       await this.catalogService.archive(this.organizationId, item.id);
       await this.load(this.catalog().page);
-    } catch {
+      this.notifications.success($localize`:@@catalogArchivedSuccess:Elemento archivado correctamente.`);
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@catalogArchiveError:No fue posible archivar el item.`);
     } finally {
       this.loading.set(false);

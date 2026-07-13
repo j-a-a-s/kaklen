@@ -3,6 +3,8 @@ import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
+import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-organization-settings",
@@ -24,7 +26,8 @@ import { OrganizationService } from "../organizations/organization.service";
           </label>
           <label>
             <span i18n="@@taxIdLabel">RUT o tax ID</span>
-            <input formControlName="taxId" />
+            <input formControlName="taxId" (blur)="formatRut()" />
+            <small *ngIf="form.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
           </label>
           <label>
             <span i18n="@@countryLabel">País</span>
@@ -68,7 +71,7 @@ export class OrganizationSettingsComponent implements OnInit {
   readonly form = new FormGroup({
     name: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     legalName: new FormControl("", { nonNullable: true }),
-    taxId: new FormControl("", { nonNullable: true }),
+    taxId: new FormControl("", { nonNullable: true, validators: [chileanRutValidator()] }),
     country: new FormControl("CL", { nonNullable: true, validators: [Validators.required] }),
     currency: new FormControl("CLP", { nonNullable: true, validators: [Validators.required] }),
     timezone: new FormControl("America/Santiago", { nonNullable: true, validators: [Validators.required] }),
@@ -79,7 +82,8 @@ export class OrganizationSettingsComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -98,15 +102,34 @@ export class OrganizationSettingsComponent implements OnInit {
   }
 
   async save(): Promise<void> {
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      return;
+    }
+
     this.loading.set(true);
     this.message.set(null);
     try {
-      await this.organizationService.update(this.organizationId, this.form.getRawValue());
+      const value = this.form.getRawValue();
+      await this.organizationService.update(this.organizationId, {
+        ...value,
+        taxId: normalizeChileanRut(value.taxId) || null
+      });
+      this.notifications.success($localize`:@@organizationUpdated:Organización actualizada.`);
       this.message.set($localize`:@@organizationUpdated:Organización actualizada.`);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.message.set($localize`:@@organizationSaveError:No pudimos guardar los cambios.`);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  formatRut(): void {
+    const control = this.form.controls.taxId;
+    if (this.form.controls.country.value.toUpperCase() === "CL" && control.value.trim()) {
+      control.setValue(formatChileanRut(control.value));
+      control.updateValueAndValidity();
     }
   }
 }

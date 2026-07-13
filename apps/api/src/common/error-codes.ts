@@ -4,6 +4,12 @@ export const ERROR_CODES = {
   forbidden: "FORBIDDEN",
   notFound: "NOT_FOUND",
   conflict: "CONFLICT",
+  duplicateTaxId: "DUPLICATE_TAX_ID",
+  rutInvalid: "RUT_INVALID",
+  resourceNotFound: "RESOURCE_NOT_FOUND",
+  validationError: "VALIDATION_ERROR",
+  quotationInvalidStatus: "QUOTATION_INVALID_STATUS",
+  eventInvalidStatus: "EVENT_INVALID_STATUS",
   tooManyRequests: "TOO_MANY_REQUESTS",
   internalServerError: "INTERNAL_SERVER_ERROR"
 } as const;
@@ -33,7 +39,7 @@ export function codeForStatus(statusCode: number): ErrorCode {
 }
 
 export interface ApiErrorResponse {
-  code: ErrorCode;
+  code: ErrorCode | string;
   message: string;
   statusCode: number;
 }

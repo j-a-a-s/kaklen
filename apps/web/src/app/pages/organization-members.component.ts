@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { ActivatedRoute } from "@angular/router";
 import { OrganizationInvitation, OrganizationMember, OrganizationRole } from "../organizations/organization.models";
 import { OrganizationService } from "../organizations/organization.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-organization-members",
@@ -34,7 +35,9 @@ import { OrganizationService } from "../organizations/organization.service";
               <option value="ADMIN">ADMIN</option>
             </select>
           </label>
-          <button type="submit" [disabled]="inviteForm.invalid || loading()" i18n="@@inviteButton">Invitar</button>
+          <button type="submit" [disabled]="inviteForm.invalid || loading()">
+            {{ loading() ? invitingLabel : inviteLabel }}
+          </button>
         </form>
         <p *ngIf="lastInvitation()">
           <ng-container i18n="@@testTokenLabel">Token de prueba:</ng-container> <code>{{ lastInvitation()?.invitationToken }}</code>
@@ -66,6 +69,8 @@ export class OrganizationMembersComponent implements OnInit {
   readonly members = signal<OrganizationMember[]>([]);
   readonly lastInvitation = signal<OrganizationInvitation | null>(null);
   readonly loading = signal(false);
+  readonly inviteLabel = $localize`:@@inviteButton:Invitar`;
+  readonly invitingLabel = $localize`:@@invitingButton:Invitando...`;
   readonly inviteForm = new FormGroup({
     email: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.email] }),
     role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true })
@@ -74,7 +79,8 @@ export class OrganizationMembersComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -99,17 +105,45 @@ export class OrganizationMembersComponent implements OnInit {
     if (this.inviteForm.invalid) {
       return;
     }
-    this.lastInvitation.set(await this.organizationService.invite(this.organizationId, this.inviteForm.getRawValue()));
+    this.loading.set(true);
+    try {
+      this.lastInvitation.set(await this.organizationService.invite(this.organizationId, this.inviteForm.getRawValue()));
+      this.notifications.success($localize`:@@invitationSentSuccess:Invitación enviada correctamente.`);
+      this.inviteForm.reset({ email: "", role: "MEMBER" });
+    } catch (error) {
+      this.notifications.fromError(error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   async changeRole(member: OrganizationMember, role: OrganizationRole): Promise<void> {
-    await this.organizationService.updateMember(this.organizationId, member.id, role);
-    await this.loadMembers();
+    this.loading.set(true);
+    try {
+      await this.organizationService.updateMember(this.organizationId, member.id, role);
+      this.notifications.success($localize`:@@memberRoleUpdatedSuccess:Rol actualizado correctamente.`);
+      await this.loadMembers();
+    } catch (error) {
+      this.notifications.fromError(error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   async remove(member: OrganizationMember): Promise<void> {
-    await this.organizationService.removeMember(this.organizationId, member.id);
-    await this.loadMembers();
+    if (!confirm($localize`:@@removeMemberConfirm:¿Quitar este miembro?`)) {
+      return;
+    }
+    this.loading.set(true);
+    try {
+      await this.organizationService.removeMember(this.organizationId, member.id);
+      this.notifications.success($localize`:@@memberRemovedSuccess:Miembro eliminado correctamente.`);
+      await this.loadMembers();
+    } catch (error) {
+      this.notifications.fromError(error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   private async loadMembers(): Promise<void> {

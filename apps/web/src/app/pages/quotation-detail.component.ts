@@ -6,6 +6,7 @@ import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-quotation-detail",
@@ -27,6 +28,7 @@ import { QuotationsService } from "../quotations/quotations.service";
           <button type="button" class="secondary" *ngIf="canReject() && currentQuotation.status === 'SENT'" (click)="changeStatus('reject')" i18n="@@rejectQuotationButton">Rechazar</button>
           <button type="button" class="secondary" *ngIf="canSend() && (currentQuotation.status === 'SENT' || currentQuotation.status === 'DRAFT')" (click)="changeStatus('cancel')" i18n="@@cancelQuotationButton">Cancelar</button>
           <button type="button" class="secondary" *ngIf="canUpdate() && currentQuotation.status !== 'DRAFT'" (click)="newVersion()" i18n="@@newVersionButton">Nueva versión</button>
+          <a *ngIf="currentQuotation.status === 'APPROVED'" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ quotationId: currentQuotation.id }" i18n="@@createEventButton">Crear evento</a>
           <a class="secondary-link" [href]="pdfUrl(currentQuotation)" target="_blank" i18n="@@downloadPdfButton">Descargar PDF</a>
         </div>
       </section>
@@ -78,7 +80,8 @@ export class QuotationDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly organizationService: OrganizationService,
     private readonly quotationsService: QuotationsService,
-    private readonly localeService: LocaleService
+    private readonly localeService: LocaleService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -105,10 +108,15 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   async changeStatus(action: "send" | "approve" | "reject" | "cancel"): Promise<void> {
+    if (!this.confirmStatusChange(action)) {
+      return;
+    }
     try {
       this.quotation.set(await this.quotationsService.changeStatus(this.organizationId, this.quotationId, action));
       this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
-    } catch {
+      this.notifications.success(this.statusSuccessMessage(action));
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
     }
   }
@@ -116,8 +124,10 @@ export class QuotationDetailComponent implements OnInit {
   async newVersion(): Promise<void> {
     try {
       const quotation = await this.quotationsService.newVersion(this.organizationId, this.quotationId);
+      this.notifications.success($localize`:@@quotationNewVersionSuccess:Nueva versión creada.`);
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id, "edit"]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
     }
   }
@@ -158,5 +168,28 @@ export class QuotationDetailComponent implements OnInit {
     } catch {
       this.error.set($localize`:@@quotationLoadError:No fue posible cargar la cotización.`);
     }
+  }
+
+  private confirmStatusChange(action: "send" | "approve" | "reject" | "cancel"): boolean {
+    if (action === "approve") {
+      return confirm($localize`:@@approveQuotationConfirm:¿Aprobar esta cotización?`);
+    }
+    if (action === "reject") {
+      return confirm($localize`:@@rejectQuotationConfirm:¿Rechazar esta cotización?`);
+    }
+    if (action === "cancel") {
+      return confirm($localize`:@@cancelQuotationConfirm:¿Cancelar esta cotización?`);
+    }
+    return true;
+  }
+
+  private statusSuccessMessage(action: "send" | "approve" | "reject" | "cancel"): string {
+    const messages: Record<typeof action, string> = {
+      send: $localize`:@@quotationSentSuccess:Cotización enviada.`,
+      approve: $localize`:@@quotationApprovedSuccess:Cotización aprobada.`,
+      reject: $localize`:@@quotationRejectedSuccess:Cotización rechazada.`,
+      cancel: $localize`:@@quotationCancelledSuccess:Cotización cancelada.`
+    };
+    return messages[action];
   }
 }

@@ -18,7 +18,7 @@ export class ApiErrorFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
     const body = exception instanceof HttpException ? this.normalizeBody(exception.getResponse()) : {};
     const payload: ApiErrorResponse = {
-      code: codeForStatus(statusCode),
+      code: body.code && typeof body.code === "string" ? body.code : codeForStatus(statusCode),
       message: this.messageForBody(body, statusCode),
       statusCode
     };

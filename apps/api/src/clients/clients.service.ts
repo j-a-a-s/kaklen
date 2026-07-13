@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Client, ClientInteraction, ClientStatus, ClientType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { isValidChileanRut, normalizeChileanRut } from "../common/validation/chilean-rut";
 import { CreateClientDto, CreateClientInteractionDto, ListClientsQueryDto, UpdateClientDto } from "./dto/client.dto";
 
 interface ClientInput {
@@ -219,7 +220,7 @@ export class ClientsService {
       firstName: type === ClientType.NATURAL_PERSON ? firstName : null,
       lastName: type === ClientType.NATURAL_PERSON ? lastName : null,
       legalName: type === ClientType.LEGAL_ENTITY ? legalName : null,
-      taxId: this.clean(dto.taxId),
+      taxId: this.cleanTaxId(dto.taxId),
       email: this.clean(dto.email)?.toLowerCase() ?? null,
       phone: this.clean(dto.phone),
       whatsapp: this.clean(dto.whatsapp),
@@ -271,13 +272,24 @@ export class ClientsService {
       where: { organizationId, taxId, ...(exceptClientId ? { id: { not: exceptClientId } } : {}) }
     });
     if (existing) {
-      throw new ConflictException("taxId already exists in this organization");
+      throw new ConflictException({
+        code: "DUPLICATE_TAX_ID",
+        message: "taxId already exists in this organization"
+      });
     }
   }
 
   private clean(value: string | null | undefined): string | null {
     const cleaned = value?.trim();
     return cleaned ? cleaned : null;
+  }
+
+  private cleanTaxId(value: string | null | undefined): string | null {
+    const cleaned = this.clean(value);
+    if (!cleaned) {
+      return null;
+    }
+    return isValidChileanRut(cleaned) ? normalizeChileanRut(cleaned) : cleaned;
   }
 
   private audit(

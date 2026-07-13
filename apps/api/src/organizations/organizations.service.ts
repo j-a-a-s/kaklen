@@ -19,6 +19,7 @@ import { randomBytes } from "node:crypto";
 import * as argon2 from "argon2";
 import { readOrganizationConfig } from "@kaklen/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { isValidChileanRut, normalizeChileanRut } from "../common/validation/chilean-rut";
 import { AuthenticatedRequest } from "../auth/auth.types";
 import {
   AcceptInvitationDto,
@@ -47,7 +48,7 @@ export class OrganizationsService {
           name: dto.name.trim(),
           slug,
           legalName: dto.legalName?.trim() || null,
-          taxId: dto.taxId?.trim() || null,
+          taxId: this.cleanTaxId(dto.taxId),
           country: dto.country?.trim().toUpperCase(),
           currency: dto.currency?.trim().toUpperCase(),
           timezone: dto.timezone?.trim(),
@@ -103,7 +104,7 @@ export class OrganizationsService {
         data: {
           name: dto.name?.trim(),
           legalName: dto.legalName === undefined ? undefined : dto.legalName?.trim() || null,
-          taxId: dto.taxId === undefined ? undefined : dto.taxId?.trim() || null,
+          taxId: dto.taxId === undefined ? undefined : this.cleanTaxId(dto.taxId),
           country: dto.country?.trim().toUpperCase(),
           currency: dto.currency?.trim().toUpperCase(),
           timezone: dto.timezone?.trim(),
@@ -428,6 +429,14 @@ export class OrganizationsService {
       revokedAt: invitation.revokedAt?.toISOString() ?? null,
       invitationToken: process.env.NODE_ENV === "production" ? undefined : invitationToken
     };
+  }
+
+  private cleanTaxId(value: string | null | undefined): string | null {
+    const cleaned = value?.trim();
+    if (!cleaned) {
+      return null;
+    }
+    return isValidChileanRut(cleaned) ? normalizeChileanRut(cleaned) : cleaned;
   }
 
   private audit(

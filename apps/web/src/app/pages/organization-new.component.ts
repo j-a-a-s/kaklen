@@ -3,6 +3,8 @@ import { Component, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
+import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 interface OrganizationForm {
   name: FormControl<string>;
@@ -30,7 +32,8 @@ interface OrganizationForm {
           </label>
           <label>
             <span i18n="@@taxIdLabel">RUT o tax ID</span>
-            <input formControlName="taxId" />
+            <input formControlName="taxId" (blur)="formatRut()" />
+            <small *ngIf="form.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
           </label>
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
           <button type="submit" [disabled]="form.invalid || loading()">
@@ -47,12 +50,13 @@ export class OrganizationNewComponent {
   readonly form = new FormGroup<OrganizationForm>({
     name: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     legalName: new FormControl("", { nonNullable: true }),
-    taxId: new FormControl("", { nonNullable: true })
+    taxId: new FormControl("", { nonNullable: true, validators: [chileanRutValidator()] })
   });
 
   constructor(
     private readonly organizationService: OrganizationService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly notifications: NotificationService
   ) {}
 
   async submit(): Promise<void> {
@@ -64,13 +68,24 @@ export class OrganizationNewComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const organization = await this.organizationService.create(this.form.getRawValue());
+      const value = this.form.getRawValue();
+      const organization = await this.organizationService.create({ ...value, taxId: normalizeChileanRut(value.taxId) || undefined });
       await this.organizationService.setActiveOrganization(organization.id);
+      this.notifications.success($localize`:@@organizationCreatedSuccess:Organización creada correctamente.`);
       await this.router.navigate(["/organizations", organization.id, "members"]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@organizationCreateError:No pudimos crear la organización.`);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  formatRut(): void {
+    const control = this.form.controls.taxId;
+    if (control.value.trim()) {
+      control.setValue(formatChileanRut(control.value));
+      control.updateValueAndValidity();
     }
   }
 

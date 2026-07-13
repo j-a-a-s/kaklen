@@ -5,6 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { ClientStatus, ClientType } from "../clients/client.models";
 import { ClientPayload, ClientsService } from "../clients/clients.service";
 import { OrganizationService } from "../organizations/organization.service";
+import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-client-form",
@@ -63,7 +65,8 @@ import { OrganizationService } from "../organizations/organization.service";
           <div class="field-grid">
             <label>
               <span i18n="@@taxIdLabel">RUT o tax ID</span>
-              <input formControlName="taxId" maxlength="40" />
+              <input formControlName="taxId" maxlength="40" (blur)="formatRut()" />
+              <small *ngIf="clientForm.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
             </label>
             <label>
               <span i18n="@@emailLabel">Email</span>
@@ -104,7 +107,9 @@ import { OrganizationService } from "../organizations/organization.service";
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <div class="row-actions">
-            <button type="submit" [disabled]="loading() || clientForm.invalid" i18n="@@saveButton">Guardar</button>
+            <button type="submit" [disabled]="loading() || clientForm.invalid">
+              {{ loading() ? savingLabel : saveLabel }}
+            </button>
             <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@cancelLink">Cancelar</a>
           </div>
         </form>
@@ -115,13 +120,15 @@ import { OrganizationService } from "../organizations/organization.service";
 export class ClientFormComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly saveLabel = $localize`:@@saveButton:Guardar`;
+  readonly savingLabel = $localize`:@@savingButton:Guardando...`;
   readonly clientForm = new FormGroup({
     type: new FormControl<ClientType>("NATURAL_PERSON", { nonNullable: true }),
     status: new FormControl<ClientStatus>("LEAD", { nonNullable: true }),
     firstName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(80)] }),
     lastName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(80)] }),
     legalName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
-    taxId: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40)] }),
+    taxId: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), chileanRutValidator()] }),
     email: new FormControl("", { nonNullable: true, validators: [Validators.email] }),
     phone: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40)] }),
     whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40)] }),
@@ -138,7 +145,8 @@ export class ClientFormComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly clientsService: ClientsService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -146,6 +154,9 @@ export class ClientFormComponent implements OnInit {
     this.clientId = this.route.snapshot.paramMap.get("clientId") ?? "";
     await this.organizationService.setActiveOrganization(this.organizationId);
     this.clientForm.controls.type.valueChanges.subscribe(() => this.applyTypeValidators());
+    this.clientForm.controls.country.valueChanges.subscribe(() => {
+      this.clientForm.controls.taxId.updateValueAndValidity();
+    });
     this.applyTypeValidators();
 
     if (this.clientId) {
@@ -172,11 +183,25 @@ export class ClientFormComponent implements OnInit {
       const client = this.clientId
         ? await this.clientsService.update(this.organizationId, this.clientId, payload)
         : await this.clientsService.create(this.organizationId, payload);
+      this.notifications.success(
+        this.clientId
+          ? $localize`:@@clientUpdatedSuccess:Cliente actualizado correctamente.`
+          : $localize`:@@clientCreatedSuccess:Cliente creado correctamente.`
+      );
       await this.router.navigate(["/organizations", this.organizationId, "clients", client.id]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@clientSaveError:No fue posible guardar el cliente. Revisa los datos e intenta nuevamente.`);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  formatRut(): void {
+    const control = this.clientForm.controls.taxId;
+    if (this.clientForm.controls.country.value.toUpperCase() === "CL" && control.value.trim()) {
+      control.setValue(formatChileanRut(control.value));
+      control.updateValueAndValidity();
     }
   }
 
@@ -237,7 +262,7 @@ export class ClientFormComponent implements OnInit {
       firstName: this.optional(value.firstName),
       lastName: this.optional(value.lastName),
       legalName: this.optional(value.legalName),
-      taxId: this.optional(value.taxId),
+      taxId: value.country.toUpperCase() === "CL" ? this.optional(normalizeChileanRut(value.taxId)) : this.optional(value.taxId),
       email: this.optional(value.email),
       phone: this.optional(value.phone),
       whatsapp: this.optional(value.whatsapp),

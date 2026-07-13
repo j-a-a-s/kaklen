@@ -10,6 +10,7 @@ import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { QuotationDiscountType, QuotationItemPayload, QuotationItemType } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 type ItemForm = FormGroup<{
   catalogItemId: FormControl<string>;
@@ -136,7 +137,9 @@ type ItemForm = FormGroup<{
           <textarea formControlName="terms"></textarea>
         </label>
         <p class="form-error" *ngIf="error()">{{ error() }}</p>
-        <button type="submit" [disabled]="form.invalid || loading()" i18n="@@saveQuotationButton">Guardar cotización</button>
+        <button type="submit" [disabled]="form.invalid || loading()">
+          {{ loading() ? savingLabel : saveQuotationLabel }}
+        </button>
       </form>
     </main>
   `
@@ -148,6 +151,8 @@ export class QuotationFormComponent implements OnInit {
   readonly catalogItems = signal<CatalogItem[]>([]);
   readonly newTitle = $localize`:@@newQuotationTitle:Nueva cotización`;
   readonly editTitle = $localize`:@@editQuotationTitle:Editar cotización`;
+  readonly saveQuotationLabel = $localize`:@@saveQuotationButton:Guardar cotización`;
+  readonly savingLabel = $localize`:@@savingButton:Guardando...`;
   readonly form = new FormGroup({
     clientId: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     issueDate: new FormControl(new Date().toISOString().slice(0, 10), { nonNullable: true, validators: [Validators.required] }),
@@ -167,7 +172,8 @@ export class QuotationFormComponent implements OnInit {
     private readonly clientsService: ClientsService,
     private readonly catalogService: CatalogService,
     private readonly organizationService: OrganizationService,
-    private readonly quotationsService: QuotationsService
+    private readonly quotationsService: QuotationsService,
+    private readonly notifications: NotificationService
   ) {}
 
   get items(): FormArray<ItemForm> {
@@ -227,8 +233,14 @@ export class QuotationFormComponent implements OnInit {
       const quotation = this.quotationId
         ? await this.quotationsService.update(this.organizationId, this.quotationId, payload)
         : await this.quotationsService.create(this.organizationId, payload);
+      this.notifications.success(
+        this.quotationId
+          ? $localize`:@@quotationUpdatedSuccess:Cotización actualizada correctamente.`
+          : $localize`:@@quotationCreatedSuccess:Cotización creada correctamente.`
+      );
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id]);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@quotationSaveError:No fue posible guardar la cotización.`);
     } finally {
       this.loading.set(false);

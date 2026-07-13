@@ -1,11 +1,12 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Client, ClientInteraction, ClientInteractionType } from "../clients/client.models";
 import { ClientsService } from "../clients/clients.service";
 import { formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-client-detail",
@@ -28,6 +29,7 @@ import { OrganizationService } from "../organizations/organization.service";
           >
             <span i18n="@@editLink">Editar</span>
           </a>
+          <button *ngIf="canDelete() && currentClient.status !== 'ARCHIVED'" type="button" class="danger" (click)="archive()" i18n="@@archiveButton">Archivar</button>
         </div>
       </section>
 
@@ -126,8 +128,10 @@ export class ClientDetailComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly clientsService: ClientsService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -139,6 +143,10 @@ export class ClientDetailComponent implements OnInit {
 
   canUpdate(): boolean {
     return this.organizationService.hasPermission("clients.update");
+  }
+
+  canDelete(): boolean {
+    return this.organizationService.hasPermission("clients.delete");
   }
 
   typeLabel(type: Client["type"]): string {
@@ -182,10 +190,31 @@ export class ClientDetailComponent implements OnInit {
         subject: value.subject.trim() || undefined,
         description: value.description.trim()
       });
+      this.notifications.success($localize`:@@interactionAddedSuccess:Interacción agregada correctamente.`);
       this.interactionForm.reset({ type: "NOTE", subject: "", description: "" });
       await this.loadInteractions();
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@interactionAddError:No fue posible agregar la interacción.`);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async archive(): Promise<void> {
+    const currentClient = this.client();
+    if (!currentClient || !confirm($localize`:@@archiveClientConfirm:¿Archivar este cliente?`)) {
+      return;
+    }
+    this.loading.set(true);
+    this.error.set("");
+    try {
+      await this.clientsService.archive(this.organizationId, currentClient.id);
+      this.notifications.success($localize`:@@clientArchivedSuccess:Cliente archivado correctamente.`);
+      await this.router.navigate(["/organizations", this.organizationId, "clients"]);
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@clientArchiveError:No fue posible archivar el cliente.`);
     } finally {
       this.loading.set(false);
     }
@@ -201,7 +230,8 @@ export class ClientDetailComponent implements OnInit {
       ]);
       this.client.set(client);
       this.interactions.set(interactions);
-    } catch {
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@clientLoadError:No fue posible cargar el cliente.`);
     } finally {
       this.loading.set(false);

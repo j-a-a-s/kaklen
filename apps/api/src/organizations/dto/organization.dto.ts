@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OrganizationMembershipStatus, OrganizationRole, OrganizationStatus } from "@prisma/client";
 import { IsEmail, IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import type { Permission } from "../permissions";
+import { IsChileanRutWhen } from "../../common/validation/chilean-rut";
 
 export const SUPPORTED_DATE_FORMATS = ["dd-MM-yyyy", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"] as const;
 export const SUPPORTED_NUMBER_FORMATS = ["es", "en-US", "pt-BR"] as const;
@@ -23,6 +24,12 @@ export class CreateOrganizationDto {
   @IsOptional()
   @IsString()
   @MaxLength(40)
+  @IsChileanRutWhen(
+    (dto) =>
+      (dto as CreateOrganizationDto).country === undefined ||
+      String((dto as CreateOrganizationDto).country).toUpperCase() === "CL",
+    { message: "RUT_INVALID" }
+  )
   taxId?: string;
 
   @ApiPropertyOptional({ example: "CL" })
@@ -72,6 +79,12 @@ export class UpdateOrganizationDto {
   @IsOptional()
   @IsString()
   @MaxLength(40)
+  @IsChileanRutWhen(
+    (dto) =>
+      (dto as UpdateOrganizationDto).country === undefined ||
+      String((dto as UpdateOrganizationDto).country).toUpperCase() === "CL",
+    { message: "RUT_INVALID" }
+  )
   taxId?: string | null;
 
   @ApiPropertyOptional({ example: "CL" })

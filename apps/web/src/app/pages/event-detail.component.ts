@@ -6,6 +6,7 @@ import { Event, EventParticipantRole, EventStatus, EventTaskPriority } from "../
 import { EventsService } from "../events/events.service";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-event-detail",
@@ -179,7 +180,8 @@ export class EventDetailComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly organizationService: OrganizationService,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -206,9 +208,14 @@ export class EventDetailComponent implements OnInit {
   }
 
   async changeStatus(action: "confirm" | "start" | "complete" | "cancel"): Promise<void> {
+    if (action === "cancel" && !confirm($localize`:@@cancelEventConfirm:¿Cancelar este evento?`)) {
+      return;
+    }
     try {
       this.event.set(await this.eventsService.changeStatus(this.organizationId, this.eventId, action));
-    } catch {
+      this.notifications.success(this.statusSuccessMessage(action));
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@eventStatusError:No fue posible cambiar el estado del evento.`);
     }
   }
@@ -218,28 +225,33 @@ export class EventDetailComponent implements OnInit {
       return;
     }
     await this.eventsService.archive(this.organizationId, this.eventId);
+    this.notifications.success($localize`:@@eventArchivedSuccess:Evento archivado.`);
     await this.router.navigate(["/organizations", this.organizationId, "events"]);
   }
 
   async addTask(): Promise<void> {
     await this.eventsService.createTask(this.organizationId, this.eventId, this.taskForm.getRawValue());
+    this.notifications.success($localize`:@@eventTaskAddedSuccess:Tarea agregada correctamente.`);
     this.taskForm.reset({ title: "", priority: "MEDIUM" });
     await this.load();
   }
 
   async completeTask(taskId: string, title: string): Promise<void> {
     await this.eventsService.updateTask(this.organizationId, this.eventId, taskId, { title, status: "COMPLETED" });
+    this.notifications.success($localize`:@@eventTaskCompletedSuccess:Tarea completada.`);
     await this.load();
   }
 
   async addParticipant(): Promise<void> {
     await this.eventsService.createParticipant(this.organizationId, this.eventId, this.participantForm.getRawValue());
+    this.notifications.success($localize`:@@eventParticipantAddedSuccess:Participante agregado correctamente.`);
     this.participantForm.reset({ externalName: "", externalEmail: "", role: "CLIENT_CONTACT" });
     await this.load();
   }
 
   async addResource(): Promise<void> {
     await this.eventsService.createResource(this.organizationId, this.eventId, this.resourceForm.getRawValue());
+    this.notifications.success($localize`:@@eventResourceAddedSuccess:Recurso agregado correctamente.`);
     this.resourceForm.reset({ name: "", quantity: 1, unit: "unidad" });
     await this.load();
   }
@@ -250,6 +262,7 @@ export class EventDetailComponent implements OnInit {
       title: value.title,
       startsAt: new Date(value.startsAt).toISOString()
     });
+    this.notifications.success($localize`:@@eventTimelineAddedSuccess:Cronograma actualizado correctamente.`);
     this.timelineForm.reset({ title: "", startsAt: "" });
     await this.load();
   }
@@ -277,5 +290,15 @@ export class EventDetailComponent implements OnInit {
   moneyLabel(value: string, currency: string): string {
     const organization = this.organizationService.activeOrganization();
     return formatRegionalCurrency(value, { currency, numberFormat: organization?.numberFormat ?? "es" });
+  }
+
+  private statusSuccessMessage(action: "confirm" | "start" | "complete" | "cancel"): string {
+    const messages: Record<typeof action, string> = {
+      confirm: $localize`:@@eventConfirmedSuccess:Evento confirmado.`,
+      start: $localize`:@@eventStartedSuccess:Evento iniciado.`,
+      complete: $localize`:@@eventCompletedSuccess:Evento completado.`,
+      cancel: $localize`:@@eventCancelledSuccess:Evento cancelado.`
+    };
+    return messages[action];
   }
 }
