@@ -1,10 +1,12 @@
 import { CommonModule } from "@angular/common";
-import { Component, signal } from "@angular/core";
+import { Component, HostListener, OnDestroy, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { LocaleSelectorComponent } from "../i18n/locale-selector.component";
+import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
+import { VersionService } from "../version/version.service";
 
 interface LoginForm {
   email: FormControl<string>;
@@ -49,14 +51,15 @@ interface LoginForm {
         </form>
 
         <p class="switch-link" i18n="@@loginSwitch">¿Aún no tienes cuenta? <a routerLink="/register">Crea una</a></p>
-        <kaklen-version-badge />
+        <kaklen-version-badge *ngIf="versionPanelVisible()" (closed)="hideVersionPanel()" />
       </section>
     </main>
   `
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly versionPanelVisible = signal(false);
   readonly form = new FormGroup<LoginForm>({
     email: new FormControl("", {
       nonNullable: true,
@@ -70,8 +73,40 @@ export class LoginComponent {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly keyboardSequence: KeyboardSequenceService,
+    private readonly versionService: VersionService
   ) {}
+
+  private stopVersionShortcut: (() => void) | null = null;
+
+  ngOnInit(): void {
+    this.versionService.start();
+    this.stopVersionShortcut = this.keyboardSequence.listen({ timeoutMs: 1500 }, () => this.toggleVersionPanel());
+  }
+
+  ngOnDestroy(): void {
+    this.stopVersionShortcut?.();
+    this.stopVersionShortcut = null;
+    this.versionService.stop();
+  }
+
+  @HostListener("document:keydown.escape", ["$event"])
+  closeVersionPanelOnEscape(event: KeyboardEvent): void {
+    if (!this.versionPanelVisible()) {
+      return;
+    }
+    event.preventDefault();
+    this.hideVersionPanel();
+  }
+
+  toggleVersionPanel(): void {
+    this.versionPanelVisible.update((visible) => !visible);
+  }
+
+  hideVersionPanel(): void {
+    this.versionPanelVisible.set(false);
+  }
 
   async submit(): Promise<void> {
     if (this.form.invalid) {

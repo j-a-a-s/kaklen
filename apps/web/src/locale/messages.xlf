@@ -884,6 +884,36 @@
     <trans-unit id="eventCalendarLoadError" datatype="html">
         <source>No fue posible cargar el calendario.</source>
       </trans-unit>
+    <trans-unit id="versionPanelAriaLabel" datatype="html">
+        <source>Información de versión de Kaklen</source>
+      </trans-unit>
+    <trans-unit id="versionLabel" datatype="html">
+        <source>Versión</source>
+      </trans-unit>
+    <trans-unit id="closeVersionInfoLabel" datatype="html">
+        <source>Cerrar información de versión</source>
+      </trans-unit>
+    <trans-unit id="commitLabel" datatype="html">
+        <source>Commit</source>
+      </trans-unit>
+    <trans-unit id="buildTimeLabel" datatype="html">
+        <source>Compilado</source>
+      </trans-unit>
+    <trans-unit id="environmentLabel" datatype="html">
+        <source>Entorno</source>
+      </trans-unit>
+    <trans-unit id="versionUnavailable" datatype="html">
+        <source>Versión no disponible</source>
+      </trans-unit>
+    <trans-unit id="newVersionAvailable" datatype="html">
+        <source>Hay una nueva versión de Kaklen disponible.</source>
+      </trans-unit>
+    <trans-unit id="updateNowButton" datatype="html">
+        <source>Actualizar ahora</source>
+      </trans-unit>
+    <trans-unit id="frontendBackendVersionMismatch" datatype="html">
+        <source>Frontend y API están ejecutando versiones distintas.</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

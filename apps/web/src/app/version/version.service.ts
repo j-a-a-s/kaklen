@@ -25,6 +25,13 @@ export class VersionService {
     }
   }
 
+  stop(): void {
+    if (this.intervalId !== null) {
+      window.clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
   async refresh(): Promise<void> {
     try {
       this.config.set(await fetchRuntimeConfig(RUNTIME_CONFIG.commitSha || Date.now().toString()));
@@ -72,17 +79,21 @@ export class VersionService {
     return `Kaklen v${current.version}`;
   }
 
-  displayCommit(): string {
+  displayCommitSha(): string {
     const commit = this.config().commitSha;
-    return commit && commit !== "local" ? `Commit ${commit}` : $localize`:@@commitUnavailable:Commit no disponible`;
+    return commit ? shortSha(commit) : "local";
   }
 
-  displayBuildTime(): string {
+  displayBuildTimeValue(): string {
     const buildTime = this.config().buildTime;
     if (!buildTime) {
       return $localize`:@@versionUnavailable:Versión no disponible`;
     }
-    return `${$localize`:@@buildTimeLabel:Compilado:`} ${new Date(buildTime).toLocaleString()}`;
+    return new Date(buildTime).toLocaleString();
+  }
+
+  displayEnvironment(): string {
+    return this.config().environment;
   }
 
   private async reloadApplication(): Promise<void> {

@@ -215,24 +215,81 @@ button.secondary {
   margin-bottom: 20px;
 }
 
-.version-badge {
+.version-panel {
   display: grid;
-  gap: 4px;
+  gap: 12px;
   margin-top: 24px;
-  color: #68768a;
+  border: 1px solid #cbd5df;
+  border-radius: 8px;
+  background: #111827;
+  color: #e5edf6;
+  padding: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.82rem;
-  font-weight: 700;
 }
 
-.version-badge span,
-.version-badge small {
+.version-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.version-panel-title {
+  display: grid;
+  gap: 2px;
+}
+
+.version-kicker {
+  color: #91a4ba;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.version-panel strong,
+.version-panel dd {
   overflow-wrap: anywhere;
 }
 
-.app-footer {
-  width: min(100%, 1120px);
-  margin: 0 auto;
-  padding: 0 20px 32px;
+.version-close-button {
+  display: inline-grid;
+  width: 34px;
+  min-height: 34px;
+  place-items: center;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #ffffff;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.version-panel dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.version-panel dl div {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.45fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.version-panel dt {
+  color: #91a4ba;
+  font-weight: 800;
+}
+
+.version-panel dd {
+  margin: 0;
+}
+
+.version-unavailable {
+  margin: 0;
+  color: #fbbf24;
 }
 
 .eyebrow {

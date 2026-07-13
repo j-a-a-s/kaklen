@@ -1178,6 +1178,46 @@
         <source>No fue posible cargar el calendario.</source>
         <target>Não foi possível carregar o calendário.</target>
       </trans-unit>
+    <trans-unit id="versionPanelAriaLabel" datatype="html">
+        <source>Información de versión de Kaklen</source>
+        <target>Informações da versão do Kaklen</target>
+      </trans-unit>
+    <trans-unit id="versionLabel" datatype="html">
+        <source>Versión</source>
+        <target>Versão</target>
+      </trans-unit>
+    <trans-unit id="closeVersionInfoLabel" datatype="html">
+        <source>Cerrar información de versión</source>
+        <target>Fechar informações da versão</target>
+      </trans-unit>
+    <trans-unit id="commitLabel" datatype="html">
+        <source>Commit</source>
+        <target>Commit</target>
+      </trans-unit>
+    <trans-unit id="buildTimeLabel" datatype="html">
+        <source>Compilado</source>
+        <target>Compilado</target>
+      </trans-unit>
+    <trans-unit id="environmentLabel" datatype="html">
+        <source>Entorno</source>
+        <target>Ambiente</target>
+      </trans-unit>
+    <trans-unit id="versionUnavailable" datatype="html">
+        <source>Versión no disponible</source>
+        <target>Versão indisponível</target>
+      </trans-unit>
+    <trans-unit id="newVersionAvailable" datatype="html">
+        <source>Hay una nueva versión de Kaklen disponible.</source>
+        <target>Há uma nova versão do Kaklen disponível.</target>
+      </trans-unit>
+    <trans-unit id="updateNowButton" datatype="html">
+        <source>Actualizar ahora</source>
+        <target>Atualizar agora</target>
+      </trans-unit>
+    <trans-unit id="frontendBackendVersionMismatch" datatype="html">
+        <source>Frontend y API están ejecutando versiones distintas.</source>
+        <target>Frontend e API estão executando versões diferentes.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
