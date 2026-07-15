@@ -37,6 +37,7 @@ export class HealthService {
       version: config.appVersion,
       commitSha: config.commitSha,
       buildTime: config.buildTime,
+      environment: process.env.PUBLIC_APP_ENVIRONMENT ?? config.nodeEnv,
       timestamp: new Date().toISOString()
     };
   }

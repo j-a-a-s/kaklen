@@ -4,6 +4,7 @@ export interface HealthResponse {
   version: string;
   commitSha: string;
   buildTime: string;
+  environment: string;
   timestamp: string;
 }
 

@@ -115,6 +115,7 @@ export class QuotationsController {
   }
 
   @Post(":quotationId/send")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("quotations.send")
   @ApiOkResponse()
   send(
@@ -127,6 +128,7 @@ export class QuotationsController {
   }
 
   @Post(":quotationId/approve")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("quotations.approve")
   @ApiOkResponse()
   approve(
@@ -139,6 +141,7 @@ export class QuotationsController {
   }
 
   @Post(":quotationId/reject")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("quotations.reject")
   @ApiOkResponse()
   reject(
@@ -151,6 +154,7 @@ export class QuotationsController {
   }
 
   @Post(":quotationId/cancel")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("quotations.send")
   @ApiOkResponse()
   cancel(
@@ -163,6 +167,7 @@ export class QuotationsController {
   }
 
   @Post(":quotationId/new-version")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("quotations.update")
   @ApiOkResponse()
   newVersion(

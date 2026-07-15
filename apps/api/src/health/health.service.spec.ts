@@ -8,6 +8,7 @@ describe("HealthService", () => {
     expect(response.service).toBe("kaklen-api");
     expect(response.version).toBe("0.1.0");
     expect(response.commitSha).toBe("local");
+    expect(response.environment).toBe("development");
     expect(new Date(response.buildTime).toString()).not.toBe("Invalid Date");
     expect(new Date(response.timestamp).toString()).not.toBe("Invalid Date");
   });

@@ -116,6 +116,7 @@ export class EventsController {
   }
 
   @Post("events/:eventId/confirm")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("events.manage")
   @ApiOkResponse()
   confirm(@Param("organizationId", new ParseUUIDPipe()) organizationId: string, @Param("eventId", new ParseUUIDPipe()) eventId: string, @Req() request: OrganizationRequest, @Body() _dto: ChangeEventStatusDto) {
@@ -123,6 +124,7 @@ export class EventsController {
   }
 
   @Post("events/:eventId/start")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("events.manage")
   @ApiOkResponse()
   start(@Param("organizationId", new ParseUUIDPipe()) organizationId: string, @Param("eventId", new ParseUUIDPipe()) eventId: string, @Req() request: OrganizationRequest, @Body() _dto: ChangeEventStatusDto) {
@@ -130,6 +132,7 @@ export class EventsController {
   }
 
   @Post("events/:eventId/complete")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("events.manage")
   @ApiOkResponse()
   complete(@Param("organizationId", new ParseUUIDPipe()) organizationId: string, @Param("eventId", new ParseUUIDPipe()) eventId: string, @Req() request: OrganizationRequest, @Body() _dto: ChangeEventStatusDto) {
@@ -137,6 +140,7 @@ export class EventsController {
   }
 
   @Post("events/:eventId/cancel")
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions("events.manage")
   @ApiOkResponse()
   cancel(@Param("organizationId", new ParseUUIDPipe()) organizationId: string, @Param("eventId", new ParseUUIDPipe()) eventId: string, @Req() request: OrganizationRequest, @Body() _dto: ChangeEventStatusDto) {
