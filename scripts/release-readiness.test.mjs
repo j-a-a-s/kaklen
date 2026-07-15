@@ -8,7 +8,13 @@ test("release scripts and database safety commands are wired", () => {
   assert.equal(packageJson.scripts["db:reset:dev"], "node scripts/db-reset-dev.mjs");
   assert.equal(packageJson.scripts["db:validate"], "node scripts/db-validate.mjs");
   assert.equal(packageJson.scripts["security:scan"], "node scripts/scan-secrets.mjs");
+  assert.equal(packageJson.scripts["security:sast"], "node scripts/static-security-scan.mjs");
+  assert.equal(packageJson.scripts["security:sbom"], "node scripts/generate-sbom.mjs");
+  assert.equal(packageJson.scripts["dependency:audit"], "node scripts/dependency-audit.mjs");
+  assert.equal(packageJson.scripts["architecture:check"], "node scripts/check-architecture.mjs");
+  assert.equal(packageJson.scripts["quality:scan"], "node scripts/quality-scan.mjs");
   assert.equal(packageJson.scripts["release:check"], "node scripts/release-check.mjs");
+  assert.equal(packageJson.scripts["release:check:strict"], "node scripts/release-check-strict.mjs");
   assert.deepEqual(packageJson.engines, { node: ">=22 <25", pnpm: ">=9.15.4 <10" });
 });
 
@@ -28,18 +34,37 @@ test("release check prints explicit ready or blocked state", () => {
   assert.match(script, /RELEASE BLOCKED/);
   assert.match(script, /pnpm", \["e2e"\]/);
   assert.match(script, /pnpm", \["verify:full-local"\]/);
+  assert.match(script, /pnpm", \["verify:api-start"\]/);
+});
+
+test("strict release check blocks until coverage and AWS staging are validated", () => {
+  const script = readText("scripts/release-check-strict.mjs");
+  const scorecard = readText("docs/release/TECHNICAL_SCORECARD.md");
+
+  assert.match(script, /RELEASE READY 10\/10/);
+  assert.match(script, /RELEASE BLOCKED/);
+  assert.match(script, /AWS_STAGING_VALIDATED/);
+  assert.match(script, /Coverage thresholds/);
+  assert.match(scorecard, /AWS staging real no fue desplegado/);
 });
 
 test("CI includes release gate essentials", () => {
   const ci = readText(".github/workflows/ci.yml");
+  const strictCi = readText(".github/workflows/strict-release.yml");
 
   assert.match(ci, /node-version: 22/);
   assert.match(ci, /pnpm security:scan/);
-  assert.match(ci, /pnpm audit --audit-level high/);
+  assert.match(ci, /pnpm quality:scan/);
+  assert.match(ci, /pnpm architecture:check/);
+  assert.match(ci, /pnpm security:sast/);
+  assert.match(ci, /pnpm security:sbom/);
+  assert.match(ci, /pnpm dependency:audit/);
   assert.match(ci, /pnpm db:validate/);
   assert.match(ci, /pnpm verify:api-build/);
   assert.match(ci, /pnpm verify:i18n-server/);
+  assert.match(ci, /pnpm accessibility:test/);
   assert.match(ci, /pnpm e2e/);
+  assert.match(strictCi, /pnpm release:check:strict/);
 });
 
 function readText(path) {

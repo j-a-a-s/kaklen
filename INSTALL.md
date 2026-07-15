@@ -80,6 +80,14 @@ Para auditar el estado local antes de un primer tag:
 pnpm release:check
 ```
 
+Para auditar el criterio estricto 10/10:
+
+```bash
+pnpm release:check:strict
+```
+
+Este comando debe bloquear hasta que la cobertura cumpla los umbrales y AWS staging real este validado.
+
 Para revisar solo base de datos:
 
 ```bash

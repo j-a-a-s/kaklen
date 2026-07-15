@@ -10,6 +10,7 @@ const checks = [
   ["API clean", "pnpm", ["--filter", "@kaklen/api", "clean"]],
   ["API build", "pnpm", ["--filter", "@kaklen/api", "build"]],
   ["API build verification", "pnpm", ["verify:api-build"]],
+  ["API start smoke", "pnpm", ["verify:api-start"]],
   ["Lint", "pnpm", ["lint"]],
   ["Tests", "pnpm", ["test"]],
   ["Build", "pnpm", ["build"]],

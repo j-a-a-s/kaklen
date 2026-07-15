@@ -111,7 +111,7 @@ async function main() {
   console.log("");
   console.log("Credenciales locales:");
   console.log(`Email: ${demo.email}`);
-  console.log(`Password: ${demo.password}`);
+  console.log("Password: documentado solo para entorno local.");
 }
 
 async function ensureClient(organizationId, userId) {

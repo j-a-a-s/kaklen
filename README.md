@@ -191,6 +191,13 @@ Aplicar seed reproducible local:
 pnpm db:seed
 ```
 
+Credencial demo local creada por el seed:
+
+```text
+Email: admin.demo@kaklen.local
+Password: KaklenDemo123!
+```
+
 Reset local destructivo, solo contra `localhost` y nunca en production:
 
 ```bash
@@ -206,3 +213,11 @@ pnpm release:check
 ```
 
 El comando termina con `RELEASE READY` solo si pasan secret scan, doctor, setup, DB validate, Prisma, API build, lint, tests, build, i18n, full local y E2E. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
+
+Para evaluar el criterio estricto 10/10:
+
+```bash
+pnpm release:check:strict
+```
+
+Este gate agrega arquitectura, quality scan, SAST local, SBOM, dependency audit, cobertura y accesibilidad. Debe bloquear con `RELEASE BLOCKED` mientras no se validen AWS staging real y los umbrales de cobertura descritos en `docs/release/TECHNICAL_SCORECARD.md`.

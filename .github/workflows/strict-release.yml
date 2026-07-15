@@ -1,0 +1,80 @@
+name: Strict Release Gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strict-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strict:
+    name: Strict release validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kaklen_dev
+          POSTGRES_USER: kaklen
+          POSTGRES_PASSWORD: kaklen_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kaklen -d kaklen_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public
+      DATABASE_SSL: "false"
+      API_PORT: 3000
+      PORT: 3000
+      WEB_PORT: 4200
+      NODE_ENV: test
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+      AUTH_ALLOWED_ORIGINS: http://localhost:4200
+      AWS_REGION: us-east-1
+      AWS_S3_BUCKET: kaklen-ci
+      COMMIT_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Strict gate
+        run: pnpm release:check:strict
+
+      - name: Upload strict artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-release-artifacts
+          path: |
+            artifacts
+            apps/api/coverage
+            playwright-report
+            test-results

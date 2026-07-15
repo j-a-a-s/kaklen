@@ -6,9 +6,13 @@ Kaklen contiene las vertical slices principales del pre-MVP: Auth, Organizations
 
 ## 2. Estado general
 
-READY WITH WARNINGS.
+READY WITH WARNINGS for a local alpha tag.
 
 El estado es apto para preparar `v0.1.0-alpha.1` si la validacion final del entorno local y CI pasa. No se recomienda `v1.0.0`.
+
+Estado 10/10 estricto: RELEASE BLOCKED.
+
+Motivo: cobertura por debajo de umbrales estrictos y AWS staging real no validado.
 
 ## 3. Bloqueantes encontrados
 
@@ -28,11 +32,13 @@ El estado es apto para preparar `v0.1.0-alpha.1` si la validacion final del ento
 
 ## 5. Riesgos residuales
 
-- `pnpm audit --audit-level high` depende de red en CI y puede detectar vulnerabilidades nuevas fuera del lockfile actual.
+- `pnpm dependency:audit` depende de red en CI y puede detectar vulnerabilidades nuevas fuera del lockfile actual.
 - La validacion visual completa de UX/accesibilidad sigue requiriendo revision manual por viewport y teclado.
 - AWS staging aun no esta desplegado; la preparacion existe como documentacion e infraestructura base.
 - Las migraciones historicas contienen varios nombres `init`; no bloquean si `prisma migrate status` y base limpia pasan, pero conviene consolidar naming despues del primer tag alpha.
 - `wallet.*` aparece en matriz de permisos sin modulo de negocio activo; no bloquea mientras ningun endpoint lo use.
+- Cobertura medida del API no alcanza el objetivo estricto 90/85/90/90.
+- En la sesion local de Codex/Turbo se observaron warnings de entorno `NO_COLOR` junto con `FORCE_COLOR`; no son warnings de compilacion de Kaklen, pero deben revisarse si aparecen en CI.
 
 ## 6. Deuda tecnica
 
@@ -108,12 +114,16 @@ pnpm db:validate                        PASS
 pnpm db:seed                            PASS
 pnpm lint                               PASS
 pnpm test                               PASS: 55 script tests, 13 API suites, 63 API tests
+pnpm test:coverage                      BLOCKED: statements 59.81%, branches 32.97%, functions 29.42%, lines 58.58%
 pnpm build                              PASS
 pnpm verify:api-build                   PASS
+pnpm verify:api-start                   PASS
 pnpm verify:i18n-server                 PASS
 pnpm verify:full-local                  PASS
-pnpm e2e                                PASS: 9 Playwright tests
+pnpm accessibility:test                 PASS
+pnpm e2e                                PASS: 19 Playwright tests
 pnpm release:check                      PASS: RELEASE READY
+pnpm release:check:strict               BLOCKED: coverage and AWS staging
 pnpm --filter @kaklen/api clean         PASS
 pnpm prisma:generate                    PASS
 pnpm --filter @kaklen/api build         PASS
@@ -146,3 +156,7 @@ Justificacion: la aplicacion ya cubre vertical slices del pre-MVP y gate local a
 - Agregar monitoreo externo de health/ready.
 - Validar cookies `Secure` y dominios reales.
 - Confirmar estrategia de backup/restore RDS.
+
+## 15. Scorecard 10/10
+
+Ver [TECHNICAL_SCORECARD.md](./TECHNICAL_SCORECARD.md).

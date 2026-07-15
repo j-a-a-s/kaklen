@@ -71,8 +71,20 @@ jobs:
       - name: Secret scan
         run: pnpm security:scan
 
+      - name: Quality scan
+        run: pnpm quality:scan
+
+      - name: Architecture check
+        run: pnpm architecture:check
+
+      - name: Static security scan
+        run: pnpm security:sast
+
+      - name: Generate SBOM
+        run: pnpm security:sbom
+
       - name: Dependency audit
-        run: pnpm audit --audit-level high
+        run: pnpm dependency:audit
 
       - name: Generate Prisma client
         run: pnpm prisma:generate
@@ -109,6 +121,12 @@ jobs:
       - name: Verify localized web server
         run: pnpm verify:i18n-server
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run accessibility smoke
+        run: pnpm accessibility:test
+
       - name: Run E2E
         run: pnpm e2e
 
@@ -121,3 +139,13 @@ jobs:
           echo "- Version: $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
           echo "- Commit: ${COMMIT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Build time: $BUILD_TIME" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload CI artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaklen-ci-artifacts
+          path: |
+            artifacts
+            playwright-report
+            test-results
