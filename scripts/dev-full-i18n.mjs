@@ -122,6 +122,7 @@ async function main() {
     await runCommand("pnpm", ["--filter", "@kaklen/web", `build:${locale}`], { env: runtimeEnv, timeoutMs: 180000 });
   }
 
+  await runCommand("pnpm", ["--filter", "@kaklen/api", "clean"], { env: runtimeEnv, timeoutMs: 30000 });
   startManagedProcess("api", "pnpm", ["--filter", "@kaklen/api", "dev"], runtimeEnv);
   await waitForHttp(apiHealthLiveUrl(), { timeoutMs: 120000 });
   console.log(`✓ API disponible: ${apiBaseUrl}`);

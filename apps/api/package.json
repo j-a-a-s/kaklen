@@ -4,9 +4,10 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} nest start --watch",
-    "start": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} node dist/main.js",
+    "clean": "node ../../scripts/clean-api-dist.mjs",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json && node ../../scripts/verify-api-build.mjs --files-only",
+    "dev": "pnpm run clean && DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} nest start --watch",
+    "start": "node ../../scripts/verify-api-build.mjs --files-only && DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} node dist/main.js",
     "test": "jest --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
@@ -26,6 +27,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
     "helmet": "^8.1.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"

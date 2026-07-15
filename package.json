@@ -21,6 +21,7 @@
     "doctor": "node scripts/doctor.mjs",
     "setup": "node scripts/init-local.mjs",
     "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",
+    "verify:api-build": "node scripts/verify-api-build.mjs",
     "verify:i18n-server": "node scripts/verify-i18n-server.mjs",
     "verify:full-local": "node scripts/verify-full-local.mjs",
     "e2e": "playwright test",
