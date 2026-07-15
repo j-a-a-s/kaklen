@@ -432,8 +432,11 @@ button.danger {
   margin-bottom: 0;
 }
 
-.command-list {
+.topbar .command-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: auto;
+  align-items: stretch;
   gap: var(--space-1);
   padding: var(--space-2);
 }
