@@ -20,6 +20,7 @@
     "doctor": "node scripts/doctor.mjs",
     "setup": "node scripts/init-local.mjs",
     "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",
+    "verify:i18n-server": "node scripts/verify-i18n-server.mjs",
     "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma generate",
     "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma migrate dev --name init",
     "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma studio"

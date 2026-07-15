@@ -23,12 +23,12 @@ test("locale service preserves internal routes, query params, and fragments", ()
 });
 
 test("root redirect supports stored locale, browser locale, and es fallback", () => {
-  const devI18n = readText("scripts/dev-i18n.mjs");
+  const i18nServer = readText("scripts/i18n-server.mjs");
 
-  assert.match(devI18n, /localStorage\.getItem\("kaklen\.locale"\)/);
-  assert.match(devI18n, /navigator\.language/);
-  assert.match(devI18n, /window\.location\.replace\("\/" \+ normalized \+ "\/login"\)/);
-  assert.match(devI18n, /browser\.startsWith\("pt"\) \? "pt-BR" : browser\.startsWith\("en"\) \? "en" : "es"/);
+  assert.match(i18nServer, /localStorage\.getItem\("kaklen\.locale"\)/);
+  assert.match(i18nServer, /navigator\.language/);
+  assert.match(i18nServer, /window\.location\.replace\("\/" \+ normalized \+ "\/login"\)/);
+  assert.match(i18nServer, /browser\.startsWith\("pt"\) \? "pt-BR" : browser\.startsWith\("en"\) \? "en" : "es"/);
 });
 
 test("localized builds use locale baseHref and fail on missing translations", () => {
@@ -46,12 +46,27 @@ test("dev:i18n builds and serves the three localized prefixes", () => {
   const devI18n = readText("scripts/dev-i18n.mjs");
 
   assert.match(packageJson, /"dev:i18n": "node scripts\/dev-i18n\.mjs"/);
-  assert.match(webPackage, /"build:es": "ng build --configuration es"/);
-  assert.match(webPackage, /"build:en": "ng build --configuration en"/);
+  assert.match(webPackage, /"build:es": "pnpm --dir \.\.\/\.\. web:runtime-config && ng build --configuration es"/);
+  assert.match(webPackage, /"build:en": "pnpm --dir \.\.\/\.\. web:runtime-config && ng build --configuration en"/);
   assert.match(webPackage, /"build:pt-BR": "node \.\.\/\.\.\/scripts\/build-web-pt-br\.mjs"/);
   assert.match(devI18n, /`build:\$\{locale\}`/);
-  assert.match(devI18n, /"es", "en", "pt-BR"/);
-  assert.match(devI18n, /sendFile\(response, join\(localeRoot, "index\.html"\), "no-cache"\)/);
+  assert.match(devI18n, /createI18nServer\(\{ distRoot, port/);
+  assert.match(readText("scripts/i18n-server.mjs"), /export const supportedLocales = \["es", "en", "pt-BR"\]/);
+  assert.match(readText("scripts/i18n-server.mjs"), /"SPA", 200, "text\/html; charset=utf-8"/);
+});
+
+test("verify:i18n-server checks localized indexes, assets, runtime config, and MIME types", () => {
+  const packageJson = readText("package.json");
+  const verify = readText("scripts/verify-i18n-server.mjs");
+  const server = readText("scripts/i18n-server.mjs");
+
+  assert.match(packageJson, /"verify:i18n-server": "node scripts\/verify-i18n-server\.mjs"/);
+  assert.match(verify, /runtime-config\.json/);
+  assert.match(verify, /contentType/);
+  assert.match(verify, /missing-bundle\.js/);
+  assert.match(server, /isAssetRequest\(requestedPath\)/);
+  assert.match(server, /sendNotFound\(response\)/);
+  assert.match(server, /contentTypeFor\(filePath\)/);
 });
 
 test("pt-BR public route uses Angular supported pt locale data without changing source translations", () => {
@@ -59,9 +74,11 @@ test("pt-BR public route uses Angular supported pt locale data without changing 
   const buildScript = readText("scripts/build-web-pt-br.mjs");
 
   assert.match(angular, /"pt": \{\s*"translation": "\.angular\/i18n\/messages\.pt\.xlf"/);
+  assert.match(angular, /"subPath": ""/);
   assert.match(angular, /"pt-BR": \{\s*"localize": \["pt"\]/);
   assert.match(angular, /"baseHref": "\/pt-BR\/"/);
   assert.match(buildScript, /messages\.pt-BR\.xlf/);
+  assert.match(buildScript, /writeRuntimeConfig\(\)/);
   assert.match(buildScript, /source\.replace\('target-language="pt-BR"', 'target-language="pt"'\)/);
 });
 

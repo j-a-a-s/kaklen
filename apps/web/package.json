@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "ngc -p tsconfig.app.json",
-    "build:es": "ng build --configuration es",
-    "build:en": "ng build --configuration en",
+    "build:es": "pnpm --dir ../.. web:runtime-config && ng build --configuration es",
+    "build:en": "pnpm --dir ../.. web:runtime-config && ng build --configuration en",
     "build:pt-BR": "node ../../scripts/build-web-pt-br.mjs",
     "dev": "NG_CLI_ANALYTICS=false ng serve --host 0.0.0.0 --port 4200",
     "extract-i18n": "ng extract-i18n --format xlf --output-path src/locale",

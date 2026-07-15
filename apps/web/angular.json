@@ -10,13 +10,18 @@
       "sourceRoot": "src",
       "prefix": "kaklen",
       "i18n": {
-        "sourceLocale": "es",
+        "sourceLocale": {
+          "code": "es",
+          "subPath": ""
+        },
         "locales": {
           "en": {
-            "translation": "src/locale/messages.en.xlf"
+            "translation": "src/locale/messages.en.xlf",
+            "subPath": ""
           },
           "pt": {
-            "translation": ".angular/i18n/messages.pt.xlf"
+            "translation": ".angular/i18n/messages.pt.xlf",
+            "subPath": ""
           }
         }
       },

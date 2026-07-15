@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { writeRuntimeConfig } from "./write-runtime-config.mjs";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const webDir = resolve(rootDir, "apps/web");
@@ -13,6 +14,7 @@ const generatedPath = resolve(generatedDir, "messages.pt.xlf");
 const source = readFileSync(sourcePath, "utf8");
 const generated = source.replace('target-language="pt-BR"', 'target-language="pt"');
 
+writeRuntimeConfig();
 mkdirSync(generatedDir, { recursive: true });
 writeFileSync(generatedPath, generated);
 
