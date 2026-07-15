@@ -48,9 +48,21 @@ test("dev:i18n builds and serves the three localized prefixes", () => {
   assert.match(packageJson, /"dev:i18n": "node scripts\/dev-i18n\.mjs"/);
   assert.match(webPackage, /"build:es": "ng build --configuration es"/);
   assert.match(webPackage, /"build:en": "ng build --configuration en"/);
-  assert.match(webPackage, /"build:pt-BR": "ng build --configuration pt-BR"/);
+  assert.match(webPackage, /"build:pt-BR": "node \.\.\/\.\.\/scripts\/build-web-pt-br\.mjs"/);
+  assert.match(devI18n, /`build:\$\{locale\}`/);
   assert.match(devI18n, /"es", "en", "pt-BR"/);
   assert.match(devI18n, /sendFile\(response, join\(localeRoot, "index\.html"\), "no-cache"\)/);
+});
+
+test("pt-BR public route uses Angular supported pt locale data without changing source translations", () => {
+  const angular = readText("apps/web/angular.json");
+  const buildScript = readText("scripts/build-web-pt-br.mjs");
+
+  assert.match(angular, /"pt": \{\s*"translation": "\.angular\/i18n\/messages\.pt\.xlf"/);
+  assert.match(angular, /"pt-BR": \{\s*"localize": \["pt"\]/);
+  assert.match(angular, /"baseHref": "\/pt-BR\/"/);
+  assert.match(buildScript, /messages\.pt-BR\.xlf/);
+  assert.match(buildScript, /source\.replace\('target-language="pt-BR"', 'target-language="pt"'\)/);
 });
 
 test("language selector remains unique and outside login/register", () => {

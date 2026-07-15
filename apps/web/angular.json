@@ -15,8 +15,8 @@
           "en": {
             "translation": "src/locale/messages.en.xlf"
           },
-          "pt-BR": {
-            "translation": "src/locale/messages.pt-BR.xlf"
+          "pt": {
+            "translation": ".angular/i18n/messages.pt.xlf"
           }
         }
       },
@@ -61,7 +61,7 @@
               "baseHref": "/en/"
             },
             "pt-BR": {
-              "localize": ["pt-BR"],
+              "localize": ["pt"],
               "i18nMissingTranslation": "error",
               "outputPath": "dist/web/pt-BR",
               "baseHref": "/pt-BR/"
