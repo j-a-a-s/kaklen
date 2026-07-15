@@ -24,9 +24,24 @@ test.describe("Kaklen accessibility and responsive smoke", () => {
         await page.goto(`${webBase}/${locale}/login`);
 
         await expect(page.locator(".brand")).toBeVisible();
+        await expect(page.locator(".brand img")).toHaveJSProperty("complete", true);
         await expect(page.locator("form")).toBeVisible();
         await expect(page.locator("kaklen-locale-selector")).toHaveCount(1);
         await expect(page.locator("kaklen-version-badge")).toHaveCount(0);
+
+        const layout = await page.evaluate(() => ({
+          documentWidth: document.documentElement.scrollWidth,
+          viewportWidth: document.documentElement.clientWidth,
+          loadedBrandImages: Array.from(document.querySelectorAll("kaklen-brand-logo img")).every(
+            (image) => image.complete && image.naturalWidth > 0
+          )
+        }));
+        expect(layout.loadedBrandImages).toBe(true);
+        expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+
+        if (viewport.name === "desktop") {
+          await expect(page.locator(".auth-brand-panel kaklen-brand-logo")).toBeVisible();
+        }
 
         const violations = await page.evaluate(() => {
           const failures = [];

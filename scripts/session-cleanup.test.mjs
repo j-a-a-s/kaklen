@@ -62,7 +62,9 @@ test("public header owns the only language selector", () => {
   const shell = readText("apps/web/src/main.ts");
 
   assert.equal(countMatches(shell, /<kaklen-locale-selector \/>/g), 1);
-  assert.match(shell, /imports: \[CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent\]/);
+  assert.match(shell, /LocaleSelectorComponent/);
+  assert.match(shell, /NotificationContainerComponent/);
+  assert.match(shell, /<header class="topbar"[\s\S]*<kaklen-locale-selector \/>[\s\S]*<\/header>/);
 });
 
 test("login and register do not render language selectors", () => {
