@@ -40,7 +40,9 @@ test("dev:full:i18n propagates shutdown to child processes", () => {
   assert.match(script, /process\.on\("SIGTERM"/);
   assert.match(script, /stopManagedProcess\(managed/);
   assert.match(script, /process\.kill\(-pid, signal\)/);
-  assert.match(script, /server\.close/);
+  assert.match(script, /await closeServer\(server\)/);
+  assert.match(script, /httpServer\.close/);
+  assert.match(script, /httpServer\.closeAllConnections/);
 });
 
 test("verify:full-local checks API, frontend, runtime config, CORS, and login connectivity", () => {

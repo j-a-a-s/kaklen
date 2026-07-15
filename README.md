@@ -176,3 +176,33 @@ El creador de una organización queda como `OWNER`. Las invitaciones expiran por
 ORGANIZATION_INVITATION_EXPIRES_SECONDS=259200
 APP_WEB_URL=http://localhost:4200
 ```
+
+## Base de datos de desarrollo
+
+Validar conexion, schema Prisma, migraciones y tablas accesibles:
+
+```bash
+pnpm db:validate
+```
+
+Aplicar seed reproducible local:
+
+```bash
+pnpm db:seed
+```
+
+Reset local destructivo, solo contra `localhost` y nunca en production:
+
+```bash
+pnpm db:reset:dev -- --confirm reset-dev
+```
+
+## Gate de primer tag
+
+Antes de crear un tag estable ejecuta:
+
+```bash
+pnpm release:check
+```
+
+El comando termina con `RELEASE READY` solo si pasan secret scan, doctor, setup, DB validate, Prisma, API build, lint, tests, build, i18n, full local y E2E. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.

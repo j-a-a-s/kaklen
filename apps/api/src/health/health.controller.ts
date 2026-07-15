@@ -20,7 +20,10 @@ export class HealthController {
         commitSha: "local",
         buildTime: "2026-07-09T00:00:00.000Z",
         environment: "development",
-        timestamp: "2026-07-09T00:00:00.000Z"
+        timestamp: "2026-07-09T00:00:00.000Z",
+        checks: {
+          database: "unknown"
+        }
       }
     }
   })

@@ -71,3 +71,23 @@ pnpm dev:fresh
 ## Idiomas
 
 Kaklen usa `@angular/localize` con builds separados. `pnpm dev` sirve el idioma base para iterar rapido; `pnpm dev:i18n` sirve los prefijos `/es`, `/en` y `/pt-BR` con fallback SPA por idioma.
+
+## Validacion pre-tag
+
+Para auditar el estado local antes de un primer tag:
+
+```bash
+pnpm release:check
+```
+
+Para revisar solo base de datos:
+
+```bash
+pnpm db:validate
+```
+
+Para recrear la base local de desarrollo con seed demo:
+
+```bash
+pnpm db:reset:dev -- --confirm reset-dev
+```

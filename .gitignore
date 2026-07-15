@@ -6,6 +6,8 @@ out-tsc
 .angular
 .env
 .env.local
+apps/web/public/runtime-config.js
+apps/web/public/runtime-config.json
 coverage
 playwright-report
 test-results

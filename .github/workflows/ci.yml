@@ -21,7 +21,7 @@ jobs:
   validate:
     name: Validate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -68,8 +68,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Secret scan
+        run: pnpm security:scan
+
+      - name: Dependency audit
+        run: pnpm audit --audit-level high
+
       - name: Generate Prisma client
         run: pnpm prisma:generate
+
+      - name: Validate database
+        run: pnpm db:validate
 
       - name: Prepare build metadata
         run: |
@@ -88,11 +97,20 @@ jobs:
       - name: Run build
         run: pnpm build
 
+      - name: Verify API build
+        run: pnpm verify:api-build
+
       - name: Build localized web bundles
         run: |
           pnpm --filter @kaklen/web build:es
           pnpm --filter @kaklen/web build:en
           pnpm --filter @kaklen/web build:pt-BR
+
+      - name: Verify localized web server
+        run: pnpm verify:i18n-server
+
+      - name: Run E2E
+        run: pnpm e2e
 
       - name: Build API Docker image
         run: docker build --platform linux/amd64 -f apps/api/Dockerfile -t kaklen-api:ci .

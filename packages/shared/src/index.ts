@@ -6,6 +6,10 @@ export interface HealthResponse {
   buildTime: string;
   environment: string;
   timestamp: string;
+  checks: {
+    database: "ok" | "error" | "unknown";
+    redis?: "ok" | "error" | "not_configured";
+  };
 }
 
 export const KAKLEN_API_PREFIX = "api";

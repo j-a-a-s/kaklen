@@ -8,7 +8,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export function createRuntimeConfig() {
   const buildInfo = createBuildInfo();
   return {
-  apiBaseUrl: process.env.PUBLIC_API_BASE_URL ?? "http://localhost:3000/api",
+    apiBaseUrl: process.env.PUBLIC_API_BASE_URL ?? "http://localhost:3000/api",
     environment: buildInfo.environment,
     version: buildInfo.version,
     commitSha: buildInfo.commitSha,

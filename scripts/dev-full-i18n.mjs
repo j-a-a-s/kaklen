@@ -286,9 +286,31 @@ async function shutdown(exitCode) {
     stopManagedProcess(managed);
   }
   if (server) {
-    await new Promise((resolveClose) => server.close(() => resolveClose()));
+    await closeServer(server);
+    server = null;
   }
   process.exit(exitCode);
+}
+
+function closeServer(httpServer) {
+  return new Promise((resolveClose) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      resolveClose();
+    };
+    const timer = setTimeout(() => {
+      httpServer.closeAllConnections?.();
+      finish();
+    }, 3000);
+
+    httpServer.close(() => finish());
+    httpServer.closeIdleConnections?.();
+  });
 }
 
 function delay(ms) {

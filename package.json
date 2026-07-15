@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22 <25",
+    "pnpm": ">=9.15.4 <10"
+  },
   "scripts": {
     "dev": "turbo run build --filter='./packages/*' && turbo run dev --filter='./apps/*' --parallel",
     "dev:i18n": "node scripts/dev-i18n.mjs",
@@ -18,15 +22,19 @@
     "db:generate": "pnpm prisma:generate",
     "db:migrate:deploy": "DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required} prisma migrate deploy",
     "db:status": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma migrate status",
+    "db:seed": "node scripts/seed-dev.mjs",
+    "db:reset:dev": "node scripts/db-reset-dev.mjs",
+    "db:validate": "node scripts/db-validate.mjs",
     "doctor": "node scripts/doctor.mjs",
     "setup": "node scripts/init-local.mjs",
     "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",
     "verify:api-build": "node scripts/verify-api-build.mjs",
     "verify:i18n-server": "node scripts/verify-i18n-server.mjs",
     "verify:full-local": "node scripts/verify-full-local.mjs",
+    "security:scan": "node scripts/scan-secrets.mjs",
+    "release:check": "node scripts/release-check.mjs",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "db:seed": "node scripts/seed-dev.mjs",
     "prisma:generate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma generate",
     "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma migrate dev --name init",
     "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma studio"

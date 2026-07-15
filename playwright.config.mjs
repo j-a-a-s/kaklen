@@ -17,9 +17,13 @@ export default defineConfig({
     trace: "retain-on-failure"
   },
   webServer: {
-    command: "pnpm dev:full:i18n",
+    command: "node scripts/dev-full-i18n.mjs",
     url: `http://localhost:${webPort}/es/login`,
     reuseExistingServer: !process.env.CI,
+    gracefulShutdown: {
+      signal: "SIGINT",
+      timeout: 5000
+    },
     timeout: 300_000,
     env: {
       ...process.env,

@@ -9,6 +9,7 @@ describe("HealthService", () => {
     expect(response.version).toBe("0.1.0");
     expect(response.commitSha).toBe("local");
     expect(response.environment).toBe("development");
+    expect(response.checks.database).toBe("unknown");
     expect(new Date(response.buildTime).toString()).not.toBe("Invalid Date");
     expect(new Date(response.timestamp).toString()).not.toBe("Invalid Date");
   });
@@ -19,5 +20,6 @@ describe("HealthService", () => {
     } as unknown as ConstructorParameters<typeof HealthService>[0]).getReady();
 
     expect(response.status).toBe("ok");
+    expect(response.checks.database).toBe("ok");
   });
 });
