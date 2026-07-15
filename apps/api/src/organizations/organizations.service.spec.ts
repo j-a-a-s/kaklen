@@ -95,7 +95,8 @@ describe("OrganizationsService", () => {
         legalName: "",
         taxId: null,
         country: "br",
-        currency: "brl"
+        currency: "brl",
+        defaultLocale: "pt-BR"
       })
     ).resolves.toMatchObject({ name: "Kaklen Pro" });
     expect(prisma.organization.update).toHaveBeenCalledWith({
@@ -105,7 +106,8 @@ describe("OrganizationsService", () => {
         legalName: null,
         taxId: null,
         country: "BR",
-        currency: "BRL"
+        currency: "BRL",
+        defaultLocale: "pt-BR"
       })
     });
 

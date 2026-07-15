@@ -7,11 +7,12 @@ import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 @Component({
   selector: "kaklen-quotation-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="quotation() as currentQuotation">
@@ -24,9 +25,14 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <a [routerLink]="['/organizations', organizationId, 'quotations']" i18n="@@backLink">Volver</a>
           <a *ngIf="canUpdate() && currentQuotation.status === 'DRAFT'" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', currentQuotation.id, 'edit']" i18n="@@editLink">Editar</a>
           <button type="button" *ngIf="canSend() && currentQuotation.status === 'DRAFT'" (click)="changeStatus('send')" i18n="@@sendQuotationButton">Enviar</button>
-          <button type="button" *ngIf="canApprove() && currentQuotation.status === 'SENT'" (click)="changeStatus('approve')" i18n="@@approveQuotationButton">Aprobar</button>
+          <button type="button" class="success" *ngIf="canApprove() && currentQuotation.status === 'SENT'" (click)="changeStatus('approve')" i18n="@@approveQuotationButton">Aprobar</button>
           <button type="button" class="secondary" *ngIf="canReject() && currentQuotation.status === 'SENT'" (click)="changeStatus('reject')" i18n="@@rejectQuotationButton">Rechazar</button>
-          <button type="button" class="secondary" *ngIf="canSend() && (currentQuotation.status === 'SENT' || currentQuotation.status === 'DRAFT')" (click)="changeStatus('cancel')" i18n="@@cancelQuotationButton">Cancelar</button>
+          <details class="action-menu" *ngIf="canSend() && (currentQuotation.status === 'SENT' || currentQuotation.status === 'DRAFT')">
+            <summary i18n="@@moreActionsLabel">Más acciones</summary>
+            <div class="action-menu-panel">
+              <button type="button" class="danger" (click)="cancelRequested.set(true)" [disabled]="processing()" i18n="@@cancelDefinitelyButton">Cancelar definitivamente</button>
+            </div>
+          </details>
           <button type="button" class="secondary" *ngIf="canUpdate() && currentQuotation.status !== 'DRAFT'" (click)="newVersion()" i18n="@@newVersionButton">Nueva versión</button>
           <a *ngIf="currentQuotation.status === 'APPROVED'" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ quotationId: currentQuotation.id }" i18n="@@createEventButton">Crear evento</a>
           <a class="secondary-link" [href]="pdfUrl(currentQuotation)" target="_blank" i18n="@@downloadPdfButton">Descargar PDF</a>
@@ -64,6 +70,15 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <small>{{ dateLabel(item.createdAt) }} · {{ item.note || emptyNoteLabel }}</small>
         </article>
       </section>
+      <kaklen-confirmation-dialog
+        [open]="cancelRequested()"
+        [busy]="processing()"
+        [title]="cancelDialogTitle"
+        [description]="cancelDialogDescription"
+        [confirmLabel]="cancelDialogAction"
+        (confirm)="changeStatus('cancel')"
+        (cancel)="cancelRequested.set(false)"
+      />
     </main>
   `
 })
@@ -71,7 +86,12 @@ export class QuotationDetailComponent implements OnInit {
   readonly quotation = signal<Quotation | null>(null);
   readonly history = signal<QuotationStatusHistory[]>([]);
   readonly error = signal("");
+  readonly processing = signal(false);
+  readonly cancelRequested = signal(false);
   readonly emptyNoteLabel = $localize`:@@emptyNoteLabel:Sin nota`;
+  readonly cancelDialogTitle = $localize`:@@cancelQuotationDialogTitle:Cancelar cotización`;
+  readonly cancelDialogDescription = $localize`:@@cancelQuotationDialogDescription:La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.`;
+  readonly cancelDialogAction = $localize`:@@cancelDefinitelyButton:Cancelar definitivamente`;
   organizationId = "";
   quotationId = "";
 
@@ -108,16 +128,20 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   async changeStatus(action: "send" | "approve" | "reject" | "cancel"): Promise<void> {
-    if (!this.confirmStatusChange(action)) {
+    if (this.processing() || (action !== "cancel" && !this.confirmStatusChange(action))) {
       return;
     }
+    this.processing.set(true);
     try {
       this.quotation.set(await this.quotationsService.changeStatus(this.organizationId, this.quotationId, action));
       this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
       this.notifications.success(this.statusSuccessMessage(action));
+      this.cancelRequested.set(false);
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
+    } finally {
+      this.processing.set(false);
     }
   }
 

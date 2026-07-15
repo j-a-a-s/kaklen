@@ -37,13 +37,20 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
         </div>
       </section>
 
-      <section class="dashboard-panel">
-        <form [formGroup]="filtersForm" (ngSubmit)="load(1)">
-          <div class="field-grid">
-            <label>
+      <section class="dashboard-panel filters-panel">
+        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="load(1)">
+          <div class="filter-toolbar">
+            <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
               <input type="search" formControlName="search" placeholder="Código, nombre o cliente" i18n-placeholder="@@eventSearchPlaceholder" />
             </label>
+            <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="event-filter-controls">
+              <span *ngIf="!filtersOpen()" i18n="@@filtersButton">Filtros</span>
+              <span *ngIf="filtersOpen()" i18n="@@hideFiltersButton">Ocultar filtros</span>
+            </button>
+            <strong class="result-count" i18n="@@resultsCountLabel">{{ events().total }} resultados</strong>
+          </div>
+          <div id="event-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label>
               <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
@@ -55,14 +62,19 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
                 <option value="CANCELLED" i18n="@@cancelledLabel">Cancelado</option>
               </select>
             </label>
-            <label>
+            <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
               <input formControlName="city" />
             </label>
-          </div>
-          <div class="row-actions">
+          <div class="row-actions filter-actions">
             <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>
-            <button type="button" class="secondary" (click)="reset()" [disabled]="loading()" i18n="@@clearButton">Limpiar</button>
+            <button type="button" class="secondary" (click)="resetFilters()" [disabled]="loading()" i18n="@@clearFiltersButton">Limpiar filtros</button>
+          </div>
+          </div>
+          <div class="active-filter-chips" *ngIf="filtersForm.controls.search.value || filtersForm.controls.status.value || filtersForm.controls.city.value">
+            <span *ngIf="filtersForm.controls.search.value">{{ filtersForm.controls.search.value }}</span>
+            <span *ngIf="filtersForm.controls.status.value">{{ statusLabel(filtersForm.controls.status.value) }}</span>
+            <span *ngIf="filtersForm.controls.city.value">{{ filtersForm.controls.city.value }}</span>
           </div>
         </form>
       </section>
@@ -107,6 +119,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
 export class EventListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly filtersOpen = signal(false);
   readonly eventsEmptyTitle = $localize`:@@eventsEmptyTitle:Tu calendario está despejado`;
   readonly eventsEmptyDescription = $localize`:@@eventsEmpty:Crea un evento o ajusta los filtros para encontrar una operación.`;
   readonly summary = signal<EventSummary | null>(null);
@@ -152,9 +165,13 @@ export class EventListComponent implements OnInit {
     }
   }
 
-  async reset(): Promise<void> {
+  async resetFilters(): Promise<void> {
     this.filtersForm.reset({ search: "", status: "", city: "" });
     await this.load(1);
+  }
+
+  toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
   }
 
   statusLabel(status: EventStatus): string {

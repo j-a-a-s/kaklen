@@ -52,7 +52,12 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </label>
             <label>
               <span i18n="@@timezoneLabel">Zona horaria</span>
-              <input formControlName="timezone" />
+              <select formControlName="timezone">
+                <option value="America/Santiago" i18n="@@timezoneSantiagoLabel">Santiago, Chile</option>
+                <option value="America/Sao_Paulo" i18n="@@timezoneSaoPauloLabel">São Paulo, Brasil</option>
+                <option value="America/New_York" i18n="@@timezoneNewYorkLabel">Nueva York, Estados Unidos</option>
+                <option value="UTC" i18n="@@timezoneUtcLabel">Tiempo universal (UTC)</option>
+              </select>
             </label>
             <label>
               <span i18n="@@venueNameLabel">Lugar</span>
@@ -68,7 +73,12 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </label>
             <label>
               <span i18n="@@currencyLabel">Moneda</span>
-              <input formControlName="currency" maxlength="3" />
+              <select formControlName="currency">
+                <option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option>
+                <option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option>
+                <option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option>
+                <option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option>
+              </select>
             </label>
             <label>
               <span i18n="@@budgetLabel">Presupuesto</span>
@@ -155,8 +165,12 @@ export class EventFormComponent implements OnInit {
     this.form.patchValue({ timezone: organization?.timezone ?? "America/Santiago", currency: organization?.currency ?? "CLP" });
     await this.loadOptions();
     const quotationId = this.route.snapshot.queryParamMap.get("quotationId");
+    const clientId = this.route.snapshot.queryParamMap.get("clientId");
     if (quotationId) {
       this.form.controls.quotationId.setValue(quotationId);
+    }
+    if (clientId) {
+      this.form.controls.clientId.setValue(clientId);
     }
     if (this.eventId) {
       const event = await this.eventsService.get(this.organizationId, this.eventId);

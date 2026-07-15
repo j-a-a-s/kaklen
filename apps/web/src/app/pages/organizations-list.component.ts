@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
+import { countryLabel, currencyLabel } from "../i18n/display-labels";
 import { Organization } from "../organizations/organization.models";
 import { OrganizationService } from "../organizations/organization.service";
 import { EmptyStateComponent } from "../shared/empty-state.component";
@@ -42,8 +43,8 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
             </div>
           </div>
           <dl>
-            <div><dt i18n="@@countryLabel">País</dt><dd>{{ organization.country }}</dd></div>
-            <div><dt i18n="@@currencyLabel">Moneda</dt><dd>{{ organization.currency }}</dd></div>
+            <div><dt i18n="@@countryLabel">País</dt><dd>{{ countryName(organization.country) }}</dd></div>
+            <div><dt i18n="@@currencyLabel">Moneda</dt><dd>{{ currencyName(organization.currency) }}</dd></div>
           </dl>
           <div class="row-actions">
             <button type="button" (click)="activate(organization)" i18n="@@openOrganizationButton">Abrir organización</button>
@@ -81,5 +82,13 @@ export class OrganizationsListComponent implements OnInit {
   async activate(organization: Organization): Promise<void> {
     await this.organizationService.setActiveOrganization(organization.id);
     await this.router.navigate(["/organizations", organization.id]);
+  }
+
+  countryName(country: string): string {
+    return countryLabel(country);
+  }
+
+  currencyName(currency: string): string {
+    return currencyLabel(currency);
   }
 }

@@ -32,3 +32,32 @@ This set documents the current Kaklen user interface for UX/UI review. Screensho
 | [tablet-dashboard.png](screenshots/tablet-dashboard.png) | Dashboard | Tablet 820 x 1180 | Tablet dashboard layout and organization navigation. |
 | [tablet-clients.png](screenshots/tablet-clients.png) | Clients | Tablet 820 x 1180 | Tablet client list with responsive filters and records. |
 | [tablet-events.png](screenshots/tablet-events.png) | Events | Tablet 820 x 1180 | Tablet event list and operational status overview. |
+
+## UX stabilization comparison
+
+The `ux-before-*` files preserve the previous MVP state. The `ux-after-*` files capture the final stabilization work with the same demo organization and viewport.
+
+| File | Screen | Viewport | Description |
+| --- | --- | --- | --- |
+| [ux-before-dashboard.png](screenshots/ux-before-dashboard.png) | Dashboard before | Desktop 1440 x 900 | Baseline dashboard before responsive metrics and compact completed onboarding. |
+| [ux-after-dashboard.png](screenshots/ux-after-dashboard.png) | Dashboard after | Desktop 1440 x 900 | Single active navigation item, semantic metrics and compact completed onboarding. |
+| [ux-before-clients.png](screenshots/ux-before-clients.png) | Clients before | Desktop 1440 x 900 | Baseline client list and filters. |
+| [ux-after-clients.png](screenshots/ux-after-clients.png) | Clients after | Desktop 1440 x 900 | Compact filters, translated statuses and secondary destructive menu. |
+| [ux-before-client-detail.png](screenshots/ux-before-client-detail.png) | Client detail before | Desktop 1440 x 900 | Baseline client profile. |
+| [ux-after-client-detail.png](screenshots/ux-after-client-detail.png) | Client detail after | Desktop 1440 x 900 | Permission-aware contact, quotation, event and interaction actions. |
+| [ux-before-client-create.png](screenshots/ux-before-client-create.png) | Create client before | Desktop 1440 x 900 | Baseline single-block client form. |
+| [ux-after-client-create.png](screenshots/ux-after-client-create.png) | Create client after | Desktop 1440 x 900 | Grouped identity, contact, address and additional information sections. |
+| [ux-before-quotations.png](screenshots/ux-before-quotations.png) | Quotations before | Desktop 1440 x 900 | Baseline quotation list. |
+| [ux-after-quotations.png](screenshots/ux-after-quotations.png) | Quotations after | Desktop 1440 x 900 | Localized states, compact filters and regional currency format. |
+| [ux-before-quotation-create.png](screenshots/ux-before-quotation-create.png) | Create quotation before | Desktop 1440 x 900 | Baseline long-form quotation creation. |
+| [ux-after-quotation-create.png](screenshots/ux-after-quotation-create.png) | Create quotation after | Desktop 1440 x 900 | Four-stage wizard with stage validation and sticky totals. |
+| [ux-before-events.png](screenshots/ux-before-events.png) | Events before | Desktop 1440 x 900 | Baseline event list. |
+| [ux-after-events.png](screenshots/ux-after-events.png) | Events after | Desktop 1440 x 900 | Localized states, responsive metrics and compact filters. |
+| [ux-before-settings.png](screenshots/ux-before-settings.png) | Settings before | Desktop 1440 x 900 | Baseline regional configuration using technical values. |
+| [ux-after-settings.png](screenshots/ux-after-settings.png) | Settings after | Desktop 1440 x 900 | Friendly country, currency, timezone, date, number and language options. |
+| [ux-before-mobile-dashboard.png](screenshots/ux-before-mobile-dashboard.png) | Mobile dashboard before | Mobile 390 x 844 | Baseline authenticated mobile shell. |
+| [ux-after-mobile-dashboard.png](screenshots/ux-after-mobile-dashboard.png) | Mobile dashboard after | Mobile 390 x 844 | Header reduced to menu, logo and profile with two-column metrics. |
+| [ux-before-mobile-menu.png](screenshots/ux-before-mobile-menu.png) | Mobile menu before | Mobile 390 x 844 | Baseline mobile navigation. |
+| [ux-after-mobile-menu.png](screenshots/ux-after-mobile-menu.png) | Mobile menu after | Mobile 390 x 844 | 86% drawer with overlay, focus containment and one current item. |
+| [ux-before-mobile-clients.png](screenshots/ux-before-mobile-clients.png) | Mobile clients before | Mobile 390 x 844 | Baseline mobile client list. |
+| [ux-after-mobile-clients.png](screenshots/ux-after-mobile-clients.png) | Mobile clients after | Mobile 390 x 844 | Collapsed filters, two-column metrics and compact result actions. |

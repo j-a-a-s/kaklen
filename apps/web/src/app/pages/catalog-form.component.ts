@@ -76,7 +76,12 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </label>
             <label>
               <span i18n="@@currencyLabel">Moneda</span>
-              <input formControlName="currency" maxlength="3" />
+              <select formControlName="currency">
+                <option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option>
+                <option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option>
+                <option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option>
+                <option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option>
+              </select>
               <small *ngIf="showError('currency')" i18n="@@currencyRequired">La moneda es obligatoria.</small>
             </label>
           </div>

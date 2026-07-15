@@ -36,6 +36,17 @@ Los tokens se definen en `apps/web/src/design-system.css`.
 
 La paleta combina neutros claros, azul de marca, verde de éxito, ámbar de advertencia y rojo de error. No se usan gradientes ni color como único medio para comunicar estado.
 
+### Semántica de acciones
+
+| Intención | Color | Uso |
+| --- | --- | --- |
+| Primaria | Azul de marca | Crear, guardar, continuar o abrir el flujo principal |
+| Exitosa | Verde | Aprobar, confirmar o completar una operación |
+| Destructiva | Rojo | Archivar, cancelar de forma definitiva o quitar acceso |
+| Secundaria | Superficie neutral | Volver, editar filtros o ejecutar acciones reversibles |
+
+Una vista mantiene una sola acción primaria dominante. Las acciones destructivas viven en un menú secundario cuando no son la tarea principal y siempre explican su consecuencia antes de ejecutarse.
+
 ## Tipografía
 
 - Familia: pila nativa de sistema con Inter como preferencia.
@@ -75,5 +86,6 @@ Los controles de formato fijo tienen dimensiones estables. Ninguna vista debe pr
 - Botones de icono con nombre accesible.
 - Estados comunicados con texto, no solo color.
 - Landmarks `header`, `nav`, `main` y `aside` coherentes.
+- El enlace activo usa `aria-current="page"` y solo un elemento de la navegación puede estar activo a la vez.
+- El drawer móvil bloquea el scroll de fondo, mantiene el foco dentro, cierra con `Escape` y devuelve el foco al disparador.
 - Modo oscuro preparado por tokens bajo `[data-theme="dark"]`; su activación queda fuera de este alcance.
-

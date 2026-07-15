@@ -1038,7 +1038,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="taxIdLabel" datatype="html">
-        <source>Tax ID</source>
+        <source>RUT o identificación tributaria</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
           <context context-type="linenumber">42,44</context>
@@ -3306,7 +3306,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quotationFormDescription" datatype="html">
-        <source>Los totales se recalculan en backend al guardar.</source>
+        <source>Kaklen calculará automáticamente los totales al guardar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
           <context context-type="linenumber">39,41</context>
@@ -3914,6 +3914,105 @@
           <context context-type="linenumber">250,255</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="additionalInformationSection" datatype="html"><source>Información adicional</source></trans-unit>
+      <trans-unit id="addressExample" datatype="html"><source>Calle, número, oficina</source></trans-unit>
+      <trans-unit id="addressSection" datatype="html"><source>Dirección</source></trans-unit>
+      <trans-unit id="adminOrganizationRole" datatype="html"><source>Administrador</source></trans-unit>
+      <trans-unit id="archiveCatalogDialogDescription" datatype="html"><source>El elemento dejará de estar disponible para nuevas cotizaciones, pero seguirá visible en los registros históricos.</source></trans-unit>
+      <trans-unit id="archiveCatalogDialogTitle" datatype="html"><source>Archivar producto o servicio</source></trans-unit>
+      <trans-unit id="archiveClientDialogDescription" datatype="html"><source>El cliente dejará de aparecer en los listados habituales, pero su historial se conservará.</source></trans-unit>
+      <trans-unit id="archiveClientDialogTitle" datatype="html"><source>Archivar cliente</source></trans-unit>
+      <trans-unit id="archiveEventDialogDescription" datatype="html"><source>El evento dejará de aparecer en la operación activa, pero su información histórica se conservará.</source></trans-unit>
+      <trans-unit id="archiveEventDialogTitle" datatype="html"><source>Archivar evento</source></trans-unit>
+      <trans-unit id="backButton" datatype="html"><source>Volver</source></trans-unit>
+      <trans-unit id="callClientAction" datatype="html"><source>Llamar</source></trans-unit>
+      <trans-unit id="cancelDefinitelyButton" datatype="html"><source>Cancelar definitivamente</source></trans-unit>
+      <trans-unit id="cancelEventDialogDescription" datatype="html"><source>El evento quedará cancelado y no podrá continuar a las etapas de ejecución.</source></trans-unit>
+      <trans-unit id="cancelEventDialogTitle" datatype="html"><source>Cancelar evento</source></trans-unit>
+      <trans-unit id="cancelQuotationDialogDescription" datatype="html"><source>La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.</source></trans-unit>
+      <trans-unit id="cancelQuotationDialogTitle" datatype="html"><source>Cancelar cotización</source></trans-unit>
+      <trans-unit id="catalogRestoredSuccess" datatype="html"><source>Elemento restaurado correctamente.</source></trans-unit>
+      <trans-unit id="clearFiltersButton" datatype="html"><source>Limpiar filtros</source></trans-unit>
+      <trans-unit id="clientNotesPlaceholder" datatype="html"><source>Preferencias, contexto comercial o información relevante</source></trans-unit>
+      <trans-unit id="clientQuickActionsLabel" datatype="html"><source>Acciones rápidas del cliente</source></trans-unit>
+      <trans-unit id="clientRestoredSuccess" datatype="html"><source>Cliente restaurado correctamente.</source></trans-unit>
+      <trans-unit id="closeNavigationLabel" datatype="html"><source>Cerrar navegación</source></trans-unit>
+      <trans-unit id="contactSection" datatype="html"><source>Contacto</source></trans-unit>
+      <trans-unit id="continueButton" datatype="html"><source>Continuar</source></trans-unit>
+      <trans-unit id="countryArgentinaLabel" datatype="html"><source>Argentina</source></trans-unit>
+      <trans-unit id="countryBrazilLabel" datatype="html"><source>Brasil</source></trans-unit>
+      <trans-unit id="countryChileLabel" datatype="html"><source>Chile</source></trans-unit>
+      <trans-unit id="countryMexicoLabel" datatype="html"><source>México</source></trans-unit>
+      <trans-unit id="countryUnitedStatesLabel" datatype="html"><source>Estados Unidos</source></trans-unit>
+      <trans-unit id="currencyBrlLabel" datatype="html"><source>Real brasileño (BRL)</source></trans-unit>
+      <trans-unit id="currencyClpLabel" datatype="html"><source>Peso chileno (CLP)</source></trans-unit>
+      <trans-unit id="currencyEurLabel" datatype="html"><source>Euro (EUR)</source></trans-unit>
+      <trans-unit id="currencyUsdLabel" datatype="html"><source>Dólar estadounidense (USD)</source></trans-unit>
+      <trans-unit id="dateFormatDayMonthYearDash" datatype="html"><source>Día-mes-año (31-12-2026)</source></trans-unit>
+      <trans-unit id="dateFormatDayMonthYearSlash" datatype="html"><source>Día/mes/año (31/12/2026)</source></trans-unit>
+      <trans-unit id="dateFormatMonthDayYear" datatype="html"><source>Mes/día/año (12/31/2026)</source></trans-unit>
+      <trans-unit id="dateFormatYearMonthDay" datatype="html"><source>Año-mes-día (2026-12-31)</source></trans-unit>
+      <trans-unit id="defaultLanguageLabel" datatype="html"><source>Idioma predeterminado</source></trans-unit>
+      <trans-unit id="emailClientAction" datatype="html"><source>Enviar email</source></trans-unit>
+      <trans-unit id="filtersButton" datatype="html"><source>Filtros</source></trans-unit>
+      <trans-unit id="firstNameExample" datatype="html"><source>Ej. Camila</source></trans-unit>
+      <trans-unit id="formErrorSummaryHelp" datatype="html"><source>Los mensajes bajo cada campo indican qué debes corregir.</source></trans-unit>
+      <trans-unit id="formErrorSummaryTitle" datatype="html"><source>Revisa los campos marcados antes de continuar.</source></trans-unit>
+      <trans-unit id="hideDetailsButton" datatype="html"><source>Ocultar detalles</source></trans-unit>
+      <trans-unit id="hideFiltersButton" datatype="html"><source>Ocultar filtros</source></trans-unit>
+      <trans-unit id="keepButton" datatype="html"><source>Conservar</source></trans-unit>
+      <trans-unit id="languageEnglish" datatype="html"><source>English</source></trans-unit>
+      <trans-unit id="languagePortuguese" datatype="html"><source>Português</source></trans-unit>
+      <trans-unit id="languageSpanish" datatype="html"><source>Español</source></trans-unit>
+      <trans-unit id="lastNameExample" datatype="html"><source>Ej. Soto</source></trans-unit>
+      <trans-unit id="legalNameExample" datatype="html"><source>Ej. Comercial Andes SpA</source></trans-unit>
+      <trans-unit id="mainInformationSection" datatype="html"><source>Información principal</source></trans-unit>
+      <trans-unit id="managerOrganizationRole" datatype="html"><source>Gestor</source></trans-unit>
+      <trans-unit id="memberOrganizationRole" datatype="html"><source>Miembro</source></trans-unit>
+      <trans-unit id="moreActionsLabel" datatype="html"><source>Más acciones</source></trans-unit>
+      <trans-unit id="moreFiltersButton" datatype="html"><source>Más filtros</source></trans-unit>
+      <trans-unit id="numberFormatEnglish" datatype="html"><source>Inglés (1,234,567.89)</source></trans-unit>
+      <trans-unit id="numberFormatPortuguese" datatype="html"><source>Brasileño (1.234.567,89)</source></trans-unit>
+      <trans-unit id="numberFormatSpanish" datatype="html"><source>Chileno (1.234.567,89)</source></trans-unit>
+      <trans-unit id="onboardingCompleteDescription" datatype="html"><source>Tu espacio está listo. Ahora puedes concentrarte en clientes, cotizaciones y eventos.</source></trans-unit>
+      <trans-unit id="onboardingCompleteTitle" datatype="html"><source>Configuración inicial completada</source></trans-unit>
+      <trans-unit id="openProfileLabel" datatype="html"><source>Abrir perfil</source></trans-unit>
+      <trans-unit id="optionalLabel" datatype="html"><source>Opcional</source></trans-unit>
+      <trans-unit id="ownerOrganizationRole" datatype="html"><source>Propietario</source></trans-unit>
+      <trans-unit id="ownerRoleLabel" datatype="html"><source>Responsable</source></trans-unit>
+      <trans-unit id="pendingLabel" datatype="html"><source>Pendiente</source></trans-unit>
+      <trans-unit id="phonePrefixLabel" datatype="html"><source>Prefijo telefónico</source></trans-unit>
+      <trans-unit id="processingButton" datatype="html"><source>Procesando...</source></trans-unit>
+      <trans-unit id="quotationAdjustmentsStepHelp" datatype="html"><source>Revisa cada concepto y aplica solo los ajustes necesarios.</source></trans-unit>
+      <trans-unit id="quotationClientStepHelp" datatype="html"><source>Selecciona quién recibirá la propuesta y define su vigencia.</source></trans-unit>
+      <trans-unit id="quotationItemNumber" datatype="html"><source>Ítem <x id="INTERPOLATION" equiv-text="{{ index + 1 }}"/></source></trans-unit>
+      <trans-unit id="quotationItemsStepHelp" datatype="html"><source>Usa el catálogo o agrega un concepto personalizado.</source></trans-unit>
+      <trans-unit id="quotationProgressLabel" datatype="html"><source>Progreso de la cotización</source></trans-unit>
+      <trans-unit id="quotationReviewStepHelp" datatype="html"><source>Confirma el cliente, los conceptos y el total antes de guardar.</source></trans-unit>
+      <trans-unit id="quotationStepAdjustments" datatype="html"><source>Ajustar descuentos e impuestos</source></trans-unit>
+      <trans-unit id="quotationStepClient" datatype="html"><source>Elegir cliente</source></trans-unit>
+      <trans-unit id="quotationStepItems" datatype="html"><source>Agregar productos y servicios</source></trans-unit>
+      <trans-unit id="quotationStepReview" datatype="html"><source>Revisar y guardar</source></trans-unit>
+      <trans-unit id="quotationStepValidationError" datatype="html"><source>Completa los campos obligatorios de esta etapa para continuar.</source></trans-unit>
+      <trans-unit id="quotationSummaryLabel" datatype="html"><source>Resumen de cotización</source></trans-unit>
+      <trans-unit id="registerInteractionAction" datatype="html"><source>Registrar interacción</source></trans-unit>
+      <trans-unit id="removeMemberAction" datatype="html"><source>Quitar acceso</source></trans-unit>
+      <trans-unit id="removeMemberDialogDescription" datatype="html"><source>La persona perderá inmediatamente el acceso a esta organización y a sus datos.</source></trans-unit>
+      <trans-unit id="removeMemberDialogTitle" datatype="html"><source>Quitar miembro</source></trans-unit>
+      <trans-unit id="requiredLabel" datatype="html"><source>Obligatorio</source></trans-unit>
+      <trans-unit id="resultsCountLabel" datatype="html"><source><x id="INTERPOLATION" equiv-text="{{ clients().total }}"/> resultados</source></trans-unit>
+      <trans-unit id="rutFormatHelp" datatype="html"><source>Formato esperado: 12.345.678-5.</source></trans-unit>
+      <trans-unit id="selectCityOption" datatype="html"><source>Selecciona una comuna o ciudad</source></trans-unit>
+      <trans-unit id="selectRegionOption" datatype="html"><source>Selecciona una región</source></trans-unit>
+      <trans-unit id="showDetailsButton" datatype="html"><source>Ver detalles</source></trans-unit>
+      <trans-unit id="summaryTitle" datatype="html"><source>Resumen</source></trans-unit>
+      <trans-unit id="timezoneNewYorkLabel" datatype="html"><source>Nueva York, Estados Unidos</source></trans-unit>
+      <trans-unit id="timezoneSantiagoLabel" datatype="html"><source>Santiago, Chile</source></trans-unit>
+      <trans-unit id="timezoneSaoPauloLabel" datatype="html"><source>São Paulo, Brasil</source></trans-unit>
+      <trans-unit id="timezoneUtcLabel" datatype="html"><source>Tiempo universal (UTC)</source></trans-unit>
+      <trans-unit id="undoButton" datatype="html"><source>Deshacer</source></trans-unit>
+      <trans-unit id="viewerOrganizationRole" datatype="html"><source>Solo lectura</source></trans-unit>
+      <trans-unit id="whatsappClientAction" datatype="html"><source>WhatsApp</source></trans-unit>
     </body>
   </file>
 </xliff>

@@ -6,6 +6,7 @@ import { IsChileanRutWhen } from "../../common/validation/chilean-rut";
 
 export const SUPPORTED_DATE_FORMATS = ["dd-MM-yyyy", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"] as const;
 export const SUPPORTED_NUMBER_FORMATS = ["es", "en-US", "pt-BR"] as const;
+export const SUPPORTED_ORGANIZATION_LOCALES = ["es", "en", "pt-BR"] as const;
 
 export class CreateOrganizationDto {
   @ApiProperty({ example: "Kaklen Demo" })
@@ -114,6 +115,11 @@ export class UpdateOrganizationDto {
   @IsOptional()
   @IsIn(SUPPORTED_NUMBER_FORMATS)
   numberFormat?: string;
+
+  @ApiPropertyOptional({ enum: SUPPORTED_ORGANIZATION_LOCALES, example: "es" })
+  @IsOptional()
+  @IsIn(SUPPORTED_ORGANIZATION_LOCALES)
+  defaultLocale?: string;
 }
 
 export class InviteMemberDto {

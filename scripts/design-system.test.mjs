@@ -16,9 +16,11 @@ test("brand assets are versioned PNG files", async () => {
   }
 });
 
-test("public shell owns one locale selector and authenticated navigation", async () => {
+test("application shell owns one locale selector per authentication state", async () => {
   const main = await source("apps/web/src/main.ts");
-  assert.equal((main.match(/<kaklen-locale-selector\s*\/>/g) ?? []).length, 1);
+  assert.equal((main.match(/<kaklen-locale-selector(?:\s+\*ngIf="!isAuthenticated\(\)")?\s*\/>/g) ?? []).length, 2);
+  assert.match(main, /<nav[\s\S]*class="topbar-actions account-menu"[\s\S]*<kaklen-locale-selector\s*\/>/);
+  assert.match(main, /<kaklen-locale-selector \*ngIf="!isAuthenticated\(\)"\s*\/>/);
   assert.match(main, /<kaklen-brand-logo\s*\/>/);
   assert.match(main, /<kaklen-command-palette/);
   assert.match(main, /class="app-sidebar"/);
@@ -61,7 +63,8 @@ test("design documentation covers system guidelines flow library and audit", asy
     "docs/design/UX_GUIDELINES.md",
     "docs/design/USER_FLOW.md",
     "docs/design/COMPONENT_LIBRARY.md",
-    "docs/design/UX_AUDIT.md"
+    "docs/design/UX_AUDIT.md",
+    "docs/design/UX_STABILIZATION_AUDIT.md"
   ]) {
     const contents = await source(document);
     assert.ok(contents.length > 500, `${document} must contain actionable guidance`);

@@ -1,4 +1,4 @@
-import { formatCurrency, formatDate, formatNumber, getCurrencySymbol } from "@angular/common";
+import { formatDate, formatNumber } from "@angular/common";
 
 export interface RegionalFormatConfig {
   dateFormat: string;
@@ -23,13 +23,16 @@ export function formatRegionalCurrency(
   value: string | number,
   config: Pick<RegionalFormatConfig, "numberFormat" | "currency"> = DEFAULT_REGIONAL_FORMAT_CONFIG
 ): string {
-  return formatCurrency(
-    Number(value),
-    config.numberFormat,
-    getCurrencySymbol(config.currency, "narrow"),
-    config.currency,
-    "1.2-2"
-  );
+  const amount = Number(value);
+  const locale = config.currency === "CLP" && config.numberFormat.startsWith("es") ? "es-CL" : config.numberFormat;
+  const fractionDigits = Number.isInteger(amount) ? 0 : 2;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: config.currency,
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: 2
+  }).format(amount);
 }
 
 export function formatRegionalNumber(

@@ -31,7 +31,7 @@ interface OrganizationForm {
             <input formControlName="legalName" />
           </label>
           <label>
-            <span i18n="@@taxIdLabel">RUT o tax ID</span>
+            <span i18n="@@taxIdLabel">RUT o identificación tributaria</span>
             <input formControlName="taxId" (blur)="formatRut()" />
             <small *ngIf="form.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
           </label>

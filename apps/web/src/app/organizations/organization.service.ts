@@ -35,10 +35,17 @@ export class OrganizationService {
       this.http.get<Organization[]>(`${API_URL}/organizations`, { withCredentials: true })
     );
     this.organizations.set(organizations);
-    this.localeService.applyOrganizationDefault(this.activeOrganization()?.defaultLocale ?? organizations[0]?.defaultLocale);
+    const requestedOrganization = organizations.find(
+      (organization) => organization.id === this.activeOrganizationId()
+    );
+    const organizationToActivate = requestedOrganization ?? organizations[0];
 
-    if (!this.activeOrganizationId() && organizations[0]) {
-      await this.setActiveOrganization(organizations[0].id);
+    if (organizationToActivate) {
+      await this.setActiveOrganization(organizationToActivate.id);
+    } else {
+      this.activeOrganizationId.set(null);
+      this.permissions.set([]);
+      localStorage.removeItem(ACTIVE_ORGANIZATION_KEY);
     }
 
     return organizations;
@@ -78,6 +85,7 @@ export class OrganizationService {
       timezone?: string;
       dateFormat?: string;
       numberFormat?: string;
+      defaultLocale?: string;
     }
   ): Promise<Organization> {
     return firstValueFrom(

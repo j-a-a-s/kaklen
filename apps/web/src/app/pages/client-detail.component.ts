@@ -5,20 +5,22 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Client, ClientInteraction, ClientInteractionType } from "../clients/client.models";
 import { ClientsService } from "../clients/clients.service";
 import { formatRegionalDate } from "../i18n/formatting";
+import { clientStatusLabel, countryLabel } from "../i18n/display-labels";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 @Component({
   selector: "kaklen-client-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="client() as currentClient">
         <div>
           <p class="eyebrow" i18n="@@clientEyebrow">Cliente</p>
           <h1>{{ currentClient.displayName }}</h1>
-          <p>{{ typeLabel(currentClient.type) }} · {{ currentClient.status }}</p>
+          <p>{{ typeLabel(currentClient.type) }} · {{ statusLabel(currentClient.status) }}</p>
         </div>
         <div class="row-actions">
           <a [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@backLink">Volver</a>
@@ -29,17 +31,31 @@ import { NotificationService } from "../shared/notifications/notification.servic
           >
             <span i18n="@@editLink">Editar</span>
           </a>
-          <button *ngIf="canDelete() && currentClient.status !== 'ARCHIVED'" type="button" class="danger" (click)="archive()" i18n="@@archiveButton">Archivar</button>
+          <details class="action-menu" *ngIf="canDelete() && currentClient.status !== 'ARCHIVED'">
+            <summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary>
+            <div class="action-menu-panel">
+              <button type="button" class="danger" (click)="archiveRequested.set(true)" i18n="@@archiveButton">Archivar</button>
+            </div>
+          </details>
         </div>
       </section>
 
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
+      <nav class="client-quick-actions" *ngIf="client() as currentClient" aria-label="Acciones rápidas del cliente" i18n-aria-label="@@clientQuickActionsLabel">
+        <a *ngIf="currentClient.phone" class="secondary-link" [href]="'tel:' + currentClient.phone" i18n="@@callClientAction">Llamar</a>
+        <a *ngIf="currentClient.whatsapp" class="secondary-link" [href]="whatsappUrl(currentClient.whatsapp)" target="_blank" rel="noopener" i18n="@@whatsappClientAction">WhatsApp</a>
+        <a *ngIf="currentClient.email" class="secondary-link" [href]="'mailto:' + currentClient.email" i18n="@@emailClientAction">Enviar email</a>
+        <a *ngIf="canCreateQuotation()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" [queryParams]="{ clientId: currentClient.id }" i18n="@@newQuotationButton">Nueva cotización</a>
+        <a *ngIf="canCreateEvent()" class="secondary-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ clientId: currentClient.id }" i18n="@@newEventButton">Nuevo evento</a>
+        <button *ngIf="canUpdate()" type="button" class="secondary" (click)="scrollToInteraction()" i18n="@@registerInteractionAction">Registrar interacción</button>
+      </nav>
+
       <section class="dashboard-panel" *ngIf="client() as currentClient">
         <h2 i18n="@@dataTitle">Datos</h2>
         <dl class="detail-grid">
           <div>
-            <dt i18n="@@taxIdLabel">Tax ID</dt>
+            <dt i18n="@@taxIdLabel">RUT o identificación tributaria</dt>
             <dd>{{ currentClient.taxId || emptyValueLabel }}</dd>
           </div>
           <div>
@@ -65,7 +81,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
         </dl>
       </section>
 
-      <section class="dashboard-panel" *ngIf="canUpdate()">
+      <section id="client-interaction-form" class="dashboard-panel" *ngIf="canUpdate()">
         <h2 i18n="@@newInteractionTitle">Nueva interacción</h2>
         <form [formGroup]="interactionForm" (ngSubmit)="addInteraction()">
           <div class="field-grid">
@@ -104,17 +120,31 @@ import { NotificationService } from "../shared/notifications/notification.servic
           </div>
         </article>
       </section>
+      <kaklen-confirmation-dialog
+        [open]="archiveRequested()"
+        [busy]="loading()"
+        [title]="archiveDialogTitle"
+        [description]="archiveDialogDescription"
+        [confirmLabel]="archiveLabel"
+        (confirm)="archive()"
+        (cancel)="archiveRequested.set(false)"
+      />
     </main>
   `
 })
 export class ClientDetailComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly archiveRequested = signal(false);
   readonly client = signal<Client | null>(null);
   readonly interactions = signal<ClientInteraction[]>([]);
   readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
   readonly emptyNotesLabel = $localize`:@@emptyNotesLabel:Sin notas`;
   readonly emptySubjectLabel = $localize`:@@emptySubjectLabel:Sin asunto`;
+  readonly archiveDialogTitle = $localize`:@@archiveClientDialogTitle:Archivar cliente`;
+  readonly archiveDialogDescription = $localize`:@@archiveClientDialogDescription:El cliente dejará de aparecer en los listados habituales, pero su historial se conservará.`;
+  readonly archiveLabel = $localize`:@@archiveButton:Archivar`;
+  readonly undoLabel = $localize`:@@undoButton:Deshacer`;
   readonly interactionForm = new FormGroup({
     type: new FormControl<ClientInteractionType>("NOTE", { nonNullable: true }),
     subject: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
@@ -149,12 +179,24 @@ export class ClientDetailComponent implements OnInit {
     return this.organizationService.hasPermission("clients.delete");
   }
 
+  canCreateQuotation(): boolean {
+    return this.organizationService.hasPermission("quotations.create");
+  }
+
+  canCreateEvent(): boolean {
+    return this.organizationService.hasPermission("events.create");
+  }
+
   typeLabel(type: Client["type"]): string {
     return type === "NATURAL_PERSON" ? $localize`:@@naturalPersonLabel:Persona natural` : $localize`:@@companyLabel:Empresa`;
   }
 
+  statusLabel(status: Client["status"]): string {
+    return clientStatusLabel(status);
+  }
+
   locationLabel(client: Client): string {
-    return [client.address, client.city, client.region, client.country].filter(Boolean).join(", ");
+    return [client.address, client.city, client.region, countryLabel(client.country)].filter(Boolean).join(", ");
   }
 
   dateLabel(value: string): string {
@@ -174,6 +216,16 @@ export class ClientDetailComponent implements OnInit {
       WHATSAPP: $localize`:@@whatsappLabel:WhatsApp`
     };
     return labels[type];
+  }
+
+  whatsappUrl(value: string): string {
+    return `https://wa.me/${value.replace(/\D/g, "")}`;
+  }
+
+  scrollToInteraction(): void {
+    const interactionForm = document.getElementById("client-interaction-form");
+    interactionForm?.scrollIntoView({ behavior: "smooth", block: "start" });
+    interactionForm?.querySelector<HTMLElement>("select, input, textarea")?.focus();
   }
 
   async addInteraction(): Promise<void> {
@@ -203,20 +255,34 @@ export class ClientDetailComponent implements OnInit {
 
   async archive(): Promise<void> {
     const currentClient = this.client();
-    if (!currentClient || !confirm($localize`:@@archiveClientConfirm:¿Archivar este cliente?`)) {
+    if (!currentClient || this.loading()) {
       return;
     }
     this.loading.set(true);
     this.error.set("");
     try {
       await this.clientsService.archive(this.organizationId, currentClient.id);
-      this.notifications.success($localize`:@@clientArchivedSuccess:Cliente archivado correctamente.`);
+      this.archiveRequested.set(false);
+      this.notifications.success(
+        $localize`:@@clientArchivedSuccess:Cliente archivado correctamente.`,
+        this.undoLabel,
+        () => void this.restoreClient(currentClient)
+      );
       await this.router.navigate(["/organizations", this.organizationId, "clients"]);
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@clientArchiveError:No fue posible archivar el cliente.`);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async restoreClient(client: Client): Promise<void> {
+    try {
+      await this.clientsService.update(this.organizationId, client.id, { type: client.type, status: client.status });
+      this.notifications.success($localize`:@@clientRestoredSuccess:Cliente restaurado correctamente.`);
+    } catch (error) {
+      this.notifications.fromError(error);
     }
   }
 

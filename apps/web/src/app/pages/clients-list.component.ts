@@ -7,11 +7,13 @@ import { ClientsService } from "../clients/clients.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { NotificationService } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-clients-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -48,14 +50,21 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
         </article>
       </section>
 
-      <section class="dashboard-panel">
-        <form [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
-          <div class="field-grid">
-            <label>
+      <section class="dashboard-panel filters-panel">
+        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+          <div class="filter-toolbar">
+            <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
               <input type="search" formControlName="search" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
             </label>
-            <label>
+            <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="client-filter-controls">
+              <span *ngIf="!filtersOpen()" i18n="@@moreFiltersButton">Más filtros</span>
+              <span *ngIf="filtersOpen()" i18n="@@hideFiltersButton">Ocultar filtros</span>
+            </button>
+            <strong class="result-count" i18n="@@resultsCountLabel">{{ clients().total }} resultados</strong>
+          </div>
+          <div id="client-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
+            <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
               <input type="search" formControlName="city" />
             </label>
@@ -77,16 +86,22 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
                 <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
+            <label class="checkbox-row advanced-filter">
+              <input type="checkbox" formControlName="includeArchived" />
+              <span i18n="@@includeArchivedLabel">Incluir archivados</span>
+            </label>
+            <div class="row-actions filter-actions">
+              <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>
+              <button type="button" class="secondary" (click)="resetFilters()" [disabled]="loading()">
+                <span i18n="@@clearFiltersButton">Limpiar filtros</span>
+              </button>
+            </div>
           </div>
-          <label class="checkbox-row">
-            <input type="checkbox" formControlName="includeArchived" />
-            <span i18n="@@includeArchivedLabel">Incluir archivados</span>
-          </label>
-          <div class="row-actions">
-            <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>
-            <button type="button" class="secondary" (click)="resetFilters()" [disabled]="loading()">
-              <span i18n="@@clearButton">Limpiar</span>
-            </button>
+          <div class="active-filter-chips" *ngIf="hasActiveFilters()">
+            <span *ngIf="filtersForm.controls.search.value">{{ filtersForm.controls.search.value }}</span>
+            <span *ngIf="filtersForm.controls.type.value">{{ typeLabel(filtersForm.controls.type.value) }}</span>
+            <span *ngIf="filtersForm.controls.status.value">{{ statusLabel(filtersForm.controls.status.value) }}</span>
+            <span *ngIf="filtersForm.controls.city.value">{{ filtersForm.controls.city.value }}</span>
           </div>
         </form>
       </section>
@@ -115,15 +130,12 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
             >
               <span i18n="@@editLink">Editar</span>
             </a>
-            <button
-              *ngIf="canDelete() && client.status !== 'ARCHIVED'"
-              type="button"
-              class="secondary"
-              (click)="archive(client)"
-              [disabled]="loading()"
-            >
-              <span i18n="@@archiveButton">Archivar</span>
-            </button>
+            <details class="action-menu" *ngIf="canDelete() && client.status !== 'ARCHIVED'">
+              <summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary>
+              <div class="action-menu-panel">
+                <button type="button" class="danger" (click)="requestArchive(client)" [disabled]="loading()" i18n="@@archiveButton">Archivar</button>
+              </div>
+            </details>
           </div>
         </article>
       </section>
@@ -148,14 +160,30 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <span i18n="@@nextPageButton">Siguiente</span>
         </button>
       </section>
+
+      <kaklen-confirmation-dialog
+        [open]="pendingArchive() !== null"
+        [busy]="loading()"
+        [title]="archiveDialogTitle"
+        [description]="archiveDialogDescription"
+        [confirmLabel]="archiveLabel"
+        (confirm)="archive()"
+        (cancel)="cancelArchive()"
+      />
     </main>
   `
 })
 export class ClientsListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly filtersOpen = signal(false);
+  readonly pendingArchive = signal<Client | null>(null);
   readonly clientsEmptyTitle = $localize`:@@clientsEmptyTitle:Aún no hay clientes aquí`;
   readonly clientsEmptyDescription = $localize`:@@clientsEmpty:Agrega tu primer cliente o ajusta los filtros para encontrarlo.`;
+  readonly archiveDialogTitle = $localize`:@@archiveClientDialogTitle:Archivar cliente`;
+  readonly archiveDialogDescription = $localize`:@@archiveClientDialogDescription:El cliente dejará de aparecer en los listados habituales, pero su historial se conservará.`;
+  readonly archiveLabel = $localize`:@@archiveButton:Archivar`;
+  readonly undoLabel = $localize`:@@undoButton:Deshacer`;
   readonly summary = signal<ClientSummary | null>(null);
   readonly clients = signal<PaginatedClients>({
     items: [],
@@ -176,7 +204,8 @@ export class ClientsListComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly clientsService: ClientsService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -234,12 +263,30 @@ export class ClientsListComponent implements OnInit {
     await this.load(1);
   }
 
+  toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
+  }
+
+  hasActiveFilters(): boolean {
+    const filters = this.filtersForm.getRawValue();
+    return Boolean(filters.search || filters.type || filters.status || filters.city || filters.includeArchived);
+  }
+
   async goToPage(page: number): Promise<void> {
     await this.load(page);
   }
 
-  async archive(client: Client): Promise<void> {
-    if (!confirm($localize`:@@archiveClientConfirm:¿Archivar a ${client.displayName}?`)) {
+  requestArchive(client: Client): void {
+    this.pendingArchive.set(client);
+  }
+
+  cancelArchive(): void {
+    this.pendingArchive.set(null);
+  }
+
+  async archive(): Promise<void> {
+    const client = this.pendingArchive();
+    if (!client || this.loading()) {
       return;
     }
     this.loading.set(true);
@@ -247,10 +294,27 @@ export class ClientsListComponent implements OnInit {
     try {
       await this.clientsService.archive(this.organizationId, client.id);
       await this.load(this.clients().page);
-    } catch {
+      this.pendingArchive.set(null);
+      this.notifications.success(
+        $localize`:@@clientArchivedSuccess:Cliente archivado correctamente.`,
+        this.undoLabel,
+        () => void this.restoreClient(client)
+      );
+    } catch (error) {
+      this.notifications.fromError(error);
       this.error.set($localize`:@@clientArchiveError:No fue posible archivar el cliente.`);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async restoreClient(client: Client): Promise<void> {
+    try {
+      await this.clientsService.update(this.organizationId, client.id, { type: client.type, status: client.status });
+      await this.load(this.clients().page);
+      this.notifications.success($localize`:@@clientRestoredSuccess:Cliente restaurado correctamente.`);
+    } catch (error) {
+      this.notifications.fromError(error);
     }
   }
 

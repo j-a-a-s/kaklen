@@ -2,16 +2,23 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Event, EventParticipantRole, EventStatus, EventTaskPriority } from "../events/event.models";
+import { Event, EventParticipantRole, EventStatus, EventTaskPriority, EventTaskStatus } from "../events/event.models";
 import { EventsService } from "../events/events.service";
+import {
+  eventParticipantRoleLabel,
+  eventStatusLabel,
+  eventTaskPriorityLabel,
+  eventTaskStatusLabel
+} from "../i18n/display-labels";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 @Component({
   selector: "kaklen-event-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell" *ngIf="event() as item">
       <section class="dashboard-header">
@@ -36,11 +43,16 @@ import { NotificationService } from "../shared/notifications/notification.servic
         <p *ngIf="item.description">{{ item.description }}</p>
         <p *ngIf="item.notes">{{ item.notes }}</p>
         <div class="row-actions" *ngIf="canManage()">
-          <button type="button" class="secondary" (click)="changeStatus('confirm')" [disabled]="item.status !== 'DRAFT'" i18n="@@confirmButton">Confirmar</button>
+          <button type="button" class="success" (click)="changeStatus('confirm')" [disabled]="item.status !== 'DRAFT'" i18n="@@confirmButton">Confirmar</button>
           <button type="button" class="secondary" (click)="changeStatus('start')" [disabled]="item.status !== 'CONFIRMED'" i18n="@@startEventButton">Iniciar</button>
-          <button type="button" class="secondary" (click)="changeStatus('complete')" [disabled]="item.status !== 'IN_PROGRESS'" i18n="@@completeButton">Completar</button>
-          <button type="button" class="danger" (click)="changeStatus('cancel')" [disabled]="item.status === 'COMPLETED' || item.status === 'CANCELLED'" i18n="@@cancelButton">Cancelar</button>
-          <button *ngIf="canDelete()" type="button" class="danger" (click)="archive()" i18n="@@archiveButton">Archivar</button>
+          <button type="button" class="success" (click)="changeStatus('complete')" [disabled]="item.status !== 'IN_PROGRESS'" i18n="@@completeButton">Completar</button>
+          <details class="action-menu" *ngIf="item.status !== 'COMPLETED' || canDelete()">
+            <summary i18n="@@moreActionsLabel">Más acciones</summary>
+            <div class="action-menu-panel">
+              <button type="button" class="danger" (click)="pendingDestructiveAction.set('cancel')" [disabled]="item.status === 'COMPLETED' || item.status === 'CANCELLED' || processing()" i18n="@@cancelButton">Cancelar</button>
+              <button *ngIf="canDelete()" type="button" class="danger" (click)="pendingDestructiveAction.set('archive')" [disabled]="processing()" i18n="@@archiveButton">Archivar</button>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -67,7 +79,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <button type="submit" [disabled]="taskForm.invalid || !canUpdate()" i18n="@@addTaskButton">Agregar tarea</button>
         </form>
         <article class="item-row" *ngFor="let task of item.tasks">
-          <span><strong>{{ task.title }}</strong><small>{{ task.status }} · {{ task.priority }}</small></span>
+          <span><strong>{{ task.title }}</strong><small>{{ taskStatusLabel(task.status) }} · {{ taskPriorityLabel(task.priority) }}</small></span>
           <button type="button" class="secondary" (click)="completeTask(task.id, task.title)" [disabled]="task.status === 'COMPLETED' || !canUpdate()" i18n="@@completeButton">Completar</button>
         </article>
       </section>
@@ -98,7 +110,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <button type="submit" [disabled]="participantForm.invalid || !canUpdate()" i18n="@@addParticipantButton">Agregar participante</button>
         </form>
         <article class="item-row" *ngFor="let participant of item.participants">
-          <span><strong>{{ participant.externalName || participant.externalEmail || participant.role }}</strong><small>{{ participant.role }}</small></span>
+          <span><strong>{{ participant.externalName || participant.externalEmail || participantRoleLabel(participant.role) }}</strong><small>{{ participantRoleLabel(participant.role) }}</small></span>
         </article>
       </section>
 
@@ -145,12 +157,23 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <span><strong>{{ entry.title }}</strong><small>{{ dateLabel(entry.startsAt) }}</small></span>
         </article>
       </section>
+      <kaklen-confirmation-dialog
+        [open]="pendingDestructiveAction() !== null"
+        [busy]="processing()"
+        [title]="destructiveDialogTitle()"
+        [description]="destructiveDialogDescription()"
+        [confirmLabel]="destructiveDialogAction()"
+        (confirm)="confirmDestructiveAction()"
+        (cancel)="pendingDestructiveAction.set(null)"
+      />
     </main>
   `
 })
 export class EventDetailComponent implements OnInit {
   readonly event = signal<Event | null>(null);
   readonly error = signal("");
+  readonly processing = signal(false);
+  readonly pendingDestructiveAction = signal<"cancel" | "archive" | null>(null);
   readonly noClientLabel = $localize`:@@noClientLabel:Sin cliente`;
   readonly noVenueLabel = $localize`:@@noVenueLabel:Sin lugar`;
   readonly noCityLabel = $localize`:@@noCityLabel:Sin ciudad`;
@@ -208,25 +231,63 @@ export class EventDetailComponent implements OnInit {
   }
 
   async changeStatus(action: "confirm" | "start" | "complete" | "cancel"): Promise<void> {
-    if (action === "cancel" && !confirm($localize`:@@cancelEventConfirm:¿Cancelar este evento?`)) {
+    if (this.processing()) {
       return;
     }
+    this.processing.set(true);
     try {
       this.event.set(await this.eventsService.changeStatus(this.organizationId, this.eventId, action));
       this.notifications.success(this.statusSuccessMessage(action));
+      this.pendingDestructiveAction.set(null);
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@eventStatusError:No fue posible cambiar el estado del evento.`);
+    } finally {
+      this.processing.set(false);
     }
   }
 
   async archive(): Promise<void> {
-    if (!confirm($localize`:@@archiveEventConfirm:¿Archivar este evento?`)) {
+    if (this.processing()) {
       return;
     }
-    await this.eventsService.archive(this.organizationId, this.eventId);
-    this.notifications.success($localize`:@@eventArchivedSuccess:Evento archivado.`);
-    await this.router.navigate(["/organizations", this.organizationId, "events"]);
+    this.processing.set(true);
+    try {
+      await this.eventsService.archive(this.organizationId, this.eventId);
+      this.pendingDestructiveAction.set(null);
+      this.notifications.success($localize`:@@eventArchivedSuccess:Evento archivado.`);
+      await this.router.navigate(["/organizations", this.organizationId, "events"]);
+    } catch (error) {
+      this.notifications.fromError(error);
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  confirmDestructiveAction(): void {
+    if (this.pendingDestructiveAction() === "cancel") {
+      void this.changeStatus("cancel");
+    } else if (this.pendingDestructiveAction() === "archive") {
+      void this.archive();
+    }
+  }
+
+  destructiveDialogTitle(): string {
+    return this.pendingDestructiveAction() === "archive"
+      ? $localize`:@@archiveEventDialogTitle:Archivar evento`
+      : $localize`:@@cancelEventDialogTitle:Cancelar evento`;
+  }
+
+  destructiveDialogDescription(): string {
+    return this.pendingDestructiveAction() === "archive"
+      ? $localize`:@@archiveEventDialogDescription:El evento dejará de aparecer en la operación activa, pero su información histórica se conservará.`
+      : $localize`:@@cancelEventDialogDescription:El evento quedará cancelado y no podrá continuar a las etapas de ejecución.`;
+  }
+
+  destructiveDialogAction(): string {
+    return this.pendingDestructiveAction() === "archive"
+      ? $localize`:@@archiveButton:Archivar`
+      : $localize`:@@cancelDefinitelyButton:Cancelar definitivamente`;
   }
 
   async addTask(): Promise<void> {
@@ -268,15 +329,19 @@ export class EventDetailComponent implements OnInit {
   }
 
   statusLabel(status: EventStatus): string {
-    const labels: Record<EventStatus, string> = {
-      DRAFT: $localize`:@@draftLabel:Borrador`,
-      CONFIRMED: $localize`:@@confirmedLabel:Confirmado`,
-      IN_PROGRESS: $localize`:@@inProgressLabel:En curso`,
-      COMPLETED: $localize`:@@completedLabel:Completado`,
-      CANCELLED: $localize`:@@cancelledLabel:Cancelado`,
-      ARCHIVED: $localize`:@@archivedLabel:Archivado`
-    };
-    return labels[status];
+    return eventStatusLabel(status);
+  }
+
+  taskStatusLabel(status: EventTaskStatus): string {
+    return eventTaskStatusLabel(status);
+  }
+
+  taskPriorityLabel(priority: EventTaskPriority): string {
+    return eventTaskPriorityLabel(priority);
+  }
+
+  participantRoleLabel(role: EventParticipantRole): string {
+    return eventParticipantRoleLabel(role);
   }
 
   dateLabel(value: string): string {

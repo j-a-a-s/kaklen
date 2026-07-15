@@ -2,14 +2,16 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
+import { organizationRoleLabel } from "../i18n/display-labels";
 import { OrganizationInvitation, OrganizationMember, OrganizationRole } from "../organizations/organization.models";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 @Component({
   selector: "kaklen-organization-members",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -29,10 +31,10 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <label>
             <span i18n="@@roleLabel">Rol</span>
             <select formControlName="role">
-              <option value="VIEWER">VIEWER</option>
-              <option value="MEMBER">MEMBER</option>
-              <option value="MANAGER">MANAGER</option>
-              <option value="ADMIN">ADMIN</option>
+              <option value="VIEWER">{{ roleLabel('VIEWER') }}</option>
+              <option value="MEMBER">{{ roleLabel('MEMBER') }}</option>
+              <option value="MANAGER">{{ roleLabel('MANAGER') }}</option>
+              <option value="ADMIN">{{ roleLabel('ADMIN') }}</option>
             </select>
           </label>
           <button type="submit" [disabled]="inviteForm.invalid || loading()">
@@ -48,20 +50,29 @@ import { NotificationService } from "../shared/notifications/notification.servic
         <article class="item-row" *ngFor="let member of members()">
           <div>
             <strong>{{ member.firstName }} {{ member.lastName }}</strong>
-            <small>{{ member.email }} · {{ member.role }}</small>
+            <small>{{ member.email }} · {{ roleLabel(member.role) }}</small>
           </div>
           <div class="row-actions" *ngIf="canEditMembers()">
             <select [value]="member.role" (change)="changeRole(member, roleFromEvent($event))">
-              <option value="OWNER">OWNER</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="MANAGER">MANAGER</option>
-              <option value="MEMBER">MEMBER</option>
-              <option value="VIEWER">VIEWER</option>
+              <option value="OWNER">{{ roleLabel('OWNER') }}</option>
+              <option value="ADMIN">{{ roleLabel('ADMIN') }}</option>
+              <option value="MANAGER">{{ roleLabel('MANAGER') }}</option>
+              <option value="MEMBER">{{ roleLabel('MEMBER') }}</option>
+              <option value="VIEWER">{{ roleLabel('VIEWER') }}</option>
             </select>
-            <button type="button" class="secondary" (click)="remove(member)" i18n="@@removeButton">Quitar</button>
+            <details class="action-menu"><summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary><div class="action-menu-panel"><button type="button" class="danger" (click)="pendingRemoval.set(member)" i18n="@@removeButton">Quitar</button></div></details>
           </div>
         </article>
       </section>
+      <kaklen-confirmation-dialog
+        [open]="pendingRemoval() !== null"
+        [busy]="loading()"
+        [title]="removeDialogTitle"
+        [description]="removeDialogDescription"
+        [confirmLabel]="removeLabel"
+        (confirm)="remove()"
+        (cancel)="pendingRemoval.set(null)"
+      />
     </main>
   `
 })
@@ -69,8 +80,12 @@ export class OrganizationMembersComponent implements OnInit {
   readonly members = signal<OrganizationMember[]>([]);
   readonly lastInvitation = signal<OrganizationInvitation | null>(null);
   readonly loading = signal(false);
+  readonly pendingRemoval = signal<OrganizationMember | null>(null);
   readonly inviteLabel = $localize`:@@inviteButton:Invitar`;
   readonly invitingLabel = $localize`:@@invitingButton:Invitando...`;
+  readonly removeDialogTitle = $localize`:@@removeMemberDialogTitle:Quitar miembro`;
+  readonly removeDialogDescription = $localize`:@@removeMemberDialogDescription:La persona perderá inmediatamente el acceso a esta organización y a sus datos.`;
+  readonly removeLabel = $localize`:@@removeMemberAction:Quitar acceso`;
   readonly inviteForm = new FormGroup({
     email: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.email] }),
     role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true })
@@ -99,6 +114,10 @@ export class OrganizationMembersComponent implements OnInit {
 
   roleFromEvent(event: Event): OrganizationRole {
     return (event.target as HTMLSelectElement).value as OrganizationRole;
+  }
+
+  roleLabel(role: OrganizationRole): string {
+    return organizationRoleLabel(role);
   }
 
   async invite(): Promise<void> {
@@ -130,13 +149,15 @@ export class OrganizationMembersComponent implements OnInit {
     }
   }
 
-  async remove(member: OrganizationMember): Promise<void> {
-    if (!confirm($localize`:@@removeMemberConfirm:¿Quitar este miembro?`)) {
+  async remove(): Promise<void> {
+    const member = this.pendingRemoval();
+    if (!member || this.loading()) {
       return;
     }
     this.loading.set(true);
     try {
       await this.organizationService.removeMember(this.organizationId, member.id);
+      this.pendingRemoval.set(null);
       this.notifications.success($localize`:@@memberRemovedSuccess:Miembro eliminado correctamente.`);
       await this.loadMembers();
     } catch (error) {

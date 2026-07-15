@@ -1,7 +1,16 @@
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideRouter, Routes, RouterOutlet, RouterLink, Router, RouterLinkActive } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
-import { Component, DEFAULT_CURRENCY_CODE, LOCALE_ID, signal } from "@angular/core";
+import {
+  Component,
+  DEFAULT_CURRENCY_CODE,
+  ElementRef,
+  HostListener,
+  LOCALE_ID,
+  OnDestroy,
+  ViewChild,
+  signal
+} from "@angular/core";
 import { CommonModule, registerLocaleData } from "@angular/common";
 import localeEs from "@angular/common/locales/es";
 import localeEn from "@angular/common/locales/en";
@@ -185,9 +194,10 @@ const routes: Routes = [
       <div class="topbar-left">
         <button
           *ngIf="isAuthenticated() && activeOrganizationId()"
+          #mobileMenuButton
           type="button"
           class="icon-button mobile-menu-button"
-          (click)="toggleMenu()"
+          (click)="openMenu()"
           [attr.aria-expanded]="menuOpen()"
           aria-controls="authenticated-navigation"
           aria-label="Abrir navegación"
@@ -210,40 +220,85 @@ const routes: Routes = [
       </nav>
 
       <div *ngIf="isAuthenticated()" class="authenticated-actions">
-        <kaklen-command-palette [organizationId]="activeOrganizationId()" />
-        <nav class="topbar-actions" aria-label="Cuenta" i18n-aria-label="@@accountNavigationAriaLabel">
-          <a class="icon-link" routerLink="/organizations" aria-label="Organizaciones" i18n-aria-label="@@navOrganizations">
-            <span aria-hidden="true">⌂</span>
+        <kaklen-command-palette #commandPalette [organizationId]="activeOrganizationId()" />
+        <button
+          #mobileProfileButton
+          type="button"
+          class="icon-button mobile-profile-button"
+          (click)="toggleProfile()"
+          [attr.aria-expanded]="profileOpen()"
+          aria-controls="account-menu"
+          aria-label="Abrir perfil"
+          i18n-aria-label="@@openProfileLabel"
+        >
+          <span class="user-avatar" *ngIf="auth.user() as user" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+        </button>
+        <nav
+          #profileMenu
+          id="account-menu"
+          class="topbar-actions account-menu"
+          [class.open]="profileOpen()"
+          aria-label="Cuenta"
+          i18n-aria-label="@@accountNavigationAriaLabel"
+        >
+          <div class="mobile-account-summary" *ngIf="auth.user() as user">
+            <span class="user-avatar" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+            <span><strong>{{ user.firstName }} {{ user.lastName }}</strong><small>{{ activeOrganizationName() }}</small></span>
+          </div>
+          <button type="button" class="secondary mobile-account-action" (click)="openCommandPalette()" i18n="@@quickSearchLabel">Buscar o ir a...</button>
+          <a class="icon-link organizations-link" routerLink="/organizations" aria-label="Organizaciones" i18n-aria-label="@@navOrganizations" (click)="closeProfile()">
+            <span aria-hidden="true">⌂</span><span class="mobile-account-action" i18n="@@navOrganizations">Organizaciones</span>
           </a>
+          <a
+            *ngIf="activeOrganizationId() && can('organization.update')"
+            class="secondary-link mobile-account-action"
+            [routerLink]="['/organizations', activeOrganizationId(), 'settings']"
+            (click)="closeProfile()"
+            i18n="@@navSettings"
+          >Configuración</a>
           <span class="user-chip" *ngIf="auth.user() as user" [title]="user.firstName + ' ' + user.lastName">
             <span class="user-avatar" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
             <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
           </span>
+          <kaklen-locale-selector />
           <button type="button" class="secondary compact-button" (click)="logout()" i18n="@@logoutButton">Salir</button>
         </nav>
       </div>
-      <kaklen-locale-selector />
+      <kaklen-locale-selector *ngIf="!isAuthenticated()" />
     </header>
 
     <div class="app-layout" [class.with-navigation]="isAuthenticated() && activeOrganizationId()">
+      <button
+        *ngIf="menuOpen()"
+        type="button"
+        class="drawer-overlay"
+        (click)="closeMenu(true)"
+        aria-label="Cerrar navegación"
+        i18n-aria-label="@@closeNavigationLabel"
+      ></button>
       <aside
+        #mobileDrawer
         id="authenticated-navigation"
         class="app-sidebar"
         *ngIf="isAuthenticated() && activeOrganizationId() as organizationId"
         [class.open]="menuOpen()"
+        [attr.aria-modal]="menuOpen() ? 'true' : null"
+        [attr.role]="menuOpen() ? 'dialog' : null"
+        aria-label="Navegación de organización"
+        i18n-aria-label="@@organizationNavigationAriaLabel"
       >
         <div class="sidebar-heading">
           <span i18n="@@workspaceNavigationLabel">Espacio de trabajo</span>
         </div>
         <nav aria-label="Navegación de organización" i18n-aria-label="@@organizationNavigationAriaLabel">
-          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">⌂</span><span i18n="@@navHome">Inicio</span></a>
-          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">◎</span><span i18n="@@navClients">Clientes</span></a>
-          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">◇</span><span i18n="@@navCatalog">Productos y servicios</span></a>
-          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">▤</span><span i18n="@@navQuotations">Cotizaciones</span></a>
-          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">□</span><span i18n="@@navEvents">Eventos</span></a>
+          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">⌂</span><span i18n="@@navHome">Inicio</span></a>
+          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">◎</span><span i18n="@@navClients">Clientes</span></a>
+          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">◇</span><span i18n="@@navCatalog">Productos y servicios</span></a>
+          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">▤</span><span i18n="@@navQuotations">Cotizaciones</span></a>
+          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">□</span><span i18n="@@navEvents">Eventos</span></a>
           <span class="sidebar-divider" aria-hidden="true"></span>
-          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">♙</span><span i18n="@@navMembers">Miembros</span></a>
-          <a *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">⚙</span><span i18n="@@navSettings">Configuración</span></a>
+          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">♙</span><span i18n="@@navMembers">Miembros</span></a>
+          <a class="sidebar-settings-link" *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">⚙</span><span i18n="@@navSettings">Configuración</span></a>
         </nav>
         <div class="sidebar-help">
           <span class="help-icon" aria-hidden="true">?</span>
@@ -258,8 +313,14 @@ const routes: Routes = [
     <kaklen-notification-container />
   `
 })
-class AppComponent {
+class AppComponent implements OnDestroy {
+  @ViewChild("mobileMenuButton") private mobileMenuButton?: ElementRef<HTMLButtonElement>;
+  @ViewChild("mobileDrawer") private mobileDrawer?: ElementRef<HTMLElement>;
+  @ViewChild("mobileProfileButton") private mobileProfileButton?: ElementRef<HTMLButtonElement>;
+  @ViewChild("profileMenu") private profileMenu?: ElementRef<HTMLElement>;
+  @ViewChild("commandPalette") private commandPalette?: CommandPaletteComponent;
   readonly menuOpen = signal(false);
+  readonly profileOpen = signal(false);
 
   constructor(
     readonly auth: AuthService,
@@ -283,18 +344,102 @@ class AppComponent {
     return this.organizationService.hasPermission(permission);
   }
 
-  toggleMenu(): void {
-    this.menuOpen.update((open) => !open);
+  openMenu(): void {
+    this.closeProfile();
+    this.menuOpen.set(true);
+    document.body.classList.add("navigation-drawer-open");
+    window.setTimeout(() => this.focusFirst(this.mobileDrawer?.nativeElement), 0);
   }
 
-  closeMenu(): void {
+  closeMenu(returnFocus = false): void {
     this.menuOpen.set(false);
+    document.body.classList.remove("navigation-drawer-open");
+    if (returnFocus) {
+      window.setTimeout(() => this.mobileMenuButton?.nativeElement.focus(), 0);
+    }
+  }
+
+  toggleProfile(): void {
+    const next = !this.profileOpen();
+    this.closeMenu();
+    this.profileOpen.set(next);
+    if (next) {
+      window.setTimeout(() => this.focusFirst(this.profileMenu?.nativeElement), 0);
+    }
+  }
+
+  closeProfile(returnFocus = false): void {
+    this.profileOpen.set(false);
+    if (returnFocus) {
+      window.setTimeout(() => this.mobileProfileButton?.nativeElement.focus(), 0);
+    }
+  }
+
+  openCommandPalette(): void {
+    this.closeProfile();
+    this.commandPalette?.open();
+  }
+
+  @HostListener("document:keydown", ["$event"])
+  handleDocumentKeydown(event: KeyboardEvent): void {
+    if (event.key === "Escape") {
+      if (this.menuOpen()) {
+        event.preventDefault();
+        this.closeMenu(true);
+      } else if (this.profileOpen()) {
+        event.preventDefault();
+        this.closeProfile(true);
+      }
+      return;
+    }
+
+    if (event.key === "Tab" && this.menuOpen()) {
+      this.trapFocus(event, this.mobileDrawer?.nativeElement);
+    } else if (event.key === "Tab" && this.profileOpen()) {
+      this.trapFocus(event, this.profileMenu?.nativeElement);
+    }
   }
 
   async logout(): Promise<void> {
     await this.auth.logout();
     this.closeMenu();
+    this.closeProfile();
     await this.router.navigateByUrl("/login", { replaceUrl: true });
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove("navigation-drawer-open");
+  }
+
+  private focusFirst(container?: HTMLElement): void {
+    this.focusableElements(container)[0]?.focus();
+  }
+
+  private trapFocus(event: KeyboardEvent, container?: HTMLElement): void {
+    const elements = this.focusableElements(container);
+    if (elements.length === 0) {
+      return;
+    }
+    const first = elements[0];
+    const last = elements[elements.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  private focusableElements(container?: HTMLElement): HTMLElement[] {
+    if (!container) {
+      return [];
+    }
+    return Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((element) => !element.hasAttribute("hidden"));
   }
 }
 

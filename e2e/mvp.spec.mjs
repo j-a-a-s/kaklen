@@ -105,7 +105,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       name: `${organization.name} Validated`,
       defaultLocale: "es"
     });
-    expect(update.status()).toBe(400);
+    expect(update.status()).toBe(200);
+    expect((await update.json()).defaultLocale).toBe("es");
 
     const validUpdate = await authorizedPatch(`/organizations/${organizationId}`, {
       name: `${organization.name} Validated`,

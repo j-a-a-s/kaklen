@@ -101,18 +101,24 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
         </section>
 
         <section class="dashboard-columns">
-          <article class="dashboard-panel onboarding-panel">
+          <article class="dashboard-panel onboarding-panel" [class.completed]="onboardingProgress() === 100">
             <div class="section-heading compact">
               <div>
                 <p class="eyebrow" i18n="@@onboardingEyebrow">Primeros pasos</p>
-                <h2 i18n="@@onboardingTitle">Configura tu espacio</h2>
+                <h2 *ngIf="onboardingProgress() < 100" i18n="@@onboardingTitle">Configura tu espacio</h2>
+                <h2 *ngIf="onboardingProgress() === 100" i18n="@@onboardingCompleteTitle">Configuración inicial completada</h2>
               </div>
-              <strong>{{ onboardingProgress() }}%</strong>
+              <strong *ngIf="onboardingProgress() < 100">{{ onboardingProgress() }}%</strong>
+              <button type="button" class="secondary" *ngIf="onboardingProgress() === 100" (click)="toggleOnboardingDetails()">
+                <span *ngIf="!showOnboardingDetails()" i18n="@@showDetailsButton">Ver detalles</span>
+                <span *ngIf="showOnboardingDetails()" i18n="@@hideDetailsButton">Ocultar detalles</span>
+              </button>
             </div>
-            <div class="progress-track" role="progressbar" [attr.aria-valuenow]="onboardingProgress()" aria-valuemin="0" aria-valuemax="100">
+            <p class="onboarding-complete-copy" *ngIf="onboardingProgress() === 100" i18n="@@onboardingCompleteDescription">Tu espacio está listo. Ahora puedes concentrarte en clientes, cotizaciones y eventos.</p>
+            <div *ngIf="onboardingProgress() < 100 || showOnboardingDetails()" class="progress-track" role="progressbar" [attr.aria-valuenow]="onboardingProgress()" aria-valuemin="0" aria-valuemax="100">
               <span [style.width.%]="onboardingProgress()"></span>
             </div>
-            <ol class="onboarding-list">
+            <ol class="onboarding-list" *ngIf="onboardingProgress() < 100 || showOnboardingDetails()">
               <li class="complete"><span aria-hidden="true">✓</span><span i18n="@@onboardingOrganization">Crear una organización</span></li>
               <li [class.complete]="(clientSummary()?.total || 0) > 0"><span aria-hidden="true">{{ (clientSummary()?.total || 0) > 0 ? '✓' : '2' }}</span><a [routerLink]="['/organizations', currentOrganizationId, 'clients', 'new']" i18n="@@onboardingClient">Agregar el primer cliente</a></li>
               <li [class.complete]="catalogTotal() > 0"><span aria-hidden="true">{{ catalogTotal() > 0 ? '✓' : '3' }}</span><a [routerLink]="['/organizations', currentOrganizationId, 'catalog', 'new']" i18n="@@onboardingCatalog">Crear un producto o servicio</a></li>
@@ -135,6 +141,7 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
 export class DashboardComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly showOnboardingDetails = signal(false);
   readonly user = signal<AuthUser | null>(null);
   readonly organizationId = signal<string | null>(null);
   readonly clientSummary = signal<ClientSummary | null>(null);
@@ -183,6 +190,10 @@ export class DashboardComponent implements OnInit {
       return $localize`:@@goodMorningGreeting:Buenos días`;
     }
     return hour < 19 ? $localize`:@@goodAfternoonGreeting:Buenas tardes` : $localize`:@@goodEveningGreeting:Buenas noches`;
+  }
+
+  toggleOnboardingDetails(): void {
+    this.showOnboardingDetails.update((show) => !show);
   }
 
   activeOrganizationName(): string {

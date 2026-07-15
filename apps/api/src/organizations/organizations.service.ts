@@ -109,7 +109,8 @@ export class OrganizationsService {
           currency: dto.currency?.trim().toUpperCase(),
           timezone: dto.timezone?.trim(),
           dateFormat: dto.dateFormat,
-          numberFormat: dto.numberFormat
+          numberFormat: dto.numberFormat,
+          defaultLocale: dto.defaultLocale
         }
       });
       await this.audit(tx, organizationId, actorUserId, "organization.updated", "organization", organizationId);
