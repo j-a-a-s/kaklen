@@ -1,8 +1,9 @@
-import { BadRequestException, ArgumentsHost } from "@nestjs/common";
+import { BadRequestException, ArgumentsHost, HttpException, InternalServerErrorException } from "@nestjs/common";
 import { ApiErrorFilter } from "./api-error.filter";
 
 interface TestBody {
   code: string;
+  message: string;
   statusCode: number;
 }
 
@@ -26,6 +27,75 @@ describe("ApiErrorFilter", () => {
     expect(enResponse.body?.code).toBe("BAD_REQUEST");
     expect(esResponse.body?.statusCode).toBe(400);
     expect(enResponse.body?.statusCode).toBe(400);
+  });
+
+  it("preserves typed backend error codes and first validation message", () => {
+    const filter = new ApiErrorFilter();
+    const response = createResponse();
+
+    filter.catch(
+      new BadRequestException({
+        code: "RUT_INVALID",
+        message: ["RUT_INVALID", "ignored"],
+        statusCode: 400
+      }),
+      createHost(response, "es")
+    );
+
+    expect(response.body).toEqual({
+      code: "RUT_INVALID",
+      message: "RUT_INVALID",
+      statusCode: 400
+    });
+  });
+
+  it("uses default request failure message for empty HTTP exception bodies", () => {
+    const filter = new ApiErrorFilter();
+    const response = createResponse();
+
+    filter.catch(new HttpException({}, 418), createHost(response, "en"));
+
+    expect(response.body).toEqual({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Request failed",
+      statusCode: 418
+    });
+  });
+
+  it("normalizes unexpected errors and internal server errors without exposing stacks", () => {
+    const filter = new ApiErrorFilter();
+    const unexpected = createResponse();
+    const explicit = createResponse();
+
+    filter.catch(new Error("database password leaked"), createHost(unexpected, "en"));
+    filter.catch(new InternalServerErrorException(), createHost(explicit, "en"));
+
+    expect(unexpected.body).toEqual({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Internal server error",
+      statusCode: 500
+    });
+    expect(explicit.body?.message).toBe("Internal Server Error");
+  });
+
+  it("normalizes string exception bodies and empty validation arrays", () => {
+    const filter = new ApiErrorFilter();
+    const stringBody = createResponse();
+    const emptyMessages = createResponse();
+
+    filter.catch(new HttpException("Plain failure", 409), createHost(stringBody, "en"));
+    filter.catch(new BadRequestException({ message: [], statusCode: 400 }), createHost(emptyMessages, "en"));
+
+    expect(stringBody.body).toEqual({
+      code: "CONFLICT",
+      message: "Plain failure",
+      statusCode: 409
+    });
+    expect(emptyMessages.body).toEqual({
+      code: "BAD_REQUEST",
+      message: "Request failed",
+      statusCode: 400
+    });
   });
 });
 

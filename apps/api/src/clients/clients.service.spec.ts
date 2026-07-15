@@ -1,10 +1,11 @@
 import { BadRequestException } from "@nestjs/common";
-import { Client, ClientStatus, ClientType, Prisma } from "@prisma/client";
+import { Client, ClientInteraction, ClientInteractionType, ClientStatus, ClientType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { ClientsService } from "./clients.service";
 
 class FakePrismaService {
   private clients: Client[] = [];
+  private clientInteractions: ClientInteraction[] = [];
 
   readonly client = {
     create: async ({ data }: { data: Prisma.ClientUncheckedCreateInput }): Promise<Client> => {
@@ -78,11 +79,23 @@ class FakePrismaService {
   };
 
   readonly clientInteraction = {
-    create: async (): Promise<never> => {
-      throw new Error("Not needed in this spec");
+    create: async ({ data }: { data: Prisma.ClientInteractionUncheckedCreateInput }): Promise<ClientInteraction> => {
+      const interaction: ClientInteraction = {
+        id: `interaction-${this.clientInteractions.length + 1}`,
+        organizationId: data.organizationId,
+        clientId: data.clientId,
+        userId: data.userId,
+        type: data.type,
+        subject: data.subject ?? null,
+        description: data.description,
+        occurredAt: data.occurredAt instanceof Date ? data.occurredAt : new Date(data.occurredAt ?? Date.now()),
+        createdAt: new Date()
+      };
+      this.clientInteractions.push(interaction);
+      return interaction;
     },
-    findMany: async (): Promise<never> => {
-      throw new Error("Not needed in this spec");
+    findMany: async ({ where }: { where: Prisma.ClientInteractionWhereInput }): Promise<ClientInteraction[]> => {
+      return this.clientInteractions.filter((interaction) => interaction.organizationId === where.organizationId && interaction.clientId === where.clientId);
     }
   };
 
@@ -105,9 +118,10 @@ class FakePrismaService {
     const typeMatches = !where.type || where.type === client.type;
     const statusMatches = this.matchesStatus(client, where.status);
     const cityMatches = this.matchesContains(client.city, where.city);
+    const taxIdMatches = this.matchesTaxId(client, where.taxId);
     const orMatches = !where.OR || where.OR.some((condition) => this.matchesWhere(client, condition));
 
-    return idMatches && organizationMatches && typeMatches && statusMatches && cityMatches && orMatches;
+    return idMatches && organizationMatches && typeMatches && statusMatches && cityMatches && taxIdMatches && orMatches;
   }
 
   private matchesId(client: Client, id: Prisma.StringFilter<"Client"> | string | undefined): boolean {
@@ -131,6 +145,19 @@ class FakePrismaService {
       return client.status === status;
     }
     return status.not ? client.status !== status.not : true;
+  }
+
+  private matchesTaxId(client: Client, taxId: Prisma.StringNullableFilter<"Client"> | string | null | undefined): boolean {
+    if (!taxId) {
+      return true;
+    }
+    if (typeof taxId === "string") {
+      return client.taxId === taxId;
+    }
+    if (taxId.not && typeof taxId.not === "string") {
+      return client.taxId !== taxId.not;
+    }
+    return true;
   }
 
   private matchesContains(value: string | null, filter: Prisma.StringNullableFilter<"Client"> | string | null | undefined): boolean {
@@ -201,6 +228,35 @@ describe("ClientsService", () => {
     expect(page.items[0]?.displayName).toBe("Ada Lovelace");
   });
 
+  it("applies all list filters without leaking other organizations", async () => {
+    await service.create("org-a", "user-1", {
+      type: ClientType.NATURAL_PERSON,
+      status: ClientStatus.ACTIVE,
+      firstName: "Ada",
+      lastName: "Lovelace",
+      email: "ada@example.com",
+      city: "Santiago",
+      taxId: "12.345.678-5"
+    });
+    await service.create("org-a", "user-1", {
+      type: ClientType.LEGAL_ENTITY,
+      legalName: "Grace SpA",
+      city: "Valparaiso"
+    });
+
+    const page = await service.list("org-a", {
+      page: 1,
+      pageSize: 20,
+      type: ClientType.NATURAL_PERSON,
+      status: ClientStatus.ACTIVE,
+      city: "santi",
+      search: "ADA"
+    });
+
+    expect(page.total).toBe(1);
+    expect(page.items[0]?.taxId).toBe("123456785");
+  });
+
   it("archives clients without returning them by default", async () => {
     const client = await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
@@ -239,5 +295,120 @@ describe("ClientsService", () => {
     expect(updated.taxId).toBe("NAT-1");
     expect(updated.city).toBe("Valparaiso");
     expect(updated.status).toBe(ClientStatus.ACTIVE);
+  });
+
+  it("updates every writable field when values are explicitly provided", async () => {
+    const client = await service.create("org-a", "user-1", {
+      type: ClientType.NATURAL_PERSON,
+      firstName: "Ada",
+      lastName: "Lovelace",
+      email: "ada@example.com",
+      phone: "111",
+      whatsapp: "222",
+      country: "CL",
+      region: "RM",
+      city: "Santiago",
+      address: "Old street",
+      notes: "Old notes"
+    });
+
+    const updated = await service.update("org-a", client.id, "user-1", {
+      type: ClientType.LEGAL_ENTITY,
+      status: ClientStatus.INACTIVE,
+      firstName: "Ignored",
+      lastName: "Ignored",
+      legalName: "  Kaklen SpA ",
+      taxId: "12.345.678-5",
+      email: " CONTACT@KAKLEN.CL ",
+      phone: "333",
+      whatsapp: "444",
+      country: "BR",
+      region: "SP",
+      city: "Sao Paulo",
+      address: "New street",
+      notes: "Updated notes"
+    });
+
+    expect(updated).toMatchObject({
+      type: ClientType.LEGAL_ENTITY,
+      status: ClientStatus.INACTIVE,
+      displayName: "Kaklen SpA",
+      firstName: null,
+      lastName: null,
+      legalName: "Kaklen SpA",
+      taxId: "123456785",
+      email: "contact@kaklen.cl",
+      phone: "333",
+      whatsapp: "444",
+      country: "BR",
+      region: "SP",
+      city: "Sao Paulo",
+      address: "New street",
+      notes: "Updated notes"
+    });
+  });
+
+  it("rejects duplicate tax IDs inside the same organization", async () => {
+    await service.create("org-a", "user-1", {
+      type: ClientType.NATURAL_PERSON,
+      firstName: "Ada",
+      lastName: "Lovelace",
+      taxId: "12.345.678-5"
+    });
+
+    await expect(
+      service.create("org-a", "user-1", {
+        type: ClientType.LEGAL_ENTITY,
+        legalName: "Ada SpA",
+        taxId: "123456785"
+      })
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: "DUPLICATE_TAX_ID" })
+    });
+  });
+
+  it("summarizes clients and manages interactions", async () => {
+    const client = await service.create("org-a", "user-1", {
+      type: ClientType.NATURAL_PERSON,
+      status: ClientStatus.ACTIVE,
+      firstName: "Ada",
+      lastName: "Lovelace"
+    });
+    await service.create("org-a", "user-1", {
+      type: ClientType.LEGAL_ENTITY,
+      status: ClientStatus.INACTIVE,
+      legalName: "Grace SpA"
+    });
+
+    await expect(service.summary("org-a")).resolves.toMatchObject({
+      total: 2,
+      active: 1,
+      inactive: 1
+    });
+    await expect(
+      service.createInteraction("org-a", client.id, "user-1", {
+        type: ClientInteractionType.NOTE,
+        subject: "  Call ",
+        description: " Follow up ",
+        occurredAt: "2026-08-01T10:00:00.000Z"
+      })
+    ).resolves.toMatchObject({
+      subject: "Call",
+      description: "Follow up"
+    });
+    await expect(service.interactions("org-a", client.id)).resolves.toHaveLength(1);
+  });
+
+  it("rejects direct access to clients outside the organization", async () => {
+    const client = await service.create("org-a", "user-1", {
+      type: ClientType.NATURAL_PERSON,
+      firstName: "Ada",
+      lastName: "Lovelace"
+    });
+
+    await expect(service.get("org-b", client.id)).rejects.toThrow("Client not found");
+    await expect(
+      service.createInteraction("org-b", client.id, "user-1", { type: ClientInteractionType.NOTE, description: "Nope" })
+    ).rejects.toThrow("Client not found");
   });
 });

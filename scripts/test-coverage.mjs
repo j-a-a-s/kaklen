@@ -9,6 +9,17 @@ const thresholds = {
   functions: 90,
   lines: 90
 };
+const criticalModuleThresholds = {
+  statements: 95,
+  lines: 95
+};
+const criticalModules = [
+  { name: "Auth", prefix: "apps/api/src/auth/" },
+  { name: "Organizations and RBAC", prefix: "apps/api/src/organizations/" },
+  { name: "Clients", prefix: "apps/api/src/clients/" },
+  { name: "Quotations", prefix: "apps/api/src/quotations/" },
+  { name: "Events", prefix: "apps/api/src/events/" }
+];
 
 const result = await run("pnpm", [
   "--filter",
@@ -40,6 +51,16 @@ for (const [metric, minimum] of Object.entries(thresholds)) {
   }
 }
 
+for (const moduleInfo of criticalModules) {
+  const coverage = aggregateCoverage(summary, moduleInfo.prefix);
+  for (const [metric, minimum] of Object.entries(criticalModuleThresholds)) {
+    const actual = coverage[metric];
+    if (actual < minimum) {
+      failures.push(`${moduleInfo.name} ${metric}: ${actual}% < ${minimum}%`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error("COVERAGE THRESHOLDS FAILED");
   failures.forEach((failure) => console.error(`- ${failure}`));
@@ -55,4 +76,28 @@ function run(command, args) {
       resolveRun({ ok: code === 0 && !signal, code: code ?? 1 });
     });
   });
+}
+
+function aggregateCoverage(summary, prefix) {
+  const totals = {
+    statements: { total: 0, covered: 0 },
+    lines: { total: 0, covered: 0 }
+  };
+
+  for (const [filePath, fileCoverage] of Object.entries(summary)) {
+    if (filePath === "total" || !filePath.includes(prefix)) {
+      continue;
+    }
+    for (const metric of Object.keys(totals)) {
+      totals[metric].total += fileCoverage[metric].total;
+      totals[metric].covered += fileCoverage[metric].covered;
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(totals).map(([metric, value]) => [
+      metric,
+      value.total === 0 ? 100 : Number(((value.covered / value.total) * 100).toFixed(2))
+    ])
+  );
 }

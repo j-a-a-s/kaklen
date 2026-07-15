@@ -16,6 +16,7 @@
     "build:fresh": "node scripts/build-fresh.mjs",
     "test": "node --test scripts/*.test.mjs && turbo run test",
     "test:coverage": "node scripts/test-coverage.mjs",
+    "test:mutation:critical": "node scripts/test-mutation-critical.mjs",
     "accessibility:test": "playwright test e2e/accessibility.spec.mjs",
     "lint": "turbo run lint",
     "architecture:check": "node scripts/check-architecture.mjs",

@@ -22,4 +22,11 @@ describe("HealthService", () => {
     expect(response.status).toBe("ok");
     expect(response.checks.database).toBe("ok");
   });
+
+  it("returns not-ready metadata when the database dependency is unavailable", () => {
+    const response = new HealthService({} as ConstructorParameters<typeof HealthService>[0]).getNotReady();
+
+    expect(response.status).toBe("error");
+    expect(response.checks.database).toBe("error");
+  });
 });

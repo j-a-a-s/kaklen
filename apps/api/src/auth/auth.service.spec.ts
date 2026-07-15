@@ -121,6 +121,23 @@ class FakePrismaService {
 
     return null;
   }
+
+  setUserStatus(email: string, status: UserStatus): void {
+    const user = this.users.find((item) => item.email === email);
+    if (user) {
+      user.status = status;
+    }
+  }
+
+  expireRefreshTokens(): void {
+    this.refreshTokens.forEach((token) => {
+      token.expiresAt = new Date(Date.now() - 1000);
+    });
+  }
+
+  revokedRefreshTokenCount(): number {
+    return this.refreshTokens.filter((token) => token.revokedAt !== null).length;
+  }
 }
 
 describe("AuthService", () => {
@@ -198,6 +215,33 @@ describe("AuthService", () => {
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
+  it("rejects login for inactive users with the same generic error", async () => {
+    await service.register({
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      password: "correct-password"
+    });
+    prisma.setUserStatus("ada@example.com", UserStatus.DISABLED);
+
+    await expect(service.login({ email: "ada@example.com", password: "correct-password" })).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it("rejects missing, invalid, and expired refresh tokens", async () => {
+    const registered = await service.register({
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      password: "correct-password"
+    });
+
+    await expect(service.refresh(undefined)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.refresh("not-a-stored-token")).rejects.toBeInstanceOf(UnauthorizedException);
+
+    prisma.expireRefreshTokens();
+    await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
   it("refreshes a valid refresh token and rotates it", async () => {
     const registered = await service.register({
       email: "ada@example.com",
@@ -227,6 +271,26 @@ describe("AuthService", () => {
     await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(
       UnauthorizedException
     );
+  });
+
+  it("treats logout without a matching refresh token as idempotent", async () => {
+    await service.logout(undefined);
+    await service.logout("not-a-stored-token");
+
+    expect(prisma.revokedRefreshTokenCount()).toBe(0);
+  });
+
+  it("rejects /me for missing or inactive users", async () => {
+    await expect(service.me("missing-user")).rejects.toBeInstanceOf(UnauthorizedException);
+    await service.register({
+      email: "ada@example.com",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      password: "correct-password"
+    });
+    prisma.setUserStatus("ada@example.com", UserStatus.DISABLED);
+
+    await expect(service.me("user-1")).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it("updates the authenticated user locale preference", async () => {

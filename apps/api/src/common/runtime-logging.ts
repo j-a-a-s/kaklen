@@ -58,6 +58,9 @@ export function redactSecret(value: unknown): unknown {
   if (!value || typeof value !== "object") {
     return value;
   }
+  if (Array.isArray(value)) {
+    return value.map((entry) => redactSecret(entry));
+  }
   const result: Record<string, unknown> = {};
   Object.entries(value).forEach(([key, entry]) => {
     result[key] = isSensitiveKey(key) ? "[REDACTED]" : redactSecret(entry);

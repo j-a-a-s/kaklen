@@ -10,6 +10,7 @@ const commandChecks = [
   { key: "sbom", label: "SBOM", command: "pnpm", args: ["security:sbom"] },
   { key: "dependencyAudit", label: "Dependency audit", command: "pnpm", args: ["dependency:audit"] },
   { key: "coverage", label: "Coverage thresholds", command: "pnpm", args: ["test:coverage"] },
+  { key: "mutationCritical", label: "Critical mutation tests", command: "pnpm", args: ["test:mutation:critical"] },
   { key: "accessibility", label: "Accessibility Playwright", command: "pnpm", args: ["accessibility:test"] },
   { key: "releaseCheck", label: "Base release check", command: "pnpm", args: ["release:check"] }
 ];
@@ -46,7 +47,9 @@ const areas = [
     criterion("Cobertura statements >= 90%", coverage.statements >= 90, `${coverage.statements}% statements`),
     criterion("Cobertura branches >= 85%", coverage.branches >= 85, `${coverage.branches}% branches`),
     criterion("Cobertura functions >= 90%", coverage.functions >= 90, `${coverage.functions}% functions`),
-    criterion("Cobertura lines >= 90%", coverage.lines >= 90, `${coverage.lines}% lines`)
+    criterion("Cobertura lines >= 90%", coverage.lines >= 90, `${coverage.lines}% lines`),
+    criterion("Modulos criticos statements/lines >= 95%", coverage.criticalModulesReady, coverage.criticalModulesDetail),
+    criterion("Mutacion critica detecta cambios peligrosos", commandResults.get("mutationCritical").ok, "pnpm test:mutation:critical")
   ]),
   area("i18n", [
     criterion("Builds localizados y MIME verificados", commandResults.get("releaseCheck").ok, "pnpm verify:i18n-server via release check"),
@@ -141,8 +144,50 @@ function readCoverage() {
     statements: total.statements.pct,
     branches: total.branches.pct,
     functions: total.functions.pct,
-    lines: total.lines.pct
+    lines: total.lines.pct,
+    ...criticalModuleCoverage(JSON.parse(readFileSync(path, "utf8")))
   };
+}
+
+function criticalModuleCoverage(summary) {
+  const modules = [
+    { name: "Auth", prefix: "apps/api/src/auth/" },
+    { name: "Organizations/RBAC", prefix: "apps/api/src/organizations/" },
+    { name: "Clients", prefix: "apps/api/src/clients/" },
+    { name: "Quotations", prefix: "apps/api/src/quotations/" },
+    { name: "Events", prefix: "apps/api/src/events/" }
+  ];
+  const results = modules.map((moduleInfo) => {
+    const coverage = aggregateCoverage(summary, moduleInfo.prefix);
+    return { name: moduleInfo.name, ...coverage };
+  });
+  const failures = results.filter((item) => item.statements < 95 || item.lines < 95);
+  return {
+    criticalModulesReady: failures.length === 0,
+    criticalModulesDetail: results.map((item) => `${item.name} ${item.statements}% statements/${item.lines}% lines`).join("; ")
+  };
+}
+
+function aggregateCoverage(summary, prefix) {
+  const totals = {
+    statements: { total: 0, covered: 0 },
+    lines: { total: 0, covered: 0 }
+  };
+  for (const [filePath, fileCoverage] of Object.entries(summary)) {
+    if (filePath === "total" || !filePath.includes(prefix)) {
+      continue;
+    }
+    for (const metric of Object.keys(totals)) {
+      totals[metric].total += fileCoverage[metric].total;
+      totals[metric].covered += fileCoverage[metric].covered;
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(totals).map(([metric, value]) => [
+      metric,
+      value.total === 0 ? 100 : Number(((value.covered / value.total) * 100).toFixed(2))
+    ])
+  );
 }
 
 function hasText(path, text) {

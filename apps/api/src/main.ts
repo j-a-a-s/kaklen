@@ -10,7 +10,7 @@ import { AppModule } from "./app.module";
 import { ApiErrorFilter } from "./common/api-error.filter";
 import { requestLoggingMiddleware } from "./common/runtime-logging";
 
-async function bootstrap(): Promise<void> {
+export async function bootstrap(): Promise<void> {
   const config = readApiConfig(process.env);
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
@@ -53,16 +53,18 @@ async function bootstrap(): Promise<void> {
   await app.listen(config.port);
 }
 
-void bootstrap().catch((error: unknown) => {
-  const message = messageForBootstrapError(error);
-  console.error(message);
-  if ((process.env.LOG_LEVEL ?? "").toLowerCase() === "debug") {
-    console.error(error);
-  }
-  process.exit(1);
-});
+if (require.main === module) {
+  void bootstrap().catch((error: unknown) => {
+    const message = messageForBootstrapError(error);
+    console.error(message);
+    if ((process.env.LOG_LEVEL ?? "").toLowerCase() === "debug") {
+      console.error(error);
+    }
+    process.exit(1);
+  });
+}
 
-function messageForBootstrapError(error: unknown): string {
+export function messageForBootstrapError(error: unknown): string {
   const code = prismaErrorCode(error);
   if (code === "P1000") {
     return "No fue posible conectarse a PostgreSQL. Credenciales invalidas en DATABASE_URL.";
@@ -76,7 +78,7 @@ function messageForBootstrapError(error: unknown): string {
   return "No fue posible iniciar Kaklen API. Ejecute pnpm doctor para diagnosticar el entorno local.";
 }
 
-function prismaErrorCode(error: unknown): string | undefined {
+export function prismaErrorCode(error: unknown): string | undefined {
   if (error && typeof error === "object" && "code" in error && typeof error.code === "string") {
     return error.code;
   }

@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { CatalogItem, CatalogItemStatus, CatalogItemType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CatalogService } from "./catalog.service";
@@ -314,5 +314,132 @@ describe("CatalogService", () => {
     expect(defaultList.total).toBe(0);
     expect(archivedList.items[0]?.status).toBe(CatalogItemStatus.ARCHIVED);
     expect(archivedList.items[0]?.archivedAt).toBeInstanceOf(Date);
+  });
+
+  it("applies exact catalog filters for status, code, sku and price bounds", async () => {
+    await service.create("org-a", "user-1", {
+      type: CatalogItemType.PRODUCT,
+      status: CatalogItemStatus.INACTIVE,
+      sku: " sku-1 ",
+      code: "prod-1",
+      name: "Notebook",
+      unit: "unidad",
+      cost: 100,
+      price: 150,
+      taxPercent: 19,
+      currency: "CLP"
+    });
+    await service.create("org-a", "user-1", {
+      type: CatalogItemType.SERVICE,
+      code: "svc-1",
+      name: "Consultoria",
+      unit: "hora",
+      cost: 0,
+      price: 75,
+      taxPercent: 19,
+      currency: "CLP"
+    });
+
+    const page = await service.list("org-a", {
+      status: CatalogItemStatus.INACTIVE,
+      code: "prod",
+      sku: "sku",
+      minPrice: 100,
+      maxPrice: 200,
+      page: 1,
+      pageSize: 20
+    });
+
+    expect(page.total).toBe(1);
+    expect(page.items[0]?.sku).toBe("SKU-1");
+  });
+
+  it("updates all writable catalog fields and keeps organization isolation", async () => {
+    const item = await service.create("org-a", "user-1", {
+      type: CatalogItemType.PRODUCT,
+      code: "prod-1",
+      name: "Notebook",
+      unit: "unidad",
+      cost: 100,
+      price: 150,
+      taxPercent: 19,
+      currency: "CLP"
+    });
+
+    const updated = await service.update("org-a", item.id, "user-1", {
+      type: CatalogItemType.SERVICE,
+      status: CatalogItemStatus.INACTIVE,
+      sku: "",
+      code: "svc-2",
+      name: "Consultoria",
+      description: "",
+      unit: "hora",
+      cost: 0,
+      price: 200,
+      taxPercent: 0,
+      currency: "usd"
+    });
+
+    expect(updated).toMatchObject({
+      type: CatalogItemType.SERVICE,
+      status: CatalogItemStatus.INACTIVE,
+      sku: null,
+      code: "SVC-2",
+      description: null,
+      unit: "hora",
+      trackInventory: false
+    });
+    await expect(service.get("org-b", item.id)).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("rejects invalid catalog monetary values and required fields", () => {
+    expect(() =>
+      service.mapCatalogInput({
+        type: CatalogItemType.PRODUCT,
+        code: "",
+        name: "Notebook",
+        unit: "unit",
+        cost: 0,
+        price: 1,
+        taxPercent: 0,
+        currency: "CLP"
+      })
+    ).toThrow(BadRequestException);
+    expect(() =>
+      service.mapCatalogInput({
+        type: CatalogItemType.PRODUCT,
+        code: "P",
+        name: "",
+        unit: "unit",
+        cost: 0,
+        price: 1,
+        taxPercent: 0,
+        currency: "CLP"
+      })
+    ).toThrow(BadRequestException);
+    expect(() =>
+      service.mapCatalogInput({
+        type: CatalogItemType.PRODUCT,
+        code: "P",
+        name: "Notebook",
+        unit: "",
+        cost: 0,
+        price: 1,
+        taxPercent: 0,
+        currency: "CLP"
+      })
+    ).toThrow(BadRequestException);
+    expect(() =>
+      service.mapCatalogInput({
+        type: CatalogItemType.PRODUCT,
+        code: "P",
+        name: "Notebook",
+        unit: "unit",
+        cost: -1,
+        price: 1,
+        taxPercent: 0,
+        currency: ""
+      })
+    ).toThrow(BadRequestException);
   });
 });
