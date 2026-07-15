@@ -5,6 +5,7 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "dev": "turbo run build --filter='./packages/*' && turbo run dev --filter='./apps/*' --parallel",
+    "dev:i18n": "node scripts/dev-i18n.mjs",
     "dev:fresh": "node scripts/dev-fresh.mjs",
     "build": "turbo run build --concurrency=1",
     "build:fresh": "node scripts/build-fresh.mjs",

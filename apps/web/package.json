@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "ngc -p tsconfig.app.json",
-    "build:es": "ngc -p tsconfig.es.json",
-    "build:en": "ngc -p tsconfig.en.json",
-    "build:pt-BR": "ngc -p tsconfig.pt-BR.json",
+    "build:es": "ng build --configuration es",
+    "build:en": "ng build --configuration en",
+    "build:pt-BR": "ng build --configuration pt-BR",
     "dev": "NG_CLI_ANALYTICS=false ng serve --host 0.0.0.0 --port 4200",
     "extract-i18n": "ng extract-i18n --format xlf --output-path src/locale",
     "test": "tsc -p tsconfig.app.json --noEmit",

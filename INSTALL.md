@@ -31,6 +31,14 @@ pnpm run setup
 pnpm dev:fresh
 ```
 
+Para probar los tres idiomas reales con compilaciones separadas:
+
+```bash
+pnpm dev:i18n
+```
+
+Abre `http://localhost:4200/es/login`, `http://localhost:4200/en/login` o `http://localhost:4200/pt-BR/login`.
+
 ## Nota sobre pnpm setup
 
 `pnpm setup` es un comando reservado de pnpm para configurar el gestor de paquetes en el sistema. El script de Kaklen debe ejecutarse como `pnpm run setup`.
@@ -51,3 +59,7 @@ pnpm dev:fresh
 ```
 
 `pnpm clean:dev` no elimina `.env`, `node_modules`, datos de PostgreSQL ni volumenes Docker.
+
+## Idiomas
+
+Kaklen usa `@angular/localize` con builds separados. `pnpm dev` sirve el idioma base para iterar rapido; `pnpm dev:i18n` sirve los prefijos `/es`, `/en` y `/pt-BR` con fallback SPA por idioma.

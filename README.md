@@ -20,6 +20,7 @@ Comandos utiles:
 - `pnpm run doctor`: diagnostica Node, pnpm, Docker, PostgreSQL, `DATABASE_URL`, Prisma y variables criticas.
 - `node scripts/check-db.mjs`: prueba solo la conexion PostgreSQL.
 - `pnpm dev:fresh`: limpia artefactos regenerables, regenera runtime config, ejecuta Prisma generate y levanta desarrollo.
+- `pnpm dev:i18n`: limpia artefactos, genera runtime config, construye y sirve los builds localizados en `/es`, `/en` y `/pt-BR`.
 - `pnpm clean:dev`: limpia caches locales sin borrar `.env`, `node_modules`, datos ni volumenes Docker.
 - `pnpm verify`: ejecuta doctor, lint, test y build.
 
@@ -31,12 +32,15 @@ Usa siempre:
 pnpm dev:fresh
 ```
 
-La pantalla de login muestra la version y commit cargados, por ejemplo:
+Para probar el cambio real de idioma con `@angular/localize`, usa:
 
-```text
-Kaklen v0.1.0
-Commit 95b0798
+```bash
+pnpm dev:i18n
 ```
+
+`pnpm dev` sirve el idioma base para desarrollo rapido. `pnpm dev:i18n` sirve `http://localhost:4200/es/login`, `http://localhost:4200/en/login` y `http://localhost:4200/pt-BR/login` desde compilaciones separadas.
+
+La informacion de version en login esta oculta por defecto y se revela solo con el atajo de diagnostico `Cmd/Ctrl + K`, soltar, luego `O`.
 
 Si sospechas cache del navegador o builds antiguos:
 
@@ -45,7 +49,7 @@ pnpm clean:dev
 pnpm dev:fresh
 ```
 
-No uses `git reset --hard` para limpiar cache local. Tampoco borres `node_modules` salvo que el problema sea de dependencias. Para comparar frontend y API, revisa la version visible en login y `GET /api/health`; en desarrollo Kaklen avisa si los commits no coinciden.
+No uses `git reset --hard` para limpiar cache local. Tampoco borres `node_modules` salvo que el problema sea de dependencias. Para comparar frontend y API, usa el panel oculto de version en login y `GET /api/health`; en desarrollo Kaklen avisa si los commits no coinciden.
 
 ## Solucion de problemas
 

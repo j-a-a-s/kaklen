@@ -50,18 +50,21 @@
             },
             "es": {
               "localize": ["es"],
-              "i18nMissingTranslation": "warning",
-              "outputPath": "dist/web/es"
+              "i18nMissingTranslation": "error",
+              "outputPath": "dist/web/es",
+              "baseHref": "/es/"
             },
             "en": {
               "localize": ["en"],
-              "i18nMissingTranslation": "warning",
-              "outputPath": "dist/web/en"
+              "i18nMissingTranslation": "error",
+              "outputPath": "dist/web/en",
+              "baseHref": "/en/"
             },
             "pt-BR": {
               "localize": ["pt-BR"],
-              "i18nMissingTranslation": "warning",
-              "outputPath": "dist/web/pt-BR"
+              "i18nMissingTranslation": "error",
+              "outputPath": "dist/web/pt-BR",
+              "baseHref": "/pt-BR/"
             },
             "development": {
               "optimization": false,
@@ -99,5 +102,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

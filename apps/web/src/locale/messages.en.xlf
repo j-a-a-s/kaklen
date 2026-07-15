@@ -404,7 +404,7 @@
       </trans-unit>
     <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? Crea una</source>
-        <target>Do not have an account yet? Create one</target>
+        <target>Don’t have an account? Create one</target>
       </trans-unit>
     <trans-unit id="loginTitle" datatype="html">
         <source>Iniciar sesión</source>
@@ -457,6 +457,10 @@
     <trans-unit id="navOrganizations" datatype="html">
         <source>Organizaciones</source>
         <target>Organizations</target>
+      </trans-unit>
+    <trans-unit id="navLogin" datatype="html">
+        <source>Iniciar sesión</source>
+        <target>Sign in</target>
       </trans-unit>
     <trans-unit id="navRegister" datatype="html">
         <source>Registro</source>
@@ -1217,6 +1221,262 @@
     <trans-unit id="frontendBackendVersionMismatch" datatype="html">
         <source>Frontend y API están ejecutando versiones distintas.</source>
         <target>Frontend and API are running different versions.</target>
+      </trans-unit>
+      <trans-unit id="unitRequired" datatype="html">
+        <source>La unidad es obligatoria.</source>
+        <target>Unit is required.</target>
+      </trans-unit>
+      <trans-unit id="savingButton" datatype="html">
+        <source>Guardando...</source>
+        <target>Saving...</target>
+      </trans-unit>
+      <trans-unit id="catalogUpdatedSuccess" datatype="html">
+        <source>Elemento actualizado correctamente.</source>
+        <target>Item updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="catalogProductCreatedSuccess" datatype="html">
+        <source>Producto creado correctamente.</source>
+        <target>Product created successfully.</target>
+      </trans-unit>
+      <trans-unit id="catalogServiceCreatedSuccess" datatype="html">
+        <source>Servicio creado correctamente.</source>
+        <target>Service created successfully.</target>
+      </trans-unit>
+      <trans-unit id="catalogArchivedSuccess" datatype="html">
+        <source>Elemento archivado correctamente.</source>
+        <target>Item archived successfully.</target>
+      </trans-unit>
+      <trans-unit id="interactionAddedSuccess" datatype="html">
+        <source>Interacción agregada correctamente.</source>
+        <target>Interaction added successfully.</target>
+      </trans-unit>
+      <trans-unit id="clientArchivedSuccess" datatype="html">
+        <source>Cliente archivado correctamente.</source>
+        <target>Client archived successfully.</target>
+      </trans-unit>
+      <trans-unit id="rutValidation" datatype="html">
+        <source>Ingresa un RUT válido.</source>
+        <target>Enter a valid RUT.</target>
+      </trans-unit>
+      <trans-unit id="clientUpdatedSuccess" datatype="html">
+        <source>Cliente actualizado correctamente.</source>
+        <target>Client updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="clientCreatedSuccess" datatype="html">
+        <source>Cliente creado correctamente.</source>
+        <target>Client created successfully.</target>
+      </trans-unit>
+      <trans-unit id="cancelButton" datatype="html">
+        <source>Cancelar</source>
+        <target>Cancel</target>
+      </trans-unit>
+      <trans-unit id="cancelEventConfirm" datatype="html">
+        <source>¿Cancelar este evento?</source>
+        <target>Cancel this event?</target>
+      </trans-unit>
+      <trans-unit id="eventArchivedSuccess" datatype="html">
+        <source>Evento archivado.</source>
+        <target>Event archived.</target>
+      </trans-unit>
+      <trans-unit id="eventTaskAddedSuccess" datatype="html">
+        <source>Tarea agregada correctamente.</source>
+        <target>Task added successfully.</target>
+      </trans-unit>
+      <trans-unit id="eventTaskCompletedSuccess" datatype="html">
+        <source>Tarea completada.</source>
+        <target>Task completed.</target>
+      </trans-unit>
+      <trans-unit id="eventParticipantAddedSuccess" datatype="html">
+        <source>Participante agregado correctamente.</source>
+        <target>Participant added successfully.</target>
+      </trans-unit>
+      <trans-unit id="eventResourceAddedSuccess" datatype="html">
+        <source>Recurso agregado correctamente.</source>
+        <target>Resource added successfully.</target>
+      </trans-unit>
+      <trans-unit id="eventTimelineAddedSuccess" datatype="html">
+        <source>Cronograma actualizado correctamente.</source>
+        <target>Timeline updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="eventConfirmedSuccess" datatype="html">
+        <source>Evento confirmado.</source>
+        <target>Event confirmed.</target>
+      </trans-unit>
+      <trans-unit id="eventStartedSuccess" datatype="html">
+        <source>Evento iniciado.</source>
+        <target>Event started.</target>
+      </trans-unit>
+      <trans-unit id="eventCompletedSuccess" datatype="html">
+        <source>Evento completado.</source>
+        <target>Event completed.</target>
+      </trans-unit>
+      <trans-unit id="eventCancelledSuccess" datatype="html">
+        <source>Evento cancelado.</source>
+        <target>Event cancelled.</target>
+      </trans-unit>
+      <trans-unit id="saveChangesButton" datatype="html">
+        <source>Guardar cambios</source>
+        <target>Save changes</target>
+      </trans-unit>
+      <trans-unit id="eventUpdatedSuccess" datatype="html">
+        <source>Evento actualizado correctamente.</source>
+        <target>Event updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="eventCreatedSuccess" datatype="html">
+        <source>Evento creado correctamente.</source>
+        <target>Event created successfully.</target>
+      </trans-unit>
+      <trans-unit id="invitingButton" datatype="html">
+        <source>Invitando...</source>
+        <target>Inviting...</target>
+      </trans-unit>
+      <trans-unit id="invitationSentSuccess" datatype="html">
+        <source>Invitación enviada correctamente.</source>
+        <target>Invitation sent successfully.</target>
+      </trans-unit>
+      <trans-unit id="memberRoleUpdatedSuccess" datatype="html">
+        <source>Rol actualizado correctamente.</source>
+        <target>Role updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="removeMemberConfirm" datatype="html">
+        <source>¿Quitar este miembro?</source>
+        <target>Remove this member?</target>
+      </trans-unit>
+      <trans-unit id="memberRemovedSuccess" datatype="html">
+        <source>Miembro eliminado correctamente.</source>
+        <target>Member removed successfully.</target>
+      </trans-unit>
+      <trans-unit id="organizationCreatedSuccess" datatype="html">
+        <source>Organización creada correctamente.</source>
+        <target>Organization created successfully.</target>
+      </trans-unit>
+      <trans-unit id="createEventButton" datatype="html">
+        <source>Crear evento</source>
+        <target>Create event</target>
+      </trans-unit>
+      <trans-unit id="quotationNewVersionSuccess" datatype="html">
+        <source>Nueva versión creada.</source>
+        <target>New version created.</target>
+      </trans-unit>
+      <trans-unit id="approveQuotationConfirm" datatype="html">
+        <source>¿Aprobar esta cotización?</source>
+        <target>Approve this quotation?</target>
+      </trans-unit>
+      <trans-unit id="rejectQuotationConfirm" datatype="html">
+        <source>¿Rechazar esta cotización?</source>
+        <target>Reject this quotation?</target>
+      </trans-unit>
+      <trans-unit id="cancelQuotationConfirm" datatype="html">
+        <source>¿Cancelar esta cotización?</source>
+        <target>Cancel this quotation?</target>
+      </trans-unit>
+      <trans-unit id="quotationSentSuccess" datatype="html">
+        <source>Cotización enviada.</source>
+        <target>Quotation sent.</target>
+      </trans-unit>
+      <trans-unit id="quotationApprovedSuccess" datatype="html">
+        <source>Cotización aprobada.</source>
+        <target>Quotation approved.</target>
+      </trans-unit>
+      <trans-unit id="quotationRejectedSuccess" datatype="html">
+        <source>Cotización rechazada.</source>
+        <target>Quotation rejected.</target>
+      </trans-unit>
+      <trans-unit id="quotationCancelledSuccess" datatype="html">
+        <source>Cotización cancelada.</source>
+        <target>Quotation cancelled.</target>
+      </trans-unit>
+      <trans-unit id="quotationUpdatedSuccess" datatype="html">
+        <source>Cotización actualizada correctamente.</source>
+        <target>Quotation updated successfully.</target>
+      </trans-unit>
+      <trans-unit id="quotationCreatedSuccess" datatype="html">
+        <source>Cotización creada correctamente.</source>
+        <target>Quotation created successfully.</target>
+      </trans-unit>
+      <trans-unit id="notificationsAriaLabel" datatype="html">
+        <source>Notificaciones</source>
+        <target>Notifications</target>
+      </trans-unit>
+      <trans-unit id="closeNotificationLabel" datatype="html">
+        <source>Cerrar</source>
+        <target>Close</target>
+      </trans-unit>
+      <trans-unit id="errorValidation" datatype="html">
+        <source>Revisa los datos ingresados.</source>
+        <target>Check the entered data.</target>
+      </trans-unit>
+      <trans-unit id="errorRutInvalid" datatype="html">
+        <source>Ingresa un RUT válido.</source>
+        <target>Enter a valid RUT.</target>
+      </trans-unit>
+      <trans-unit id="errorResourceNotFound" datatype="html">
+        <source>No encontramos el recurso solicitado.</source>
+        <target>We could not find the requested resource.</target>
+      </trans-unit>
+      <trans-unit id="errorForbidden" datatype="html">
+        <source>No tienes permiso para realizar esta acción.</source>
+        <target>You do not have permission to perform this action.</target>
+      </trans-unit>
+      <trans-unit id="errorConflict" datatype="html">
+        <source>La operación entra en conflicto con información existente.</source>
+        <target>The operation conflicts with existing information.</target>
+      </trans-unit>
+      <trans-unit id="errorDuplicateTaxId" datatype="html">
+        <source>Ya existe un registro con ese RUT.</source>
+        <target>A record with that RUT already exists.</target>
+      </trans-unit>
+      <trans-unit id="errorQuotationInvalidStatus" datatype="html">
+        <source>La cotización no permite esa acción en su estado actual.</source>
+        <target>The quotation does not allow that action in its current status.</target>
+      </trans-unit>
+      <trans-unit id="errorEventInvalidStatus" datatype="html">
+        <source>El evento no permite esa acción en su estado actual.</source>
+        <target>The event does not allow that action in its current status.</target>
+      </trans-unit>
+      <trans-unit id="errorFallback" datatype="html">
+        <source>No fue posible completar la operación.</source>
+        <target>We could not complete the operation.</target>
+      </trans-unit>
+      <trans-unit id="openNavigationLabel" datatype="html">
+        <source>Abrir navegación</source>
+        <target>Open navigation</target>
+      </trans-unit>
+      <trans-unit id="accountNavigationAriaLabel" datatype="html">
+        <source>Cuenta</source>
+        <target>Account</target>
+      </trans-unit>
+      <trans-unit id="organizationNavigationAriaLabel" datatype="html">
+        <source>Navegación de organización</source>
+        <target>Organization navigation</target>
+      </trans-unit>
+      <trans-unit id="navHome" datatype="html">
+        <source>Inicio</source>
+        <target>Home</target>
+      </trans-unit>
+      <trans-unit id="navClients" datatype="html">
+        <source>Clientes</source>
+        <target>Clients</target>
+      </trans-unit>
+      <trans-unit id="navCatalog" datatype="html">
+        <source>Productos y servicios</source>
+        <target>Products and services</target>
+      </trans-unit>
+      <trans-unit id="navQuotations" datatype="html">
+        <source>Cotizaciones</source>
+        <target>Quotations</target>
+      </trans-unit>
+      <trans-unit id="navEvents" datatype="html">
+        <source>Eventos</source>
+        <target>Events</target>
+      </trans-unit>
+      <trans-unit id="navMembers" datatype="html">
+        <source>Miembros</source>
+        <target>Members</target>
+      </trans-unit>
+      <trans-unit id="navSettings" datatype="html">
+        <source>Configuración</source>
+        <target>Settings</target>
       </trans-unit>
     </body>
   </file>

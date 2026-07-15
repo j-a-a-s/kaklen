@@ -55,8 +55,19 @@ export class LocaleService {
     this.currentLocale.set(locale);
 
     if (reload) {
-      window.location.reload();
+      window.location.assign(this.localizedUrl(locale));
     }
+  }
+
+  localizedUrl(locale: SupportedLocale, location: Location = window.location): string {
+    const pathWithoutLocale = this.removeLeadingLocale(location.pathname);
+    const nextPath = `/${locale}${pathWithoutLocale === "/" ? "/login" : pathWithoutLocale}`;
+    return `${location.origin}${nextPath}${location.search}${location.hash}`;
+  }
+
+  localeFromPath(pathname: string = window.location.pathname): SupportedLocale | null {
+    const firstSegment = pathname.split("/").filter(Boolean)[0];
+    return this.normalize(firstSegment);
   }
 
   normalize(locale: string | null | undefined): SupportedLocale | null {
@@ -79,6 +90,7 @@ export class LocaleService {
 
   private resolveInitialLocale(): SupportedLocale {
     return (
+      this.localeFromPath() ??
       this.normalize(localStorage.getItem(LOCALE_STORAGE_KEY)) ??
       this.normalize(this.runtimeLocale) ??
       this.normalize(navigator.language) ??
@@ -88,5 +100,13 @@ export class LocaleService {
 
   private persist(locale: SupportedLocale): void {
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+  }
+
+  private removeLeadingLocale(pathname: string): string {
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length > 0 && this.normalize(segments[0])) {
+      segments.shift();
+    }
+    return `/${segments.join("/")}`;
   }
 }
