@@ -35,6 +35,8 @@ import { AuthService } from "./app/auth/auth.service";
 import { OrganizationService } from "./app/organizations/organization.service";
 import { Permission } from "./app/organizations/organization.models";
 import { NotificationContainerComponent } from "./app/shared/notifications/notification-container.component";
+import { BrandLogoComponent } from "./app/shared/brand-logo.component";
+import { CommandPaletteComponent } from "./app/shared/command-palette.component";
 
 registerLocaleData(localeEs, "es");
 registerLocaleData(localeEn, "en");
@@ -168,9 +170,18 @@ const routes: Routes = [
 @Component({
   selector: "kaklen-root",
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LocaleSelectorComponent, NotificationContainerComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    LocaleSelectorComponent,
+    NotificationContainerComponent,
+    BrandLogoComponent,
+    CommandPaletteComponent
+  ],
   template: `
-    <header class="topbar">
+    <header class="topbar" [class.public-topbar]="!isAuthenticated()">
       <div class="topbar-left">
         <button
           *ngIf="isAuthenticated() && activeOrganizationId()"
@@ -184,20 +195,33 @@ const routes: Routes = [
         >
           ☰
         </button>
-        <a class="brand" routerLink="/dashboard">Kaklen</a>
-        <span class="organization-pill" *ngIf="isAuthenticated() && activeOrganizationName()">{{ activeOrganizationName() }}</span>
+        <a class="brand" [routerLink]="isAuthenticated() ? '/dashboard' : '/login'" aria-label="Kaklen">
+          <kaklen-brand-logo />
+        </a>
+        <div class="organization-context" *ngIf="isAuthenticated() && activeOrganizationName()">
+          <small i18n="@@activeOrganizationLabel">Organización activa</small>
+          <strong>{{ activeOrganizationName() }}</strong>
+        </div>
       </div>
 
-      <nav *ngIf="!isAuthenticated()" aria-label="Principal" i18n-aria-label="@@primaryNavigationAriaLabel">
+      <nav *ngIf="!isAuthenticated()" class="public-navigation" aria-label="Principal" i18n-aria-label="@@primaryNavigationAriaLabel">
         <a routerLink="/login" i18n="@@navLogin">Iniciar sesión</a>
         <a routerLink="/register" i18n="@@navRegister">Registro</a>
       </nav>
 
-      <nav *ngIf="isAuthenticated()" class="topbar-actions" aria-label="Cuenta" i18n-aria-label="@@accountNavigationAriaLabel">
-        <a routerLink="/organizations" i18n="@@navOrganizations">Organizaciones</a>
-        <span class="user-chip" *ngIf="auth.user() as user">{{ user.firstName }} {{ user.lastName }}</span>
-        <button type="button" class="secondary compact-button" (click)="logout()" i18n="@@logoutButton">Salir</button>
-      </nav>
+      <div *ngIf="isAuthenticated()" class="authenticated-actions">
+        <kaklen-command-palette [organizationId]="activeOrganizationId()" />
+        <nav class="topbar-actions" aria-label="Cuenta" i18n-aria-label="@@accountNavigationAriaLabel">
+          <a class="icon-link" routerLink="/organizations" aria-label="Organizaciones" i18n-aria-label="@@navOrganizations">
+            <span aria-hidden="true">⌂</span>
+          </a>
+          <span class="user-chip" *ngIf="auth.user() as user" [title]="user.firstName + ' ' + user.lastName">
+            <span class="user-avatar" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+            <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+          </span>
+          <button type="button" class="secondary compact-button" (click)="logout()" i18n="@@logoutButton">Salir</button>
+        </nav>
+      </div>
       <kaklen-locale-selector />
     </header>
 
@@ -208,15 +232,23 @@ const routes: Routes = [
         *ngIf="isAuthenticated() && activeOrganizationId() as organizationId"
         [class.open]="menuOpen()"
       >
+        <div class="sidebar-heading">
+          <span i18n="@@workspaceNavigationLabel">Espacio de trabajo</span>
+        </div>
         <nav aria-label="Navegación de organización" i18n-aria-label="@@organizationNavigationAriaLabel">
-          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" (click)="closeMenu()" i18n="@@navHome">Inicio</a>
-          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navClients">Clientes</a>
-          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navCatalog">Productos y servicios</a>
-          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navQuotations">Cotizaciones</a>
-          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navEvents">Eventos</a>
-          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navMembers">Miembros</a>
-          <a *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" (click)="closeMenu()" i18n="@@navSettings">Configuración</a>
+          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">⌂</span><span i18n="@@navHome">Inicio</span></a>
+          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">◎</span><span i18n="@@navClients">Clientes</span></a>
+          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">◇</span><span i18n="@@navCatalog">Productos y servicios</span></a>
+          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">▤</span><span i18n="@@navQuotations">Cotizaciones</span></a>
+          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">□</span><span i18n="@@navEvents">Eventos</span></a>
+          <span class="sidebar-divider" aria-hidden="true"></span>
+          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">♙</span><span i18n="@@navMembers">Miembros</span></a>
+          <a *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">⚙</span><span i18n="@@navSettings">Configuración</span></a>
         </nav>
+        <div class="sidebar-help">
+          <span class="help-icon" aria-hidden="true">?</span>
+          <span><strong i18n="@@needHelpTitle">¿Necesitas ayuda?</strong><small i18n="@@helpComingSoon">Centro de ayuda próximamente</small></span>
+        </div>
       </aside>
 
       <main class="app-content">

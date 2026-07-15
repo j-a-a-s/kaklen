@@ -40,7 +40,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css", "src/design-system.css"]
           },
           "configurations": {
             "production": {
@@ -102,7 +102,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css", "src/design-system.css"]
           }
         }
       }

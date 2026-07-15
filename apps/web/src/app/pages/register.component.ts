@@ -3,6 +3,7 @@ import { Component, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
+import { BrandLogoComponent } from "../shared/brand-logo.component";
 
 interface RegisterForm {
   firstName: FormControl<string>;
@@ -14,12 +15,22 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
   template: `
     <main class="auth-shell">
+      <aside class="auth-brand-panel" aria-label="Kaklen">
+        <kaklen-brand-logo variant="signature" />
+        <div class="auth-brand-message">
+          <span class="brand-rule" aria-hidden="true"></span>
+          <p i18n="@@registerBrandPromise">Empieza simple. Crece con una operación ordenada.</p>
+        </div>
+      </aside>
       <section class="auth-panel" aria-labelledby="register-title">
-        <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
-        <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
+        <header class="auth-heading">
+          <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
+          <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
+          <p i18n="@@registerDescription">Crea tu acceso. Después podrás configurar tu organización.</p>
+        </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <div class="field-grid">
@@ -59,7 +70,8 @@ interface RegisterForm {
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <button type="submit" [disabled]="form.invalid || loading()">
-            {{ submitLabel() }}
+            <span>{{ submitLabel() }}</span>
+            <span aria-hidden="true">→</span>
           </button>
         </form>
 

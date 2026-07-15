@@ -47,12 +47,12 @@
         <target>Archivar</target>
       </trans-unit>
     <trans-unit id="archiveCatalogItemConfirm" datatype="html">
-        <source>¿Archivar {$INTERPOLATION}?</source>
-        <target>¿Archivar {$INTERPOLATION}?</target>
+        <source>¿Archivar <x id="PH" equiv-text="item.name"/>?</source>
+        <target>¿Archivar ?</target>
       </trans-unit>
     <trans-unit id="archiveClientConfirm" datatype="html">
-        <source>¿Archivar a {$INTERPOLATION}?</source>
-        <target>¿Archivar a {$INTERPOLATION}?</target>
+        <source>¿Archivar este cliente?</source>
+        <target>¿Archivar este cliente?</target>
       </trans-unit>
     <trans-unit id="archivedLabel" datatype="html">
         <source>Archivado</source>
@@ -87,8 +87,8 @@
         <target>Administra precios, costos, códigos y unidades por organización.</target>
       </trans-unit>
     <trans-unit id="catalogEmpty" datatype="html">
-        <source>No hay items para los filtros seleccionados.</source>
-        <target>No hay items para los filtros seleccionados.</target>
+        <source>Agrega un producto o servicio, o ajusta los filtros para encontrarlo.</source>
+        <target>Agrega un producto o servicio, o ajusta los filtros para encontrarlo.</target>
       </trans-unit>
     <trans-unit id="catalogEyebrow" datatype="html">
         <source>Catálogo</source>
@@ -143,8 +143,8 @@
         <target>Gestiona personas, empresas e interacciones por organización.</target>
       </trans-unit>
     <trans-unit id="clientsEmpty" datatype="html">
-        <source>No hay clientes para los filtros seleccionados.</source>
-        <target>No hay clientes para los filtros seleccionados.</target>
+        <source>Agrega tu primer cliente o ajusta los filtros para encontrarlo.</source>
+        <target>Agrega tu primer cliente o ajusta los filtros para encontrarlo.</target>
       </trans-unit>
     <trans-unit id="clientsLoadError" datatype="html">
         <source>No fue posible cargar los clientes.</source>
@@ -211,8 +211,8 @@
         <target>La moneda es obligatoria.</target>
       </trans-unit>
     <trans-unit id="dashboardEyebrow" datatype="html">
-        <source>Panel</source>
-        <target>Panel</target>
+        <source>Resumen de hoy</source>
+        <target>Resumen de hoy</target>
       </trans-unit>
     <trans-unit id="dashboardFallbackName" datatype="html">
         <source>usuario</source>
@@ -415,7 +415,7 @@
         <target>Ingresando...</target>
       </trans-unit>
     <trans-unit id="loginSwitch" datatype="html">
-        <source>¿Aún no tienes cuenta? Crea una</source>
+        <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target>¿Aún no tienes cuenta? Crea una</target>
       </trans-unit>
     <trans-unit id="loginTitle" datatype="html">
@@ -479,8 +479,8 @@
         <target>Registro</target>
       </trans-unit>
     <trans-unit id="newCatalogItemButton" datatype="html">
-        <source>Nuevo item</source>
-        <target>Nuevo item</target>
+        <source>Nuevo producto o servicio</source>
+        <target>Nuevo producto o servicio</target>
       </trans-unit>
     <trans-unit id="newCatalogItemTitle" datatype="html">
         <source>Nuevo item</source>
@@ -535,8 +535,8 @@
         <target>No pudimos guardar los cambios.</target>
       </trans-unit>
     <trans-unit id="organizationsEmpty" datatype="html">
-        <source>Aún no tienes organizaciones.</source>
-        <target>Aún no tienes organizaciones.</target>
+        <source>Tu organización mantendrá separados sus clientes, productos, cotizaciones y eventos.</source>
+        <target>Tu organización mantendrá separados sus clientes, productos, cotizaciones y eventos.</target>
       </trans-unit>
     <trans-unit id="organizationSettingsTitle" datatype="html">
         <source>Organización</source>
@@ -551,8 +551,8 @@
         <target>No pudimos cargar tus organizaciones.</target>
       </trans-unit>
     <trans-unit id="organizationsLoading" datatype="html">
-        <source>Cargando organizaciones...</source>
-        <target>Cargando organizaciones...</target>
+        <source>Cargando organizaciones</source>
+        <target>Cargando organizaciones</target>
       </trans-unit>
     <trans-unit id="organizationsTitle" datatype="html">
         <source>Elige tu espacio de trabajo</source>
@@ -563,15 +563,15 @@
         <target>Organización actualizada.</target>
       </trans-unit>
     <trans-unit id="paginationLabel" datatype="html">
-        <source>Página {{ clients().page }} de {{ clients().totalPages }}</source>
-        <target>Página {{ clients().page }} de {{ clients().totalPages }}</target>
+        <source>Página <x id="INTERPOLATION" equiv-text="{{ catalog().page }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ catalog().totalPages }}"/></source>
+        <target>Página de</target>
       </trans-unit>
     <trans-unit id="passwordLabel" datatype="html">
         <source>Contraseña</source>
         <target>Contraseña</target>
       </trans-unit>
     <trans-unit id="passwordValidation" datatype="html">
-        <source>La contraseña debe tener al menos 8 caracteres.</source>
+        <source> La contraseña debe tener al menos 8 caracteres. </source>
         <target>La contraseña debe tener al menos 8 caracteres.</target>
       </trans-unit>
     <trans-unit id="phoneLabel" datatype="html">
@@ -627,7 +627,7 @@
         <target>Creando...</target>
       </trans-unit>
     <trans-unit id="registerSwitch" datatype="html">
-        <source>¿Ya tienes cuenta? Ingresa</source>
+        <source>¿Ya tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/login&quot;&gt;"/>Ingresa<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target>¿Ya tienes cuenta? Ingresa</target>
       </trans-unit>
     <trans-unit id="registerTitle" datatype="html">
@@ -671,8 +671,8 @@
         <target>Ajustes</target>
       </trans-unit>
     <trans-unit id="skuInlineLabel" datatype="html">
-        <source>· SKU {{ item.sku }}</source>
-        <target>· SKU {{ item.sku }}</target>
+        <source>SKU <x id="INTERPOLATION" equiv-text="{{ item.sku }}"/></source>
+        <target>SKU</target>
       </trans-unit>
     <trans-unit id="skuLabel" datatype="html">
         <source>SKU</source>
@@ -687,8 +687,8 @@
         <target>Asunto</target>
       </trans-unit>
     <trans-unit id="taxIdLabel" datatype="html">
-        <source>RUT o tax ID</source>
-        <target>RUT o tax ID</target>
+        <source>Tax ID</source>
+        <target>Tax ID</target>
       </trans-unit>
     <trans-unit id="taxLabel" datatype="html">
         <source>Impuesto</source>
@@ -803,12 +803,12 @@
         <target>Rechazada</target>
       </trans-unit>
     <trans-unit id="cancelledLabel" datatype="html">
-        <source>Cancelada</source>
-        <target>Cancelada</target>
+        <source>Cancelado</source>
+        <target>Cancelado</target>
       </trans-unit>
     <trans-unit id="quotationsEmpty" datatype="html">
-        <source>No hay cotizaciones para los filtros seleccionados.</source>
-        <target>No hay cotizaciones para los filtros seleccionados.</target>
+        <source>Crea la primera propuesta o ajusta los filtros para encontrar una cotización.</source>
+        <target>Crea la primera propuesta o ajusta los filtros para encontrar una cotización.</target>
       </trans-unit>
     <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>
@@ -983,24 +983,24 @@
         <target>Nuevo evento</target>
       </trans-unit>
     <trans-unit id="confirmedLabel" datatype="html">
-        <source>Confirmados</source>
-        <target>Confirmados</target>
+        <source>Confirmado</source>
+        <target>Confirmado</target>
       </trans-unit>
     <trans-unit id="inProgressLabel" datatype="html">
         <source>En curso</source>
         <target>En curso</target>
       </trans-unit>
     <trans-unit id="completedLabel" datatype="html">
-        <source>Completados</source>
-        <target>Completados</target>
+        <source>Completado</source>
+        <target>Completado</target>
       </trans-unit>
     <trans-unit id="eventSearchPlaceholder" datatype="html">
         <source>Código, nombre o cliente</source>
         <target>Código, nombre o cliente</target>
       </trans-unit>
     <trans-unit id="eventsEmpty" datatype="html">
-        <source>No hay eventos para los filtros seleccionados.</source>
-        <target>No hay eventos para los filtros seleccionados.</target>
+        <source>Crea un evento o ajusta los filtros para encontrar una operación.</source>
+        <target>Crea un evento o ajusta los filtros para encontrar una operación.</target>
       </trans-unit>
     <trans-unit id="eventsLoadError" datatype="html">
         <source>No fue posible cargar los eventos.</source>
@@ -1234,261 +1234,505 @@
         <source>Frontend y API están ejecutando versiones distintas.</source>
         <target>Frontend y API están ejecutando versiones distintas.</target>
       </trans-unit>
-      <trans-unit id="unitRequired" datatype="html">
+    <trans-unit id="unitRequired" datatype="html">
         <source>La unidad es obligatoria.</source>
         <target>La unidad es obligatoria.</target>
       </trans-unit>
-      <trans-unit id="savingButton" datatype="html">
+    <trans-unit id="savingButton" datatype="html">
         <source>Guardando...</source>
         <target>Guardando...</target>
       </trans-unit>
-      <trans-unit id="catalogUpdatedSuccess" datatype="html">
+    <trans-unit id="catalogUpdatedSuccess" datatype="html">
         <source>Elemento actualizado correctamente.</source>
         <target>Elemento actualizado correctamente.</target>
       </trans-unit>
-      <trans-unit id="catalogProductCreatedSuccess" datatype="html">
+    <trans-unit id="catalogProductCreatedSuccess" datatype="html">
         <source>Producto creado correctamente.</source>
         <target>Producto creado correctamente.</target>
       </trans-unit>
-      <trans-unit id="catalogServiceCreatedSuccess" datatype="html">
+    <trans-unit id="catalogServiceCreatedSuccess" datatype="html">
         <source>Servicio creado correctamente.</source>
         <target>Servicio creado correctamente.</target>
       </trans-unit>
-      <trans-unit id="catalogArchivedSuccess" datatype="html">
+    <trans-unit id="catalogArchivedSuccess" datatype="html">
         <source>Elemento archivado correctamente.</source>
         <target>Elemento archivado correctamente.</target>
       </trans-unit>
-      <trans-unit id="interactionAddedSuccess" datatype="html">
+    <trans-unit id="interactionAddedSuccess" datatype="html">
         <source>Interacción agregada correctamente.</source>
         <target>Interacción agregada correctamente.</target>
       </trans-unit>
-      <trans-unit id="clientArchivedSuccess" datatype="html">
+    <trans-unit id="clientArchivedSuccess" datatype="html">
         <source>Cliente archivado correctamente.</source>
         <target>Cliente archivado correctamente.</target>
       </trans-unit>
-      <trans-unit id="rutValidation" datatype="html">
+    <trans-unit id="rutValidation" datatype="html">
         <source>Ingresa un RUT válido.</source>
         <target>Ingresa un RUT válido.</target>
       </trans-unit>
-      <trans-unit id="clientUpdatedSuccess" datatype="html">
+    <trans-unit id="clientUpdatedSuccess" datatype="html">
         <source>Cliente actualizado correctamente.</source>
         <target>Cliente actualizado correctamente.</target>
       </trans-unit>
-      <trans-unit id="clientCreatedSuccess" datatype="html">
+    <trans-unit id="clientCreatedSuccess" datatype="html">
         <source>Cliente creado correctamente.</source>
         <target>Cliente creado correctamente.</target>
       </trans-unit>
-      <trans-unit id="cancelButton" datatype="html">
+    <trans-unit id="cancelButton" datatype="html">
         <source>Cancelar</source>
         <target>Cancelar</target>
       </trans-unit>
-      <trans-unit id="cancelEventConfirm" datatype="html">
+    <trans-unit id="cancelEventConfirm" datatype="html">
         <source>¿Cancelar este evento?</source>
         <target>¿Cancelar este evento?</target>
       </trans-unit>
-      <trans-unit id="eventArchivedSuccess" datatype="html">
+    <trans-unit id="eventArchivedSuccess" datatype="html">
         <source>Evento archivado.</source>
         <target>Evento archivado.</target>
       </trans-unit>
-      <trans-unit id="eventTaskAddedSuccess" datatype="html">
+    <trans-unit id="eventTaskAddedSuccess" datatype="html">
         <source>Tarea agregada correctamente.</source>
         <target>Tarea agregada correctamente.</target>
       </trans-unit>
-      <trans-unit id="eventTaskCompletedSuccess" datatype="html">
+    <trans-unit id="eventTaskCompletedSuccess" datatype="html">
         <source>Tarea completada.</source>
         <target>Tarea completada.</target>
       </trans-unit>
-      <trans-unit id="eventParticipantAddedSuccess" datatype="html">
+    <trans-unit id="eventParticipantAddedSuccess" datatype="html">
         <source>Participante agregado correctamente.</source>
         <target>Participante agregado correctamente.</target>
       </trans-unit>
-      <trans-unit id="eventResourceAddedSuccess" datatype="html">
+    <trans-unit id="eventResourceAddedSuccess" datatype="html">
         <source>Recurso agregado correctamente.</source>
         <target>Recurso agregado correctamente.</target>
       </trans-unit>
-      <trans-unit id="eventTimelineAddedSuccess" datatype="html">
+    <trans-unit id="eventTimelineAddedSuccess" datatype="html">
         <source>Cronograma actualizado correctamente.</source>
         <target>Cronograma actualizado correctamente.</target>
       </trans-unit>
-      <trans-unit id="eventConfirmedSuccess" datatype="html">
+    <trans-unit id="eventConfirmedSuccess" datatype="html">
         <source>Evento confirmado.</source>
         <target>Evento confirmado.</target>
       </trans-unit>
-      <trans-unit id="eventStartedSuccess" datatype="html">
+    <trans-unit id="eventStartedSuccess" datatype="html">
         <source>Evento iniciado.</source>
         <target>Evento iniciado.</target>
       </trans-unit>
-      <trans-unit id="eventCompletedSuccess" datatype="html">
+    <trans-unit id="eventCompletedSuccess" datatype="html">
         <source>Evento completado.</source>
         <target>Evento completado.</target>
       </trans-unit>
-      <trans-unit id="eventCancelledSuccess" datatype="html">
+    <trans-unit id="eventCancelledSuccess" datatype="html">
         <source>Evento cancelado.</source>
         <target>Evento cancelado.</target>
       </trans-unit>
-      <trans-unit id="saveChangesButton" datatype="html">
+    <trans-unit id="saveChangesButton" datatype="html">
         <source>Guardar cambios</source>
         <target>Guardar cambios</target>
       </trans-unit>
-      <trans-unit id="eventUpdatedSuccess" datatype="html">
+    <trans-unit id="eventUpdatedSuccess" datatype="html">
         <source>Evento actualizado correctamente.</source>
         <target>Evento actualizado correctamente.</target>
       </trans-unit>
-      <trans-unit id="eventCreatedSuccess" datatype="html">
+    <trans-unit id="eventCreatedSuccess" datatype="html">
         <source>Evento creado correctamente.</source>
         <target>Evento creado correctamente.</target>
       </trans-unit>
-      <trans-unit id="invitingButton" datatype="html">
+    <trans-unit id="invitingButton" datatype="html">
         <source>Invitando...</source>
         <target>Invitando...</target>
       </trans-unit>
-      <trans-unit id="invitationSentSuccess" datatype="html">
+    <trans-unit id="invitationSentSuccess" datatype="html">
         <source>Invitación enviada correctamente.</source>
         <target>Invitación enviada correctamente.</target>
       </trans-unit>
-      <trans-unit id="memberRoleUpdatedSuccess" datatype="html">
+    <trans-unit id="memberRoleUpdatedSuccess" datatype="html">
         <source>Rol actualizado correctamente.</source>
         <target>Rol actualizado correctamente.</target>
       </trans-unit>
-      <trans-unit id="removeMemberConfirm" datatype="html">
+    <trans-unit id="removeMemberConfirm" datatype="html">
         <source>¿Quitar este miembro?</source>
         <target>¿Quitar este miembro?</target>
       </trans-unit>
-      <trans-unit id="memberRemovedSuccess" datatype="html">
+    <trans-unit id="memberRemovedSuccess" datatype="html">
         <source>Miembro eliminado correctamente.</source>
         <target>Miembro eliminado correctamente.</target>
       </trans-unit>
-      <trans-unit id="organizationCreatedSuccess" datatype="html">
+    <trans-unit id="organizationCreatedSuccess" datatype="html">
         <source>Organización creada correctamente.</source>
         <target>Organización creada correctamente.</target>
       </trans-unit>
-      <trans-unit id="createEventButton" datatype="html">
+    <trans-unit id="createEventButton" datatype="html">
         <source>Crear evento</source>
         <target>Crear evento</target>
       </trans-unit>
-      <trans-unit id="quotationNewVersionSuccess" datatype="html">
+    <trans-unit id="quotationNewVersionSuccess" datatype="html">
         <source>Nueva versión creada.</source>
         <target>Nueva versión creada.</target>
       </trans-unit>
-      <trans-unit id="approveQuotationConfirm" datatype="html">
+    <trans-unit id="approveQuotationConfirm" datatype="html">
         <source>¿Aprobar esta cotización?</source>
         <target>¿Aprobar esta cotización?</target>
       </trans-unit>
-      <trans-unit id="rejectQuotationConfirm" datatype="html">
+    <trans-unit id="rejectQuotationConfirm" datatype="html">
         <source>¿Rechazar esta cotización?</source>
         <target>¿Rechazar esta cotización?</target>
       </trans-unit>
-      <trans-unit id="cancelQuotationConfirm" datatype="html">
+    <trans-unit id="cancelQuotationConfirm" datatype="html">
         <source>¿Cancelar esta cotización?</source>
         <target>¿Cancelar esta cotización?</target>
       </trans-unit>
-      <trans-unit id="quotationSentSuccess" datatype="html">
+    <trans-unit id="quotationSentSuccess" datatype="html">
         <source>Cotización enviada.</source>
         <target>Cotización enviada.</target>
       </trans-unit>
-      <trans-unit id="quotationApprovedSuccess" datatype="html">
+    <trans-unit id="quotationApprovedSuccess" datatype="html">
         <source>Cotización aprobada.</source>
         <target>Cotización aprobada.</target>
       </trans-unit>
-      <trans-unit id="quotationRejectedSuccess" datatype="html">
+    <trans-unit id="quotationRejectedSuccess" datatype="html">
         <source>Cotización rechazada.</source>
         <target>Cotización rechazada.</target>
       </trans-unit>
-      <trans-unit id="quotationCancelledSuccess" datatype="html">
+    <trans-unit id="quotationCancelledSuccess" datatype="html">
         <source>Cotización cancelada.</source>
         <target>Cotización cancelada.</target>
       </trans-unit>
-      <trans-unit id="quotationUpdatedSuccess" datatype="html">
+    <trans-unit id="quotationUpdatedSuccess" datatype="html">
         <source>Cotización actualizada correctamente.</source>
         <target>Cotización actualizada correctamente.</target>
       </trans-unit>
-      <trans-unit id="quotationCreatedSuccess" datatype="html">
+    <trans-unit id="quotationCreatedSuccess" datatype="html">
         <source>Cotización creada correctamente.</source>
         <target>Cotización creada correctamente.</target>
       </trans-unit>
-      <trans-unit id="notificationsAriaLabel" datatype="html">
+    <trans-unit id="notificationsAriaLabel" datatype="html">
         <source>Notificaciones</source>
         <target>Notificaciones</target>
       </trans-unit>
-      <trans-unit id="closeNotificationLabel" datatype="html">
+    <trans-unit id="closeNotificationLabel" datatype="html">
         <source>Cerrar</source>
         <target>Cerrar</target>
       </trans-unit>
-      <trans-unit id="errorValidation" datatype="html">
+    <trans-unit id="errorValidation" datatype="html">
         <source>Revisa los datos ingresados.</source>
         <target>Revisa los datos ingresados.</target>
       </trans-unit>
-      <trans-unit id="errorRutInvalid" datatype="html">
+    <trans-unit id="errorRutInvalid" datatype="html">
         <source>Ingresa un RUT válido.</source>
         <target>Ingresa un RUT válido.</target>
       </trans-unit>
-      <trans-unit id="errorResourceNotFound" datatype="html">
+    <trans-unit id="errorResourceNotFound" datatype="html">
         <source>No encontramos el recurso solicitado.</source>
         <target>No encontramos el recurso solicitado.</target>
       </trans-unit>
-      <trans-unit id="errorForbidden" datatype="html">
+    <trans-unit id="errorForbidden" datatype="html">
         <source>No tienes permiso para realizar esta acción.</source>
         <target>No tienes permiso para realizar esta acción.</target>
       </trans-unit>
-      <trans-unit id="errorConflict" datatype="html">
+    <trans-unit id="errorConflict" datatype="html">
         <source>La operación entra en conflicto con información existente.</source>
         <target>La operación entra en conflicto con información existente.</target>
       </trans-unit>
-      <trans-unit id="errorDuplicateTaxId" datatype="html">
+    <trans-unit id="errorDuplicateTaxId" datatype="html">
         <source>Ya existe un registro con ese RUT.</source>
         <target>Ya existe un registro con ese RUT.</target>
       </trans-unit>
-      <trans-unit id="errorQuotationInvalidStatus" datatype="html">
+    <trans-unit id="errorQuotationInvalidStatus" datatype="html">
         <source>La cotización no permite esa acción en su estado actual.</source>
         <target>La cotización no permite esa acción en su estado actual.</target>
       </trans-unit>
-      <trans-unit id="errorEventInvalidStatus" datatype="html">
+    <trans-unit id="errorEventInvalidStatus" datatype="html">
         <source>El evento no permite esa acción en su estado actual.</source>
         <target>El evento no permite esa acción en su estado actual.</target>
       </trans-unit>
-      <trans-unit id="errorFallback" datatype="html">
+    <trans-unit id="errorFallback" datatype="html">
         <source>No fue posible completar la operación.</source>
         <target>No fue posible completar la operación.</target>
       </trans-unit>
-      <trans-unit id="openNavigationLabel" datatype="html">
+    <trans-unit id="openNavigationLabel" datatype="html">
         <source>Abrir navegación</source>
         <target>Abrir navegación</target>
       </trans-unit>
-      <trans-unit id="accountNavigationAriaLabel" datatype="html">
+    <trans-unit id="accountNavigationAriaLabel" datatype="html">
         <source>Cuenta</source>
         <target>Cuenta</target>
       </trans-unit>
-      <trans-unit id="organizationNavigationAriaLabel" datatype="html">
+    <trans-unit id="organizationNavigationAriaLabel" datatype="html">
         <source>Navegación de organización</source>
         <target>Navegación de organización</target>
       </trans-unit>
-      <trans-unit id="navHome" datatype="html">
+    <trans-unit id="navHome" datatype="html">
         <source>Inicio</source>
         <target>Inicio</target>
       </trans-unit>
-      <trans-unit id="navClients" datatype="html">
+    <trans-unit id="navClients" datatype="html">
         <source>Clientes</source>
         <target>Clientes</target>
       </trans-unit>
-      <trans-unit id="navCatalog" datatype="html">
+    <trans-unit id="navCatalog" datatype="html">
         <source>Productos y servicios</source>
         <target>Productos y servicios</target>
       </trans-unit>
-      <trans-unit id="navQuotations" datatype="html">
+    <trans-unit id="navQuotations" datatype="html">
         <source>Cotizaciones</source>
         <target>Cotizaciones</target>
       </trans-unit>
-      <trans-unit id="navEvents" datatype="html">
+    <trans-unit id="navEvents" datatype="html">
         <source>Eventos</source>
         <target>Eventos</target>
       </trans-unit>
-      <trans-unit id="navMembers" datatype="html">
+    <trans-unit id="navMembers" datatype="html">
         <source>Miembros</source>
         <target>Miembros</target>
       </trans-unit>
-      <trans-unit id="navSettings" datatype="html">
+    <trans-unit id="navSettings" datatype="html">
         <source>Configuración</source>
         <target>Configuración</target>
+      </trans-unit>
+    <trans-unit id="catalogEmptyTitle" datatype="html">
+        <source>Tu catálogo está listo para comenzar</source>
+        <target>Tu catálogo está listo para comenzar</target>
+      </trans-unit>
+    <trans-unit id="clientsEmptyTitle" datatype="html">
+        <source>Aún no hay clientes aquí</source>
+        <target>Aún no hay clientes aquí</target>
+      </trans-unit>
+    <trans-unit id="dashboardContext" datatype="html">
+        <source>Esto es lo más importante en</source>
+        <target>Esto es lo más importante en</target>
+      </trans-unit>
+    <trans-unit id="dashboardNoOrganization" datatype="html">
+        <source>Elige una organización para comenzar a trabajar.</source>
+        <target>Elige una organización para comenzar a trabajar.</target>
+      </trans-unit>
+    <trans-unit id="changeOrganizationButton" datatype="html">
+        <source>Cambiar organización</source>
+        <target>Cambiar organización</target>
+      </trans-unit>
+    <trans-unit id="dashboardLoadingLabel" datatype="html">
+        <source>Cargando resumen</source>
+        <target>Cargando resumen</target>
+      </trans-unit>
+    <trans-unit id="mainMetricsAriaLabel" datatype="html">
+        <source>Indicadores principales</source>
+        <target>Indicadores principales</target>
+      </trans-unit>
+    <trans-unit id="confirmedEventsToday" datatype="html">
+        <source>eventos confirmados</source>
+        <target>eventos confirmados</target>
+      </trans-unit>
+    <trans-unit id="pendingQuotationsToday" datatype="html">
+        <source>cotizaciones por responder</source>
+        <target>cotizaciones por responder</target>
+      </trans-unit>
+    <trans-unit id="clientLeadsToday" datatype="html">
+        <source>clientes potenciales</source>
+        <target>clientes potenciales</target>
+      </trans-unit>
+    <trans-unit id="catalogItemsToday" datatype="html">
+        <source>ítems en catálogo</source>
+        <target>ítems en catálogo</target>
+      </trans-unit>
+    <trans-unit id="quickActionsEyebrow" datatype="html">
+        <source>Acciones rápidas</source>
+        <target>Acciones rápidas</target>
+      </trans-unit>
+    <trans-unit id="quickActionsTitle" datatype="html">
+        <source>Avanza con un clic</source>
+        <target>Avanza con un clic</target>
+      </trans-unit>
+    <trans-unit id="quickActionsHelp" datatype="html">
+        <source>Elige la acción que necesitas completar ahora.</source>
+        <target>Elige la acción que necesitas completar ahora.</target>
+      </trans-unit>
+    <trans-unit id="newClientHelp" datatype="html">
+        <source>Registra una persona o empresa</source>
+        <target>Registra una persona o empresa</target>
+      </trans-unit>
+    <trans-unit id="newQuotationHelp" datatype="html">
+        <source>Prepara una propuesta comercial</source>
+        <target>Prepara una propuesta comercial</target>
+      </trans-unit>
+    <trans-unit id="newEventHelp" datatype="html">
+        <source>Coordina fechas, tareas y recursos</source>
+        <target>Coordina fechas, tareas y recursos</target>
+      </trans-unit>
+    <trans-unit id="addCatalogItemButton" datatype="html">
+        <source>Agregar producto</source>
+        <target>Agregar producto</target>
+      </trans-unit>
+    <trans-unit id="addCatalogItemHelp" datatype="html">
+        <source>Completa tu catálogo comercial</source>
+        <target>Completa tu catálogo comercial</target>
+      </trans-unit>
+    <trans-unit id="inviteUserButton" datatype="html">
+        <source>Invitar usuario</source>
+        <target>Invitar usuario</target>
+      </trans-unit>
+    <trans-unit id="inviteUserHelp" datatype="html">
+        <source>Suma a alguien de tu equipo</source>
+        <target>Suma a alguien de tu equipo</target>
+      </trans-unit>
+    <trans-unit id="onboardingEyebrow" datatype="html">
+        <source>Primeros pasos</source>
+        <target>Primeros pasos</target>
+      </trans-unit>
+    <trans-unit id="onboardingTitle" datatype="html">
+        <source>Configura tu espacio</source>
+        <target>Configura tu espacio</target>
+      </trans-unit>
+    <trans-unit id="onboardingOrganization" datatype="html">
+        <source>Crear una organización</source>
+        <target>Crear una organización</target>
+      </trans-unit>
+    <trans-unit id="onboardingClient" datatype="html">
+        <source>Agregar el primer cliente</source>
+        <target>Agregar el primer cliente</target>
+      </trans-unit>
+    <trans-unit id="onboardingCatalog" datatype="html">
+        <source>Crear un producto o servicio</source>
+        <target>Crear un producto o servicio</target>
+      </trans-unit>
+    <trans-unit id="onboardingQuotation" datatype="html">
+        <source>Preparar la primera cotización</source>
+        <target>Preparar la primera cotización</target>
+      </trans-unit>
+    <trans-unit id="recommendedNextStepEyebrow" datatype="html">
+        <source>Siguiente paso recomendado</source>
+        <target>Siguiente paso recomendado</target>
+      </trans-unit>
+    <trans-unit id="noOrganizationTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <target>Crea tu primer espacio de trabajo</target>
+      </trans-unit>
+    <trans-unit id="noOrganizationDescription" datatype="html">
+        <source>Una organización reúne clientes, catálogo, cotizaciones y eventos en un solo lugar.</source>
+        <target>Una organización reúne clientes, catálogo, cotizaciones y eventos en un solo lugar.</target>
+      </trans-unit>
+    <trans-unit id="dashboardLoadError" datatype="html">
+        <source>No pudimos cargar el resumen. Intenta actualizar la página.</source>
+        <target>No pudimos cargar el resumen. Intenta actualizar la página.</target>
+      </trans-unit>
+    <trans-unit id="goodMorningGreeting" datatype="html">
+        <source>Buenos días</source>
+        <target>Buenos días</target>
+      </trans-unit>
+    <trans-unit id="goodAfternoonGreeting" datatype="html">
+        <source>Buenas tardes</source>
+        <target>Buenas tardes</target>
+      </trans-unit>
+    <trans-unit id="goodEveningGreeting" datatype="html">
+        <source>Buenas noches</source>
+        <target>Buenas noches</target>
+      </trans-unit>
+    <trans-unit id="recommendedClientTitle" datatype="html">
+        <source>Agrega tu primer cliente</source>
+        <target>Agrega tu primer cliente</target>
+      </trans-unit>
+    <trans-unit id="recommendedClientDescription" datatype="html">
+        <source>Es el punto de partida para cotizar y organizar nuevos trabajos.</source>
+        <target>Es el punto de partida para cotizar y organizar nuevos trabajos.</target>
+      </trans-unit>
+    <trans-unit id="recommendedCatalogTitle" datatype="html">
+        <source>Completa tu catálogo</source>
+        <target>Completa tu catálogo</target>
+      </trans-unit>
+    <trans-unit id="recommendedCatalogDescription" datatype="html">
+        <source>Guarda productos y servicios para cotizar más rápido.</source>
+        <target>Guarda productos y servicios para cotizar más rápido.</target>
+      </trans-unit>
+    <trans-unit id="recommendedQuotationTitle" datatype="html">
+        <source>Crea una nueva cotización</source>
+        <target>Crea una nueva cotización</target>
+      </trans-unit>
+    <trans-unit id="recommendedQuotationDescription" datatype="html">
+        <source>Convierte la información de clientes y catálogo en una propuesta clara.</source>
+        <target>Convierte la información de clientes y catálogo en una propuesta clara.</target>
+      </trans-unit>
+    <trans-unit id="eventsEmptyTitle" datatype="html">
+        <source>Tu calendario está despejado</source>
+        <target>Tu calendario está despejado</target>
+      </trans-unit>
+    <trans-unit id="authBrandPromise" datatype="html">
+        <source>Tu operación, clara y bajo control.</source>
+        <target>Tu operación, clara y bajo control.</target>
+      </trans-unit>
+    <trans-unit id="loginDescription" datatype="html">
+        <source>Accede a tu espacio de trabajo para continuar.</source>
+        <target>Accede a tu espacio de trabajo para continuar.</target>
+      </trans-unit>
+    <trans-unit id="openOrganizationButton" datatype="html">
+        <source>Abrir organización</source>
+        <target>Abrir organización</target>
+      </trans-unit>
+    <trans-unit id="organizationsEmptyTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <target>Crea tu primer espacio de trabajo</target>
+      </trans-unit>
+    <trans-unit id="quotationsEmptyTitle" datatype="html">
+        <source>No hay cotizaciones para mostrar</source>
+        <target>No hay cotizaciones para mostrar</target>
+      </trans-unit>
+    <trans-unit id="registerBrandPromise" datatype="html">
+        <source>Empieza simple. Crece con una operación ordenada.</source>
+        <target>Empieza simple. Crece con una operación ordenada.</target>
+      </trans-unit>
+    <trans-unit id="registerDescription" datatype="html">
+        <source>Crea tu acceso. Después podrás configurar tu organización.</source>
+        <target>Crea tu acceso. Después podrás configurar tu organización.</target>
+      </trans-unit>
+    <trans-unit id="quickSearchLabel" datatype="html">
+        <source>Buscar o ir a...</source>
+        <target>Buscar o ir a...</target>
+      </trans-unit>
+    <trans-unit id="commandPaletteTitle" datatype="html">
+        <source>¿A dónde quieres ir?</source>
+        <target>¿A dónde quieres ir?</target>
+      </trans-unit>
+    <trans-unit id="closeButton" datatype="html">
+        <source>Cerrar</source>
+        <target>Cerrar</target>
+      </trans-unit>
+    <trans-unit id="quickLinksAriaLabel" datatype="html">
+        <source>Accesos rápidos</source>
+        <target>Accesos rápidos</target>
+      </trans-unit>
+    <trans-unit id="organizationsCommandHelp" datatype="html">
+        <source>Cambiar espacio de trabajo</source>
+        <target>Cambiar espacio de trabajo</target>
+      </trans-unit>
+    <trans-unit id="clientsCommandHelp" datatype="html">
+        <source>Buscar personas y empresas</source>
+        <target>Buscar personas y empresas</target>
+      </trans-unit>
+    <trans-unit id="catalogCommandHelp" datatype="html">
+        <source>Revisar catálogo y precios</source>
+        <target>Revisar catálogo y precios</target>
+      </trans-unit>
+    <trans-unit id="quotationsCommandHelp" datatype="html">
+        <source>Continuar propuestas comerciales</source>
+        <target>Continuar propuestas comerciales</target>
+      </trans-unit>
+    <trans-unit id="eventsCommandHelp" datatype="html">
+        <source>Coordinar operaciones</source>
+        <target>Coordinar operaciones</target>
+      </trans-unit>
+    <trans-unit id="activeOrganizationLabel" datatype="html">
+        <source>Organización activa</source>
+        <target>Organización activa</target>
+      </trans-unit>
+    <trans-unit id="workspaceNavigationLabel" datatype="html">
+        <source>Espacio de trabajo</source>
+        <target>Espacio de trabajo</target>
+      </trans-unit>
+    <trans-unit id="needHelpTitle" datatype="html">
+        <source>¿Necesitas ayuda?</source>
+        <target>¿Necesitas ayuda?</target>
+      </trans-unit>
+    <trans-unit id="helpComingSoon" datatype="html">
+        <source>Centro de ayuda próximamente</source>
+        <target>Centro de ayuda próximamente</target>
       </trans-unit>
     </body>
   </file>

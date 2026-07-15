@@ -84,7 +84,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">19,21</context>
+          <context context-type="linenumber">21,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="backLink" datatype="html">
@@ -122,7 +122,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">104,107</context>
+          <context context-type="linenumber">111,114</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
@@ -130,7 +130,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">110,113</context>
+          <context context-type="linenumber">116,119</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
@@ -138,7 +138,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">81,86</context>
+          <context context-type="linenumber">88,93</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
@@ -146,7 +146,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">71,76</context>
+          <context context-type="linenumber">80,85</context>
         </context-group>
       </trans-unit>
       <trans-unit id="dataTitle" datatype="html">
@@ -176,7 +176,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">40,42</context>
+          <context context-type="linenumber">42,44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="unitLabel" datatype="html">
@@ -293,7 +293,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">190</context>
+          <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="serviceLabel" datatype="html">
@@ -304,7 +304,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">190</context>
+          <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="activeLabel" datatype="html">
@@ -315,11 +315,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">195</context>
+          <context context-type="linenumber">204</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">199</context>
+          <context context-type="linenumber">207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="inactiveLabel" datatype="html">
@@ -330,11 +330,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">196</context>
+          <context context-type="linenumber">205</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">200</context>
+          <context context-type="linenumber">208</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archivedLabel" datatype="html">
@@ -345,11 +345,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">197</context>
+          <context context-type="linenumber">206</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">209</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
@@ -357,7 +357,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">167</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogItemLoadError" datatype="html">
@@ -379,7 +379,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">48,50</context>
+          <context context-type="linenumber">50,52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
@@ -391,7 +391,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">61,63</context>
+          <context context-type="linenumber">63,65</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -406,7 +406,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">51,52</context>
+          <context context-type="linenumber">53,54</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -421,7 +421,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">52,56</context>
+          <context context-type="linenumber">54,58</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -436,7 +436,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">56,58</context>
+          <context context-type="linenumber">58,60</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -444,19 +444,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">69,71</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">29,33</context>
+          <context context-type="linenumber">71,73</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">46,48</context>
+          <context context-type="linenumber">48,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">43,45</context>
+          <context context-type="linenumber">45,47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="activeOption" datatype="html">
@@ -467,7 +463,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">59,60</context>
+          <context context-type="linenumber">61,62</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -475,7 +471,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">73,74</context>
+          <context context-type="linenumber">75,76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="inactiveOption" datatype="html">
@@ -486,7 +482,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">60,61</context>
+          <context context-type="linenumber">62,63</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -494,7 +490,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">74,75</context>
+          <context context-type="linenumber">76,77</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archivedOption" datatype="html">
@@ -505,7 +501,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">61,65</context>
+          <context context-type="linenumber">63,67</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -513,7 +509,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">75,79</context>
+          <context context-type="linenumber">77,81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="codeLabel" datatype="html">
@@ -524,7 +520,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">44,46</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -623,6 +619,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organization-settings.component.ts</context>
           <context context-type="linenumber">37,39</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -741,170 +741,174 @@
         <source>Productos y servicios</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">20,21</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogDescription" datatype="html">
         <source>Administra precios, costos, códigos y unidades por organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">21,26</context>
+          <context context-type="linenumber">23,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newCatalogItemButton" datatype="html">
         <source>Nuevo producto o servicio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">28,33</context>
+          <context context-type="linenumber">30,35</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
+          <context context-type="linenumber">128,132</context>
         </context-group>
       </trans-unit>
       <trans-unit id="searchLabel" datatype="html">
         <source>Buscar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">38,39</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">53,54</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">42,43</context>
+          <context context-type="linenumber">44,45</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">41,42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogSearchPlaceholder" datatype="html">
         <source>Nombre, código o SKU</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">37,40</context>
+          <context context-type="linenumber">39,42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="allOption" datatype="html">
         <source>Todos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">50,51</context>
+          <context context-type="linenumber">52,53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">60,61</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">63,64</context>
+          <context context-type="linenumber">65,66</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">71,73</context>
+          <context context-type="linenumber">73,75</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">45,46</context>
+          <context context-type="linenumber">47,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="minPriceLabel" datatype="html">
         <source>Precio mínimo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">65,66</context>
+          <context context-type="linenumber">67,68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="maxPriceLabel" datatype="html">
         <source>Precio máximo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">69,70</context>
+          <context context-type="linenumber">71,72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="includeArchivedLabel" datatype="html">
         <source>Incluir archivados</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">75,78</context>
+          <context context-type="linenumber">77,80</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">81,84</context>
+          <context context-type="linenumber">83,86</context>
         </context-group>
       </trans-unit>
       <trans-unit id="filterButton" datatype="html">
         <source>Filtrar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">80,81</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">84,85</context>
+          <context context-type="linenumber">86,87</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">64,65</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">55,56</context>
+          <context context-type="linenumber">57,58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clearButton" datatype="html">
         <source>Limpiar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">80,86</context>
+          <context context-type="linenumber">82,88</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">86,92</context>
+          <context context-type="linenumber">88,94</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">63,68</context>
+          <context context-type="linenumber">65,70</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">56,61</context>
+          <context context-type="linenumber">58,63</context>
         </context-group>
       </trans-unit>
       <trans-unit id="skuInlineLabel" datatype="html">
-        <source> · SKU <x id="INTERPOLATION" equiv-text="{{ item.sku }}"/></source>
+        <source>SKU <x id="INTERPOLATION" equiv-text="{{ item.sku }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">94,95</context>
+          <context context-type="linenumber">100,101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="viewLink" datatype="html">
         <source>Ver</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">100,102</context>
+          <context context-type="linenumber">107,109</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">106,108</context>
+          <context context-type="linenumber">112,114</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">81</context>
+          <context context-type="linenumber">88</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">71</context>
+          <context context-type="linenumber">80</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archiveButton" datatype="html">
         <source>Archivar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">113,119</context>
+          <context context-type="linenumber">120,126</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
@@ -912,29 +916,22 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">119,125</context>
+          <context context-type="linenumber">125,131</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
           <context context-type="linenumber">43,47</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="catalogEmpty" datatype="html">
-        <source>No hay items para los filtros seleccionados.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">121,125</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="previousPageButton" datatype="html">
         <source>Anterior</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">127,129</context>
+          <context context-type="linenumber">134,136</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">133,135</context>
+          <context context-type="linenumber">139,141</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-calendar.component.ts</context>
@@ -942,41 +939,41 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">93,94</context>
+          <context context-type="linenumber">100,101</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">83,84</context>
+          <context context-type="linenumber">92,93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="paginationLabel" datatype="html">
         <source>Página <x id="INTERPOLATION" equiv-text="{{ catalog().page }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ catalog().totalPages }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">129,130</context>
+          <context context-type="linenumber">136,137</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">135,136</context>
+          <context context-type="linenumber">141,142</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">94,95</context>
+          <context context-type="linenumber">101,102</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">84,85</context>
+          <context context-type="linenumber">93,94</context>
         </context-group>
       </trans-unit>
       <trans-unit id="nextPageButton" datatype="html">
         <source>Siguiente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">136,142</context>
+          <context context-type="linenumber">143,149</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">142,148</context>
+          <context context-type="linenumber">148,154</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-calendar.component.ts</context>
@@ -984,39 +981,53 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">95,100</context>
+          <context context-type="linenumber">102,107</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">85,90</context>
+          <context context-type="linenumber">94,99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="catalogEmptyTitle" datatype="html">
+        <source>Tu catálogo está listo para comenzar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
+          <context context-type="linenumber">152</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="catalogEmpty" datatype="html">
+        <source>Agrega un producto o servicio, o ajusta los filtros para encontrarlo.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archiveCatalogItemConfirm" datatype="html">
         <source>¿Archivar <x id="PH" equiv-text="item.name"/>?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">233</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogArchivedSuccess" datatype="html">
         <source>Elemento archivado correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogArchiveError" datatype="html">
         <source>No fue posible archivar el item.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">253</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogLoadError" datatype="html">
         <source>No fue posible cargar el catálogo.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
-          <context context-type="linenumber">265</context>
+          <context context-type="linenumber">274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientEyebrow" datatype="html">
@@ -1061,7 +1072,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">40,41</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organization-members.component.ts</context>
@@ -1069,7 +1080,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">44,45</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="phoneLabel" datatype="html">
@@ -1216,7 +1227,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">201</context>
         </context-group>
       </trans-unit>
       <trans-unit id="companyLabel" datatype="html">
@@ -1227,7 +1238,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">201</context>
         </context-group>
       </trans-unit>
       <trans-unit id="noteLabel" datatype="html">
@@ -1280,7 +1291,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientArchivedSuccess" datatype="html">
@@ -1298,7 +1309,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">235</context>
+          <context context-type="linenumber">251</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientLoadError" datatype="html">
@@ -1320,7 +1331,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">18,19</context>
+          <context context-type="linenumber">20,21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="naturalPersonOption" datatype="html">
@@ -1331,7 +1342,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">64,66</context>
+          <context context-type="linenumber">66,68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="companyOption" datatype="html">
@@ -1342,7 +1353,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">65,69</context>
+          <context context-type="linenumber">67,71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="leadOption" datatype="html">
@@ -1353,7 +1364,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">72,73</context>
+          <context context-type="linenumber">74,75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="firstNameLabel" datatype="html">
@@ -1364,7 +1375,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">38,39</context>
         </context-group>
       </trans-unit>
       <trans-unit id="firstNameValidation" datatype="html">
@@ -1375,7 +1386,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">30,35</context>
+          <context context-type="linenumber">41,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lastNameLabel" datatype="html">
@@ -1386,7 +1397,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">35,36</context>
+          <context context-type="linenumber">46,47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lastNameValidation" datatype="html">
@@ -1397,7 +1408,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">38,43</context>
+          <context context-type="linenumber">49,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="legalNameLabel" datatype="html">
@@ -1445,11 +1456,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">30,35</context>
+          <context context-type="linenumber">43,48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">47,52</context>
+          <context context-type="linenumber">58,63</context>
         </context-group>
       </trans-unit>
       <trans-unit id="countryLabel" datatype="html">
@@ -1461,6 +1472,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organization-settings.component.ts</context>
           <context context-type="linenumber">33,35</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">45,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="regionLabel" datatype="html">
@@ -1482,7 +1497,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">57,59</context>
+          <context context-type="linenumber">59,61</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
@@ -1494,7 +1509,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">57,60</context>
+          <context context-type="linenumber">59,62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addressLabel" datatype="html">
@@ -1543,32 +1558,44 @@
         <source>Clientes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">18,19</context>
+          <context context-type="linenumber">20,21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientsDescription" datatype="html">
         <source>Gestiona personas, empresas e interacciones por organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">19,24</context>
+          <context context-type="linenumber">21,26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newClientButton" datatype="html">
         <source>Nuevo cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">26,30</context>
+          <context context-type="linenumber">28,32</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
+          <context context-type="linenumber">133,137</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">86,87</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="totalLabel" datatype="html">
         <source>Total</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">33,36</context>
+          <context context-type="linenumber">35,38</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">32,33</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
@@ -1576,102 +1603,400 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">29,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="leadsLabel" datatype="html">
         <source>Leads</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">37,40</context>
+          <context context-type="linenumber">39,42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="activePluralLabel" datatype="html">
         <source>Activos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">41,44</context>
+          <context context-type="linenumber">43,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="inactivePluralLabel" datatype="html">
         <source>Inactivos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">45,50</context>
+          <context context-type="linenumber">47,52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientsSearchPlaceholder" datatype="html">
         <source>Nombre, email o RUT</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">54,57</context>
+          <context context-type="linenumber">56,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="clientsEmptyTitle" datatype="html">
+        <source>Aún no hay clientes aquí</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
+          <context context-type="linenumber">157</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientsEmpty" datatype="html">
-        <source>No hay clientes para los filtros seleccionados.</source>
+        <source>Agrega tu primer cliente o ajusta los filtros para encontrarlo.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">127,131</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="leadLabel" datatype="html">
         <source>Lead</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">198</context>
+          <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientsLoadError" datatype="html">
         <source>No fue posible cargar los clientes.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/clients-list.component.ts</context>
-          <context context-type="linenumber">253</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="dashboardEyebrow" datatype="html">
-        <source>Panel</source>
+        <source>Resumen de hoy</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">16,17</context>
+          <context context-type="linenumber">24,26</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="dashboardGreeting" datatype="html">
-        <source>Hola, <x id="INTERPOLATION" equiv-text="{{ user()?.firstName || fallbackName }}"/></source>
+      <trans-unit id="dashboardContext" datatype="html">
+        <source>Esto es lo más importante en</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">17,18</context>
+          <context context-type="linenumber">27,30</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="logoutButton" datatype="html">
-        <source>Salir</source>
+      <trans-unit id="dashboardNoOrganization" datatype="html">
+        <source>Elige una organización para comenzar a trabajar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">21,26</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">199,204</context>
+          <context context-type="linenumber">31,34</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="accountTitle" datatype="html">
-        <source>Cuenta</source>
+      <trans-unit id="changeOrganizationButton" datatype="html">
+        <source>Cambiar organización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">26,29</context>
+          <context context-type="linenumber">34,39</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="userIdLabel" datatype="html">
-        <source>ID de usuario</source>
+      <trans-unit id="createOrganizationLink" datatype="html">
+        <source>Crear organización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">33,37</context>
+          <context context-type="linenumber">43,46</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">19,22</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">32,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="dashboardLoadingLabel" datatype="html">
+        <source>Cargando resumen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">46,47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mainMetricsAriaLabel" datatype="html">
+        <source>Indicadores principales</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">53,54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="confirmedEventsToday" datatype="html">
+        <source>eventos confirmados</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">56,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="pendingQuotationsToday" datatype="html">
+        <source>cotizaciones por responder</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">61,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="clientLeadsToday" datatype="html">
+        <source>clientes potenciales</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">66,69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="catalogItemsToday" datatype="html">
+        <source>ítems en catálogo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">71,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quickActionsEyebrow" datatype="html">
+        <source>Acciones rápidas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">79,82</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">34,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quickActionsTitle" datatype="html">
+        <source>Avanza con un clic</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quickActionsHelp" datatype="html">
+        <source>Elige la acción que necesitas completar ahora.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">82,85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newClientHelp" datatype="html">
+        <source>Registra una persona o empresa</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">86,88</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newQuotationButton" datatype="html">
+        <source>Nueva cotización</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">89,90</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">230</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">24,27</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">87,91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newQuotationHelp" datatype="html">
+        <source>Prepara una propuesta comercial</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">89,91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newEventButton" datatype="html">
+        <source>Nuevo evento</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">92,93</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">26,30</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">95,99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newEventHelp" datatype="html">
+        <source>Coordina fechas, tareas y recursos</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">92,94</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="addCatalogItemButton" datatype="html">
+        <source>Agregar producto</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">95,96</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">222</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="addCatalogItemHelp" datatype="html">
+        <source>Completa tu catálogo comercial</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">95,97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="inviteUserButton" datatype="html">
+        <source>Invitar usuario</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">98,99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="inviteUserHelp" datatype="html">
+        <source>Suma a alguien de tu equipo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">98,103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingEyebrow" datatype="html">
+        <source>Primeros pasos</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">107,109</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingTitle" datatype="html">
+        <source>Configura tu espacio</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">108,111</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingOrganization" datatype="html">
+        <source>Crear una organización</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">116,117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingClient" datatype="html">
+        <source>Agregar el primer cliente</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">117,118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingCatalog" datatype="html">
+        <source>Crear un producto o servicio</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">118,119</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="onboardingQuotation" datatype="html">
+        <source>Preparar la primera cotización</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">119,123</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedNextStepEyebrow" datatype="html">
+        <source>Siguiente paso recomendado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">124,126</context>
         </context-group>
       </trans-unit>
       <trans-unit id="dashboardFallbackName" datatype="html">
         <source>usuario</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
-          <context context-type="linenumber">44</context>
+          <context context-type="linenumber">145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="noOrganizationTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">146</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="noOrganizationDescription" datatype="html">
+        <source>Una organización reúne clientes, catálogo, cotizaciones y eventos en un solo lugar.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">147</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="dashboardLoadError" datatype="html">
+        <source>No pudimos cargar el resumen. Intenta actualizar la página.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="goodMorningGreeting" datatype="html">
+        <source>Buenos días</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">183</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="goodAfternoonGreeting" datatype="html">
+        <source>Buenas tardes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">185</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="goodEveningGreeting" datatype="html">
+        <source>Buenas noches</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">185</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedClientTitle" datatype="html">
+        <source>Agrega tu primer cliente</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">211</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedClientDescription" datatype="html">
+        <source>Es el punto de partida para cotizar y organizar nuevos trabajos.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">212</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedCatalogTitle" datatype="html">
+        <source>Completa tu catálogo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">220</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedCatalogDescription" datatype="html">
+        <source>Guarda productos y servicios para cotizar más rápido.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">221</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedQuotationTitle" datatype="html">
+        <source>Crea una nueva cotización</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">228</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recommendedQuotationDescription" datatype="html">
+        <source>Convierte la información de clientes y catálogo en una propuesta clara.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/dashboard.component.ts</context>
+          <context context-type="linenumber">229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventCalendarEyebrow" datatype="html">
@@ -1729,7 +2054,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">110</context>
+          <context context-type="linenumber">119</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventCalendarLoadError" datatype="html">
@@ -1751,7 +2076,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">18,20</context>
+          <context context-type="linenumber">20,22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientLabel" datatype="html">
@@ -2089,11 +2414,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">49,50</context>
+          <context context-type="linenumber">51,52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">153</context>
+          <context context-type="linenumber">162</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
@@ -2101,15 +2426,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">28,29</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">46,48</context>
+          <context context-type="linenumber">48,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="confirmedLabel" datatype="html">
@@ -2117,44 +2442,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
           <context context-type="linenumber">273</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">31,32</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">50,51</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">154</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="inProgressLabel" datatype="html">
-        <source>En curso</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
-          <context context-type="linenumber">274</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">32,33</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">51,52</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">155</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="completedLabel" datatype="html">
-        <source>Completado</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
-          <context context-type="linenumber">275</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
@@ -2166,7 +2453,45 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">163</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="inProgressLabel" datatype="html">
+        <source>En curso</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">34,35</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">53,54</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">164</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="completedLabel" datatype="html">
+        <source>Completado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
+          <context context-type="linenumber">275</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">54,55</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelledLabel" datatype="html">
@@ -2177,15 +2502,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">34,39</context>
+          <context context-type="linenumber">36,41</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">53,57</context>
+          <context context-type="linenumber">55,59</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">157</context>
+          <context context-type="linenumber">166</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
@@ -2193,11 +2518,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">50,54</context>
+          <context context-type="linenumber">52,56</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">157</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventConfirmedSuccess" datatype="html">
@@ -2334,134 +2659,152 @@
         <source>Operaciones de eventos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">19,20</context>
+          <context context-type="linenumber">21,22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventsDescription" datatype="html">
         <source>Planifica eventos, tareas, recursos, participantes y cronogramas por organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">20,23</context>
+          <context context-type="linenumber">22,25</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventCalendarButton" datatype="html">
         <source>Calendario</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">23,24</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="newEventButton" datatype="html">
-        <source>Nuevo evento</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">24,28</context>
+          <context context-type="linenumber">25,26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventSearchPlaceholder" datatype="html">
         <source>Código, nombre o cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">43,46</context>
+          <context context-type="linenumber">45,48</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="eventsEmptyTitle" datatype="html">
+        <source>Tu calendario está despejado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
+          <context context-type="linenumber">110</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventsEmpty" datatype="html">
-        <source>No hay eventos para los filtros seleccionados.</source>
+        <source>Crea un evento o ajusta los filtros para encontrar una operación.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">88,92</context>
+          <context context-type="linenumber">111</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventsLoadError" datatype="html">
         <source>No fue posible cargar los eventos.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-list.component.ts</context>
-          <context context-type="linenumber">140</context>
+          <context context-type="linenumber">149</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="authBrandPromise" datatype="html">
+        <source>Tu operación, clara y bajo control.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">28,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginEyebrow" datatype="html">
         <source>Bienvenido de vuelta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">22,25</context>
+          <context context-type="linenumber">33,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginTitle" datatype="html">
         <source>Iniciar sesión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">23,26</context>
+          <context context-type="linenumber">34,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginDescription" datatype="html">
+        <source>Accede a tu espacio de trabajo para continuar.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">35,39</context>
         </context-group>
       </trans-unit>
       <trans-unit id="passwordLabel" datatype="html">
         <source>Contraseña</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">35,36</context>
+          <context context-type="linenumber">48,49</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">63,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="passwordValidation" datatype="html">
         <source> La contraseña debe tener al menos 8 caracteres. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">38,42</context>
+          <context context-type="linenumber">51,55</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">55,59</context>
+          <context context-type="linenumber">66,70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">49,50</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="loginError" datatype="html">
-        <source>Email o contraseña inválidos.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">120</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="loginServerTimeout" datatype="html">
-        <source>El servidor está tardando demasiado.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">139</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="loginServerUnavailable" datatype="html">
-        <source>No fue posible conectar con el servidor.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">147</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="loginServiceUnavailable" datatype="html">
-        <source>El servicio no está disponible temporalmente.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">150</context>
+          <context context-type="linenumber">63,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSubmitting" datatype="html">
         <source>Ingresando...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSubmit" datatype="html">
         <source>Ingresar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginServerTimeout" datatype="html">
+        <source>El servidor está tardando demasiado.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">148</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginError" datatype="html">
+        <source>Email o contraseña inválidos.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginServerUnavailable" datatype="html">
+        <source>No fue posible conectar con el servidor.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">156</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginServiceUnavailable" datatype="html">
+        <source>El servicio no está disponible temporalmente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">159</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="membersEyebrow" datatype="html">
@@ -2648,63 +2991,56 @@
         <source>Organizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">15,18</context>
+          <context context-type="linenumber">16,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="organizationsTitle" datatype="html">
         <source>Elige tu espacio de trabajo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">16,18</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="createOrganizationLink" datatype="html">
-        <source>Crear organización</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">18,21</context>
+          <context context-type="linenumber">17,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="organizationsLoading" datatype="html">
-        <source>Cargando organizaciones...</source>
+        <source>Cargando organizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">21,23</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="organizationsEmpty" datatype="html">
-        <source> Aún no tienes organizaciones. </source>
+      <trans-unit id="openOrganizationButton" datatype="html">
+        <source>Abrir organización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">24,27</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="activateOrganizationButton" datatype="html">
-        <source>Activar</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">34,35</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="membersLink" datatype="html">
-        <source>Miembros</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">35,36</context>
+          <context context-type="linenumber">49,50</context>
         </context-group>
       </trans-unit>
       <trans-unit id="settingsLink" datatype="html">
         <source>Ajustes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">36,43</context>
+          <context context-type="linenumber">50,57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="organizationsEmptyTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="organizationsEmpty" datatype="html">
+        <source>Tu organización mantendrá separados sus clientes, productos, cotizaciones y eventos.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
+          <context context-type="linenumber">63</context>
         </context-group>
       </trans-unit>
       <trans-unit id="organizationsLoadError" datatype="html">
         <source>No pudimos cargar tus organizaciones.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organizations-list.component.ts</context>
-          <context context-type="linenumber">55</context>
+          <context context-type="linenumber">75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsEyebrow" datatype="html">
@@ -2719,7 +3055,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">18,20</context>
+          <context context-type="linenumber">20,22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sendQuotationButton" datatype="html">
@@ -2857,15 +3193,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">29,30</context>
+          <context context-type="linenumber">31,32</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">49,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approvedLabel" datatype="html">
@@ -2876,15 +3212,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">32,33</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">143</context>
+          <context context-type="linenumber">154</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectedLabel" datatype="html">
@@ -2895,11 +3231,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">49,50</context>
+          <context context-type="linenumber">51,52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">155</context>
         </context-group>
       </trans-unit>
       <trans-unit id="expiredLabel" datatype="html">
@@ -2910,7 +3246,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationLoadError" datatype="html">
@@ -3106,91 +3442,223 @@
         <source>Cotizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">19,20</context>
+          <context context-type="linenumber">21,22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsDescription" datatype="html">
         <source>Crea, envía y controla propuestas comerciales por organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">20,22</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="newQuotationButton" datatype="html">
-        <source>Nueva cotización</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">22,25</context>
+          <context context-type="linenumber">22,24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approvedAmountLabel" datatype="html">
         <source>Monto aprobado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">31,36</context>
+          <context context-type="linenumber">33,38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">40,43</context>
+          <context context-type="linenumber">42,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quotationsEmptyTitle" datatype="html">
+        <source>No hay cotizaciones para mostrar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsEmpty" datatype="html">
-        <source>No hay cotizaciones para los filtros seleccionados.</source>
+        <source>Crea la primera propuesta o ajusta los filtros para encontrar una cotización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">78,82</context>
+          <context context-type="linenumber">103</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsLoadError" datatype="html">
         <source>No fue posible cargar las cotizaciones.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="registerBrandPromise" datatype="html">
+        <source>Empieza simple. Crece con una operación ordenada.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/register.component.ts</context>
+          <context context-type="linenumber">25,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerEyebrow" datatype="html">
         <source>Comienza con Kaklen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">21,24</context>
+          <context context-type="linenumber">30,32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerTitle" datatype="html">
         <source>Crear cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">22,25</context>
+          <context context-type="linenumber">31,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="registerDescription" datatype="html">
+        <source>Crea tu acceso. Después podrás configurar tu organización.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/register.component.ts</context>
+          <context context-type="linenumber">32,36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSwitch" datatype="html">
         <source>¿Ya tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/login&quot;&gt;"/>Ingresa<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">66,67</context>
+          <context context-type="linenumber">78,79</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerError" datatype="html">
         <source>No fue posible crear la cuenta con esas credenciales.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">111</context>
+          <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSubmitting" datatype="html">
         <source>Creando...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">118</context>
+          <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSubmit" datatype="html">
         <source>Crear cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">118</context>
+          <context context-type="linenumber">130</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quickSearchLabel" datatype="html">
+        <source>Buscar o ir a...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">21,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="commandPaletteTitle" datatype="html">
+        <source>¿A dónde quieres ir?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">35,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="closeButton" datatype="html">
+        <source>Cerrar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">37,40</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quickLinksAriaLabel" datatype="html">
+        <source>Accesos rápidos</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">40,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="navOrganizations" datatype="html">
+        <source>Organizaciones</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">43,44</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">215,217</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="organizationsCommandHelp" datatype="html">
+        <source>Cambiar espacio de trabajo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">43,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="navClients" datatype="html">
+        <source>Clientes</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">47,48</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">240,241</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="clientsCommandHelp" datatype="html">
+        <source>Buscar personas y empresas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">47,49</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="navCatalog" datatype="html">
+        <source>Productos y servicios</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">241,242</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="catalogCommandHelp" datatype="html">
+        <source>Revisar catálogo y precios</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">51,53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="navQuotations" datatype="html">
+        <source>Cotizaciones</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">55</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">242,243</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quotationsCommandHelp" datatype="html">
+        <source>Continuar propuestas comerciales</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">55,57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="navEvents" datatype="html">
+        <source>Eventos</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">59,60</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">243,245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="eventsCommandHelp" datatype="html">
+        <source>Coordinar operaciones</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/command-palette.component.ts</context>
+          <context context-type="linenumber">59,66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="notificationsAriaLabel" datatype="html">
@@ -3352,98 +3820,98 @@
         <source>Abrir navegación</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">182,187</context>
+          <context context-type="linenumber">193,198</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="activeOrganizationLabel" datatype="html">
+        <source>Organización activa</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">202,207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="primaryNavigationAriaLabel" datatype="html">
         <source>Principal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">191,192</context>
+          <context context-type="linenumber">207,208</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navLogin" datatype="html">
         <source>Iniciar sesión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">192,194</context>
+          <context context-type="linenumber">208,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navRegister" datatype="html">
         <source>Registro</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">193,196</context>
+          <context context-type="linenumber">209,213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="accountNavigationAriaLabel" datatype="html">
         <source>Cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">196,197</context>
+          <context context-type="linenumber">214,215</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="navOrganizations" datatype="html">
-        <source>Organizaciones</source>
+      <trans-unit id="logoutButton" datatype="html">
+        <source>Salir</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">197,198</context>
+          <context context-type="linenumber">222,228</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="workspaceNavigationLabel" datatype="html">
+        <source>Espacio de trabajo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">236,238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="organizationNavigationAriaLabel" datatype="html">
         <source>Navegación de organización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">211,212</context>
+          <context context-type="linenumber">238,239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navHome" datatype="html">
         <source>Inicio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">212,213</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="navClients" datatype="html">
-        <source>Clientes</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">213,214</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="navCatalog" datatype="html">
-        <source>Productos y servicios</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">214,215</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="navQuotations" datatype="html">
-        <source>Cotizaciones</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">215,216</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="navEvents" datatype="html">
-        <source>Eventos</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">216,217</context>
+          <context context-type="linenumber">239,240</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navMembers" datatype="html">
         <source>Miembros</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">217,218</context>
+          <context context-type="linenumber">245,246</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navSettings" datatype="html">
         <source>Configuración</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">218,223</context>
+          <context context-type="linenumber">246,249</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="needHelpTitle" datatype="html">
+        <source>¿Necesitas ayuda?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">250,251</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="helpComingSoon" datatype="html">
+        <source>Centro de ayuda próximamente</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/main.ts</context>
+          <context context-type="linenumber">250,255</context>
         </context-group>
       </trans-unit>
     </body>

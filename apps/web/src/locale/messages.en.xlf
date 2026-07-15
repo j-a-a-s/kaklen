@@ -87,8 +87,8 @@
         <target>Manage prices, costs, codes, and units by organization.</target>
       </trans-unit>
     <trans-unit id="catalogEmpty" datatype="html">
-        <source>No hay items para los filtros seleccionados.</source>
-        <target>No items match the selected filters.</target>
+        <source>Agrega un producto o servicio, o ajusta los filtros para encontrarlo.</source>
+        <target>Add a product or service, or adjust the filters to find it.</target>
       </trans-unit>
     <trans-unit id="catalogEyebrow" datatype="html">
         <source>Catálogo</source>
@@ -143,8 +143,8 @@
         <target>Manage commercial contacts by organization.</target>
       </trans-unit>
     <trans-unit id="clientsEmpty" datatype="html">
-        <source>No hay clientes para los filtros seleccionados.</source>
-        <target>No clients match the selected filters.</target>
+        <source>Agrega tu primer cliente o ajusta los filtros para encontrarlo.</source>
+        <target>Add your first client or adjust the filters to find them.</target>
       </trans-unit>
     <trans-unit id="clientsLoadError" datatype="html">
         <source>No fue posible cargar los clientes.</source>
@@ -535,8 +535,8 @@
         <target>We could not save changes.</target>
       </trans-unit>
     <trans-unit id="organizationsEmpty" datatype="html">
-        <source>Aún no tienes organizaciones.</source>
-        <target>You do not have organizations yet.</target>
+        <source>Tu organización mantendrá separados sus clientes, productos, cotizaciones y eventos.</source>
+        <target>Your organization keeps its clients, products, quotations, and events separate.</target>
       </trans-unit>
     <trans-unit id="organizationSettingsTitle" datatype="html">
         <source>Organización</source>
@@ -807,8 +807,8 @@
         <target>Cancelled</target>
       </trans-unit>
     <trans-unit id="quotationsEmpty" datatype="html">
-        <source>No hay cotizaciones para los filtros seleccionados.</source>
-        <target>No quotations match the selected filters.</target>
+        <source>Crea la primera propuesta o ajusta los filtros para encontrar una cotización.</source>
+        <target>Create the first proposal or adjust the filters to find a quotation.</target>
       </trans-unit>
     <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>
@@ -999,8 +999,8 @@
         <target>Code, name or client</target>
       </trans-unit>
     <trans-unit id="eventsEmpty" datatype="html">
-        <source>No hay eventos para los filtros seleccionados.</source>
-        <target>There are no events for the selected filters.</target>
+        <source>Crea un evento o ajusta los filtros para encontrar una operación.</source>
+        <target>Create an event or adjust the filters to find an operation.</target>
       </trans-unit>
     <trans-unit id="eventsLoadError" datatype="html">
         <source>No fue posible cargar los eventos.</source>
@@ -1489,6 +1489,250 @@
       <trans-unit id="navSettings" datatype="html">
         <source>Configuración</source>
         <target>Settings</target>
+      </trans-unit>
+    <trans-unit id="catalogEmptyTitle" datatype="html">
+        <source>Tu catálogo está listo para comenzar</source>
+        <target>Your catalog is ready to get started</target>
+      </trans-unit>
+    <trans-unit id="clientsEmptyTitle" datatype="html">
+        <source>Aún no hay clientes aquí</source>
+        <target>There are no clients here yet</target>
+      </trans-unit>
+    <trans-unit id="dashboardContext" datatype="html">
+        <source>Esto es lo más importante en</source>
+        <target>This is what matters most at</target>
+      </trans-unit>
+    <trans-unit id="dashboardNoOrganization" datatype="html">
+        <source>Elige una organización para comenzar a trabajar.</source>
+        <target>Choose an organization to start working.</target>
+      </trans-unit>
+    <trans-unit id="changeOrganizationButton" datatype="html">
+        <source>Cambiar organización</source>
+        <target>Change organization</target>
+      </trans-unit>
+    <trans-unit id="dashboardLoadingLabel" datatype="html">
+        <source>Cargando resumen</source>
+        <target>Loading summary</target>
+      </trans-unit>
+    <trans-unit id="mainMetricsAriaLabel" datatype="html">
+        <source>Indicadores principales</source>
+        <target>Key metrics</target>
+      </trans-unit>
+    <trans-unit id="confirmedEventsToday" datatype="html">
+        <source>eventos confirmados</source>
+        <target>confirmed events</target>
+      </trans-unit>
+    <trans-unit id="pendingQuotationsToday" datatype="html">
+        <source>cotizaciones por responder</source>
+        <target>quotations awaiting a response</target>
+      </trans-unit>
+    <trans-unit id="clientLeadsToday" datatype="html">
+        <source>clientes potenciales</source>
+        <target>potential clients</target>
+      </trans-unit>
+    <trans-unit id="catalogItemsToday" datatype="html">
+        <source>ítems en catálogo</source>
+        <target>catalog items</target>
+      </trans-unit>
+    <trans-unit id="quickActionsEyebrow" datatype="html">
+        <source>Acciones rápidas</source>
+        <target>Quick actions</target>
+      </trans-unit>
+    <trans-unit id="quickActionsTitle" datatype="html">
+        <source>Avanza con un clic</source>
+        <target>Move forward in one click</target>
+      </trans-unit>
+    <trans-unit id="quickActionsHelp" datatype="html">
+        <source>Elige la acción que necesitas completar ahora.</source>
+        <target>Choose the action you need to complete now.</target>
+      </trans-unit>
+    <trans-unit id="newClientHelp" datatype="html">
+        <source>Registra una persona o empresa</source>
+        <target>Add a person or company</target>
+      </trans-unit>
+    <trans-unit id="newQuotationHelp" datatype="html">
+        <source>Prepara una propuesta comercial</source>
+        <target>Prepare a commercial proposal</target>
+      </trans-unit>
+    <trans-unit id="newEventHelp" datatype="html">
+        <source>Coordina fechas, tareas y recursos</source>
+        <target>Coordinate dates, tasks, and resources</target>
+      </trans-unit>
+    <trans-unit id="addCatalogItemButton" datatype="html">
+        <source>Agregar producto</source>
+        <target>Add product</target>
+      </trans-unit>
+    <trans-unit id="addCatalogItemHelp" datatype="html">
+        <source>Completa tu catálogo comercial</source>
+        <target>Build out your commercial catalog</target>
+      </trans-unit>
+    <trans-unit id="inviteUserButton" datatype="html">
+        <source>Invitar usuario</source>
+        <target>Invite user</target>
+      </trans-unit>
+    <trans-unit id="inviteUserHelp" datatype="html">
+        <source>Suma a alguien de tu equipo</source>
+        <target>Add someone from your team</target>
+      </trans-unit>
+    <trans-unit id="onboardingEyebrow" datatype="html">
+        <source>Primeros pasos</source>
+        <target>Getting started</target>
+      </trans-unit>
+    <trans-unit id="onboardingTitle" datatype="html">
+        <source>Configura tu espacio</source>
+        <target>Set up your workspace</target>
+      </trans-unit>
+    <trans-unit id="onboardingOrganization" datatype="html">
+        <source>Crear una organización</source>
+        <target>Create an organization</target>
+      </trans-unit>
+    <trans-unit id="onboardingClient" datatype="html">
+        <source>Agregar el primer cliente</source>
+        <target>Add your first client</target>
+      </trans-unit>
+    <trans-unit id="onboardingCatalog" datatype="html">
+        <source>Crear un producto o servicio</source>
+        <target>Create a product or service</target>
+      </trans-unit>
+    <trans-unit id="onboardingQuotation" datatype="html">
+        <source>Preparar la primera cotización</source>
+        <target>Prepare your first quotation</target>
+      </trans-unit>
+    <trans-unit id="recommendedNextStepEyebrow" datatype="html">
+        <source>Siguiente paso recomendado</source>
+        <target>Recommended next step</target>
+      </trans-unit>
+    <trans-unit id="noOrganizationTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <target>Create your first workspace</target>
+      </trans-unit>
+    <trans-unit id="noOrganizationDescription" datatype="html">
+        <source>Una organización reúne clientes, catálogo, cotizaciones y eventos en un solo lugar.</source>
+        <target>An organization keeps clients, catalog, quotations, and events together in one place.</target>
+      </trans-unit>
+    <trans-unit id="dashboardLoadError" datatype="html">
+        <source>No pudimos cargar el resumen. Intenta actualizar la página.</source>
+        <target>We could not load the summary. Try refreshing the page.</target>
+      </trans-unit>
+    <trans-unit id="goodMorningGreeting" datatype="html">
+        <source>Buenos días</source>
+        <target>Good morning</target>
+      </trans-unit>
+    <trans-unit id="goodAfternoonGreeting" datatype="html">
+        <source>Buenas tardes</source>
+        <target>Good afternoon</target>
+      </trans-unit>
+    <trans-unit id="goodEveningGreeting" datatype="html">
+        <source>Buenas noches</source>
+        <target>Good evening</target>
+      </trans-unit>
+    <trans-unit id="recommendedClientTitle" datatype="html">
+        <source>Agrega tu primer cliente</source>
+        <target>Add your first client</target>
+      </trans-unit>
+    <trans-unit id="recommendedClientDescription" datatype="html">
+        <source>Es el punto de partida para cotizar y organizar nuevos trabajos.</source>
+        <target>This is the starting point for quotations and new work.</target>
+      </trans-unit>
+    <trans-unit id="recommendedCatalogTitle" datatype="html">
+        <source>Completa tu catálogo</source>
+        <target>Build out your catalog</target>
+      </trans-unit>
+    <trans-unit id="recommendedCatalogDescription" datatype="html">
+        <source>Guarda productos y servicios para cotizar más rápido.</source>
+        <target>Save products and services to create quotations faster.</target>
+      </trans-unit>
+    <trans-unit id="recommendedQuotationTitle" datatype="html">
+        <source>Crea una nueva cotización</source>
+        <target>Create a new quotation</target>
+      </trans-unit>
+    <trans-unit id="recommendedQuotationDescription" datatype="html">
+        <source>Convierte la información de clientes y catálogo en una propuesta clara.</source>
+        <target>Turn client and catalog information into a clear proposal.</target>
+      </trans-unit>
+    <trans-unit id="eventsEmptyTitle" datatype="html">
+        <source>Tu calendario está despejado</source>
+        <target>Your calendar is clear</target>
+      </trans-unit>
+    <trans-unit id="authBrandPromise" datatype="html">
+        <source>Tu operación, clara y bajo control.</source>
+        <target>A clear operation, fully under control.</target>
+      </trans-unit>
+    <trans-unit id="loginDescription" datatype="html">
+        <source>Accede a tu espacio de trabajo para continuar.</source>
+        <target>Access your workspace to continue.</target>
+      </trans-unit>
+    <trans-unit id="openOrganizationButton" datatype="html">
+        <source>Abrir organización</source>
+        <target>Open organization</target>
+      </trans-unit>
+    <trans-unit id="organizationsEmptyTitle" datatype="html">
+        <source>Crea tu primer espacio de trabajo</source>
+        <target>Create your first workspace</target>
+      </trans-unit>
+    <trans-unit id="quotationsEmptyTitle" datatype="html">
+        <source>No hay cotizaciones para mostrar</source>
+        <target>There are no quotations to show</target>
+      </trans-unit>
+    <trans-unit id="registerBrandPromise" datatype="html">
+        <source>Empieza simple. Crece con una operación ordenada.</source>
+        <target>Start simple. Grow with an organized operation.</target>
+      </trans-unit>
+    <trans-unit id="registerDescription" datatype="html">
+        <source>Crea tu acceso. Después podrás configurar tu organización.</source>
+        <target>Create your access. You can configure your organization next.</target>
+      </trans-unit>
+    <trans-unit id="quickSearchLabel" datatype="html">
+        <source>Buscar o ir a...</source>
+        <target>Search or go to...</target>
+      </trans-unit>
+    <trans-unit id="commandPaletteTitle" datatype="html">
+        <source>¿A dónde quieres ir?</source>
+        <target>Where do you want to go?</target>
+      </trans-unit>
+    <trans-unit id="closeButton" datatype="html">
+        <source>Cerrar</source>
+        <target>Close</target>
+      </trans-unit>
+    <trans-unit id="quickLinksAriaLabel" datatype="html">
+        <source>Accesos rápidos</source>
+        <target>Quick links</target>
+      </trans-unit>
+    <trans-unit id="organizationsCommandHelp" datatype="html">
+        <source>Cambiar espacio de trabajo</source>
+        <target>Switch workspace</target>
+      </trans-unit>
+    <trans-unit id="clientsCommandHelp" datatype="html">
+        <source>Buscar personas y empresas</source>
+        <target>Find people and companies</target>
+      </trans-unit>
+    <trans-unit id="catalogCommandHelp" datatype="html">
+        <source>Revisar catálogo y precios</source>
+        <target>Review catalog and prices</target>
+      </trans-unit>
+    <trans-unit id="quotationsCommandHelp" datatype="html">
+        <source>Continuar propuestas comerciales</source>
+        <target>Continue commercial proposals</target>
+      </trans-unit>
+    <trans-unit id="eventsCommandHelp" datatype="html">
+        <source>Coordinar operaciones</source>
+        <target>Coordinate operations</target>
+      </trans-unit>
+    <trans-unit id="activeOrganizationLabel" datatype="html">
+        <source>Organización activa</source>
+        <target>Active organization</target>
+      </trans-unit>
+    <trans-unit id="workspaceNavigationLabel" datatype="html">
+        <source>Espacio de trabajo</source>
+        <target>Workspace</target>
+      </trans-unit>
+    <trans-unit id="needHelpTitle" datatype="html">
+        <source>¿Necesitas ayuda?</source>
+        <target>Need help?</target>
+      </trans-unit>
+    <trans-unit id="helpComingSoon" datatype="html">
+        <source>Centro de ayuda próximamente</source>
+        <target>Help center coming soon</target>
       </trans-unit>
     </body>
   </file>

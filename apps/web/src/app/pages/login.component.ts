@@ -5,6 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { Router, RouterLink } from "@angular/router";
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
+import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
 import { VersionService } from "../version/version.service";
@@ -17,12 +18,22 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent],
   template: `
     <main class="auth-shell">
+      <aside class="auth-brand-panel" aria-label="Kaklen">
+        <kaklen-brand-logo variant="signature" />
+        <div class="auth-brand-message">
+          <span class="brand-rule" aria-hidden="true"></span>
+          <p i18n="@@authBrandPromise">Tu operación, clara y bajo control.</p>
+        </div>
+      </aside>
       <section class="auth-panel" aria-labelledby="login-title">
-        <p class="eyebrow" i18n="@@loginEyebrow">Bienvenido de vuelta</p>
-        <h1 id="login-title" i18n="@@loginTitle">Iniciar sesión</h1>
+        <header class="auth-heading">
+          <p class="eyebrow" i18n="@@loginEyebrow">Bienvenido de vuelta</p>
+          <h1 id="login-title" i18n="@@loginTitle">Iniciar sesión</h1>
+          <p i18n="@@loginDescription">Accede a tu espacio de trabajo para continuar.</p>
+        </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <label>
@@ -44,7 +55,8 @@ interface LoginForm {
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
           <button type="submit" [disabled]="form.invalid || loading()">
-            {{ submitLabel() }}
+            <span>{{ submitLabel() }}</span>
+            <span aria-hidden="true">→</span>
           </button>
         </form>
 
