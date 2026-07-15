@@ -6,11 +6,13 @@ import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { PaginatedQuotations, QuotationStatus, QuotationSummary } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
+import { EmptyStateComponent } from "../shared/empty-state.component";
+import { StatusBadgeComponent } from "../shared/status-badge.component";
 
 @Component({
   selector: "kaklen-quotation-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -22,7 +24,7 @@ import { QuotationsService } from "../quotations/quotations.service";
         <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" i18n="@@newQuotationButton">Nueva cotización</a>
       </section>
 
-      <section class="dashboard-panel" *ngIf="summary() as currentSummary">
+      <section class="dashboard-panel pipeline-summary" *ngIf="summary() as currentSummary">
         <div class="metrics-grid">
           <span><strong>{{ currentSummary.total }}</strong><small i18n="@@totalLabel">Total</small></span>
           <span><strong>{{ currentSummary.draft }}</strong><small i18n="@@draftLabel">Borradores</small></span>
@@ -62,9 +64,16 @@ import { QuotationsService } from "../quotations/quotations.service";
 
       <section class="list-panel" *ngIf="quotations().items.length > 0; else emptyState">
         <article class="item-row" *ngFor="let quotation of quotations().items">
-          <div>
-            <strong>{{ quotation.number }} v{{ quotation.version }} · {{ quotation.client.displayName }}</strong>
-            <small>{{ statusLabel(quotation.status) }} · {{ dateLabel(quotation.issueDate) }} · {{ moneyLabel(quotation.total, quotation.currency) }}</small>
+          <div class="entity-heading">
+            <span class="entity-avatar square" aria-hidden="true">Q</span>
+            <div>
+              <strong>{{ quotation.number }} v{{ quotation.version }} · {{ quotation.client.displayName }}</strong>
+              <div class="entity-meta">
+                <kaklen-status-badge [status]="quotation.status" [label]="statusLabel(quotation.status)" />
+                <small>{{ dateLabel(quotation.issueDate) }}</small>
+                <small class="entity-price">{{ moneyLabel(quotation.total, quotation.currency) }}</small>
+              </div>
+            </div>
           </div>
           <div class="row-actions">
             <a [routerLink]="['/organizations', organizationId, 'quotations', quotation.id]" i18n="@@viewLink">Ver</a>
@@ -74,9 +83,9 @@ import { QuotationsService } from "../quotations/quotations.service";
       </section>
 
       <ng-template #emptyState>
-        <section class="dashboard-panel">
-          <p i18n="@@quotationsEmpty">No hay cotizaciones para los filtros seleccionados.</p>
-        </section>
+        <kaklen-empty-state icon="▤" [title]="quotationsEmptyTitle" [description]="quotationsEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" i18n="@@newQuotationButton">Nueva cotización</a>
+        </kaklen-empty-state>
       </ng-template>
 
       <section class="pagination-row" *ngIf="quotations().totalPages > 1">
@@ -90,6 +99,8 @@ import { QuotationsService } from "../quotations/quotations.service";
 export class QuotationListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly quotationsEmptyTitle = $localize`:@@quotationsEmptyTitle:No hay cotizaciones para mostrar`;
+  readonly quotationsEmptyDescription = $localize`:@@quotationsEmpty:Crea la primera propuesta o ajusta los filtros para encontrar una cotización.`;
   readonly summary = signal<QuotationSummary | null>(null);
   readonly quotations = signal<PaginatedQuotations>({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
   readonly filtersForm = new FormGroup({

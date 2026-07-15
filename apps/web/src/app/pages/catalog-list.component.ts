@@ -7,11 +7,13 @@ import { CatalogService } from "../catalog/catalog.service";
 import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { EmptyStateComponent } from "../shared/empty-state.component";
+import { StatusBadgeComponent } from "../shared/status-badge.component";
 
 @Component({
   selector: "kaklen-catalog-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -87,13 +89,18 @@ import { NotificationService } from "../shared/notifications/notification.servic
 
       <section class="list-panel" *ngIf="catalog().items.length > 0; else emptyState">
         <article class="item-row" *ngFor="let item of catalog().items">
-          <div>
-            <strong>{{ item.name }}</strong>
-            <small>
-              {{ item.code }} · {{ typeLabel(item.type) }} · {{ statusLabel(item.status) }}
-              <span *ngIf="item.sku" i18n="@@skuInlineLabel"> · SKU {{ item.sku }}</span>
-            </small>
-            <small>{{ moneyLabel(item.price, item.currency) }} · {{ item.unit }}</small>
+          <div class="entity-heading">
+            <span class="entity-avatar square" aria-hidden="true">{{ item.type === 'PRODUCT' ? 'P' : 'S' }}</span>
+            <div>
+              <strong>{{ item.name }}</strong>
+              <div class="entity-meta">
+                <kaklen-status-badge [status]="item.status" [label]="statusLabel(item.status)" />
+                <small>{{ typeLabel(item.type) }}</small>
+                <small>{{ item.code }}</small>
+                <small *ngIf="item.sku" i18n="@@skuInlineLabel">SKU {{ item.sku }}</small>
+              </div>
+              <small class="entity-price">{{ moneyLabel(item.price, item.currency) }} · {{ item.unit }}</small>
+            </div>
           </div>
           <div class="row-actions">
             <a [routerLink]="['/organizations', organizationId, 'catalog', item.id]" i18n="@@viewLink">Ver</a>
@@ -117,9 +124,9 @@ import { NotificationService } from "../shared/notifications/notification.servic
       </section>
 
       <ng-template #emptyState>
-        <section class="dashboard-panel">
-          <p i18n="@@catalogEmpty">No hay items para los filtros seleccionados.</p>
-        </section>
+        <kaklen-empty-state icon="◇" [title]="catalogEmptyTitle" [description]="catalogEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'catalog', 'new']" i18n="@@newCatalogItemButton">Nuevo producto o servicio</a>
+        </kaklen-empty-state>
       </ng-template>
 
       <section class="pagination-row" *ngIf="catalog().totalPages > 1">
@@ -142,6 +149,8 @@ import { NotificationService } from "../shared/notifications/notification.servic
 export class CatalogListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly catalogEmptyTitle = $localize`:@@catalogEmptyTitle:Tu catálogo está listo para comenzar`;
+  readonly catalogEmptyDescription = $localize`:@@catalogEmpty:Agrega un producto o servicio, o ajusta los filtros para encontrarlo.`;
   readonly catalog = signal<PaginatedCatalogItems>({
     items: [],
     page: 1,

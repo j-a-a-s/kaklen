@@ -16,8 +16,8 @@ import { NotificationService } from "../shared/notifications/notification.servic
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <main class="auth-shell">
-      <section class="auth-card wide-card">
+    <main class="dashboard-shell form-shell">
+      <section class="dashboard-panel form-panel wide-card">
         <p class="eyebrow" i18n="@@eventsEyebrow">Eventos</p>
         <h1>{{ eventId ? editTitle : createTitle }}</h1>
         <p i18n="@@eventFormDescription">Define fechas, cliente, lugar y presupuesto operativo.</p>

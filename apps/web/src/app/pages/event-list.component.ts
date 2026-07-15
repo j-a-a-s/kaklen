@@ -6,11 +6,13 @@ import { EventsService } from "../events/events.service";
 import { EventStatus, EventSummary, PaginatedEvents } from "../events/event.models";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { EmptyStateComponent } from "../shared/empty-state.component";
+import { StatusBadgeComponent } from "../shared/status-badge.component";
 
 @Component({
   selector: "kaklen-event-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -69,12 +71,17 @@ import { OrganizationService } from "../organizations/organization.service";
 
       <section class="list-panel" *ngIf="events().items.length > 0; else emptyState">
         <article class="item-row" *ngFor="let event of events().items">
-          <div>
-            <strong>{{ event.code }} · {{ event.name }}</strong>
-            <small>
-              {{ statusLabel(event.status) }} · {{ dateLabel(event.startAt) }} · {{ event.client?.displayName || emptyClientLabel }}
-              <ng-container *ngIf="event.budget"> · {{ moneyLabel(event.budget, event.currency) }}</ng-container>
-            </small>
+          <div class="entity-heading">
+            <span class="entity-avatar square event-date" aria-hidden="true">{{ dayLabel(event.startAt) }}</span>
+            <div>
+              <strong>{{ event.code }} · {{ event.name }}</strong>
+              <div class="entity-meta">
+                <kaklen-status-badge [status]="event.status" [label]="statusLabel(event.status)" />
+                <small>{{ dateLabel(event.startAt) }}</small>
+                <small>{{ event.client?.displayName || emptyClientLabel }}</small>
+                <small *ngIf="event.budget" class="entity-price">{{ moneyLabel(event.budget, event.currency) }}</small>
+              </div>
+            </div>
           </div>
           <div class="row-actions">
             <a [routerLink]="['/organizations', organizationId, 'events', event.id]" i18n="@@viewLink">Ver</a>
@@ -84,9 +91,9 @@ import { OrganizationService } from "../organizations/organization.service";
       </section>
 
       <ng-template #emptyState>
-        <section class="dashboard-panel">
-          <p i18n="@@eventsEmpty">No hay eventos para los filtros seleccionados.</p>
-        </section>
+        <kaklen-empty-state icon="□" [title]="eventsEmptyTitle" [description]="eventsEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" i18n="@@newEventButton">Nuevo evento</a>
+        </kaklen-empty-state>
       </ng-template>
 
       <section class="pagination-row" *ngIf="events().totalPages > 1">
@@ -100,6 +107,8 @@ import { OrganizationService } from "../organizations/organization.service";
 export class EventListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly eventsEmptyTitle = $localize`:@@eventsEmptyTitle:Tu calendario está despejado`;
+  readonly eventsEmptyDescription = $localize`:@@eventsEmpty:Crea un evento o ajusta los filtros para encontrar una operación.`;
   readonly summary = signal<EventSummary | null>(null);
   readonly events = signal<PaginatedEvents>({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
   readonly filtersForm = new FormGroup({
@@ -166,6 +175,10 @@ export class EventListComponent implements OnInit {
       dateFormat: organization?.dateFormat ?? "dd-MM-yyyy",
       numberFormat: organization?.numberFormat ?? "es"
     });
+  }
+
+  dayLabel(value: string): string {
+    return new Intl.DateTimeFormat("es", { day: "2-digit" }).format(new Date(value));
   }
 
   moneyLabel(value: string, currency: string): string {

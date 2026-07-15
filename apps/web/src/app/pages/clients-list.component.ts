@@ -5,11 +5,13 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Client, ClientStatus, ClientSummary, ClientType, PaginatedClients } from "../clients/client.models";
 import { ClientsService } from "../clients/clients.service";
 import { OrganizationService } from "../organizations/organization.service";
+import { EmptyStateComponent } from "../shared/empty-state.component";
+import { StatusBadgeComponent } from "../shared/status-badge.component";
 
 @Component({
   selector: "kaklen-clients-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -93,13 +95,17 @@ import { OrganizationService } from "../organizations/organization.service";
 
       <section class="list-panel" *ngIf="clients().items.length > 0; else emptyState">
         <article class="item-row" *ngFor="let client of clients().items">
-          <div>
-            <strong>{{ client.displayName }}</strong>
-            <small>
-              {{ typeLabel(client.type) }} · {{ statusLabel(client.status) }}
-              <span *ngIf="client.city"> · {{ client.city }}</span>
-              <span *ngIf="client.email"> · {{ client.email }}</span>
-            </small>
+          <div class="entity-heading">
+            <span class="entity-avatar" aria-hidden="true">{{ clientInitials(client) }}</span>
+            <div>
+              <strong>{{ client.displayName }}</strong>
+              <div class="entity-meta">
+                <kaklen-status-badge [status]="client.status" [label]="statusLabel(client.status)" />
+                <small>{{ typeLabel(client.type) }}</small>
+                <small *ngIf="client.city">{{ client.city }}</small>
+                <small *ngIf="client.email">{{ client.email }}</small>
+              </div>
+            </div>
           </div>
           <div class="row-actions">
             <a [routerLink]="['/organizations', organizationId, 'clients', client.id]" i18n="@@viewLink">Ver</a>
@@ -123,9 +129,9 @@ import { OrganizationService } from "../organizations/organization.service";
       </section>
 
       <ng-template #emptyState>
-        <section class="dashboard-panel">
-          <p i18n="@@clientsEmpty">No hay clientes para los filtros seleccionados.</p>
-        </section>
+        <kaklen-empty-state icon="◎" [title]="clientsEmptyTitle" [description]="clientsEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'clients', 'new']" i18n="@@newClientButton">Nuevo cliente</a>
+        </kaklen-empty-state>
       </ng-template>
 
       <section class="pagination-row" *ngIf="clients().totalPages > 1">
@@ -148,6 +154,8 @@ import { OrganizationService } from "../organizations/organization.service";
 export class ClientsListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly clientsEmptyTitle = $localize`:@@clientsEmptyTitle:Aún no hay clientes aquí`;
+  readonly clientsEmptyDescription = $localize`:@@clientsEmpty:Agrega tu primer cliente o ajusta los filtros para encontrarlo.`;
   readonly summary = signal<ClientSummary | null>(null);
   readonly clients = signal<PaginatedClients>({
     items: [],
@@ -201,6 +209,14 @@ export class ClientsListComponent implements OnInit {
       ARCHIVED: $localize`:@@archivedLabel:Archivado`
     };
     return labels[status];
+  }
+
+  clientInitials(client: Client): string {
+    return client.displayName
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("");
   }
 
   async applyFilters(): Promise<void> {

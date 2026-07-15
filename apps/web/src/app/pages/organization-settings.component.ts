@@ -11,8 +11,8 @@ import { NotificationService } from "../shared/notifications/notification.servic
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <main class="auth-shell">
-      <section class="auth-panel">
+    <main class="dashboard-shell form-shell">
+      <section class="dashboard-panel form-panel">
         <p class="eyebrow" i18n="@@settingsEyebrow">Ajustes</p>
         <h1 i18n="@@organizationSettingsTitle">Organización</h1>
         <form [formGroup]="form" (ngSubmit)="save()">

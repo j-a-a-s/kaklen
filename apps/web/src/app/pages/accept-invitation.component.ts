@@ -9,8 +9,8 @@ import { OrganizationService } from "../organizations/organization.service";
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <main class="auth-shell">
-      <section class="auth-panel">
+    <main class="dashboard-shell form-shell">
+      <section class="dashboard-panel form-panel">
         <p class="eyebrow" i18n="@@invitationEyebrow">Invitación</p>
         <h1 i18n="@@acceptInvitationTitle">Aceptar invitación</h1>
         <form [formGroup]="form" (ngSubmit)="accept()">
