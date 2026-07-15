@@ -20,7 +20,9 @@ Comandos utiles:
 - `pnpm run doctor`: diagnostica Node, pnpm, Docker, PostgreSQL, `DATABASE_URL`, Prisma y variables criticas.
 - `node scripts/check-db.mjs`: prueba solo la conexion PostgreSQL.
 - `pnpm dev:fresh`: limpia artefactos regenerables, regenera runtime config, ejecuta Prisma generate y levanta desarrollo.
-- `pnpm dev:i18n`: limpia artefactos, genera runtime config, construye y sirve los builds localizados en `/es`, `/en` y `/pt-BR`.
+- `pnpm dev:i18n`: limpia artefactos, genera runtime config, construye y sirve solo los builds localizados en `/es`, `/en` y `/pt-BR`.
+- `pnpm dev:full:i18n`: levanta PostgreSQL, servicios auxiliares, API NestJS y frontend localizado para validar el MVP completo.
+- `pnpm verify:full-local`: valida health, frontend localizado, runtime config, CORS y conectividad del login.
 - `pnpm clean:dev`: limpia caches locales sin borrar `.env`, `node_modules`, datos ni volumenes Docker.
 - `pnpm verify`: ejecuta doctor, lint, test y build.
 
@@ -39,6 +41,14 @@ pnpm dev:i18n
 ```
 
 `pnpm dev` sirve el idioma base para desarrollo rapido. `pnpm dev:i18n` sirve `http://localhost:4200/es/login`, `http://localhost:4200/en/login` y `http://localhost:4200/pt-BR/login` desde compilaciones separadas.
+
+Para validar autenticacion, CRUD, health checks y el recorrido completo del MVP con los tres idiomas, usa:
+
+```bash
+pnpm dev:full:i18n
+```
+
+No uses solo `pnpm dev:i18n` para pruebas de autenticacion o CRUD: ese comando esta limitado al frontend localizado y no garantiza que la API NestJS este levantada.
 
 La informacion de version en login esta oculta por defecto y se revela solo con el atajo de diagnostico `Cmd/Ctrl + K`, soltar, luego `O`.
 

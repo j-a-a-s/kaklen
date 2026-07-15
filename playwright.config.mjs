@@ -17,10 +17,10 @@ export default defineConfig({
     trace: "retain-on-failure"
   },
   webServer: {
-    command: "pnpm dev:i18n",
+    command: "pnpm dev:full:i18n",
     url: `http://localhost:${webPort}/es/login`,
     reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
+    timeout: 300_000,
     env: {
       ...process.env,
       PORT: String(apiPort),

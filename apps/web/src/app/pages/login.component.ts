@@ -1,7 +1,9 @@
 import { CommonModule } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import { Component, HostListener, OnDestroy, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
+import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
@@ -114,10 +116,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
+      await this.authService.healthReady();
       await this.authService.login(this.form.getRawValue());
       await this.router.navigateByUrl("/dashboard");
-    } catch {
-      this.error.set($localize`:@@loginError:Email o contraseña inválidos.`);
+    } catch (error) {
+      this.error.set(messageForLoginError(error));
     } finally {
       this.loading.set(false);
     }
@@ -126,4 +129,34 @@ export class LoginComponent implements OnInit, OnDestroy {
   submitLabel(): string {
     return this.loading() ? $localize`:@@loginSubmitting:Ingresando...` : $localize`:@@loginSubmit:Ingresar`;
   }
+}
+
+export function messageForLoginError(error: unknown): string {
+  if (isTimeoutError(error)) {
+    return $localize`:@@loginServerTimeout:El servidor está tardando demasiado.`;
+  }
+
+  if (error instanceof HttpErrorResponse) {
+    if (error.status === 401) {
+      return $localize`:@@loginError:Email o contraseña inválidos.`;
+    }
+    if (error.status === 0) {
+      return $localize`:@@loginServerUnavailable:No fue posible conectar con el servidor.`;
+    }
+    if (error.status >= 500) {
+      return $localize`:@@loginServiceUnavailable:El servicio no está disponible temporalmente.`;
+    }
+  }
+
+  return $localize`:@@loginServiceUnavailable:El servicio no está disponible temporalmente.`;
+}
+
+function isTimeoutError(error: unknown): boolean {
+  return (
+    error instanceof TimeoutError ||
+    (error !== null &&
+      typeof error === "object" &&
+      "name" in error &&
+      (error as { name?: unknown }).name === "TimeoutError")
+  );
 }

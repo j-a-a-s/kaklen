@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, signal } from "@angular/core";
-import { firstValueFrom, tap } from "rxjs";
+import { firstValueFrom, tap, timeout } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
@@ -60,7 +60,15 @@ export class AuthService {
     return firstValueFrom(
       this.http
         .post<AuthResponse>(`${API_URL}/auth/login`, payload, { withCredentials: true })
-        .pipe(tap((response) => this.applyAuthResponse(response)))
+        .pipe(timeout({ first: 10000 }), tap((response) => this.applyAuthResponse(response)))
+    );
+  }
+
+  async healthReady(): Promise<void> {
+    await firstValueFrom(
+      this.http
+        .get(`${API_URL}/health/ready`, { withCredentials: true })
+        .pipe(timeout({ first: 5000 }))
     );
   }
 

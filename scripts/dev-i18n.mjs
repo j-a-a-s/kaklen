@@ -8,7 +8,6 @@ import { writeRuntimeConfig } from "./write-runtime-config.mjs";
 const port = Number(process.env.WEB_PORT ?? 4200);
 const distRoot = resolve("apps/web/dist/web");
 let currentChild = null;
-const backgroundChildren = new Set();
 let server = null;
 
 process.on("SIGINT", () => forwardAndExit("SIGINT"));
@@ -27,13 +26,11 @@ for (const locale of supportedLocales) {
   await run("pnpm", ["--filter", "@kaklen/web", `build:${locale}`], runtimeEnv);
 }
 
-startBackground("pnpm", ["--filter", "@kaklen/api", "dev"], runtimeEnv);
 server = createI18nServer({ distRoot, port, logRequests: process.env.NODE_ENV !== "production" });
 server.listen(port, "0.0.0.0", () => {
   console.log(`✓ Localized web available at http://localhost:${port}/es/login`);
   console.log(`✓ English: http://localhost:${port}/en/login`);
   console.log(`✓ Português: http://localhost:${port}/pt-BR/login`);
-  console.log("✓ API available at http://localhost:3000/api/health");
 });
 
 function run(command, args, env) {
@@ -54,18 +51,6 @@ function run(command, args, env) {
   });
 }
 
-function startBackground(command, args, env) {
-  const child = spawn(command, args, { stdio: "inherit", shell: false, env });
-  backgroundChildren.add(child);
-  child.on("exit", (code, signal) => {
-    backgroundChildren.delete(child);
-    if (server && code !== 0 && signal === null) {
-      console.error(`${command} ${args.join(" ")} exited with code ${code ?? 1}`);
-      forwardAndExit("SIGTERM");
-    }
-  });
-}
-
 function createRuntimeEnv(config) {
   return {
     ...process.env,
@@ -79,9 +64,6 @@ function createRuntimeEnv(config) {
 function forwardAndExit(signal) {
   if (currentChild) {
     currentChild.kill(signal);
-  }
-  for (const child of backgroundChildren) {
-    child.kill(signal);
   }
   if (server) {
     server.close(() => process.exit(signal === "SIGINT" ? 130 : 143));

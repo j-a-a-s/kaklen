@@ -2429,6 +2429,27 @@
           <context context-type="linenumber">120</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="loginServerTimeout" datatype="html">
+        <source>El servidor está tardando demasiado.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginServerUnavailable" datatype="html">
+        <source>No fue posible conectar con el servidor.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">147</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginServiceUnavailable" datatype="html">
+        <source>El servicio no está disponible temporalmente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">150</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="loginSubmitting" datatype="html">
         <source>Ingresando...</source>
         <context-group purpose="location">

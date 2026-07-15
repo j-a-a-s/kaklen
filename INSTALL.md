@@ -31,13 +31,21 @@ pnpm run setup
 pnpm dev:fresh
 ```
 
-Para probar los tres idiomas reales con compilaciones separadas:
+Para validar el MVP completo con API, PostgreSQL y los tres idiomas reales con compilaciones separadas:
+
+```bash
+pnpm dev:full:i18n
+```
+
+Para probar solo el frontend localizado:
 
 ```bash
 pnpm dev:i18n
 ```
 
 Abre `http://localhost:4200/es/login`, `http://localhost:4200/en/login` o `http://localhost:4200/pt-BR/login`.
+
+No uses solo `pnpm dev:i18n` para pruebas de autenticación o CRUD, porque ese comando puede estar limitado al frontend localizado y no garantiza que la API NestJS esté disponible.
 
 ## Nota sobre pnpm setup
 

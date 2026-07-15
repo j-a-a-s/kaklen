@@ -390,6 +390,18 @@
         <source>Email o contraseña inválidos.</source>
         <target>Email ou senha inválidos.</target>
       </trans-unit>
+    <trans-unit id="loginServerTimeout" datatype="html">
+        <source>El servidor está tardando demasiado.</source>
+        <target>O servidor está demorando demais.</target>
+      </trans-unit>
+    <trans-unit id="loginServerUnavailable" datatype="html">
+        <source>No fue posible conectar con el servidor.</source>
+        <target>Não foi possível conectar ao servidor.</target>
+      </trans-unit>
+    <trans-unit id="loginServiceUnavailable" datatype="html">
+        <source>El servicio no está disponible temporalmente.</source>
+        <target>O serviço está temporariamente indisponível.</target>
+      </trans-unit>
     <trans-unit id="loginEyebrow" datatype="html">
         <source>Bienvenido de vuelta</source>
         <target>Bem-vindo de volta</target>
