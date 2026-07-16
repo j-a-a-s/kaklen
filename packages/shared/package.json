@@ -9,6 +9,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./chilean-rut": {
+      "types": "./runtime/chilean-rut.d.ts",
+      "require": "./runtime/chilean-rut.cjs",
+      "default": "./runtime/chilean-rut.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "chilean-rut": ["runtime/chilean-rut.d.ts"]
     }
   },
   "scripts": {

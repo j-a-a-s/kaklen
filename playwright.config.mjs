@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   actionTimeout: 15_000,
+  workers: 1,
   expect: {
     timeout: 10_000
   },
@@ -29,7 +30,8 @@ export default defineConfig({
     env: {
       ...process.env,
       PORT: String(apiPort),
-      WEB_PORT: String(webPort)
+      WEB_PORT: String(webPort),
+      TRUST_PROXY: "true"
     }
   }
 });

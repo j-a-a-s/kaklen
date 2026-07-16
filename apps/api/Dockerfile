@@ -47,6 +47,7 @@ COPY --from=builder --chown=kaklen:kaklen /app/packages/config/package.json ./pa
 COPY --from=builder --chown=kaklen:kaklen /app/packages/config/dist ./packages/config/dist
 COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/package.json ./packages/shared/package.json
 COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/runtime ./packages/shared/runtime
 COPY --from=builder --chown=kaklen:kaklen /app/prisma ./prisma
 
 USER kaklen

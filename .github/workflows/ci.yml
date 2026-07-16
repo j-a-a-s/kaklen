@@ -92,6 +92,13 @@ jobs:
       - name: Validate database
         run: pnpm db:validate
 
+      - name: Prepare deterministic demo dataset
+        run: |
+          pnpm db:clear:demo
+          pnpm db:seed:demo
+          pnpm db:seed:demo
+          pnpm db:verify:demo
+
       - name: Prepare build metadata
         run: |
           echo "APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"

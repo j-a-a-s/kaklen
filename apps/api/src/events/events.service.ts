@@ -600,7 +600,10 @@ export class EventsService {
   }
 
   private async nextCode(organizationId: string, tx: Prisma.TransactionClient): Promise<string> {
-    const latest = await tx.event.findFirst({ where: { organizationId }, orderBy: { createdAt: "desc" } });
+    const latest = await tx.event.findFirst({
+      where: { organizationId, code: { startsWith: "EVT-" } },
+      orderBy: { code: "desc" }
+    });
     const latestNumber = latest?.code.replace("EVT-", "");
     const next = latestNumber && /^\d+$/.test(latestNumber) ? Number(latestNumber) + 1 : 1;
     return `EVT-${String(next).padStart(6, "0")}`;

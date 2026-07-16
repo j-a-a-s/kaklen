@@ -64,13 +64,21 @@ describe("EventsService", () => {
 
   it("generates sequential event codes", async () => {
     const probe = service as unknown as CodeProbe;
+    let query: unknown;
     const code = await probe.nextCode("org-1", {
       event: {
-        findFirst: async () => ({ code: "EVT-000041" })
+        findFirst: async (args) => {
+          query = args;
+          return { code: "EVT-000041" };
+        }
       }
     });
 
     expect(code).toBe("EVT-000042");
+    expect(query).toEqual({
+      where: { organizationId: "org-1", code: { startsWith: "EVT-" } },
+      orderBy: { code: "desc" }
+    });
   });
 
   it("starts event codes at one", async () => {

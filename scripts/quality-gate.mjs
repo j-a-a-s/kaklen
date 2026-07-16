@@ -9,6 +9,7 @@ const checks = [
   ["Password recovery contract", "node", ["--test", "scripts/password-recovery.test.mjs"]],
   ["Demo clear", "pnpm", ["db:clear:demo"]],
   ["Demo seed", "pnpm", ["db:seed:demo"]],
+  ["Demo seed idempotence", "pnpm", ["db:seed:demo"]],
   ["Demo verification", "pnpm", ["db:verify:demo"]],
   ["Lint", "pnpm", ["lint"]],
   ["Tests", "pnpm", ["test"]],
@@ -21,7 +22,9 @@ const checks = [
   ["Localized server verification", "pnpm", ["verify:i18n-server"]],
   ["Assisted product E2E", "pnpm", ["e2e"]],
   ["Accessibility and responsive", "pnpm", ["accessibility:test"]],
-  ["Release check", "pnpm", ["release:check"]]
+  ["Release check", "pnpm", ["release:check"]],
+  ["Demo restore after E2E", "pnpm", ["db:seed:demo"]],
+  ["Demo final verification", "pnpm", ["db:verify:demo"]]
 ];
 
 console.log("KAKLEN QUALITY GATE");

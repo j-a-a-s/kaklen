@@ -5,10 +5,14 @@ const prisma = createDemoPrismaClient();
 
 try {
   console.log("KAKLEN DEMO SEED");
-  await seedDemoData(prisma);
-  console.log("✓ 4 usuarios OWNER");
-  console.log("✓ 4 organizaciones aisladas");
-  console.log("✓ 40 clientes, 48 ítems de catálogo, 32 cotizaciones y 20 eventos");
+  const result = await seedDemoData(prisma);
+  console.log(`✓ Usuarios OWNER: ${result.counts.users}`);
+  console.log(`✓ Organizaciones aisladas: ${result.counts.organizations}`);
+  console.log(`✓ Clientes: ${result.counts.clients}`);
+  console.log(`✓ Catálogo: ${result.counts.catalogItems}`);
+  console.log(`✓ Cotizaciones: ${result.counts.quotations}`);
+  console.log(`✓ Eventos: ${result.counts.events}`);
+  console.log(`✓ Huella determinista: ${result.fingerprint.slice(0, 16)}`);
   console.log("");
   console.log("Cuentas demo:");
   DEMO_ORGANIZATIONS.forEach((organization) => console.log(`- ${organization.email}`));
