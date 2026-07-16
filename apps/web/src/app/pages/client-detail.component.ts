@@ -2,13 +2,16 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Client, ClientInteraction, ClientInteractionType } from "../clients/client.models";
+import { Client, ClientInteractionType } from "../clients/client.models";
 import { ClientsService } from "../clients/clients.service";
 import { formatRegionalDate } from "../i18n/formatting";
 import { clientStatusLabel, countryLabel } from "../i18n/display-labels";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { AssistantService } from "../assistant/assistant.service";
+import { ClientTimelineItem } from "../assistant/assistant.models";
+import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
 
 @Component({
   selector: "kaklen-client-detail",
@@ -111,14 +114,16 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
         </form>
       </section>
 
-      <section class="list-panel">
-        <article class="item-row" *ngFor="let interaction of interactions()">
-          <div>
-            <strong>{{ interactionLabel(interaction.type) }}</strong>
-            <small>{{ dateLabel(interaction.occurredAt) }} · {{ interaction.subject || emptySubjectLabel }}</small>
-            <p>{{ interaction.description }}</p>
-          </div>
-        </article>
+      <section class="dashboard-panel client-timeline-panel">
+        <div class="section-heading"><div><p class="eyebrow" i18n="@@clientHistoryEyebrow">Relación con el cliente</p><h2 i18n="@@clientTimelineTitle">Línea de tiempo</h2></div></div>
+        <ol class="client-timeline" aria-label="Línea de tiempo del cliente" i18n-aria-label="@@clientTimelineAriaLabel">
+          <li *ngFor="let entry of timeline()">
+            <span class="timeline-marker" aria-hidden="true">{{ timelineIcon(entry.type) }}</span>
+            <div><strong>{{ timelineLabel(entry.type) }}</strong><p>{{ timelineDescription(entry) }}</p><small>{{ dateLabel(entry.occurredAt) }}<ng-container *ngIf="entry.actor"> · {{ entry.actor.name }}</ng-container><ng-container *ngIf="entry.status"> · {{ timelineStatus(entry) }}</ng-container></small></div>
+            <a *ngIf="entry.resource.type !== 'client'" [routerLink]="entry.resource.route" i18n="@@openResourceAction">Abrir</a>
+          </li>
+        </ol>
+        <p class="empty-inline" *ngIf="timeline().length === 0" i18n="@@emptyClientTimeline">La actividad del cliente aparecerá aquí cuando registres interacciones, cotizaciones o eventos.</p>
       </section>
       <kaklen-confirmation-dialog
         [open]="archiveRequested()"
@@ -137,7 +142,7 @@ export class ClientDetailComponent implements OnInit {
   readonly error = signal("");
   readonly archiveRequested = signal(false);
   readonly client = signal<Client | null>(null);
-  readonly interactions = signal<ClientInteraction[]>([]);
+  readonly timeline = signal<ClientTimelineItem[]>([]);
   readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
   readonly emptyNotesLabel = $localize`:@@emptyNotesLabel:Sin notas`;
   readonly emptySubjectLabel = $localize`:@@emptySubjectLabel:Sin asunto`;
@@ -161,7 +166,8 @@ export class ClientDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly clientsService: ClientsService,
     private readonly organizationService: OrganizationService,
-    private readonly notifications: NotificationService
+    private readonly notifications: NotificationService,
+    private readonly assistantService: AssistantService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -207,15 +213,44 @@ export class ClientDetailComponent implements OnInit {
     });
   }
 
-  interactionLabel(type: ClientInteractionType): string {
-    const labels: Record<ClientInteractionType, string> = {
-      NOTE: $localize`:@@noteLabel:Nota`,
-      CALL: $localize`:@@callLabel:Llamada`,
-      EMAIL: $localize`:@@emailInteractionLabel:Email`,
-      MEETING: $localize`:@@meetingLabel:Reunión`,
-      WHATSAPP: $localize`:@@whatsappLabel:WhatsApp`
+  timelineLabel(type: string): string {
+    const labels: Readonly<Record<string, string>> = {
+      "client.created": $localize`:@@timelineClientCreated:Cliente creado`,
+      "client.updated": $localize`:@@timelineClientUpdated:Datos del cliente actualizados`,
+      "client.archived": $localize`:@@timelineClientArchived:Cliente archivado`,
+      "interaction.note": $localize`:@@timelineNote:Nota registrada`,
+      "interaction.call": $localize`:@@timelineCall:Llamada registrada`,
+      "interaction.email": $localize`:@@timelineEmail:Email registrado`,
+      "interaction.meeting": $localize`:@@timelineMeeting:Reunión registrada`,
+      "interaction.whatsapp": $localize`:@@timelineWhatsapp:Conversación por WhatsApp`,
+      "quotation.created": $localize`:@@timelineQuotationCreated:Cotización creada`,
+      "quotation.sent": $localize`:@@timelineQuotationSent:Cotización enviada`,
+      "quotation.approved": $localize`:@@timelineQuotationApproved:Cotización aprobada`,
+      "quotation.rejected": $localize`:@@timelineQuotationRejected:Cotización rechazada`,
+      "quotation.cancelled": $localize`:@@timelineQuotationCancelled:Cotización cancelada`,
+      "event.created": $localize`:@@timelineEventCreated:Evento creado`,
+      "event.completed": $localize`:@@timelineEventCompleted:Evento completado`,
+      "event.cancelled": $localize`:@@timelineEventCancelled:Evento cancelado`
     };
-    return labels[type];
+    return labels[type] ?? $localize`:@@timelineResourceUpdated:Actividad actualizada`;
+  }
+
+  timelineIcon(type: string): string {
+    if (type.startsWith("quotation.")) return "▤";
+    if (type.startsWith("event.")) return "□";
+    if (type.startsWith("interaction.")) return "●";
+    return "◎";
+  }
+
+  timelineDescription(entry: ClientTimelineItem): string {
+    return entry.type.startsWith("interaction.") ? entry.description : entry.resource.title;
+  }
+
+  timelineStatus(entry: ClientTimelineItem): string {
+    if (!entry.status) return "";
+    if (entry.resource.type === "quotation") return quotationStatusLabel(entry.status as Parameters<typeof quotationStatusLabel>[0]);
+    if (entry.resource.type === "event") return eventStatusLabel(entry.status as Parameters<typeof eventStatusLabel>[0]);
+    return clientStatusLabel(entry.status as Parameters<typeof clientStatusLabel>[0]);
   }
 
   whatsappUrl(value: string): string {
@@ -244,7 +279,7 @@ export class ClientDetailComponent implements OnInit {
       });
       this.notifications.success($localize`:@@interactionAddedSuccess:Interacción agregada correctamente.`);
       this.interactionForm.reset({ type: "NOTE", subject: "", description: "" });
-      await this.loadInteractions();
+      await this.loadTimeline();
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@interactionAddError:No fue posible agregar la interacción.`);
@@ -290,12 +325,12 @@ export class ClientDetailComponent implements OnInit {
     this.loading.set(true);
     this.error.set("");
     try {
-      const [client, interactions] = await Promise.all([
+      const [client, timeline] = await Promise.all([
         this.clientsService.get(this.organizationId, this.clientId),
-        this.clientsService.interactions(this.organizationId, this.clientId)
+        this.assistantService.clientTimeline(this.organizationId, this.clientId)
       ]);
       this.client.set(client);
-      this.interactions.set(interactions);
+      this.timeline.set(timeline);
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@clientLoadError:No fue posible cargar el cliente.`);
@@ -304,7 +339,7 @@ export class ClientDetailComponent implements OnInit {
     }
   }
 
-  private async loadInteractions(): Promise<void> {
-    this.interactions.set(await this.clientsService.interactions(this.organizationId, this.clientId));
+  private async loadTimeline(): Promise<void> {
+    this.timeline.set(await this.assistantService.clientTimeline(this.organizationId, this.clientId));
   }
 }

@@ -6,6 +6,8 @@ import { CatalogItemStatus, CatalogItemType } from "../catalog/catalog.models";
 import { CatalogItemPayload, CatalogService } from "../catalog/catalog.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { AssistantService } from "../assistant/assistant.service";
+import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 
 @Component({
   selector: "kaklen-catalog-form",
@@ -127,13 +129,16 @@ export class CatalogFormComponent implements OnInit {
   });
   organizationId = "";
   itemId = "";
+  private initialCatalogItemCreated = false;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly catalogService: CatalogService,
     private readonly organizationService: OrganizationService,
-    private readonly notifications: NotificationService
+    private readonly notifications: NotificationService,
+    private readonly assistantService: AssistantService,
+    private readonly analytics: ProductAnalyticsService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -142,6 +147,8 @@ export class CatalogFormComponent implements OnInit {
     await this.organizationService.setActiveOrganization(this.organizationId);
     if (this.itemId) {
       await this.loadItem();
+    } else {
+      this.initialCatalogItemCreated = (await this.assistantService.activation(this.organizationId)).completedSteps.includes("first_catalog_item_created");
     }
   }
 
@@ -169,6 +176,9 @@ export class CatalogFormComponent implements OnInit {
         ? await this.catalogService.update(this.organizationId, this.itemId, payload)
         : await this.catalogService.create(this.organizationId, payload);
       this.notifications.success(this.successMessage(item.type));
+      if (!this.itemId && !this.initialCatalogItemCreated) {
+        this.analytics.track("first_catalog_item_created", { flow: "onboarding" });
+      }
       await this.router.navigate(["/organizations", this.organizationId, "catalog", item.id]);
     } catch (error) {
       this.notifications.fromError(error);

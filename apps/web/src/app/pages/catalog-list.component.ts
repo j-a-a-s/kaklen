@@ -169,8 +169,8 @@ export class CatalogListComponent implements OnInit {
   readonly error = signal("");
   readonly filtersOpen = signal(false);
   readonly pendingArchive = signal<CatalogItem | null>(null);
-  readonly catalogEmptyTitle = $localize`:@@catalogEmptyTitle:Tu catálogo está listo para comenzar`;
-  readonly catalogEmptyDescription = $localize`:@@catalogEmpty:Agrega un producto o servicio, o ajusta los filtros para encontrarlo.`;
+  readonly catalogEmptyTitle = $localize`:@@catalogEmptyTitle:Agrega tus productos y servicios`;
+  readonly catalogEmptyDescription = $localize`:@@catalogEmpty:Guarda precios, unidades e impuestos para preparar cotizaciones más rápido.`;
   readonly archiveDialogTitle = $localize`:@@archiveCatalogDialogTitle:Archivar producto o servicio`;
   readonly archiveDialogDescription = $localize`:@@archiveCatalogDialogDescription:El elemento dejará de estar disponible para nuevas cotizaciones, pero seguirá visible en los registros históricos.`;
   readonly archiveLabel = $localize`:@@archiveButton:Archivar`;

@@ -39,7 +39,7 @@ if (cycles.length > 0) {
 console.log(`✓ Arquitectura sin ciclos detectados en ${files.length} archivos fuente`);
 
 function gitFiles() {
-  return execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  return execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
 }
 
 function readImports(file) {

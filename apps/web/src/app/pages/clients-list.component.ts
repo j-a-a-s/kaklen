@@ -178,8 +178,8 @@ export class ClientsListComponent implements OnInit {
   readonly error = signal("");
   readonly filtersOpen = signal(false);
   readonly pendingArchive = signal<Client | null>(null);
-  readonly clientsEmptyTitle = $localize`:@@clientsEmptyTitle:Aún no hay clientes aquí`;
-  readonly clientsEmptyDescription = $localize`:@@clientsEmpty:Agrega tu primer cliente o ajusta los filtros para encontrarlo.`;
+  readonly clientsEmptyTitle = $localize`:@@clientsEmptyTitle:Aún no tienes clientes`;
+  readonly clientsEmptyDescription = $localize`:@@clientsEmpty:Crea el primero para preparar cotizaciones, registrar conversaciones y organizar eventos.`;
   readonly archiveDialogTitle = $localize`:@@archiveClientDialogTitle:Archivar cliente`;
   readonly archiveDialogDescription = $localize`:@@archiveClientDialogDescription:El cliente dejará de aparecer en los listados habituales, pero su historial se conservará.`;
   readonly archiveLabel = $localize`:@@archiveButton:Archivar`;

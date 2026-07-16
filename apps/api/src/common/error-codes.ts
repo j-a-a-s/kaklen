@@ -6,6 +6,7 @@ export const ERROR_CODES = {
   conflict: "CONFLICT",
   duplicateTaxId: "DUPLICATE_TAX_ID",
   rutInvalid: "RUT_INVALID",
+  rutRequired: "RUT_REQUIRED",
   resourceNotFound: "RESOURCE_NOT_FOUND",
   validationError: "VALIDATION_ERROR",
   quotationInvalidStatus: "QUOTATION_INVALID_STATUS",

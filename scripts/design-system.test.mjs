@@ -40,10 +40,11 @@ test("auth pages use institutional branding without duplicating locale selection
 
 test("dashboard communicates metrics onboarding and next action", async () => {
   const dashboard = await source("apps/web/src/app/pages/dashboard.component.ts");
-  assert.match(dashboard, /class="metric-card-grid"/);
-  assert.match(dashboard, /class="quick-action-grid"/);
-  assert.match(dashboard, /class="onboarding-list"/);
-  assert.match(dashboard, /recommendedStep\(\)/);
+  assert.match(dashboard, /class="metric-card-grid five-columns"/);
+  assert.match(dashboard, /class="recommended-action-banner"/);
+  assert.match(dashboard, /class="guided-onboarding-list"/);
+  assert.match(dashboard, /summary\.recommendedAction\.route/);
+  assert.match(dashboard, /assistantService\.dashboard/);
   assert.match(dashboard, /dashboard-skeleton/);
 });
 

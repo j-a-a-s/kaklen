@@ -111,8 +111,8 @@ export class QuotationListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
   readonly filtersOpen = signal(false);
-  readonly quotationsEmptyTitle = $localize`:@@quotationsEmptyTitle:No hay cotizaciones para mostrar`;
-  readonly quotationsEmptyDescription = $localize`:@@quotationsEmpty:Crea la primera propuesta o ajusta los filtros para encontrar una cotización.`;
+  readonly quotationsEmptyTitle = $localize`:@@quotationsEmptyTitle:Crea tu primera cotización`;
+  readonly quotationsEmptyDescription = $localize`:@@quotationsEmpty:Prepara una propuesta y conviértela en un evento cuando el cliente la apruebe.`;
   readonly summary = signal<QuotationSummary | null>(null);
   readonly quotations = signal<PaginatedQuotations>({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
   readonly filtersForm = new FormGroup({

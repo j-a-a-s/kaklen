@@ -87,6 +87,7 @@ export function messageForError(error: unknown): string {
   const messages: Record<string, string> = {
     VALIDATION_ERROR: $localize`:@@errorValidation:Revisa los datos ingresados.`,
     RUT_INVALID: $localize`:@@errorRutInvalid:Ingresa un RUT válido.`,
+    RUT_REQUIRED: $localize`:@@errorRutRequired:El RUT es obligatorio para empresas chilenas.`,
     RESOURCE_NOT_FOUND: $localize`:@@errorResourceNotFound:No encontramos el recurso solicitado.`,
     NOT_FOUND: $localize`:@@errorResourceNotFound:No encontramos el recurso solicitado.`,
     FORBIDDEN: $localize`:@@errorForbidden:No tienes permiso para realizar esta acción.`,

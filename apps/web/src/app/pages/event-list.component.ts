@@ -120,8 +120,8 @@ export class EventListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
   readonly filtersOpen = signal(false);
-  readonly eventsEmptyTitle = $localize`:@@eventsEmptyTitle:Tu calendario está despejado`;
-  readonly eventsEmptyDescription = $localize`:@@eventsEmpty:Crea un evento o ajusta los filtros para encontrar una operación.`;
+  readonly eventsEmptyTitle = $localize`:@@eventsEmptyTitle:Organiza tu primer evento`;
+  readonly eventsEmptyDescription = $localize`:@@eventsEmpty:Crea uno manualmente o parte desde una cotización aprobada para coordinar tareas y recursos.`;
   readonly summary = signal<EventSummary | null>(null);
   readonly events = signal<PaginatedEvents>({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
   readonly filtersForm = new FormGroup({

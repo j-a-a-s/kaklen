@@ -34,7 +34,7 @@ if (findings.length > 0) {
 console.log("✓ Quality scan sin marcadores de deuda tecnica ni tipos amplios explicitos");
 
 function gitFiles() {
-  return execFileSync("git", ["ls-files"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  return execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
 }
 
 function hasExplicitAny(line) {

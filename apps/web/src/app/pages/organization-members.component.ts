@@ -7,11 +7,12 @@ import { OrganizationInvitation, OrganizationMember, OrganizationRole } from "..
 import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { EmptyStateComponent } from "../shared/empty-state.component";
 
 @Component({
   selector: "kaklen-organization-members",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -26,7 +27,7 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
         <form [formGroup]="inviteForm" (ngSubmit)="invite()">
           <label>
             <span i18n="@@emailLabel">Email</span>
-            <input type="email" formControlName="email" />
+            <input id="member-invite-email" type="email" formControlName="email" />
           </label>
           <label>
             <span i18n="@@roleLabel">Rol</span>
@@ -46,7 +47,7 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
         </p>
       </section>
 
-      <section class="list-panel">
+      <section class="list-panel" *ngIf="members().length > 0; else emptyMembers">
         <article class="item-row" *ngFor="let member of members()">
           <div>
             <strong>{{ member.firstName }} {{ member.lastName }}</strong>
@@ -64,6 +65,11 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
           </div>
         </article>
       </section>
+      <ng-template #emptyMembers>
+        <kaklen-empty-state icon="♙" [title]="membersEmptyTitle" [description]="membersEmptyDescription">
+          <button type="button" *ngIf="canInvite()" (click)="focusInvite()" i18n="@@inviteFirstMemberAction">Invitar al primer miembro</button>
+        </kaklen-empty-state>
+      </ng-template>
       <kaklen-confirmation-dialog
         [open]="pendingRemoval() !== null"
         [busy]="loading()"
@@ -86,6 +92,8 @@ export class OrganizationMembersComponent implements OnInit {
   readonly removeDialogTitle = $localize`:@@removeMemberDialogTitle:Quitar miembro`;
   readonly removeDialogDescription = $localize`:@@removeMemberDialogDescription:La persona perderá inmediatamente el acceso a esta organización y a sus datos.`;
   readonly removeLabel = $localize`:@@removeMemberAction:Quitar acceso`;
+  readonly membersEmptyTitle = $localize`:@@membersEmptyTitle:Tu equipo comienza contigo`;
+  readonly membersEmptyDescription = $localize`:@@membersEmptyDescription:Invita personas para repartir tareas y mantener permisos claros dentro de la organización.`;
   readonly inviteForm = new FormGroup({
     email: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.email] }),
     role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true })
@@ -118,6 +126,10 @@ export class OrganizationMembersComponent implements OnInit {
 
   roleLabel(role: OrganizationRole): string {
     return organizationRoleLabel(role);
+  }
+
+  focusInvite(): void {
+    document.getElementById("member-invite-email")?.focus();
   }
 
   async invite(): Promise<void> {

@@ -241,6 +241,7 @@ describe("ClientsService", () => {
     await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
       legalName: "Grace SpA",
+      country: "BR",
       city: "Valparaiso"
     });
 
@@ -367,6 +368,12 @@ describe("ClientsService", () => {
     });
   });
 
+  it("requires a RUT for Chilean legal entities", () => {
+    expect(() => service.mapClientInput({ type: ClientType.LEGAL_ENTITY, legalName: "Empresa sin RUT", country: "CL" })).toThrow(
+      expect.objectContaining({ response: expect.objectContaining({ code: "RUT_REQUIRED" }) })
+    );
+  });
+
   it("summarizes clients and manages interactions", async () => {
     const client = await service.create("org-a", "user-1", {
       type: ClientType.NATURAL_PERSON,
@@ -377,7 +384,8 @@ describe("ClientsService", () => {
     await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
       status: ClientStatus.INACTIVE,
-      legalName: "Grace SpA"
+      legalName: "Grace SpA",
+      country: "BR"
     });
 
     await expect(service.summary("org-a")).resolves.toMatchObject({

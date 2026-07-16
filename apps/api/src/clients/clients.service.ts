@@ -203,6 +203,7 @@ export class ClientsService {
     const firstName = this.clean(dto.firstName);
     const lastName = this.clean(dto.lastName);
     const legalName = this.clean(dto.legalName);
+    const country = this.clean(dto.country) ?? "CL";
 
     if (type === ClientType.NATURAL_PERSON && (!firstName || !lastName)) {
       throw new BadRequestException("Persona natural requiere nombre y apellido");
@@ -210,6 +211,10 @@ export class ClientsService {
 
     if (type === ClientType.LEGAL_ENTITY && !legalName) {
       throw new BadRequestException("Persona juridica requiere razon social");
+    }
+
+    if (type === ClientType.LEGAL_ENTITY && country.toUpperCase() === "CL" && !this.clean(dto.taxId)) {
+      throw new BadRequestException({ code: "RUT_REQUIRED", message: "Chilean companies require a RUT" });
     }
 
     return {
@@ -224,7 +229,7 @@ export class ClientsService {
       email: this.clean(dto.email)?.toLowerCase() ?? null,
       phone: this.clean(dto.phone),
       whatsapp: this.clean(dto.whatsapp),
-      country: this.clean(dto.country) ?? "CL",
+      country,
       region: this.clean(dto.region),
       city: this.clean(dto.city),
       address: this.clean(dto.address),

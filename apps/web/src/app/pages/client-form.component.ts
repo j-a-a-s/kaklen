@@ -1,5 +1,6 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, OnDestroy, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { ClientStatus, ClientType } from "../clients/client.models";
@@ -7,6 +8,8 @@ import { ClientPayload, ClientsService } from "../clients/clients.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { AssistantService } from "../assistant/assistant.service";
+import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 
 @Component({
   selector: "kaklen-client-form",
@@ -24,12 +27,18 @@ import { NotificationService } from "../shared/notifications/notification.servic
 
       <section class="dashboard-panel">
         <form [formGroup]="clientForm" (ngSubmit)="save()">
+          <ol *ngIf="!clientId" class="wizard-steps client-wizard-steps" aria-label="Progreso del cliente" i18n-aria-label="@@clientProgressLabel">
+            <li [class.active]="currentStep() === 1" [class.complete]="currentStep() > 1" [attr.aria-current]="currentStep() === 1 ? 'step' : null"><span>1</span><strong i18n="@@clientStepIdentity">Tipo e identificación</strong></li>
+            <li [class.active]="currentStep() === 2" [class.complete]="currentStep() > 2" [attr.aria-current]="currentStep() === 2 ? 'step' : null"><span>2</span><strong i18n="@@clientStepContact">Datos de contacto</strong></li>
+            <li [class.active]="currentStep() === 3" [class.complete]="currentStep() > 3" [attr.aria-current]="currentStep() === 3 ? 'step' : null"><span>3</span><strong i18n="@@clientStepAddress">Dirección</strong></li>
+            <li [class.active]="currentStep() === 4" [attr.aria-current]="currentStep() === 4 ? 'step' : null"><span>4</span><strong i18n="@@clientStepReview">Revisión</strong></li>
+          </ol>
           <div class="form-error-summary" *ngIf="submitAttempted() && clientForm.invalid" role="alert" tabindex="-1">
             <strong i18n="@@formErrorSummaryTitle">Revisa los campos marcados antes de continuar.</strong>
             <span i18n="@@formErrorSummaryHelp">Los mensajes bajo cada campo indican qué debes corregir.</span>
           </div>
 
-          <fieldset class="form-section">
+          <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 1">
             <legend i18n="@@mainInformationSection">Información principal</legend>
             <div class="field-grid">
               <label>
@@ -66,14 +75,14 @@ import { NotificationService } from "../shared/notifications/notification.servic
               <small class="field-error" *ngIf="showError('legalName')" i18n="@@legalNameRequired">La razón social es obligatoria.</small>
             </label>
             <label>
-              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span> <small i18n="@@optionalLabel">Opcional</small></span>
+              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span> <small *ngIf="clientForm.controls.type.value !== 'LEGAL_ENTITY'" i18n="@@optionalLabel">Opcional</small><small *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'" class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
               <input formControlName="taxId" maxlength="40" (input)="formatRut()" placeholder="12.345.678-5" />
               <small i18n="@@rutFormatHelp">Formato esperado: 12.345.678-5.</small>
               <small class="field-error" *ngIf="clientForm.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
             </label>
           </fieldset>
 
-          <fieldset class="form-section">
+          <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 2">
             <legend i18n="@@contactSection">Contacto</legend>
             <div class="field-grid">
               <label>
@@ -92,7 +101,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </div>
           </fieldset>
 
-          <fieldset class="form-section">
+          <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 3">
             <legend i18n="@@addressSection">Dirección</legend>
             <div class="field-grid">
               <label>
@@ -126,7 +135,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </div>
           </fieldset>
 
-          <fieldset class="form-section">
+          <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 3">
             <legend i18n="@@additionalInformationSection">Información adicional</legend>
             <label>
               <span><span i18n="@@notesLabel">Notas</span> <small i18n="@@optionalLabel">Opcional</small></span>
@@ -134,10 +143,27 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </label>
           </fieldset>
 
+          <section class="form-section client-review wizard-stage" *ngIf="!clientId && currentStep() === 4">
+            <h2 i18n="@@clientStepReview">Revisión</h2>
+            <p i18n="@@clientReviewHelp">Confirma la información principal. Podrás completar o editar los datos más adelante.</p>
+            <dl class="detail-grid">
+              <div><dt i18n="@@typeLabel">Tipo</dt><dd>{{ clientForm.controls.type.value === 'LEGAL_ENTITY' ? companyLabel : naturalPersonLabel }}</dd></div>
+              <div><dt i18n="@@nameLabel">Nombre</dt><dd>{{ reviewName() }}</dd></div>
+              <div><dt i18n="@@taxIdLabel">RUT o identificación tributaria</dt><dd>{{ clientForm.controls.taxId.value || emptyValueLabel }}</dd></div>
+              <div><dt i18n="@@emailLabel">Email</dt><dd>{{ clientForm.controls.email.value || emptyValueLabel }}</dd></div>
+              <div><dt i18n="@@phoneLabel">Teléfono</dt><dd>{{ clientForm.controls.phone.value || emptyValueLabel }}</dd></div>
+              <div><dt i18n="@@locationLabel">Ubicación</dt><dd>{{ reviewLocation() }}</dd></div>
+            </dl>
+          </section>
+
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
-          <div class="row-actions">
-            <button type="submit" [disabled]="loading()">
+          <p class="form-error" *ngIf="stepError()">{{ stepError() }}</p>
+          <div class="row-actions wizard-actions">
+            <button type="button" class="secondary" *ngIf="!clientId && currentStep() > 1" (click)="previousStep()" i18n="@@backButton">Volver</button>
+            <button type="button" *ngIf="!clientId && currentStep() < 4" (click)="nextStep()" i18n="@@continueButton">Continuar</button>
+            <button type="button" class="secondary" *ngIf="!clientId && currentStep() < 4 && basicDataValid()" [disabled]="loading()" (click)="saveBasic()" i18n="@@saveBasicClientButton">Guardar con datos básicos</button>
+            <button type="submit" *ngIf="clientId || currentStep() === 4" [disabled]="loading()">
               {{ loading() ? savingLabel : saveLabel }}
             </button>
             <a class="secondary-link" [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@cancelLink">Cancelar</a>
@@ -147,12 +173,17 @@ import { NotificationService } from "../shared/notifications/notification.servic
     </main>
   `
 })
-export class ClientFormComponent implements OnInit {
+export class ClientFormComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal("");
   readonly submitAttempted = signal(false);
+  readonly currentStep = signal(1);
+  readonly stepError = signal("");
   readonly saveLabel = $localize`:@@saveButton:Guardar`;
   readonly savingLabel = $localize`:@@savingButton:Guardando...`;
+  readonly companyLabel = $localize`:@@companyLabel:Empresa`;
+  readonly naturalPersonLabel = $localize`:@@naturalPersonLabel:Persona natural`;
+  readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
   readonly clientForm = new FormGroup({
     type: new FormControl<ClientType>("NATURAL_PERSON", { nonNullable: true }),
     status: new FormControl<ClientStatus>("LEAD", { nonNullable: true }),
@@ -182,27 +213,41 @@ export class ClientFormComponent implements OnInit {
     Valparaíso: ["Valparaíso", "Viña del Mar", "Quilpué", "Concón"],
     Biobío: ["Concepción", "Talcahuano", "San Pedro de la Paz", "Los Ángeles"]
   };
+  private initialClientCreated = false;
+  private wizardCompleted = false;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly clientsService: ClientsService,
     private readonly organizationService: OrganizationService,
-    private readonly notifications: NotificationService
+    private readonly notifications: NotificationService,
+    private readonly assistantService: AssistantService,
+    private readonly analytics: ProductAnalyticsService,
+    private readonly destroyRef: DestroyRef
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.organizationId = this.route.snapshot.paramMap.get("organizationId") ?? "";
     this.clientId = this.route.snapshot.paramMap.get("clientId") ?? "";
     await this.organizationService.setActiveOrganization(this.organizationId);
-    this.clientForm.controls.type.valueChanges.subscribe(() => this.applyTypeValidators());
-    this.clientForm.controls.country.valueChanges.subscribe(() => {
+    this.clientForm.controls.type.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyTypeValidators());
+    this.clientForm.controls.country.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.clientForm.controls.taxId.updateValueAndValidity();
+      this.applyTypeValidators();
     });
     this.applyTypeValidators();
 
     if (this.clientId) {
       await this.loadClient();
+    } else {
+      this.initialClientCreated = (await this.assistantService.activation(this.organizationId)).completedSteps.includes("first_client_created");
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (!this.clientId && this.clientForm.dirty && !this.wizardCompleted) {
+      this.analytics.track("wizard_abandoned", { flow: "client", step: String(this.currentStep()) });
     }
   }
 
@@ -231,6 +276,11 @@ export class ClientFormComponent implements OnInit {
           ? $localize`:@@clientUpdatedSuccess:Cliente actualizado correctamente.`
           : $localize`:@@clientCreatedSuccess:Cliente creado correctamente.`
       );
+      if (!this.clientId) {
+        this.wizardCompleted = true;
+        this.analytics.track("wizard_completed", { flow: "client", step: "review" });
+        if (!this.initialClientCreated) this.analytics.track("first_client_created", { flow: "client" });
+      }
       await this.router.navigate(["/organizations", this.organizationId, "clients", client.id]);
     } catch (error) {
       this.notifications.fromError(error);
@@ -246,6 +296,39 @@ export class ClientFormComponent implements OnInit {
       control.setValue(formatChileanRut(control.value));
       control.updateValueAndValidity();
     }
+  }
+
+  nextStep(): void {
+    if (!this.validateStep(this.currentStep())) {
+      this.stepError.set($localize`:@@clientStepValidationError:Completa los campos obligatorios de esta etapa para continuar.`);
+      return;
+    }
+    this.stepError.set("");
+    this.currentStep.update((step) => Math.min(4, step + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  previousStep(): void {
+    this.stepError.set("");
+    this.currentStep.update((step) => Math.max(1, step - 1));
+  }
+
+  saveBasic(): void {
+    if (this.validateStep(1)) void this.save();
+  }
+
+  basicDataValid(): boolean {
+    return this.identityControls().every((control) => control.valid);
+  }
+
+  reviewName(): string {
+    const value = this.clientForm.getRawValue();
+    return value.type === "LEGAL_ENTITY" ? value.legalName : `${value.firstName} ${value.lastName}`.trim();
+  }
+
+  reviewLocation(): string {
+    const value = this.clientForm.getRawValue();
+    return [value.address, value.city, value.region, value.country].filter(Boolean).join(", ") || this.emptyValueLabel;
   }
 
   private async loadClient(): Promise<void> {
@@ -293,9 +376,35 @@ export class ClientFormComponent implements OnInit {
       legalName.setValidators([Validators.required, Validators.maxLength(160)]);
     }
 
+    const taxId = this.clientForm.controls.taxId;
+    taxId.setValidators([
+      ...(this.clientForm.controls.type.value === "LEGAL_ENTITY" && this.clientForm.controls.country.value.toUpperCase() === "CL" ? [Validators.required] : []),
+      Validators.maxLength(40),
+      chileanRutValidator()
+    ]);
+
     firstName.updateValueAndValidity({ emitEvent: false });
     lastName.updateValueAndValidity({ emitEvent: false });
     legalName.updateValueAndValidity({ emitEvent: false });
+    taxId.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private validateStep(step: number): boolean {
+    const controls = step === 1
+      ? this.identityControls()
+      : step === 2
+        ? [this.clientForm.controls.email, this.clientForm.controls.phone, this.clientForm.controls.whatsapp]
+        : step === 3
+          ? [this.clientForm.controls.country, this.clientForm.controls.region, this.clientForm.controls.city, this.clientForm.controls.address, this.clientForm.controls.notes]
+          : Object.values(this.clientForm.controls);
+    controls.forEach((control) => control.markAsTouched());
+    return controls.every((control) => control.valid);
+  }
+
+  private identityControls() {
+    return this.clientForm.controls.type.value === "NATURAL_PERSON"
+      ? [this.clientForm.controls.type, this.clientForm.controls.status, this.clientForm.controls.firstName, this.clientForm.controls.lastName, this.clientForm.controls.taxId]
+      : [this.clientForm.controls.type, this.clientForm.controls.status, this.clientForm.controls.legalName, this.clientForm.controls.taxId];
   }
 
   private buildPayload(): ClientPayload {

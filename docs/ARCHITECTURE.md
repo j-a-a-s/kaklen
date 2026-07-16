@@ -33,6 +33,12 @@ The visible selector stores the selected interface language in `localStorage` as
 
 Regional configuration is intentionally separate from interface language. `Organization.country`, `Organization.currency`, `Organization.timezone`, `Organization.dateFormat`, and `Organization.numberFormat` drive operational formats such as money, dates, and numbers. Changing the interface language must not change persisted business formats. Runtime data such as enum values, permission keys, error codes, and technical identifiers remain untranslated.
 
+## Assisted Operations
+
+`AssistantModule` is an organization-scoped read model over existing business records. `UserActivationService` derives seven activation signals without persisting duplicate progress. `AssistantService` returns dashboard priorities, recent activity, global search, and client timelines through guarded routes under `/api/organizations/:organizationId/assistant`.
+
+Global search uses parameterized PostgreSQL queries with the tenant identifier in every statement. The `20260715220000_add_unaccent_search` migration enables `unaccent` for case- and accent-insensitive matching. Existing tenant-leading indexes on clients, catalog items, quotations, and events remain the first filtering boundary; results are limited per category and mapped to minimal presentation contracts. Activity reuses `OrganizationAuditLog` and resolves referenced resources in batches instead of introducing a second event log.
+
 Localized web builds:
 
 ```bash

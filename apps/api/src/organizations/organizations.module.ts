@@ -9,6 +9,6 @@ import { AuthModule } from "../auth/auth.module";
   imports: [AuthModule],
   controllers: [OrganizationsController, OrganizationInvitationsController],
   providers: [OrganizationsService, OrganizationAccessGuard],
-  exports: [OrganizationsService]
+  exports: [OrganizationsService, OrganizationAccessGuard]
 })
 export class OrganizationsModule {}

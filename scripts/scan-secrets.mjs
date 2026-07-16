@@ -10,7 +10,7 @@ const rules = [
   { name: "PEM file", pattern: /\.pem$/ }
 ];
 
-const trackedFiles = execFileSync("git", ["ls-files"], { encoding: "utf8" })
+const trackedFiles = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" })
   .split(/\r?\n/)
   .map((file) => file.trim())
   .filter(Boolean);

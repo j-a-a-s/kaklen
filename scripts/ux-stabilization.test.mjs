@@ -148,7 +148,9 @@ test("organization settings expose friendly validated options", async () => {
 test("client workflow groups fields and hides infeasible quick actions", async () => {
   const form = await source("apps/web/src/app/pages/client-form.component.ts");
   const detail = await source("apps/web/src/app/pages/client-detail.component.ts");
-  assert.equal((form.match(/<fieldset class="form-section"/g) ?? []).length, 4);
+  assert.equal((form.match(/<fieldset class="form-section wizard-stage"/g) ?? []).length, 4);
+  assert.match(form, /class="form-section client-review wizard-stage"/);
+  assert.match(form, /currentStep\(\) === 4/);
   assert.match(form, /class="form-error-summary"/);
   assert.match(form, /phonePrefix/);
   assert.match(form, /formatRut/);
@@ -161,7 +163,8 @@ test("client workflow groups fields and hides infeasible quick actions", async (
 test("dashboard metric and completed onboarding layouts adapt by viewport", async () => {
   const dashboard = await source("apps/web/src/app/pages/dashboard.component.ts");
   const css = await source("apps/web/src/design-system.css");
-  assert.match(dashboard, /onboardingProgress\(\) === 100/);
+  assert.match(dashboard, /summary\.activation\.isCompleted/);
+  assert.match(dashboard, /summary\.activation\.percentage/);
   assert.match(dashboard, /showOnboardingDetails/);
   assert.match(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);

@@ -2,6 +2,27 @@
 
 This set documents the current Kaklen user interface for UX/UI review. Screenshots use reproducible local demo data and the Spanish interface locale.
 
+## Assisted product sprint
+
+| File | Screen | Viewport | Description |
+| --- | --- | --- | --- |
+| [assisted-dashboard-data.png](screenshots/assisted-dashboard-data.png) | Assisted dashboard | Desktop 1440 x 900 | Real priorities, metrics, recommendation, and upcoming work for a populated organization. |
+| [assisted-dashboard-new.png](screenshots/assisted-dashboard-new.png) | New dashboard | Desktop 1440 x 900 | Activation-first dashboard for an isolated temporary organization. |
+| [assisted-onboarding.png](screenshots/assisted-onboarding.png) | Onboarding | Desktop 1440 x 900 | Derived activation steps and completed progress. |
+| [assisted-command-palette.png](screenshots/assisted-command-palette.png) | Command Palette | Desktop 1440 x 900 | Permission-aware actions and navigation. |
+| [assisted-global-search.png](screenshots/assisted-global-search.png) | Global search | Desktop 1440 x 900 | Tenant-scoped grouped search results. |
+| [assisted-client-wizard.png](screenshots/assisted-client-wizard.png) | Client wizard | Desktop 1440 x 900 | Progressive identity, contact, address, and review flow. |
+| [assisted-quotation-wizard.png](screenshots/assisted-quotation-wizard.png) | Quotation wizard | Desktop 1440 x 900 | Four-stage quotation workflow with sticky totals. |
+| [assisted-event-wizard.png](screenshots/assisted-event-wizard.png) | Event wizard | Desktop 1440 x 900 | Guided quotation-based or manual event creation. |
+| [assisted-client-timeline.png](screenshots/assisted-client-timeline.png) | Client timeline | Desktop 1440 x 900 | Unified interactions, quotations, events, actors, and status. |
+| [assisted-recent-activity.png](screenshots/assisted-recent-activity.png) | Recent activity | Desktop 1440 x 900 | Reusable organization activity feed backed by AuditLog. |
+| [assisted-empty-state.png](screenshots/assisted-empty-state.png) | Actionable empty state | Desktop 1440 x 900 | Benefit-oriented empty client state with direct action. |
+| [mobile-assisted-dashboard.png](screenshots/mobile-assisted-dashboard.png) | Assisted dashboard | Mobile 390 x 844 | Responsive priorities and operational metrics. |
+| [mobile-assisted-onboarding.png](screenshots/mobile-assisted-onboarding.png) | Onboarding | Mobile 390 x 844 | New-organization activation flow on mobile. |
+| [mobile-assisted-search.png](screenshots/mobile-assisted-search.png) | Global search | Mobile 390 x 844 | Keyboard-accessible search overlay on mobile. |
+| [mobile-assisted-quotation-wizard.png](screenshots/mobile-assisted-quotation-wizard.png) | Quotation wizard | Mobile 390 x 844 | Compact wizard with expandable total summary. |
+| [mobile-assisted-event.png](screenshots/mobile-assisted-event.png) | Event wizard | Mobile 390 x 844 | Guided event creation at the target mobile viewport. |
+
 | File | Screen | Viewport | Description |
 | --- | --- | --- | --- |
 | [01-login.png](screenshots/01-login.png) | Login | Desktop 1440 x 900 | Public sign-in screen with Kaklen branding, navigation, and language selector. |

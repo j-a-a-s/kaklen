@@ -6,6 +6,7 @@ const apiPort = Number(process.env.PORT ?? 3000);
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
+  actionTimeout: 15_000,
   expect: {
     timeout: 10_000
   },

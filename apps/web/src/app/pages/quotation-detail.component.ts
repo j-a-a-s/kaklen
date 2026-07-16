@@ -7,6 +7,8 @@ import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { AssistantService } from "../assistant/assistant.service";
+import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 @Component({
@@ -94,6 +96,7 @@ export class QuotationDetailComponent implements OnInit {
   readonly cancelDialogAction = $localize`:@@cancelDefinitelyButton:Cancelar definitivamente`;
   organizationId = "";
   quotationId = "";
+  private initialQuotationApproved = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -101,14 +104,21 @@ export class QuotationDetailComponent implements OnInit {
     private readonly organizationService: OrganizationService,
     private readonly quotationsService: QuotationsService,
     private readonly localeService: LocaleService,
-    private readonly notifications: NotificationService
+    private readonly notifications: NotificationService,
+    private readonly assistantService: AssistantService,
+    private readonly analytics: ProductAnalyticsService
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.organizationId = this.route.snapshot.paramMap.get("organizationId") ?? "";
     this.quotationId = this.route.snapshot.paramMap.get("quotationId") ?? "";
     await this.organizationService.setActiveOrganization(this.organizationId);
-    await this.load();
+    await Promise.all([
+      this.load(),
+      this.assistantService.activation(this.organizationId).then((activation) => {
+        this.initialQuotationApproved = activation.completedSteps.includes("first_quotation_approved");
+      })
+    ]);
   }
 
   canUpdate(): boolean {
@@ -136,6 +146,10 @@ export class QuotationDetailComponent implements OnInit {
       this.quotation.set(await this.quotationsService.changeStatus(this.organizationId, this.quotationId, action));
       this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
       this.notifications.success(this.statusSuccessMessage(action));
+      if (action === "approve" && !this.initialQuotationApproved) {
+        this.analytics.track("first_quotation_approved", { flow: "quotation", source: "detail" });
+        this.initialQuotationApproved = true;
+      }
       this.cancelRequested.set(false);
     } catch (error) {
       this.notifications.fromError(error);
