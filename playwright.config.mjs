@@ -1,7 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
 const webPort = Number(process.env.WEB_PORT ?? 4200);
-const apiPort = Number(process.env.PORT ?? 3000);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -16,22 +15,8 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: `http://localhost:${webPort}/es`,
-    trace: "retain-on-failure"
-  },
-  webServer: {
-    command: "node scripts/dev-full-i18n.mjs",
-    url: `http://localhost:${webPort}/es/login`,
-    reuseExistingServer: !process.env.CI,
-    gracefulShutdown: {
-      signal: "SIGINT",
-      timeout: 5000
-    },
-    timeout: 300_000,
-    env: {
-      ...process.env,
-      PORT: String(apiPort),
-      WEB_PORT: String(webPort),
-      TRUST_PROXY: "true"
-    }
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure"
   }
 });

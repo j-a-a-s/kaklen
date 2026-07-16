@@ -47,10 +47,11 @@ test("api clean removes the complete dist directory", () => {
 test("dev:full:i18n cleans API dist before starting watch mode", () => {
   const script = readText("scripts/dev-full-i18n.mjs");
   const cleanIndex = script.indexOf('["--filter", "@kaklen/api", "clean"]');
-  const devIndex = script.indexOf('["--filter", "@kaklen/api", "dev"]');
+  const devIndex = script.indexOf('resolve("apps/api/node_modules/@nestjs/cli/bin/nest.js")');
 
   assert.ok(cleanIndex > 0);
   assert.ok(devIndex > cleanIndex);
+  assert.doesNotMatch(script, /\["--filter", "@kaklen\/api", "dev"\]/);
 });
 
 function readText(path) {

@@ -205,7 +205,7 @@ test("quality gate verifies idempotence and restores demo data after E2E mutatio
   const source = readFileSync(new URL("./quality-gate.mjs", import.meta.url), "utf8");
   const firstSeed = source.indexOf("Demo seed\"");
   const secondSeed = source.indexOf("Demo seed idempotence");
-  const e2e = source.indexOf("Assisted product E2E");
+  const e2e = source.indexOf('["E2E", "pnpm", ["e2e"]]');
   const restore = source.indexOf("Demo restore after E2E");
   const finalVerification = source.indexOf("Demo final verification");
   assert.ok(firstSeed >= 0 && secondSeed > firstSeed);

@@ -20,7 +20,7 @@ const checks = [
   ["Localized build en", "pnpm", ["--filter", "@kaklen/web", "build:en"]],
   ["Localized build pt-BR", "pnpm", ["--filter", "@kaklen/web", "build:pt-BR"]],
   ["Localized server verification", "pnpm", ["verify:i18n-server"]],
-  ["Assisted product E2E", "pnpm", ["e2e"]],
+  ["E2E", "pnpm", ["e2e"]],
   ["Accessibility and responsive", "pnpm", ["accessibility:test"]],
   ["Release check", "pnpm", ["release:check"]],
   ["Demo restore after E2E", "pnpm", ["db:seed:demo"]],
@@ -33,7 +33,7 @@ for (const [label, command, args] of checks) {
   console.log(`\n== ${label} ==`);
   const result = await run(command, args);
   if (!result.ok) {
-    console.error(`\nQUALITY GATE FAILED\nControl fallido: ${label}\nDetalle: ${result.detail}`);
+    console.error(`\nQUALITY GATE FAILED\nControl: ${label}\nCause: ${result.detail}`);
     process.exit(1);
   }
 }

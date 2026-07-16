@@ -23,6 +23,8 @@ Comandos utiles:
 - `pnpm dev:i18n`: limpia artefactos, genera runtime config, construye y sirve solo los builds localizados en `/es`, `/en` y `/pt-BR`.
 - `pnpm dev:full:i18n`: levanta PostgreSQL, servicios auxiliares, API NestJS y frontend localizado para validar el MVP completo.
 - `pnpm verify:full-local`: valida health, frontend localizado, runtime config, CORS y conectividad del login.
+- `pnpm e2e`: prepara API y frontend localizado, ejecuta Playwright y limpia todos los procesos que inició.
+- `pnpm e2e:ui`: abre Playwright UI bajo el mismo ciclo controlado; `Ctrl+C` ejecuta cleanup.
 - `pnpm clean:dev`: limpia caches locales sin borrar `.env`, `node_modules`, datos ni volumenes Docker.
 - `pnpm verify`: ejecuta doctor, lint, test y build.
 
@@ -51,6 +53,17 @@ pnpm dev:full:i18n
 No uses solo `pnpm dev:i18n` para pruebas de autenticacion o CRUD: ese comando esta limitado al frontend localizado y no garantiza que la API NestJS este levantada.
 
 La informacion de version en login esta oculta por defecto y se revela solo con el atajo de diagnostico `Cmd/Ctrl + K`, soltar, luego `O`.
+
+## E2E y Quality Gate
+
+`pnpm e2e` es la única ruta oficial para Playwright. El runner comprueba puertos libres, espera health real de API y web, conserva el código de Playwright y considera `SIGTERM` esperado únicamente durante su propio cleanup. No reutiliza servidores iniciados manualmente.
+
+```bash
+pnpm e2e
+pnpm quality:gate
+```
+
+El Quality Gate se detiene ante el primer control no exitoso y termina con `QUALITY GATE PASSED` solo cuando todos devuelven 0. La arquitectura, señales, códigos de salida y troubleshooting están documentados en [docs/testing/E2E_PROCESS_LIFECYCLE.md](docs/testing/E2E_PROCESS_LIFECYCLE.md).
 
 Si sospechas cache del navegador o builds antiguos:
 

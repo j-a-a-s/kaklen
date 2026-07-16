@@ -146,7 +146,13 @@ async function main() {
   if (!apiPortAvailable) {
     throw new Error(`El puerto ${apiPort} sigue ocupado. Detenga la API anterior antes de continuar.`);
   }
-  const apiProcess = startManagedProcess("api", "pnpm", ["--filter", "@kaklen/api", "dev"], runtimeEnv);
+  const apiProcess = startManagedProcess(
+    "api",
+    process.execPath,
+    [resolve("apps/api/node_modules/@nestjs/cli/bin/nest.js"), "start", "--watch"],
+    runtimeEnv,
+    { cwd: resolve("apps/api") }
+  );
   await waitForHttp(apiHealthLiveUrl(), { timeoutMs: 120000 });
   await delay(500);
   if (hasExited(apiProcess.child)) {
@@ -218,11 +224,12 @@ async function waitForDatabase(databaseUrl) {
   return last;
 }
 
-function startManagedProcess(label, command, args, env) {
+function startManagedProcess(label, command, args, env, options = {}) {
   const child = spawn(command, args, {
     stdio: "inherit",
     shell: false,
     env,
+    cwd: options.cwd,
     detached: process.platform !== "win32"
   });
   const managed = { label, child, stopping: false };

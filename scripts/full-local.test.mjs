@@ -14,7 +14,9 @@ test("dev:full:i18n orchestrates API and localized frontend", () => {
   assert.match(script, /services\.push\("mailpit"\)/);
   assert.match(script, /"pnpm", \["prisma:generate"\]/);
   assert.match(script, /"pnpm", \["prisma:migrate"\]/);
-  assert.match(script, /"pnpm", \["--filter", "@kaklen\/api", "dev"\]/);
+  assert.match(script, /apps\/api\/node_modules\/@nestjs\/cli\/bin\/nest\.js/);
+  assert.match(script, /"start", "--watch"/);
+  assert.doesNotMatch(script, /"pnpm", \["--filter", "@kaklen\/api", "dev"\]/);
   assert.match(script, /createI18nServer\(\{ distRoot, port: webPort/);
 });
 
@@ -47,6 +49,7 @@ test("dev:full:i18n propagates shutdown to child processes", () => {
   assert.match(script, /await closeServer\(server\)/);
   assert.match(script, /httpServer\.close/);
   assert.match(script, /httpServer\.closeAllConnections/);
+  assert.doesNotMatch(script, /ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL/);
 });
 
 test("dev:full:i18n does not accept a stale API process", () => {

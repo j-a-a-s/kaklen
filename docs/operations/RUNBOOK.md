@@ -18,7 +18,8 @@ curl http://localhost:3000/api/health/ready
 | Frontend localized route blank | `pnpm verify:i18n-server` | Check base href, MIME and localized bundle root |
 | Login says server unavailable | `/api/health/ready` | Start API with `pnpm dev:full:i18n` |
 | Swagger unavailable | `/docs` | Confirm API process is running on port 3000 |
-| E2E leaves process alive | `pnpm e2e` | Playwright uses graceful shutdown and Node orchestrator |
+| E2E deja un proceso activo | `pnpm e2e` | Revise `[e2e:cleanup]`; el runner termina sus grupos con SIGTERM y escala a SIGKILL con warning |
+| E2E informa puerto ocupado | `lsof -nP -iTCP:3000 -iTCP:4200 -sTCP:LISTEN` | Detenga el entorno manual; el runner no reutiliza ni mata procesos ajenos |
 
 ## Pre-Tag Commands
 
