@@ -17,6 +17,7 @@ import {
   ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -29,6 +30,10 @@ import { readAuthConfig } from "@kaklen/config";
 import { AuthService } from "./auth.service";
 import type { AuthenticatedRequest, CookieRequest } from "./auth.types";
 import { AuthResponseDto, AuthUserDto, MessageResponseDto } from "./dto/auth-response.dto";
+import {
+  ResendVerificationEmailDto,
+  VerifyEmailDto
+} from "./dto/email-verification.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ForgotPasswordDto, ResetPasswordDto } from "./dto/password-recovery.dto";
 import { RegisterDto } from "./dto/register.dto";
@@ -46,19 +51,13 @@ export class AuthController {
   @Post("register")
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: "Register a new user" })
-  @ApiCreatedResponse({ type: AuthResponseDto })
+  @ApiCreatedResponse({ type: MessageResponseDto })
   @ApiConflictResponse({ description: "Email is already registered" })
-  async register(
+  register(
     @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) response: Response
-  ): Promise<AuthResponseDto> {
-    const result = await this.authService.register(dto);
-    this.setRefreshCookie(response, result.refreshToken);
-
-    return {
-      user: result.user,
-      accessToken: result.accessToken
-    };
+    @Req() request: Request
+  ): Promise<MessageResponseDto> {
+    return this.authService.register(dto, this.authRequestContext(request));
   }
 
   @Post("login")
@@ -67,6 +66,7 @@ export class AuthController {
   @ApiOperation({ summary: "Login with email and password" })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: "Invalid credentials" })
+  @ApiForbiddenResponse({ description: "Email address has not been verified" })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response
@@ -80,6 +80,32 @@ export class AuthController {
     };
   }
 
+  @Post("verify-email")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: "Confirm an email address using a single-use token" })
+  @ApiOkResponse({ type: MessageResponseDto })
+  @ApiBadRequestResponse({ description: "Verification token is invalid" })
+  verifyEmail(@Body() dto: VerifyEmailDto): Promise<MessageResponseDto> {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Post("resend-verification-email")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @ApiOperation({ summary: "Resend account confirmation instructions when eligible" })
+  @ApiOkResponse({ type: MessageResponseDto })
+  @ApiTooManyRequestsResponse({ description: "Too many resend attempts" })
+  resendVerificationEmail(
+    @Body() dto: ResendVerificationEmailDto,
+    @Req() request: Request
+  ): Promise<MessageResponseDto> {
+    return this.authService.resendVerificationEmail(
+      dto,
+      this.authRequestContext(request)
+    );
+  }
+
   @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
   @SkipThrottle()
@@ -89,7 +115,7 @@ export class AuthController {
     @Body() dto: ForgotPasswordDto,
     @Req() request: Request
   ): Promise<MessageResponseDto> {
-    return this.authService.forgotPassword(dto, this.passwordRecoveryContext(request));
+    return this.authService.forgotPassword(dto, this.authRequestContext(request));
   }
 
   @Post("reset-password")
@@ -103,7 +129,7 @@ export class AuthController {
     @Body() dto: ResetPasswordDto,
     @Req() request: Request
   ): Promise<MessageResponseDto> {
-    return this.authService.resetPassword(dto, this.passwordRecoveryContext(request));
+    return this.authService.resetPassword(dto, this.authRequestContext(request));
   }
 
   @Post("refresh")
@@ -201,7 +227,7 @@ export class AuthController {
     }
   }
 
-  private passwordRecoveryContext(request: Request & { requestId?: string }): {
+  private authRequestContext(request: Request & { requestId?: string }): {
     ipAddress: string;
     userAgent?: string;
     requestId?: string;

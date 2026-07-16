@@ -43,7 +43,7 @@ interface LoginForm {
           <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
           <label>
             <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-            <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="login-email-error" />
+            <input id="login-email" type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="login-email-error" />
             <kaklen-field-error id="login-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
           </label>
 
@@ -59,6 +59,13 @@ interface LoginForm {
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
+          <div class="verification-actions" *ngIf="emailNotVerified()">
+            <p class="form-success" *ngIf="resendMessage()" role="status">{{ resendMessage() }}</p>
+            <button type="button" class="secondary" [disabled]="resending()" (click)="resendVerification()">{{ resendLabel() }}</button>
+            <button type="button" class="ghost" (click)="changeEmail()" i18n="@@changeEmailAction">Cambiar email</button>
+            <a routerLink="/resend-verification" i18n="@@openResendVerificationPage">Usar otro correo</a>
+          </div>
+
           <button type="submit" [disabled]="loading()">
             <kaklen-icon name="log-in" /><span>{{ submitLabel() }}</span>
           </button>
@@ -73,6 +80,9 @@ interface LoginForm {
 export class LoginComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly emailNotVerified = signal(false);
+  readonly resending = signal(false);
+  readonly resendMessage = signal<string | null>(null);
   readonly submitAttempted = signal(false);
   readonly versionPanelVisible = signal(false);
   readonly passwordErrorLabel = $localize`:@@passwordValidation:La contraseña debe tener al menos 10 caracteres.`;
@@ -137,6 +147,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.loading.set(true);
     this.error.set(null);
+    this.emailNotVerified.set(false);
+    this.resendMessage.set(null);
 
     try {
       await this.authService.healthReady();
@@ -145,6 +157,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       await this.router.navigateByUrl("/dashboard");
     } catch (error) {
       this.error.set(messageForLoginError(error));
+      this.emailNotVerified.set(errorCodeFromResponse(error) === "EMAIL_NOT_VERIFIED");
     } finally {
       this.loading.set(false);
     }
@@ -152,6 +165,36 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   submitLabel(): string {
     return this.loading() ? $localize`:@@loginSubmitting:Ingresando...` : $localize`:@@loginSubmit:Ingresar`;
+  }
+
+  async resendVerification(): Promise<void> {
+    if (this.resending() || !this.emailNotVerified()) return;
+    this.resending.set(true);
+    this.resendMessage.set(null);
+    try {
+      await this.authService.resendVerificationEmail({
+        email: normalizeEmail(this.form.controls.email.value)
+      });
+      this.resendMessage.set($localize`:@@verificationResentMessage:Si tu cuenta sigue pendiente, enviamos un nuevo correo de confirmación.`);
+    } catch {
+      this.error.set($localize`:@@verificationResendError:No pudimos solicitar el reenvío. Intenta nuevamente.`);
+    } finally {
+      this.resending.set(false);
+    }
+  }
+
+  changeEmail(): void {
+    this.emailNotVerified.set(false);
+    this.resendMessage.set(null);
+    this.error.set(null);
+    this.form.controls.password.setValue("");
+    document.getElementById("login-email")?.focus();
+  }
+
+  resendLabel(): string {
+    return this.resending()
+      ? $localize`:@@verificationResendingLabel:Enviando...`
+      : $localize`:@@resendVerificationAction:Reenviar correo de confirmación`;
   }
 }
 
@@ -161,6 +204,9 @@ export function messageForLoginError(error: unknown): string {
   }
 
   if (error instanceof HttpErrorResponse) {
+    if (error.status === 403 && errorCodeFromResponse(error) === "EMAIL_NOT_VERIFIED") {
+      return $localize`:@@emailNotVerifiedMessage:Tu correo aún no ha sido confirmado.`;
+    }
     if (error.status === 401) {
       return $localize`:@@loginError:Email o contraseña inválidos.`;
     }
@@ -176,6 +222,16 @@ export function messageForLoginError(error: unknown): string {
   }
 
   return $localize`:@@loginServiceUnavailable:El servicio no está disponible temporalmente.`;
+}
+
+export function errorCodeFromResponse(error: unknown): string | null {
+  if (!(error instanceof HttpErrorResponse)) return null;
+  const body: unknown = error.error;
+  if (body && typeof body === "object" && "code" in body) {
+    const code = (body as { code?: unknown }).code;
+    return typeof code === "string" ? code : null;
+  }
+  return null;
 }
 
 function isTimeoutError(error: unknown): boolean {

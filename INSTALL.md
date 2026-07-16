@@ -47,9 +47,9 @@ Abre `http://localhost:4200/es/login`, `http://localhost:4200/en/login` o `http:
 
 No uses solo `pnpm dev:i18n` para pruebas de autenticación o CRUD, porque ese comando puede estar limitado al frontend localizado y no garantiza que la API NestJS esté disponible.
 
-## Recuperacion de contraseña local
+## Correo de autenticacion local
 
-`pnpm dev:full:i18n` levanta tambien Mailpit. Solicita la recuperacion desde Login y abre `http://localhost:8025` para inspeccionar el correo y seguir el enlace localizado.
+`pnpm dev:full:i18n` levanta tambien Mailpit. Registra una cuenta nueva o solicita la recuperacion desde Login, abre `http://localhost:8025` y sigue el enlace localizado. Una cuenta nueva no inicia sesion hasta confirmar su correo y luego debe ingresar manualmente.
 
 Comprueba la conexion antes del recorrido:
 

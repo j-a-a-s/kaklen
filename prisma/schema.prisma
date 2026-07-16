@@ -16,10 +16,12 @@ model User {
   authVersion                Int                      @default(0)
   locale                     String                   @default("es")
   status                     UserStatus               @default(ACTIVE)
+  emailVerifiedAt            DateTime?
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
   refreshTokens              RefreshToken[]
   passwordResetTokens        PasswordResetToken[]
+  emailVerificationTokens    EmailVerificationToken[]
   authAuditLogs              AuthAuditLog[]
   createdOrganizations       Organization[]           @relation("OrganizationCreator")
   organizationMemberships    OrganizationMembership[]
@@ -34,6 +36,23 @@ model User {
   assignedEventTasks         EventTask[]              @relation("EventTaskAssignee")
   createdEventTasks          EventTask[]              @relation("EventTaskCreator")
   eventParticipants          EventParticipant[]
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([sentAt])
+  @@index([usedAt])
 }
 
 model PasswordResetToken {
@@ -83,7 +102,9 @@ model RefreshToken {
 
 enum UserStatus {
   ACTIVE
-  DISABLED
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
 }
 
 model Organization {

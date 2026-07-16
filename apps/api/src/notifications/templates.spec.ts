@@ -1,4 +1,52 @@
-import { normalizeNotificationLocale, renderPasswordResetEmail, renderQuotationEmail } from "./templates";
+import {
+  normalizeNotificationLocale,
+  renderEmailVerificationEmail,
+  renderPasswordResetEmail,
+  renderQuotationEmail
+} from "./templates";
+
+describe("email verification templates", () => {
+  it.each([
+    ["es", "Confirma tu cuenta de Kaklen", "Confirmar correo", "1 día"],
+    ["en", "Confirm your Kaklen account", "Confirm email", "1 day"],
+    ["pt-BR", "Confirme sua conta do Kaklen", "Confirmar e-mail", "1 dia"]
+  ] as const)("renders a complete %s template", (locale, subject, action, expiry) => {
+    const message = renderEmailVerificationEmail(locale, {
+      verificationUrl: `http://localhost:4200/${locale}/verify-email?token=a&next=<unsafe>`,
+      expiresMinutes: 1440
+    });
+
+    expect(message.subject).toBe(subject);
+    expect(message.text).toContain(action);
+    expect(message.text).toContain(expiry);
+    expect(message.html).toContain(action);
+    expect(message.html).toContain("token=a&amp;next=&lt;unsafe&gt;");
+    expect(message.html).not.toContain("next=<unsafe>");
+  });
+
+  it.each([
+    ["es", 2880, "2 días"],
+    ["en", 2880, "2 days"],
+    ["pt-BR", 2880, "2 dias"],
+    ["es", 60, "1 hora"],
+    ["en", 60, "1 hour"],
+    ["pt-BR", 60, "1 hora"],
+    ["es", 120, "2 horas"],
+    ["en", 120, "2 hours"],
+    ["pt-BR", 120, "2 horas"],
+    ["es", 1, "1 minuto"],
+    ["en", 1, "1 minute"],
+    ["pt-BR", 1, "1 minuto"]
+  ] as const)("formats a %s expiration of %i minutes as %s", (locale, expiresMinutes, expected) => {
+    const message = renderEmailVerificationEmail(locale, {
+      verificationUrl: `http://localhost:4200/${locale}/verify-email?token=duration`,
+      expiresMinutes
+    });
+
+    expect(message.text).toContain(expected);
+    expect(message.html).toContain(expected);
+  });
+});
 
 describe("password reset email templates", () => {
   it.each([

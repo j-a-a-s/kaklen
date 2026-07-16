@@ -4,7 +4,7 @@
 
 1. The user opens `/:locale/forgot-password` from Login and submits an email address.
 2. `POST /api/auth/forgot-password` normalizes the address and always returns the same public message.
-3. For an active account, the API revokes valid tokens, creates 48 random bytes, and saves only the SHA-256 hash.
+3. For an active and email-verified account, the API revokes valid tokens, creates 48 random bytes, and saves only the SHA-256 hash. Pending accounts receive the same public response but no reset token or email.
 4. SMTP sends an `es`, `en`, or `pt-BR` template with a link built from `APP_PUBLIC_URL`.
 5. The token receives `sentAt` only after SMTP accepts the recipient and returns a `messageId`.
 6. `/:locale/reset-password?token=...` submits the new password to `POST /api/auth/reset-password`.

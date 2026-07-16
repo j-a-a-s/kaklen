@@ -131,6 +131,8 @@ La autenticacion expone:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/auth/verify-email`
+- `POST /api/auth/resend-verification-email`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
@@ -146,6 +148,12 @@ AUTH_ALLOWED_ORIGINS="http://localhost:4200"
 COOKIE_SECURE=false
 ```
 
+### Confirmacion obligatoria de correo
+
+El registro crea una cuenta `ACTIVE` pendiente con `emailVerifiedAt = null`, envia un enlace localizado y responde solo con un mensaje. No emite access token, refresh token ni cookie, y la interfaz permanece anonima. Login devuelve `403 EMAIL_NOT_VERIFIED` hasta que `POST /api/auth/verify-email` consume el enlace de un solo uso; el usuario inicia sesion manualmente despues.
+
+El reenvio mediante `POST /api/auth/resend-verification-email` siempre entrega una respuesta publica generica, revoca enlaces anteriores y aplica limites por IP y correo normalizado. Si SMTP falla, la cuenta se conserva pendiente, el token fallido se revoca y el fallo queda en log y auditoria para permitir un reenvio posterior.
+
 ### Recuperacion de contraseña
 
 El enlace `¿Olvidaste tu contraseña?` de Login inicia un flujo con respuesta publica generica, token aleatorio de un solo uso almacenado como SHA-256 y vencimiento configurable. Al completar el cambio se revocan todos los refresh tokens y se incrementa la version de sesion para invalidar access tokens anteriores.
@@ -154,6 +162,7 @@ Configuracion local:
 
 ```bash
 APP_PUBLIC_URL=http://localhost:4200
+EMAIL_VERIFICATION_EXPIRES_MINUTES=1440
 PASSWORD_RESET_EXPIRES_MINUTES=30
 MAIL_FROM="Kaklen <no-reply@kaklen.local>"
 MAIL_HOST=localhost
@@ -172,7 +181,7 @@ Verifica SMTP antes de probar el formulario:
 pnpm mail:verify
 ```
 
-Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con destinatario, locale y `messageId`; nunca contiene el token, la URL completa, la contraseña ni credenciales SMTP. La especificacion de seguridad y operacion vive en `docs/auth/PASSWORD_RECOVERY.md` y la guia local en `docs/notifications/LOCAL_EMAIL_TESTING.md`.
+Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con destinatario, locale y `messageId`; nunca contiene el token, la URL completa, la contraseña ni credenciales SMTP. Las especificaciones viven en [confirmacion de correo](docs/auth/EMAIL_VERIFICATION.md), [recuperacion de contraseña](docs/auth/PASSWORD_RECOVERY.md) y la [guia de correo local](docs/notifications/LOCAL_EMAIL_TESTING.md).
 
 ## Internacionalizacion y configuracion regional
 

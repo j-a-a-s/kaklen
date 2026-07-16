@@ -20,7 +20,8 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   locale: string;
-  status: "ACTIVE" | "DISABLED";
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "ARCHIVED";
+  emailVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

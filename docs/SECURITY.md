@@ -30,10 +30,12 @@ Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The f
 - The request response does not confirm whether an account exists or is active.
 - IP and user-agent values are stored only as HMAC values for audit support; passwords, tokens, and full email addresses are not logged.
 - A successful reset updates Argon2id, consumes the token, revokes refresh tokens, and increments `User.authVersion` in one transaction.
+- Registration creates no session. Login, refresh, JWT guards, and password recovery require `emailVerifiedAt` in addition to `User.status = ACTIVE`.
+- Email verification tokens are random, stored only as SHA-256 hashes, expire, are single-use, and are rotated on resend. SMTP failure revokes the undelivered token while preserving the pending account.
 - `JwtAuthGuard` compares the JWT session version with the current user version.
 - Limits by IP, normalized email, and token reduce spam and automated attempts.
 
-See [Password Recovery](auth/PASSWORD_RECOVERY.md) for the complete flow and environment configuration.
+See [Email Verification](auth/EMAIL_VERIFICATION.md) and [Password Recovery](auth/PASSWORD_RECOVERY.md) for the complete flows and environment configuration.
 
 ## Dependency Updates
 

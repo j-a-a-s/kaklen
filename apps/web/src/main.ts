@@ -22,6 +22,8 @@ import { LoginComponent } from "./app/pages/login.component";
 import { RegisterComponent } from "./app/pages/register.component";
 import { ForgotPasswordComponent } from "./app/pages/forgot-password.component";
 import { ResetPasswordComponent } from "./app/pages/reset-password.component";
+import { ResendVerificationComponent } from "./app/pages/resend-verification.component";
+import { VerifyEmailComponent } from "./app/pages/verify-email.component";
 import { AcceptInvitationComponent } from "./app/pages/accept-invitation.component";
 import { OrganizationMembersComponent } from "./app/pages/organization-members.component";
 import { OrganizationNewComponent } from "./app/pages/organization-new.component";
@@ -78,6 +80,8 @@ const routes: Routes = [
   { path: "register", component: RegisterComponent },
   { path: "forgot-password", component: ForgotPasswordComponent },
   { path: "reset-password", component: ResetPasswordComponent },
+  { path: "verify-email", component: VerifyEmailComponent },
+  { path: "resend-verification", component: ResendVerificationComponent },
   { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
   { path: "organizations", component: OrganizationsListComponent, canActivate: [authGuard] },
   { path: "organizations/new", component: OrganizationNewComponent, canActivate: [authGuard] },

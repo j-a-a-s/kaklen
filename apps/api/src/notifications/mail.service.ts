@@ -4,11 +4,12 @@ import nodemailer from "nodemailer";
 import { readPasswordRecoveryConfig, type PasswordRecoveryConfig } from "@kaklen/config";
 import {
   normalizeNotificationLocale,
+  renderEmailVerificationEmail,
   renderPasswordResetEmail,
   type NotificationLocale
 } from "./templates";
 
-export type MailType = "password_reset" | "quotation";
+export type MailType = "email_verification" | "password_reset" | "quotation";
 
 export interface MailMessage {
   mailType: MailType;
@@ -31,6 +32,14 @@ export interface PasswordResetEmailRequest {
   recipient: string;
   locale: string | null | undefined;
   resetUrl: string;
+  expiresInMinutes: number;
+  requestId?: string;
+}
+
+export interface EmailVerificationRequest {
+  recipient: string;
+  locale: string | null | undefined;
+  verificationUrl: string;
   expiresInMinutes: number;
   requestId?: string;
 }
@@ -84,6 +93,13 @@ export class MailService implements OnModuleDestroy {
     return {
       appPublicUrl: this.config.appPublicUrl,
       expiresMinutes: this.config.expiresMinutes
+    };
+  }
+
+  getEmailVerificationPolicy(): { appPublicUrl: string; expiresMinutes: number } {
+    return {
+      appPublicUrl: this.config.appPublicUrl,
+      expiresMinutes: this.config.emailVerificationExpiresMinutes
     };
   }
 
@@ -145,6 +161,50 @@ export class MailService implements OnModuleDestroy {
 
     return this.send({
       mailType: "password_reset",
+      locale,
+      to: request.recipient,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+      ...(request.requestId ? { requestId: request.requestId } : {})
+    });
+  }
+
+  async sendEmailVerification(
+    request: EmailVerificationRequest
+  ): Promise<MailDeliveryReceipt> {
+    const locale = normalizeNotificationLocale(request.locale);
+    let content: ReturnType<typeof renderEmailVerificationEmail>;
+    try {
+      this.assertEmailVerificationRequest(request, locale);
+      content = renderEmailVerificationEmail(locale, {
+        verificationUrl: request.verificationUrl,
+        expiresMinutes: request.expiresInMinutes
+      });
+    } catch (error) {
+      const deliveryError = this.toDeliveryError(
+        error,
+        "MAIL_TEMPLATE_FAILED",
+        "validation"
+      );
+      this.logFailure(
+        {
+          mailType: "email_verification",
+          locale,
+          to: request.recipient,
+          subject: "",
+          text: "",
+          html: "",
+          ...(request.requestId ? { requestId: request.requestId } : {})
+        },
+        normalizeRecipient(request.recipient),
+        deliveryError
+      );
+      throw deliveryError;
+    }
+
+    return this.send({
+      mailType: "email_verification",
       locale,
       to: request.recipient,
       subject: content.subject,
@@ -225,6 +285,46 @@ export class MailService implements OnModuleDestroy {
         "MAIL_RESET_URL_INVALID",
         "validation",
         "Password reset URL does not match the configured application"
+      );
+    }
+  }
+
+  private assertEmailVerificationRequest(
+    request: EmailVerificationRequest,
+    locale: NotificationLocale
+  ): void {
+    if (
+      !Number.isInteger(request.expiresInMinutes) ||
+      request.expiresInMinutes <= 0 ||
+      request.expiresInMinutes > 10080
+    ) {
+      throw new MailDeliveryError(
+        "MAIL_TEMPLATE_INPUT_INVALID",
+        "validation",
+        "Email verification expiration is invalid"
+      );
+    }
+
+    let verificationUrl: URL;
+    try {
+      verificationUrl = new URL(request.verificationUrl);
+    } catch {
+      throw new MailDeliveryError(
+        "MAIL_VERIFICATION_URL_INVALID",
+        "validation",
+        "Email verification URL is invalid"
+      );
+    }
+    const configuredUrl = new URL(this.config.appPublicUrl);
+    if (
+      verificationUrl.origin !== configuredUrl.origin ||
+      verificationUrl.pathname !== `/${locale}/verify-email` ||
+      !verificationUrl.searchParams.get("token")
+    ) {
+      throw new MailDeliveryError(
+        "MAIL_VERIFICATION_URL_INVALID",
+        "validation",
+        "Email verification URL does not match the configured application"
       );
     }
   }

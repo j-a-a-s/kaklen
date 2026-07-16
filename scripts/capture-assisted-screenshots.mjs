@@ -86,7 +86,10 @@ async function createTemporaryOrganization() {
   const api = await request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
   const register = await api.post("/api/auth/register", { data: { email: temporaryEmail, firstName: "Auditoría", lastName: "Visual", password: temporaryPassword } });
   if (register.status() !== 201) throw new Error(`Temporary registration failed with ${register.status()}`);
-  const token = (await register.json()).accessToken;
+  await prisma.user.update({ where: { email: temporaryEmail }, data: { emailVerifiedAt: new Date() } });
+  const login = await api.post("/api/auth/login", { data: { email: temporaryEmail, password: temporaryPassword } });
+  if (login.status() !== 200) throw new Error(`Temporary login failed with ${login.status()}`);
+  const token = (await login.json()).accessToken;
   const organization = await api.post("/api/organizations", {
     headers: { Authorization: `Bearer ${token}` },
     data: { name: "Espacio nuevo de demostración" }

@@ -10,6 +10,7 @@ import {
   type PasswordResetEmailRequest
 } from "../notifications/mail.service";
 import { AuthService } from "./auth.service";
+import { EmailVerificationRateLimitService } from "./email-verification-rate-limit.service";
 import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
 
 interface TokenWhere {
@@ -182,6 +183,7 @@ describe("AuthService password recovery", () => {
       authVersion: 0,
       locale: "es",
       status: UserStatus.ACTIVE,
+      emailVerifiedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -205,7 +207,8 @@ describe("AuthService password recovery", () => {
       prisma as unknown as ConstructorParameters<typeof AuthService>[0],
       new JwtService(),
       mailService as unknown as ConstructorParameters<typeof AuthService>[2],
-      new PasswordRecoveryRateLimitService()
+      new PasswordRecoveryRateLimitService(),
+      new EmailVerificationRateLimitService()
     );
   });
 
@@ -256,7 +259,17 @@ describe("AuthService password recovery", () => {
   });
 
   it("does not issue recovery email for an inactive account", async () => {
-    prisma.users[0].status = UserStatus.DISABLED;
+    prisma.users[0].status = UserStatus.INACTIVE;
+
+    const response = await service.forgotPassword({ email: "ada@example.com" }, context);
+
+    expect(response.message).toContain("Si existe una cuenta asociada");
+    expect(sentMessages).toHaveLength(0);
+    expect(prisma.passwordResetTokens).toHaveLength(0);
+  });
+
+  it("does not issue recovery email for an unverified account", async () => {
+    prisma.users[0].emailVerifiedAt = null;
 
     const response = await service.forgotPassword({ email: "ada@example.com" }, context);
 

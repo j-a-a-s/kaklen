@@ -22,12 +22,14 @@ async function main() {
       firstName: "Admin",
       lastName: "Demo",
       passwordHash,
-      locale: "es"
+      locale: "es",
+      emailVerifiedAt: new Date()
     },
     update: {
       firstName: "Admin",
       lastName: "Demo",
-      locale: "es"
+      locale: "es",
+      emailVerifiedAt: new Date()
     }
   });
 

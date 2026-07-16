@@ -4,7 +4,8 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   locale: string;
-  status: "ACTIVE" | "DISABLED";
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "ARCHIVED";
+  emailVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +23,15 @@ export interface LoginRequest {
 export interface RegisterRequest extends LoginRequest {
   firstName: string;
   lastName: string;
+  locale: "es" | "en" | "pt-BR";
+}
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface ResendVerificationEmailRequest {
+  email: string;
 }
 
 export interface UpdatePreferencesRequest {

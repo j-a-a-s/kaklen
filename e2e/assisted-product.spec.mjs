@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { waitForMailpitEmail } from "./support/mailpit.mjs";
 
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
 const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
 const demoPassword = "KaklenDemo2026!";
+const verificationUrlPattern = /https?:\/\/[^\s"<>]+\/(?:es|en|pt-BR)\/verify-email\?token=[A-Za-z0-9_-]+/;
 
 test.describe.serial("Kaklen assisted product journey", () => {
   test.setTimeout(240_000);
@@ -17,7 +19,10 @@ test.describe.serial("Kaklen assisted product journey", () => {
   let authenticatedCookies = [];
 
   test.beforeAll(async ({ playwright }) => {
-    api = await playwright.request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
+    api = await playwright.request.newContext({
+      baseURL: apiBase,
+      extraHTTPHeaders: { Origin: webBase, "X-Forwarded-For": "198.51.100.31" }
+    });
     mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
     await clearMailpit(mailpit);
     const login = await api.post("/api/auth/login", { data: { email: "empresa.angela@demo.kaklen.local", password: demoPassword } });
@@ -62,7 +67,10 @@ test.describe.serial("Kaklen assisted product journey", () => {
   });
 
   test("does not disclose the first tenant to another demo owner", async ({ playwright }) => {
-    const secondTenant = await playwright.request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
+    const secondTenant = await playwright.request.newContext({
+      baseURL: apiBase,
+      extraHTTPHeaders: { Origin: webBase, "X-Forwarded-For": "198.51.100.32" }
+    });
     const unique = Date.now();
     const registration = await secondTenant.post("/api/auth/register", {
       data: {
@@ -73,7 +81,21 @@ test.describe.serial("Kaklen assisted product journey", () => {
       }
     });
     expect(registration.status()).toBe(201);
-    const secondToken = (await registration.json()).accessToken;
+    const secondEmail = `tenant-isolation-${unique}@demo.kaklen.local`;
+    const delivered = await waitForMailpitEmail(mailpit, {
+      recipient: secondEmail,
+      subject: "Confirma tu cuenta de Kaklen",
+      urlPattern: verificationUrlPattern
+    });
+    const verification = await secondTenant.post("/api/auth/verify-email", {
+      data: { token: new URL(delivered.url).searchParams.get("token") }
+    });
+    expect(verification.status()).toBe(200);
+    const secondLogin = await secondTenant.post("/api/auth/login", {
+      data: { email: secondEmail, password: demoPassword }
+    });
+    expect(secondLogin.status()).toBe(200);
+    const secondToken = (await secondLogin.json()).accessToken;
     const response = await secondTenant.get(`/api/organizations/${organizationId}/assistant/search?query=comercial`, { headers: { Authorization: `Bearer ${secondToken}` } });
     expect([403, 404]).toContain(response.status());
     await secondTenant.dispose();
@@ -199,6 +221,8 @@ test.describe.serial("Kaklen assisted product journey", () => {
     const eventWizardSteps = page.locator(".event-wizard-steps li");
     await expect(eventWizardSteps).toHaveCount(5);
     await expect(eventWizardSteps.first()).toHaveAttribute("aria-current", "step");
+    await expect(page.locator('select[formControlName="quotationId"]')).toHaveValue(quotationId);
+    await expect(page.locator('input[formControlName="name"]')).not.toHaveValue("");
     for (let step = 2; step <= 5; step += 1) {
       await page.getByRole("button", { name: "Continuar" }).click();
       await expect(eventWizardSteps.nth(step - 1)).toHaveAttribute("aria-current", "step");

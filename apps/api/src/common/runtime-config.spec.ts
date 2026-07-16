@@ -33,12 +33,14 @@ describe("runtime config", () => {
       readPasswordRecoveryConfig({
         APP_PUBLIC_URL: "http://localhost:4200/",
         PASSWORD_RESET_EXPIRES_MINUTES: "45",
+        EMAIL_VERIFICATION_EXPIRES_MINUTES: "1440",
         MAIL_HOST: "localhost",
         MAIL_PORT: "1025"
       })
     ).toMatchObject({
       appPublicUrl: "http://localhost:4200",
       expiresMinutes: 45,
+      emailVerificationExpiresMinutes: 1440,
       mailHost: "localhost",
       mailPort: 1025,
       mailSecure: false,
@@ -67,5 +69,11 @@ describe("runtime config", () => {
     expect(() =>
       readPasswordRecoveryConfig({ MAIL_CONNECTION_TIMEOUT_MS: "99" })
     ).toThrow("MAIL_CONNECTION_TIMEOUT_MS must be an integer between 100 and 120000");
+  });
+
+  it("validates email verification expiration bounds", () => {
+    expect(() =>
+      readPasswordRecoveryConfig({ EMAIL_VERIFICATION_EXPIRES_MINUTES: "10081" })
+    ).toThrow("EMAIL_VERIFICATION_EXPIRES_MINUTES must be an integer between 1 and 10080");
   });
 });

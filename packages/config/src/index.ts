@@ -32,6 +32,7 @@ export interface OrganizationConfig {
 export interface PasswordRecoveryConfig {
   appPublicUrl: string;
   expiresMinutes: number;
+  emailVerificationExpiresMinutes: number;
   mailFrom: string;
   mailHost: string;
   mailPort: number;
@@ -123,6 +124,9 @@ export function readPasswordRecoveryConfig(
     env.APP_WEB_URL ?? LOCAL_ORIGIN
   ).replace(/\/$/, "");
   const expiresMinutes = Number(env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
+  const emailVerificationExpiresMinutes = Number(
+    env.EMAIL_VERIFICATION_EXPIRES_MINUTES ?? 1440
+  );
   const mailFrom = requireString(
     env,
     "MAIL_FROM",
@@ -153,6 +157,15 @@ export function readPasswordRecoveryConfig(
   if (!Number.isInteger(expiresMinutes) || expiresMinutes <= 0 || expiresMinutes > 1440) {
     throw new Error("PASSWORD_RESET_EXPIRES_MINUTES must be an integer between 1 and 1440");
   }
+  if (
+    !Number.isInteger(emailVerificationExpiresMinutes) ||
+    emailVerificationExpiresMinutes <= 0 ||
+    emailVerificationExpiresMinutes > 10080
+  ) {
+    throw new Error(
+      "EMAIL_VERIFICATION_EXPIRES_MINUTES must be an integer between 1 and 10080"
+    );
+  }
   if (!Number.isInteger(mailPort) || mailPort <= 0 || mailPort > 65535) {
     throw new Error("MAIL_PORT must be a valid TCP port");
   }
@@ -174,6 +187,7 @@ export function readPasswordRecoveryConfig(
   return {
     appPublicUrl: publicUrl.toString().replace(/\/$/, ""),
     expiresMinutes,
+    emailVerificationExpiresMinutes,
     mailFrom,
     mailHost,
     mailPort,

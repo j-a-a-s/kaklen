@@ -9,6 +9,7 @@ const checks = [
   ["Product stabilization contracts", "node", ["--test", "scripts/product-stabilization.test.mjs"]],
   ["Database and migrations", "pnpm", ["db:validate"]],
   ["Password recovery contract", "node", ["--test", "scripts/password-recovery.test.mjs"]],
+  ["Email verification contract", "node", ["--test", "scripts/email-verification.test.mjs"]],
   ["Demo clear", "pnpm", ["db:clear:demo"]],
   ["Demo seed", "pnpm", ["db:seed:demo"]],
   ["Demo seed idempotence", "pnpm", ["db:seed:demo"]],

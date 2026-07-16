@@ -20,7 +20,10 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
   test.beforeAll(async ({ playwright }) => {
     api = await playwright.request.newContext({
       baseURL: apiBase,
-      extraHTTPHeaders: { Origin: "http://localhost:4200" }
+      extraHTTPHeaders: {
+        Origin: "http://localhost:4200",
+        "X-Forwarded-For": "198.51.100.61"
+      }
     });
     mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
     prisma = new PrismaClient();

@@ -12,14 +12,18 @@ describe("AuthController", () => {
     process.env.AUTH_ALLOWED_ORIGINS = "http://localhost:4200";
   });
 
-  it("sets HttpOnly refresh cookies for register, login, and refresh", async () => {
+  it("registers without a cookie and sets HttpOnly refresh cookies only for login and refresh", async () => {
     const service = makeAuthService();
     const controller = new AuthController(service as never);
     const response = makeResponse();
 
-    await expect(controller.register({ email: "ada@example.com", firstName: "Ada", lastName: "Lovelace", password: "secret" }, response as never)).resolves.toMatchObject({
-      accessToken: "access-token"
-    });
+    await expect(
+      controller.register(
+        { email: "ada@example.com", firstName: "Ada", lastName: "Lovelace", password: "secret" },
+        { ip: "127.0.0.1", socket: {}, headers: {} } as never
+      )
+    ).resolves.toEqual({ message: "account pending" });
+    expect(response.cookie).not.toHaveBeenCalled();
     await controller.login({ email: "ada@example.com", password: "secret" }, response as never);
     await controller.refresh({ cookies: { kaklen_refresh_token: "refresh-token" }, headers: { origin: "http://localhost:4200" } } as never, response as never);
 
@@ -27,6 +31,28 @@ describe("AuthController", () => {
       "kaklen_refresh_token",
       "refresh-token",
       expect.objectContaining({ httpOnly: true, sameSite: "lax", path: "/api/auth", secure: false })
+    );
+  });
+
+  it("delegates verification and resend with request context", async () => {
+    const service = makeAuthService();
+    const controller = new AuthController(service as never);
+    const request = {
+      ip: "127.0.0.1",
+      socket: {},
+      headers: { "user-agent": "Jest" },
+      requestId: "request-1"
+    };
+
+    await expect(controller.verifyEmail({ token: "x".repeat(48) })).resolves.toEqual({
+      message: "email verified"
+    });
+    await expect(
+      controller.resendVerificationEmail({ email: "ada@example.com" }, request as never)
+    ).resolves.toEqual({ message: "generic verification response" });
+    expect(service.resendVerificationEmail).toHaveBeenCalledWith(
+      { email: "ada@example.com" },
+      { ipAddress: "127.0.0.1", userAgent: "Jest", requestId: "request-1" }
     );
   });
 
@@ -97,12 +123,15 @@ function makeAuthService() {
     lastName: "Lovelace",
     locale: "es",
     status: UserStatus.ACTIVE,
+    emailVerifiedAt: "2026-07-15T00:00:00.000Z",
     createdAt: "2026-07-15T00:00:00.000Z",
     updatedAt: "2026-07-15T00:00:00.000Z"
   };
   return {
-    register: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
+    register: jest.fn(async () => ({ message: "account pending" })),
     login: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
+    verifyEmail: jest.fn(async () => ({ message: "email verified" })),
+    resendVerificationEmail: jest.fn(async () => ({ message: "generic verification response" })),
     refresh: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
     forgotPassword: jest.fn(async () => ({ message: "generic recovery response" })),
     resetPassword: jest.fn(async () => ({ message: "password updated" })),

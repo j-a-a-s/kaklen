@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 
 export class RegisterDto {
@@ -24,4 +24,9 @@ export class RegisterDto {
   @MinLength(PASSWORD_MIN_LENGTH)
   @MaxLength(128)
   password!: string;
+
+  @ApiProperty({ enum: ["es", "en", "pt-BR"], default: "es", required: false })
+  @IsOptional()
+  @IsIn(["es", "en", "pt-BR"])
+  locale?: "es" | "en" | "pt-BR";
 }

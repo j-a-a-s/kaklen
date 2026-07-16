@@ -10,6 +10,7 @@ describe("MailService SMTP integration", () => {
   beforeEach(() => {
     process.env.APP_PUBLIC_URL = "http://localhost:4200";
     process.env.PASSWORD_RESET_EXPIRES_MINUTES = "30";
+    process.env.EMAIL_VERIFICATION_EXPIRES_MINUTES = "1440";
     process.env.MAIL_FROM = "Kaklen <no-reply@kaklen.local>";
     process.env.MAIL_HOST = "127.0.0.1";
     process.env.MAIL_SECURE = "false";
@@ -41,6 +42,24 @@ describe("MailService SMTP integration", () => {
     const receipt = await service.sendPasswordResetEmail(request());
 
     expect(receipt.recipient).toBe("integration@example.com");
+    expect(receipt.accepted).toEqual(["integration@example.com"]);
+    expect(receipt.rejected).toEqual([]);
+    expect(receipt.messageId).toMatch(/^<.+>$/);
+    service.onModuleDestroy();
+  });
+
+  it("delivers email verification through a real SMTP conversation", async () => {
+    const port = await startSmtpServer("accept", servers, sockets);
+    process.env.MAIL_PORT = String(port);
+    const service = new MailService();
+
+    const receipt = await service.sendEmailVerification({
+      recipient: "integration@example.com",
+      locale: "es",
+      verificationUrl: "http://localhost:4200/es/verify-email?token=integration-verification-token",
+      expiresInMinutes: 1440
+    });
+
     expect(receipt.accepted).toEqual(["integration@example.com"]);
     expect(receipt.rejected).toEqual([]);
     expect(receipt.messageId).toMatch(/^<.+>$/);

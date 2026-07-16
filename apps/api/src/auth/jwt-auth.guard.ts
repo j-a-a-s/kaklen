@@ -31,7 +31,11 @@ export class JwtAuthGuard implements CanActivate {
         secret: config.jwtAccessSecret
       });
       const user = await this.prisma.user.findFirst({
-        where: { id: payload.sub, status: UserStatus.ACTIVE },
+        where: {
+          id: payload.sub,
+          status: UserStatus.ACTIVE,
+          emailVerifiedAt: { not: null }
+        },
         select: { authVersion: true }
       });
       if (!user || user.authVersion !== payload.sessionVersion) {

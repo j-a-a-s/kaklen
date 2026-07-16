@@ -106,6 +106,7 @@ export function buildDemoDataset() {
       lastName: definition.lastName,
       locale: "es",
       status: "ACTIVE",
+      emailVerifiedAt: userCreatedAt,
       createdAt: userCreatedAt,
       updatedAt: userCreatedAt
     };
@@ -857,7 +858,7 @@ async function verifyUsersAndOrganizations(issues, expected, users, organization
       issues.add("relationships", `Falta el usuario ${bundle.user.email}.`, true);
       continue;
     }
-    if (user.email !== bundle.user.email || user.firstName !== bundle.user.firstName || user.lastName !== bundle.user.lastName || user.locale !== "es" || user.status !== "ACTIVE") {
+    if (user.email !== bundle.user.email || user.firstName !== bundle.user.firstName || user.lastName !== bundle.user.lastName || user.locale !== "es" || user.status !== "ACTIVE" || !user.emailVerifiedAt) {
       issues.add("relationships", `Perfil demo incoherente para ${bundle.user.email}.`);
     }
     if (user.passwordHash === DEMO_PASSWORD || !user.passwordHash.startsWith("$argon2id$") || !(await verifiesPassword(user.passwordHash))) {

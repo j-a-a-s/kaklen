@@ -1838,6 +1838,14 @@
         <source>¿Olvidaste tu contraseña?</source>
         <target>Esqueceu sua senha?</target>
       </trans-unit>
+      <trans-unit id="changeEmailAction" datatype="html">
+        <source>Cambiar email</source>
+        <target>Alterar e-mail</target>
+      </trans-unit>
+      <trans-unit id="openResendVerificationPage" datatype="html">
+        <source>Usar otro correo</source>
+        <target>Usar outro e-mail</target>
+      </trans-unit>
       <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target>Ainda não tem uma conta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crie uma<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></target>
@@ -1854,9 +1862,29 @@
         <source>Ingresar</source>
         <target>Entrar</target>
       </trans-unit>
+      <trans-unit id="verificationResentMessage" datatype="html">
+        <source>Si tu cuenta sigue pendiente, enviamos un nuevo correo de confirmación.</source>
+        <target>Se sua conta ainda estiver pendente, enviamos um novo e-mail de confirmação.</target>
+      </trans-unit>
+      <trans-unit id="verificationResendError" datatype="html">
+        <source>No pudimos solicitar el reenvío. Intenta nuevamente.</source>
+        <target>Não foi possível solicitar outro e-mail. Tente novamente.</target>
+      </trans-unit>
+      <trans-unit id="verificationResendingLabel" datatype="html">
+        <source>Enviando...</source>
+        <target>Enviando...</target>
+      </trans-unit>
+      <trans-unit id="resendVerificationAction" datatype="html">
+        <source>Reenviar correo de confirmación</source>
+        <target>Reenviar e-mail de confirmação</target>
+      </trans-unit>
       <trans-unit id="loginServerTimeout" datatype="html">
         <source>El servidor está tardando demasiado.</source>
         <target>O servidor está demorando demais.</target>
+      </trans-unit>
+      <trans-unit id="emailNotVerifiedMessage" datatype="html">
+        <source>Tu correo aún no ha sido confirmado.</source>
+        <target>Seu e-mail ainda não foi confirmado.</target>
       </trans-unit>
       <trans-unit id="loginError" datatype="html">
         <source>Email o contraseña inválidos.</source>
@@ -2506,6 +2534,26 @@
         <source>¿Ya tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/login&quot;&gt;"/>Ingresa<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target>Já tem uma conta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/login&quot;&gt;"/>Entre<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></target>
       </trans-unit>
+      <trans-unit id="accountCreatedEyebrow" datatype="html">
+        <source>Cuenta creada</source>
+        <target>Conta criada</target>
+      </trans-unit>
+      <trans-unit id="registerCheckEmailTitle" datatype="html">
+        <source>Revisa tu correo</source>
+        <target>Verifique seu e-mail</target>
+      </trans-unit>
+      <trans-unit id="registerCheckEmailDescription" datatype="html">
+        <source>Creamos tu cuenta, pero debes confirmar tu dirección antes de iniciar sesión.</source>
+        <target>Criamos sua conta, mas você precisa confirmar seu endereço de e-mail antes de entrar.</target>
+      </trans-unit>
+      <trans-unit id="openLoginAction" datatype="html">
+        <source>Abrir inicio de sesión</source>
+        <target>Abrir tela de acesso</target>
+      </trans-unit>
+      <trans-unit id="changeRegistrationEmailAction" datatype="html">
+        <source>Cambiar correo</source>
+        <target>Alterar e-mail</target>
+      </trans-unit>
       <trans-unit id="registerError" datatype="html">
         <source>No fue posible crear la cuenta con esas credenciales.</source>
         <target>Não foi possível criar a conta com essas credenciais.</target>
@@ -2517,6 +2565,30 @@
       <trans-unit id="registerSubmit" datatype="html">
         <source>Crear cuenta</source>
         <target>Criar conta</target>
+      </trans-unit>
+      <trans-unit id="verificationBrandPromise" datatype="html">
+        <source>Confirma tu identidad para proteger tu cuenta.</source>
+        <target>Confirme sua identidade para proteger sua conta.</target>
+      </trans-unit>
+      <trans-unit id="resendVerificationEyebrow" datatype="html">
+        <source>Confirmación de cuenta</source>
+        <target>Confirmação da conta</target>
+      </trans-unit>
+      <trans-unit id="resendVerificationTitle" datatype="html">
+        <source>Reenviar correo de confirmación</source>
+        <target>Reenviar e-mail de confirmação</target>
+      </trans-unit>
+      <trans-unit id="resendVerificationDescription" datatype="html">
+        <source>Ingresa tu correo. Si la cuenta sigue pendiente, enviaremos un nuevo enlace.</source>
+        <target>Digite seu e-mail. Se a conta ainda estiver pendente, enviaremos um novo link.</target>
+      </trans-unit>
+      <trans-unit id="verificationRequestReceivedEyebrow" datatype="html">
+        <source>Solicitud recibida</source>
+        <target>Solicitação recebida</target>
+      </trans-unit>
+      <trans-unit id="resendVerificationSuccess" datatype="html">
+        <source>Si la cuenta requiere confirmación, recibirás un nuevo enlace.</source>
+        <target>Se a conta precisar de confirmação, você receberá um novo link.</target>
       </trans-unit>
       <trans-unit id="resetBrandPromise" datatype="html">
         <source>Protege tu cuenta con una nueva contraseña.</source>
@@ -2657,6 +2729,62 @@
       <trans-unit id="passwordResetFailed" datatype="html">
         <source>No pudimos actualizar la contraseña. Intenta nuevamente.</source>
         <target>Não foi possível atualizar a senha. Tente novamente.</target>
+      </trans-unit>
+      <trans-unit id="emailVerificationEyebrow" datatype="html">
+        <source>Confirmación de correo</source>
+        <target>Confirmação de e-mail</target>
+      </trans-unit>
+      <trans-unit id="requestNewVerificationAction" datatype="html">
+        <source>Solicitar un nuevo correo</source>
+        <target>Solicitar um novo e-mail</target>
+      </trans-unit>
+      <trans-unit id="verifyingEmailTitle" datatype="html">
+        <source>Confirmando tu correo</source>
+        <target>Confirmando seu e-mail</target>
+      </trans-unit>
+      <trans-unit id="emailConfirmedTitle" datatype="html">
+        <source>Correo confirmado</source>
+        <target>E-mail confirmado</target>
+      </trans-unit>
+      <trans-unit id="verificationExpiredTitle" datatype="html">
+        <source>Enlace expirado</source>
+        <target>Link expirado</target>
+      </trans-unit>
+      <trans-unit id="verificationUsedTitle" datatype="html">
+        <source>Enlace utilizado</source>
+        <target>Link já utilizado</target>
+      </trans-unit>
+      <trans-unit id="verificationInvalidTitle" datatype="html">
+        <source>Enlace inválido</source>
+        <target>Link inválido</target>
+      </trans-unit>
+      <trans-unit id="verificationNetworkTitle" datatype="html">
+        <source>No pudimos confirmar tu correo</source>
+        <target>Não foi possível confirmar seu e-mail</target>
+      </trans-unit>
+      <trans-unit id="verifyingEmailDescription" datatype="html">
+        <source>Estamos validando tu enlace de confirmación.</source>
+        <target>Estamos validando seu link de confirmação.</target>
+      </trans-unit>
+      <trans-unit id="emailConfirmedDescription" datatype="html">
+        <source>Tu correo fue confirmado correctamente. Ya puedes iniciar sesión.</source>
+        <target>Seu e-mail foi confirmado. Agora você já pode entrar.</target>
+      </trans-unit>
+      <trans-unit id="verificationExpiredDescription" datatype="html">
+        <source>Este enlace ya expiró. Solicita un nuevo correo de confirmación.</source>
+        <target>Este link expirou. Solicite um novo e-mail de confirmação.</target>
+      </trans-unit>
+      <trans-unit id="verificationUsedDescription" datatype="html">
+        <source>Este enlace ya fue utilizado. Puedes iniciar sesión o solicitar uno nuevo.</source>
+        <target>Este link já foi utilizado. Você pode entrar ou solicitar um novo.</target>
+      </trans-unit>
+      <trans-unit id="verificationInvalidDescription" datatype="html">
+        <source>El enlace no es válido. Solicita un nuevo correo de confirmación.</source>
+        <target>Este link não é válido. Solicite um novo e-mail de confirmação.</target>
+      </trans-unit>
+      <trans-unit id="verificationNetworkDescription" datatype="html">
+        <source>Revisa tu conexión e intenta abrir el enlace nuevamente.</source>
+        <target>Verifique sua conexão e tente abrir o link novamente.</target>
       </trans-unit>
       <trans-unit id="sendQuotationEmailEyebrow" datatype="html">
         <source>Correo de cotización</source>

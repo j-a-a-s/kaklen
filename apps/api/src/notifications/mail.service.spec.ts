@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import {
   MailDeliveryError,
   MailService,
+  type EmailVerificationRequest,
   type MailMessage,
   type PasswordResetEmailRequest
 } from "./mail.service";
@@ -25,6 +26,7 @@ describe("MailService", () => {
   beforeEach(() => {
     process.env.APP_PUBLIC_URL = "http://localhost:4200";
     process.env.PASSWORD_RESET_EXPIRES_MINUTES = "30";
+    process.env.EMAIL_VERIFICATION_EXPIRES_MINUTES = "1440";
     process.env.MAIL_FROM = "Kaklen <no-reply@kaklen.local>";
     process.env.MAIL_HOST = "mail.local";
     process.env.MAIL_PORT = "1025";
@@ -94,11 +96,57 @@ describe("MailService", () => {
       appPublicUrl: "http://localhost:4200",
       expiresMinutes: 30
     });
+    expect(service.getEmailVerificationPolicy()).toEqual({
+      appPublicUrl: "http://localhost:4200",
+      expiresMinutes: 1440
+    });
     expect(service.getSafeConnectionDetails()).toEqual({
       host: "mail.local",
       port: 1025,
       secure: false
     });
+  });
+
+  it("logs an email verification only after SMTP accepts the recipient", async () => {
+    const receipt = await new MailService().sendEmailVerification(verificationRequest());
+    const output = loggedMessages(successLog);
+
+    expect(receipt.accepted).toEqual(["user@example.com"]);
+    expect(output).toContain('"mailType":"email_verification"');
+    expect(output).toContain('"recipient":"user@example.com"');
+    expect(output).not.toContain("private-verification-token");
+    expect(output).not.toContain("verify-email?");
+    expect(failureLog).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["es", "Confirma tu cuenta de Kaklen", "Confirmar correo"],
+    ["en", "Confirm your Kaklen account", "Confirm email"],
+    ["pt-BR", "Confirme sua conta do Kaklen", "Confirmar e-mail"]
+  ])("renders the localized %s email verification template", async (locale, subject, action) => {
+    await new MailService().sendEmailVerification(verificationRequest(locale));
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject,
+        html: expect.stringContaining(action),
+        text: expect.stringContaining("http://localhost:4200/")
+      })
+    );
+  });
+
+  it("rejects an arbitrary email verification URL before SMTP", async () => {
+    await expect(
+      new MailService().sendEmailVerification({
+        ...verificationRequest(),
+        verificationUrl: "https://evil.example/verify-email?token=secret"
+      })
+    ).rejects.toMatchObject({
+      code: "MAIL_VERIFICATION_URL_INVALID",
+      phase: "validation"
+    });
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(loggedMessages(failureLog)).not.toContain("secret");
   });
 
   it("logs a password reset only after SMTP accepts the normalized recipient", async () => {
@@ -330,6 +378,16 @@ function resetRequest(locale = "es"): PasswordResetEmailRequest {
     locale,
     resetUrl: `http://localhost:4200/${locale}/reset-password?token=private-reset-token`,
     expiresInMinutes: 30,
+    requestId: "request-1"
+  };
+}
+
+function verificationRequest(locale = "es"): EmailVerificationRequest {
+  return {
+    recipient: " USER@EXAMPLE.COM ",
+    locale,
+    verificationUrl: `http://localhost:4200/${locale}/verify-email?token=private-verification-token`,
+    expiresInMinutes: 1440,
     requestId: "request-1"
   };
 }

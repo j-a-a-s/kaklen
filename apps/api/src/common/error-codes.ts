@@ -18,6 +18,11 @@ export const ERROR_CODES = {
   passwordResetTokenExpired: "PASSWORD_RESET_TOKEN_EXPIRED",
   passwordResetTokenUsed: "PASSWORD_RESET_TOKEN_USED",
   passwordResetTokenRevoked: "PASSWORD_RESET_TOKEN_REVOKED",
+  emailNotVerified: "EMAIL_NOT_VERIFIED",
+  emailVerificationTokenInvalid: "EMAIL_VERIFICATION_TOKEN_INVALID",
+  emailVerificationTokenExpired: "EMAIL_VERIFICATION_TOKEN_EXPIRED",
+  emailVerificationTokenUsed: "EMAIL_VERIFICATION_TOKEN_USED",
+  emailVerificationTokenRevoked: "EMAIL_VERIFICATION_TOKEN_REVOKED",
   tooManyRequests: "TOO_MANY_REQUESTS",
   internalServerError: "INTERNAL_SERVER_ERROR"
 } as const;

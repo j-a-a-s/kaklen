@@ -1,12 +1,16 @@
 import { expect, test } from "@playwright/test";
+import { clearMailpit, waitForMailpitEmail } from "./support/mailpit.mjs";
 
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
+const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
+const verificationUrlPattern = /https?:\/\/[^\s"<>]+\/(?:es|en|pt-BR)\/verify-email\?token=[A-Za-z0-9_-]+/;
 
 test.describe.serial("Kaklen MVP core workflow", () => {
   test.setTimeout(180_000);
 
   let api;
+  let mailpit;
   let accessToken = "";
   let organizationId = "";
   let clientId = "";
@@ -19,14 +23,18 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     api = await playwright.request.newContext({
       baseURL: apiBase,
       extraHTTPHeaders: {
-        Origin: webBase
+        Origin: webBase,
+        "X-Forwarded-For": "198.51.100.51"
       }
     });
+    mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
+    await clearMailpit(mailpit);
     await waitForReady(api);
   });
 
   test.afterAll(async () => {
     await api?.dispose();
+    await mailpit?.dispose();
   });
 
   test("health checks expose build metadata", async () => {
@@ -50,23 +58,40 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     }
   });
 
-  test("registers, refreshes, and loads current user", async () => {
+  test("registers pending, verifies, logs in, refreshes, and loads current user", async () => {
     const unique = Date.now();
+    const email = `mvp-${unique}@kaklen.local`;
+    const password = "KaklenTest123!";
     const response = await api.post("/api/auth/register", {
       data: {
-        email: `mvp-${unique}@kaklen.local`,
+        email,
         firstName: "MVP",
         lastName: "Tester",
-        password: "KaklenTest123!"
+        password
       }
     });
     expect(response.status()).toBe(201);
-    expect(response.headers()["set-cookie"]).toContain("HttpOnly");
+    expect(response.headers()["set-cookie"]).toBeUndefined();
 
-    const body = await response.json();
+    expect(await response.json()).toEqual({
+      message: "Cuenta creada. Revisa tu correo para confirmar tu dirección."
+    });
+    const delivered = await waitForMailpitEmail(mailpit, {
+      recipient: email,
+      subject: "Confirma tu cuenta de Kaklen",
+      urlPattern: verificationUrlPattern
+    });
+    const token = new URL(delivered.url).searchParams.get("token");
+    const verification = await api.post("/api/auth/verify-email", { data: { token } });
+    expect(verification.status()).toBe(200);
+
+    const login = await api.post("/api/auth/login", { data: { email, password } });
+    expect(login.status()).toBe(200);
+    const body = await login.json();
     accessToken = body.accessToken;
-    expect(body.user.email).toContain("@kaklen.local");
+    expect(body.user.email).toBe(email);
     expect(body.user.locale).toBe("es");
+    expect(body.user.emailVerifiedAt).toBeTruthy();
 
     const me = await authorizedGet("/auth/me");
     expect(me.status()).toBe(200);

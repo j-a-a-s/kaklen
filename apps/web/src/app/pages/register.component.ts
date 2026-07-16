@@ -1,8 +1,9 @@
 import { CommonModule } from "@angular/common";
 import { Component, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
+import { LocaleService } from "../i18n/locale.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 import { emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
@@ -30,48 +31,66 @@ interface RegisterForm {
         </div>
       </aside>
       <section class="auth-panel" aria-labelledby="register-title">
-        <header class="auth-heading">
-          <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
-          <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
-          <p i18n="@@registerDescription">Crea tu acceso. Después podrás configurar tu organización.</p>
-        </header>
+        <ng-container *ngIf="!registered(); else confirmationState">
+          <header class="auth-heading">
+            <p class="eyebrow" i18n="@@registerEyebrow">Comienza con Kaklen</p>
+            <h1 id="register-title" i18n="@@registerTitle">Crear cuenta</h1>
+            <p i18n="@@registerDescription">Crea tu acceso. Después podrás configurar tu organización.</p>
+          </header>
 
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-          <div class="field-grid">
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
+            <div class="field-grid">
+              <label>
+                <span><span i18n="@@firstNameLabel">Nombre</span><kaklen-required /></span>
+                <input type="text" formControlName="firstName" autocomplete="given-name" maxlength="80" aria-describedby="register-first-name-error" />
+                <kaklen-field-error id="register-first-name-error" [control]="form.controls.firstName" [submitted]="submitAttempted()" />
+              </label>
+
+              <label>
+                <span><span i18n="@@lastNameLabel">Apellido</span><kaklen-required /></span>
+                <input type="text" formControlName="lastName" autocomplete="family-name" maxlength="80" aria-describedby="register-last-name-error" />
+                <kaklen-field-error id="register-last-name-error" [control]="form.controls.lastName" [submitted]="submitAttempted()" />
+              </label>
+            </div>
+
             <label>
-              <span><span i18n="@@firstNameLabel">Nombre</span><kaklen-required /></span>
-              <input type="text" formControlName="firstName" autocomplete="given-name" maxlength="80" aria-describedby="register-first-name-error" />
-              <kaklen-field-error id="register-first-name-error" [control]="form.controls.firstName" [submitted]="submitAttempted()" />
+              <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
+              <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="register-email-error" />
+              <kaklen-field-error id="register-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
             </label>
 
             <label>
-              <span><span i18n="@@lastNameLabel">Apellido</span><kaklen-required /></span>
-              <input type="text" formControlName="lastName" autocomplete="family-name" maxlength="80" aria-describedby="register-last-name-error" />
-              <kaklen-field-error id="register-last-name-error" [control]="form.controls.lastName" [submitted]="submitAttempted()" />
+              <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
+              <input type="password" formControlName="password" autocomplete="new-password" aria-describedby="register-password-error" />
+              <kaklen-field-error id="register-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
             </label>
+
+            <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>
+
+            <button type="submit" [disabled]="loading()">
+              <kaklen-icon name="user-plus" /><span>{{ submitLabel() }}</span>
+            </button>
+          </form>
+
+          <p class="switch-link" i18n="@@registerSwitch">¿Ya tienes cuenta? <a routerLink="/login">Ingresa</a></p>
+        </ng-container>
+
+        <ng-template #confirmationState>
+          <div class="auth-result" role="status" aria-live="polite">
+            <span class="result-icon success" aria-hidden="true"><kaklen-icon name="mail" /></span>
+            <p class="eyebrow" i18n="@@accountCreatedEyebrow">Cuenta creada</p>
+            <h1 id="register-title" i18n="@@registerCheckEmailTitle">Revisa tu correo</h1>
+            <p i18n="@@registerCheckEmailDescription">Creamos tu cuenta, pero debes confirmar tu dirección antes de iniciar sesión.</p>
+            <p class="form-success" *ngIf="resendMessage()">{{ resendMessage() }}</p>
+            <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>
+            <div class="auth-result-actions">
+              <a class="button-link" routerLink="/login" i18n="@@openLoginAction">Abrir inicio de sesión</a>
+              <button type="button" class="secondary" [disabled]="resending()" (click)="resend()">{{ resendLabel() }}</button>
+              <button type="button" class="ghost" (click)="changeEmail()" i18n="@@changeRegistrationEmailAction">Cambiar correo</button>
+            </div>
           </div>
-
-          <label>
-            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-            <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="register-email-error" />
-            <kaklen-field-error id="register-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
-          </label>
-
-          <label>
-            <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
-            <input type="password" formControlName="password" autocomplete="new-password" aria-describedby="register-password-error" />
-            <kaklen-field-error id="register-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
-          </label>
-
-          <p class="form-error" *ngIf="error()">{{ error() }}</p>
-
-          <button type="submit" [disabled]="loading()">
-            <kaklen-icon name="user-plus" /><span>{{ submitLabel() }}</span>
-          </button>
-        </form>
-
-        <p class="switch-link" i18n="@@registerSwitch">¿Ya tienes cuenta? <a routerLink="/login">Ingresa</a></p>
+        </ng-template>
       </section>
     </main>
   `
@@ -79,6 +98,10 @@ interface RegisterForm {
 export class RegisterComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly resendMessage = signal<string | null>(null);
+  readonly registered = signal(false);
+  readonly registeredEmail = signal("");
+  readonly resending = signal(false);
   readonly submitAttempted = signal(false);
   readonly passwordErrorLabel = $localize`:@@passwordValidation:La contraseña debe tener al menos 10 caracteres.`;
   readonly fieldLabels = {
@@ -108,7 +131,7 @@ export class RegisterComponent {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly localeService: LocaleService
   ) {}
 
   async submit(): Promise<void> {
@@ -127,9 +150,11 @@ export class RegisterComponent {
         ...value,
         firstName: value.firstName.trim(),
         lastName: value.lastName.trim(),
-        email: normalizeEmail(value.email)
+        email: normalizeEmail(value.email),
+        locale: this.localeService.getLocale()
       });
-      await this.router.navigateByUrl("/dashboard");
+      this.registeredEmail.set(normalizeEmail(value.email));
+      this.registered.set(true);
     } catch {
       this.error.set($localize`:@@registerError:No fue posible crear la cuenta con esas credenciales.`);
     } finally {
@@ -139,5 +164,33 @@ export class RegisterComponent {
 
   submitLabel(): string {
     return this.loading() ? $localize`:@@registerSubmitting:Creando...` : $localize`:@@registerSubmit:Crear cuenta`;
+  }
+
+  async resend(): Promise<void> {
+    if (this.resending() || !this.registeredEmail()) return;
+    this.resending.set(true);
+    this.error.set(null);
+    this.resendMessage.set(null);
+    try {
+      await this.authService.resendVerificationEmail({ email: this.registeredEmail() });
+      this.resendMessage.set($localize`:@@verificationResentMessage:Si tu cuenta sigue pendiente, enviamos un nuevo correo de confirmación.`);
+    } catch {
+      this.error.set($localize`:@@verificationResendError:No pudimos solicitar el reenvío. Intenta nuevamente.`);
+    } finally {
+      this.resending.set(false);
+    }
+  }
+
+  changeEmail(): void {
+    this.registered.set(false);
+    this.resendMessage.set(null);
+    this.error.set(null);
+    this.submitAttempted.set(false);
+  }
+
+  resendLabel(): string {
+    return this.resending()
+      ? $localize`:@@verificationResendingLabel:Enviando...`
+      : $localize`:@@resendVerificationAction:Reenviar correo de confirmación`;
   }
 }

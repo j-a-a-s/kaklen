@@ -12,6 +12,7 @@ MAIL_SECURE=false
 MAIL_USER=
 MAIL_PASSWORD=
 APP_PUBLIC_URL=http://localhost:4200
+EMAIL_VERIFICATION_EXPIRES_MINUTES=1440
 PASSWORD_RESET_EXPIRES_MINUTES=30
 ```
 
@@ -38,7 +39,19 @@ The command exits with code 1 and `MAIL SMTP UNAVAILABLE` when configuration, co
 
 `/api/health/ready` intentionally remains a database readiness check. An SMTP outage must not remove the complete API from service; mail readiness is observable through `pnpm mail:verify`, structured delivery logs, and the release and quality gates.
 
-## Password Recovery
+## Browser Flows
+
+### Email Verification
+
+1. Open `http://localhost:4200/es/register`.
+2. Create a disposable account and confirm that the page stays unauthenticated.
+3. Open Mailpit and inspect the `email_verification` message.
+4. Follow the localized confirmation link.
+5. Return to Login and sign in manually.
+
+Resend creates a new message and revokes the previous link. A pending account does not receive password recovery mail.
+
+### Password Recovery
 
 1. Open `http://localhost:4200/es/login`.
 2. Select `¿Olvidaste tu contraseña?`.

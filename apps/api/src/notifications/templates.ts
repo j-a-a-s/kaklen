@@ -6,6 +6,12 @@ export interface PasswordResetEmail {
   html: string;
 }
 
+export interface EmailVerificationEmail {
+  subject: string;
+  text: string;
+  html: string;
+}
+
 export interface QuotationEmailContent {
   text: string;
   html: string;
@@ -20,6 +26,11 @@ interface QuotationTemplateInput {
 
 interface PasswordResetTemplateInput {
   resetUrl: string;
+  expiresMinutes: number;
+}
+
+interface EmailVerificationTemplateInput {
+  verificationUrl: string;
   expiresMinutes: number;
 }
 
@@ -49,7 +60,7 @@ export function renderPasswordResetEmail(
       greeting: "Hola,",
       explanation: "Recibimos una solicitud para restablecer la contraseña de tu cuenta Kaklen.",
       action: "Restablecer contraseña",
-      expiry: `Este enlace es válido por ${input.expiresMinutes} minutos.`,
+      expiry: `Este enlace es válido por ${formatDuration("es", input.expiresMinutes)}.`,
       ignore: "Si no solicitaste este cambio, puedes ignorar este correo.",
       fallback: "Si el botón no funciona, copia y pega este enlace en tu navegador:"
     }, input.resetUrl),
@@ -58,7 +69,7 @@ export function renderPasswordResetEmail(
       greeting: "Hello,",
       explanation: "We received a request to reset the password for your Kaklen account.",
       action: "Reset password",
-      expiry: `This link is valid for ${input.expiresMinutes} minutes.`,
+      expiry: `This link is valid for ${formatDuration("en", input.expiresMinutes)}.`,
       ignore: "If you did not request this change, you can ignore this email.",
       fallback: "If the button does not work, copy and paste this link into your browser:"
     }, input.resetUrl),
@@ -67,10 +78,47 @@ export function renderPasswordResetEmail(
       greeting: "Olá,",
       explanation: "Recebemos uma solicitação para redefinir a senha da sua conta Kaklen.",
       action: "Redefinir senha",
-      expiry: `Este link é válido por ${input.expiresMinutes} minutos.`,
+      expiry: `Este link é válido por ${formatDuration("pt-BR", input.expiresMinutes)}.`,
       ignore: "Se você não solicitou esta alteração, ignore este e-mail.",
       fallback: "Se o botão não funcionar, copie e cole este link no navegador:"
     }, input.resetUrl)
+  };
+
+  return templates[locale];
+}
+
+export function renderEmailVerificationEmail(
+  locale: NotificationLocale,
+  input: EmailVerificationTemplateInput
+): EmailVerificationEmail {
+  const templates: Record<NotificationLocale, EmailVerificationEmail> = {
+    es: buildTemplate("es", {
+      subject: "Confirma tu cuenta de Kaklen",
+      greeting: "Hola,",
+      explanation: "Tu cuenta de Kaklen fue creada. Confirma tu dirección de correo para poder iniciar sesión.",
+      action: "Confirmar correo",
+      expiry: `Este enlace es válido por ${formatDuration("es", input.expiresMinutes)}.`,
+      ignore: "Si no creaste esta cuenta, puedes ignorar este correo.",
+      fallback: "Si el botón no funciona, copia y pega este enlace en tu navegador:"
+    }, input.verificationUrl),
+    en: buildTemplate("en", {
+      subject: "Confirm your Kaklen account",
+      greeting: "Hello,",
+      explanation: "Your Kaklen account has been created. Confirm your email address before signing in.",
+      action: "Confirm email",
+      expiry: `This link is valid for ${formatDuration("en", input.expiresMinutes)}.`,
+      ignore: "If you did not create this account, you can ignore this email.",
+      fallback: "If the button does not work, copy and paste this link into your browser:"
+    }, input.verificationUrl),
+    "pt-BR": buildTemplate("pt-BR", {
+      subject: "Confirme sua conta do Kaklen",
+      greeting: "Olá,",
+      explanation: "Sua conta do Kaklen foi criada. Confirme seu endereço de e-mail antes de entrar.",
+      action: "Confirmar e-mail",
+      expiry: `Este link é válido por ${formatDuration("pt-BR", input.expiresMinutes)}.`,
+      ignore: "Se você não criou esta conta, ignore este e-mail.",
+      fallback: "Se o botão não funcionar, copie e cole este link no navegador:"
+    }, input.verificationUrl)
   };
 
   return templates[locale];
@@ -133,9 +181,9 @@ interface TemplateCopy {
 function buildTemplate(
   locale: NotificationLocale,
   copy: TemplateCopy,
-  resetUrl: string
+  actionUrl: string
 ): PasswordResetEmail {
-  const escapedUrl = escapeHtml(resetUrl);
+  const escapedUrl = escapeHtml(actionUrl);
   return {
     subject: copy.subject,
     text: [
@@ -145,13 +193,13 @@ function buildTemplate(
       "",
       copy.explanation,
       "",
-      `${copy.action}: ${resetUrl}`,
+      `${copy.action}: ${actionUrl}`,
       "",
       copy.expiry,
       copy.ignore,
       "",
       copy.fallback,
-      resetUrl
+      actionUrl
     ].join("\n"),
     html: `<!doctype html>
 <html lang="${locale}">
@@ -173,6 +221,23 @@ function buildTemplate(
   </body>
 </html>`
   };
+}
+
+function formatDuration(locale: NotificationLocale, minutes: number): string {
+  if (minutes % 1440 === 0) {
+    const days = minutes / 1440;
+    if (locale === "en") return `${days} ${days === 1 ? "day" : "days"}`;
+    if (locale === "pt-BR") return `${days} ${days === 1 ? "dia" : "dias"}`;
+    return `${days} ${days === 1 ? "día" : "días"}`;
+  }
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    if (locale === "en") return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+    if (locale === "pt-BR") return `${hours} ${hours === 1 ? "hora" : "horas"}`;
+    return `${hours} ${hours === 1 ? "hora" : "horas"}`;
+  }
+  if (locale === "en") return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return `${minutes} ${minutes === 1 ? "minuto" : "minutos"}`;
 }
 
 function escapeHtml(value: string): string {

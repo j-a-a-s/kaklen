@@ -17,8 +17,11 @@ export class AuthUserDto implements AuthUser {
   @ApiProperty({ enum: ["es", "en", "pt-BR"], example: "es" })
   locale!: string;
 
-  @ApiProperty({ enum: ["ACTIVE", "DISABLED"] })
-  status!: "ACTIVE" | "DISABLED";
+  @ApiProperty({ enum: ["ACTIVE", "INACTIVE", "SUSPENDED", "ARCHIVED"] })
+  status!: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "ARCHIVED";
+
+  @ApiProperty({ format: "date-time", nullable: true })
+  emailVerifiedAt!: string | null;
 
   @ApiProperty({ format: "date-time" })
   createdAt!: string;

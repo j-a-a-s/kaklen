@@ -405,6 +405,7 @@ function user(overrides: Partial<User> = {}): User {
     authVersion: 0,
     locale: "es",
     status: UserStatus.ACTIVE,
+    emailVerifiedAt: now,
     createdAt: now,
     updatedAt: now,
     ...overrides

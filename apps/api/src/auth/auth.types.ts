@@ -6,11 +6,13 @@ export interface JwtAccessPayload {
   sessionVersion: number;
 }
 
-export interface PasswordRecoveryRequestContext {
+export interface AuthRequestContext {
   ipAddress: string;
   userAgent?: string;
   requestId?: string;
 }
+
+export type PasswordRecoveryRequestContext = AuthRequestContext;
 
 export interface AuthenticatedRequest extends Request {
   user: JwtAccessPayload;

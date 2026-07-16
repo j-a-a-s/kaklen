@@ -1,17 +1,33 @@
-import { ConflictException, UnauthorizedException, ExecutionContext } from "@nestjs/common";
+import {
+  ConflictException,
+  ExecutionContext,
+  HttpException,
+  UnauthorizedException
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Prisma, RefreshToken, User, UserStatus } from "@prisma/client";
+import {
+  EmailVerificationToken,
+  Prisma,
+  RefreshToken,
+  User,
+  UserStatus
+} from "@prisma/client";
 import * as argon2 from "argon2";
 import { AuthService } from "./auth.service";
+import { EmailVerificationRateLimitService } from "./email-verification-rate-limit.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
 import type { AuthenticatedRequest } from "./auth.types";
+import { MailDeliveryError, type EmailVerificationRequest } from "../notifications/mail.service";
 
 type StoredRefreshToken = RefreshToken & { user?: User };
+type StoredVerificationToken = EmailVerificationToken & { user?: User };
 
 class FakePrismaService {
   private users: User[] = [];
   private refreshTokens: RefreshToken[] = [];
+  private verificationTokens: EmailVerificationToken[] = [];
+  private auditEvents: string[] = [];
 
   readonly user = {
     create: async ({ data }: { data: Prisma.UserCreateInput }): Promise<User> => {
@@ -21,7 +37,6 @@ class FakePrismaService {
           clientVersion: "test"
         });
       }
-
       const now = new Date();
       const user: User = {
         id: `user-${this.users.length + 1}`,
@@ -30,26 +45,24 @@ class FakePrismaService {
         lastName: data.lastName,
         passwordHash: data.passwordHash,
         authVersion: 0,
-        locale: data.locale ?? "es",
+        locale: typeof data.locale === "string" ? data.locale : "es",
         status: UserStatus.ACTIVE,
+        emailVerifiedAt: data.emailVerifiedAt instanceof Date ? data.emailVerifiedAt : null,
         createdAt: now,
         updatedAt: now
       };
       this.users.push(user);
       return user;
     },
-    findUnique: async ({ where }: { where: Prisma.UserWhereUniqueInput }): Promise<User | null> => {
-      return this.users.find((user) => user.email === where.email || user.id === where.id) ?? null;
-    },
-    findFirst: async ({ where }: { where: Prisma.UserWhereInput }): Promise<User | null> => {
-      return (
-        this.users.find((user) => {
-          const idMatches = !where.id || where.id === user.id;
-          const statusMatches = !where.status || where.status === user.status;
-          return idMatches && statusMatches;
-        }) ?? null
-      );
-    },
+    findUnique: async ({ where }: { where: Prisma.UserWhereUniqueInput }): Promise<User | null> =>
+      this.users.find((user) => user.email === where.email || user.id === where.id) ?? null,
+    findFirst: async ({ where }: { where: Prisma.UserWhereInput }): Promise<User | null> =>
+      this.users.find((user) => {
+        const idMatches = !where.id || where.id === user.id;
+        const statusMatches = !where.status || where.status === user.status;
+        const verifiedMatches = !where.emailVerifiedAt || user.emailVerifiedAt !== null;
+        return idMatches && statusMatches && verifiedMatches;
+      }) ?? null,
     update: async ({
       where,
       data
@@ -58,15 +71,68 @@ class FakePrismaService {
       data: Prisma.UserUpdateInput;
     }): Promise<User> => {
       const user = this.users.find((item) => item.id === where.id);
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      if (typeof data.locale === "string") {
-        user.locale = data.locale;
-      }
+      if (!user) throw new Error("User not found");
+      if (typeof data.locale === "string") user.locale = data.locale;
+      if (data.emailVerifiedAt instanceof Date) user.emailVerifiedAt = data.emailVerifiedAt;
       user.updatedAt = new Date();
       return user;
+    }
+  };
+
+  readonly emailVerificationToken = {
+    create: async ({
+      data
+    }: {
+      data: Prisma.EmailVerificationTokenUncheckedCreateInput;
+    }): Promise<EmailVerificationToken> => {
+      const token: EmailVerificationToken = {
+        id: `verification-${this.verificationTokens.length + 1}`,
+        userId: data.userId,
+        tokenHash: data.tokenHash,
+        expiresAt: data.expiresAt instanceof Date ? data.expiresAt : new Date(data.expiresAt),
+        usedAt: null,
+        revokedAt: null,
+        sentAt: null,
+        createdAt: new Date()
+      };
+      this.verificationTokens.push(token);
+      return token;
+    },
+    findUnique: async ({
+      where
+    }: {
+      where: Prisma.EmailVerificationTokenWhereUniqueInput;
+    }): Promise<StoredVerificationToken | null> => {
+      const token = this.verificationTokens.find(
+        (item) => item.id === where.id || item.tokenHash === where.tokenHash
+      );
+      if (!token) return null;
+      return { ...token, user: this.users.find((user) => user.id === token.userId) };
+    },
+    updateMany: async ({
+      where,
+      data
+    }: {
+      where: Prisma.EmailVerificationTokenWhereInput;
+      data: Prisma.EmailVerificationTokenUpdateManyMutationInput;
+    }): Promise<{ count: number }> => {
+      const matches = this.verificationTokens.filter((token) => {
+        if (where.id && typeof where.id === "string" && token.id !== where.id) return false;
+        if (where.id && typeof where.id === "object" && "not" in where.id && token.id === where.id.not) return false;
+        if (where.userId && token.userId !== where.userId) return false;
+        if (where.sentAt === null && token.sentAt !== null) return false;
+        if (where.sentAt && typeof where.sentAt === "object" && "not" in where.sentAt && token.sentAt === null) return false;
+        if (where.usedAt === null && token.usedAt !== null) return false;
+        if (where.revokedAt === null && token.revokedAt !== null) return false;
+        if (where.expiresAt && typeof where.expiresAt === "object" && "gt" in where.expiresAt && where.expiresAt.gt instanceof Date && token.expiresAt <= where.expiresAt.gt) return false;
+        return true;
+      });
+      for (const token of matches) {
+        if (data.sentAt instanceof Date) token.sentAt = data.sentAt;
+        if (data.usedAt instanceof Date) token.usedAt = data.usedAt;
+        if (data.revokedAt instanceof Date) token.revokedAt = data.revokedAt;
+      }
+      return { count: matches.length };
     }
   };
 
@@ -89,7 +155,12 @@ class FakePrismaService {
         .filter((token) => token.revokedAt === null && token.expiresAt.getTime() > now)
         .map((token) => ({
           ...token,
-          user: this.users.find((user) => user.id === token.userId)
+          user: this.users.find(
+            (user) =>
+              user.id === token.userId &&
+              user.status === UserStatus.ACTIVE &&
+              user.emailVerifiedAt !== null
+          )
         }))
         .filter((token): token is StoredRefreshToken & { user: User } => Boolean(token.user));
     },
@@ -100,13 +171,17 @@ class FakePrismaService {
       where: Prisma.RefreshTokenWhereUniqueInput;
       data: Prisma.RefreshTokenUpdateInput;
     }): Promise<RefreshToken> => {
-      const token = this.refreshTokens.find((refreshToken) => refreshToken.id === where.id);
-      if (!token) {
-        throw new Error("Refresh token not found");
-      }
-
+      const token = this.refreshTokens.find((item) => item.id === where.id);
+      if (!token) throw new Error("Refresh token not found");
       token.revokedAt = data.revokedAt instanceof Date ? data.revokedAt : new Date();
       return token;
+    }
+  };
+
+  readonly authAuditLog = {
+    create: async ({ data }: { data: Prisma.AuthAuditLogUncheckedCreateInput }) => {
+      this.auditEvents.push(data.event);
+      return { ...data, id: `audit-${this.auditEvents.length}`, createdAt: new Date() };
     }
   };
 
@@ -114,21 +189,38 @@ class FakePrismaService {
     return callback(this);
   }
 
+  latestVerificationToken(): EmailVerificationToken | null {
+    return this.verificationTokens.at(-1) ?? null;
+  }
+
+  verificationTokensForUser(userId: string): EmailVerificationToken[] {
+    return this.verificationTokens.filter((token) => token.userId === userId);
+  }
+
+  refreshTokenCount(): number {
+    return this.refreshTokens.length;
+  }
+
   async findRefreshTokenByPlainValue(refreshToken: string): Promise<RefreshToken | null> {
     for (const storedToken of this.refreshTokens) {
-      if (await argon2.verify(storedToken.tokenHash, refreshToken)) {
-        return storedToken;
-      }
+      if (await argon2.verify(storedToken.tokenHash, refreshToken)) return storedToken;
     }
-
     return null;
   }
 
   setUserStatus(email: string, status: UserStatus): void {
     const user = this.users.find((item) => item.email === email);
-    if (user) {
-      user.status = status;
-    }
+    if (user) user.status = status;
+  }
+
+  expireLatestVerificationToken(): void {
+    const token = this.latestVerificationToken();
+    if (token) token.expiresAt = new Date(Date.now() - 1000);
+  }
+
+  revokeLatestVerificationToken(): void {
+    const token = this.latestVerificationToken();
+    if (token) token.revokedAt = new Date();
   }
 
   expireRefreshTokens(): void {
@@ -145,168 +237,173 @@ class FakePrismaService {
 describe("AuthService", () => {
   let prisma: FakePrismaService;
   let service: AuthService;
+  let mailRequests: EmailVerificationRequest[];
+  let mailService: ReturnType<typeof createMailService>;
 
   beforeEach(() => {
     process.env.JWT_ACCESS_SECRET = "test-access-secret-that-is-long-enough";
     process.env.JWT_REFRESH_SECRET = "test-refresh-secret-that-is-long-enough";
     process.env.JWT_ACCESS_EXPIRES_SECONDS = "900";
     process.env.JWT_REFRESH_EXPIRES_SECONDS = "604800";
+    mailRequests = [];
+    mailService = createMailService(mailRequests);
     prisma = new FakePrismaService();
     service = new AuthService(
       prisma as unknown as ConstructorParameters<typeof AuthService>[0],
       new JwtService(),
-      { send: jest.fn(async () => undefined) } as unknown as ConstructorParameters<typeof AuthService>[2],
-      new PasswordRecoveryRateLimitService()
+      mailService as unknown as ConstructorParameters<typeof AuthService>[2],
+      new PasswordRecoveryRateLimitService(),
+      new EmailVerificationRateLimitService()
     );
   });
 
-  it("registers a user successfully", async () => {
-    const result = await service.register({
-      email: "Ada@Example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
+  it("registers a pending user without issuing a session and stores only a token hash", async () => {
+    const result = await service.register(registerDto(), requestContext());
+    const token = rawTokenFrom(mailRequests[0]);
+    const stored = prisma.latestVerificationToken();
 
-    expect(result.user.email).toBe("ada@example.com");
-    expect(result.accessToken).toEqual(expect.any(String));
-    expect(result.refreshToken).toEqual(expect.any(String));
-    expect(result.user).not.toHaveProperty("passwordHash");
+    expect(result).toEqual({ message: "Cuenta creada. Revisa tu correo para confirmar tu dirección." });
+    expect(result).not.toHaveProperty("accessToken");
+    expect(result).not.toHaveProperty("refreshToken");
+    expect(prisma.refreshTokenCount()).toBe(0);
+    expect(stored?.sentAt).toBeInstanceOf(Date);
+    expect(stored?.tokenHash).not.toBe(token);
+    expect(JSON.stringify(stored)).not.toContain(token);
+    expect(mailService.sendEmailVerification).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the account pending and revokes the token when SMTP fails", async () => {
+    mailService.sendEmailVerification.mockRejectedValueOnce(
+      new MailDeliveryError("ECONNREFUSED", "connection", "SMTP unavailable")
+    );
+
+    await expect(service.register(registerDto(), requestContext())).resolves.toEqual({
+      message: "Cuenta creada. Revisa tu correo para confirmar tu dirección."
+    });
+    expect(prisma.latestVerificationToken()).toMatchObject({
+      sentAt: null,
+      revokedAt: expect.any(Date)
+    });
+    expect(prisma.refreshTokenCount()).toBe(0);
   });
 
   it("rejects duplicate email registration", async () => {
-    const dto = {
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    };
-    await service.register(dto);
-
-    await expect(service.register(dto)).rejects.toBeInstanceOf(ConflictException);
+    await service.register(registerDto(), requestContext());
+    await expect(service.register(registerDto(), requestContext())).rejects.toBeInstanceOf(ConflictException);
   });
 
-  it("logs in with valid credentials", async () => {
-    await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
+  it("blocks login until email confirmation without creating tokens", async () => {
+    await service.register(registerDto(), requestContext());
 
-    const result = await service.login({
-      email: "ada@example.com",
-      password: "correct-password"
+    await expect(service.login(loginDto())).rejects.toMatchObject({
+      status: 403,
+      response: expect.objectContaining({ code: "EMAIL_NOT_VERIFIED" })
     });
-
-    expect(result.user.email).toBe("ada@example.com");
-    expect(result.accessToken).toEqual(expect.any(String));
+    expect(prisma.refreshTokenCount()).toBe(0);
   });
 
-  it("rejects invalid login credentials without exposing account state", async () => {
-    await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
+  it("confirms a valid single-use token without starting a session, then permits login", async () => {
+    await service.register(registerDto(), requestContext());
+    const token = rawTokenFrom(mailRequests[0]);
+
+    await expect(service.verifyEmail({ token })).resolves.toEqual({
+      message: "Tu correo fue confirmado correctamente."
     });
+    expect(prisma.refreshTokenCount()).toBe(0);
+
+    const login = await service.login(loginDto());
+    expect(login.accessToken).toEqual(expect.any(String));
+    expect(login.user.emailVerifiedAt).toEqual(expect.any(String));
+  });
+
+  it.each([
+    ["expired", () => prisma.expireLatestVerificationToken(), "EMAIL_VERIFICATION_TOKEN_EXPIRED"],
+    ["revoked", () => prisma.revokeLatestVerificationToken(), "EMAIL_VERIFICATION_TOKEN_REVOKED"]
+  ])("rejects an %s verification token", async (_label, mutate, expectedCode) => {
+    await service.register(registerDto(), requestContext());
+    const token = rawTokenFrom(mailRequests[0]);
+    mutate();
+
+    await expect(service.verifyEmail({ token })).rejects.toMatchObject({
+      response: expect.objectContaining({ code: expectedCode })
+    });
+  });
+
+  it("rejects used and invalid verification tokens", async () => {
+    await service.register(registerDto(), requestContext());
+    const token = rawTokenFrom(mailRequests[0]);
+    await service.verifyEmail({ token });
+
+    await expect(service.verifyEmail({ token })).rejects.toBeInstanceOf(HttpException);
+    await expect(service.verifyEmail({ token: "x".repeat(48) })).rejects.toMatchObject({
+      response: expect.objectContaining({ code: "EMAIL_VERIFICATION_TOKEN_INVALID" })
+    });
+  });
+
+  it("resends only for a pending account and revokes the previous token", async () => {
+    await service.register(registerDto(), requestContext());
+    const first = prisma.latestVerificationToken();
 
     await expect(
-      service.login({ email: "ada@example.com", password: "wrong-password" })
-    ).rejects.toBeInstanceOf(UnauthorizedException);
-    await expect(
-      service.login({ email: "missing@example.com", password: "wrong-password" })
-    ).rejects.toBeInstanceOf(UnauthorizedException);
-  });
-
-  it("rejects login for inactive users with the same generic error", async () => {
-    await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
-    prisma.setUserStatus("ada@example.com", UserStatus.DISABLED);
-
-    await expect(service.login({ email: "ada@example.com", password: "correct-password" })).rejects.toBeInstanceOf(UnauthorizedException);
-  });
-
-  it("rejects missing, invalid, and expired refresh tokens", async () => {
-    const registered = await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
+      service.resendVerificationEmail({ email: "ada@example.com" }, requestContext())
+    ).resolves.toEqual({
+      message: "Si la cuenta requiere confirmación, enviaremos un nuevo correo."
     });
 
-    await expect(service.refresh(undefined)).rejects.toBeInstanceOf(UnauthorizedException);
-    await expect(service.refresh("not-a-stored-token")).rejects.toBeInstanceOf(UnauthorizedException);
-
-    prisma.expireRefreshTokens();
-    await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(first?.revokedAt).toBeInstanceOf(Date);
+    expect(mailService.sendEmailVerification).toHaveBeenCalledTimes(2);
+    expect(prisma.verificationTokensForUser("user-1")).toHaveLength(2);
   });
 
-  it("refreshes a valid refresh token and rotates it", async () => {
-    const registered = await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
+  it("does not resend for confirmed or missing accounts and keeps the same response", async () => {
+    await registerAndVerify(service, mailRequests);
+    const confirmed = await service.resendVerificationEmail(
+      { email: "ada@example.com" },
+      requestContext()
+    );
+    const missing = await service.resendVerificationEmail(
+      { email: "missing@example.com" },
+      requestContext()
+    );
 
-    const refreshed = await service.refresh(registered.refreshToken);
-    const oldToken = await prisma.findRefreshTokenByPlainValue(registered.refreshToken);
-    const nextToken = await prisma.findRefreshTokenByPlainValue(refreshed.refreshToken);
+    expect(confirmed).toEqual(missing);
+    expect(mailService.sendEmailVerification).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects invalid credentials and inactive users with a generic error", async () => {
+    await service.register(registerDto(), requestContext());
+    await expect(service.login({ ...loginDto(), password: "wrong-password" })).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.login({ email: "missing@example.com", password: "wrong-password" })).rejects.toBeInstanceOf(UnauthorizedException);
+    await service.verifyEmail({ token: rawTokenFrom(mailRequests[0]) });
+    prisma.setUserStatus("ada@example.com", UserStatus.INACTIVE);
+    await expect(service.login(loginDto())).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it("rotates valid refresh tokens and rejects expired or revoked tokens", async () => {
+    await registerAndVerify(service, mailRequests);
+    const loggedIn = await service.login(loginDto());
+    const refreshed = await service.refresh(loggedIn.refreshToken);
+    const oldToken = await prisma.findRefreshTokenByPlainValue(loggedIn.refreshToken);
 
     expect(refreshed.accessToken).toEqual(expect.any(String));
     expect(oldToken?.revokedAt).toBeInstanceOf(Date);
-    expect(nextToken?.revokedAt).toBeNull();
-  });
-
-  it("rejects a revoked refresh token", async () => {
-    const registered = await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
-    await service.logout(registered.refreshToken);
-
-    await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(
-      UnauthorizedException
-    );
+    await expect(service.refresh(loggedIn.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
+    prisma.expireRefreshTokens();
+    await expect(service.refresh(refreshed.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it("treats logout without a matching refresh token as idempotent", async () => {
     await service.logout(undefined);
     await service.logout("not-a-stored-token");
-
     expect(prisma.revokedRefreshTokenCount()).toBe(0);
   });
 
-  it("rejects /me for missing or inactive users", async () => {
-    await expect(service.me("missing-user")).rejects.toBeInstanceOf(UnauthorizedException);
-    await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
-    prisma.setUserStatus("ada@example.com", UserStatus.DISABLED);
-
+  it("requires a verified active user for me and preference updates", async () => {
+    await service.register(registerDto(), requestContext());
     await expect(service.me("user-1")).rejects.toBeInstanceOf(UnauthorizedException);
-  });
+    await service.verifyEmail({ token: rawTokenFrom(mailRequests[0]) });
 
-  it("updates the authenticated user locale preference", async () => {
-    const registered = await service.register({
-      email: "ada@example.com",
-      firstName: "Ada",
-      lastName: "Lovelace",
-      password: "correct-password"
-    });
-
-    const updated = await service.updatePreferences(registered.user.id, { locale: "pt-BR" });
-
+    const updated = await service.updatePreferences("user-1", { locale: "pt-BR" });
     expect(updated.locale).toBe("pt-BR");
   });
 });
@@ -319,11 +416,65 @@ describe("JwtAuthGuard", () => {
     );
     const request = { headers: {} } as AuthenticatedRequest;
     const context = {
-      switchToHttp: () => ({
-        getRequest: () => request
-      })
+      switchToHttp: () => ({ getRequest: () => request })
     } as unknown as ExecutionContext;
 
     await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });
+
+function createMailService(requests: EmailVerificationRequest[]) {
+  return {
+    getEmailVerificationPolicy: jest.fn(() => ({
+      appPublicUrl: "http://localhost:4200",
+      expiresMinutes: 1440
+    })),
+    getPasswordResetPolicy: jest.fn(() => ({
+      appPublicUrl: "http://localhost:4200",
+      expiresMinutes: 30
+    })),
+    sendEmailVerification: jest.fn(async (request: EmailVerificationRequest) => {
+      requests.push(request);
+      return {
+        recipient: request.recipient,
+        messageId: "<verification@test>",
+        accepted: [request.recipient],
+        rejected: []
+      };
+    }),
+    sendPasswordResetEmail: jest.fn()
+  };
+}
+
+async function registerAndVerify(
+  service: AuthService,
+  requests: EmailVerificationRequest[]
+): Promise<void> {
+  await service.register(registerDto(), requestContext());
+  await service.verifyEmail({ token: rawTokenFrom(requests.at(-1)) });
+}
+
+function rawTokenFrom(request: EmailVerificationRequest | undefined): string {
+  if (!request) throw new Error("Verification email was not requested");
+  const token = new URL(request.verificationUrl).searchParams.get("token");
+  if (!token) throw new Error("Verification token is missing");
+  return token;
+}
+
+function registerDto() {
+  return {
+    email: "Ada@Example.com",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    password: "correct-password",
+    locale: "es" as const
+  };
+}
+
+function loginDto() {
+  return { email: "ada@example.com", password: "correct-password" };
+}
+
+function requestContext() {
+  return { ipAddress: "127.0.0.1", userAgent: "Jest", requestId: "request-1" };
+}

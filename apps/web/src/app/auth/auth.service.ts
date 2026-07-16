@@ -10,8 +10,10 @@ import {
   ForgotPasswordRequest,
   LoginRequest,
   MessageResponse,
+  ResendVerificationEmailRequest,
   RegisterRequest,
   ResetPasswordRequest,
+  VerifyEmailRequest,
   UpdatePreferencesRequest
 } from "./auth.models";
 
@@ -57,11 +59,29 @@ export class AuthService {
     return this.accessToken;
   }
 
-  register(payload: RegisterRequest): Promise<AuthResponse> {
+  register(payload: RegisterRequest): Promise<MessageResponse> {
     return firstValueFrom(
       this.http
-        .post<AuthResponse>(`${API_URL}/auth/register`, payload, { withCredentials: true })
-        .pipe(tap((response) => this.applyAuthResponse(response)))
+        .post<MessageResponse>(`${API_URL}/auth/register`, payload)
+        .pipe(timeout({ first: 10000 }))
+    );
+  }
+
+  verifyEmail(payload: VerifyEmailRequest): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http
+        .post<MessageResponse>(`${API_URL}/auth/verify-email`, payload)
+        .pipe(timeout({ first: 10000 }))
+    );
+  }
+
+  resendVerificationEmail(
+    payload: ResendVerificationEmailRequest
+  ): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http
+        .post<MessageResponse>(`${API_URL}/auth/resend-verification-email`, payload)
+        .pipe(timeout({ first: 10000 }))
     );
   }
 
