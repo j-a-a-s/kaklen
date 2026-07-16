@@ -10,7 +10,7 @@
     "build:pt-BR": "node ../../scripts/build-web-pt-br.mjs",
     "dev": "pnpm --dir ../.. web:runtime-config && NG_CLI_ANALYTICS=false ng serve --host 0.0.0.0 --port 4200",
     "extract-i18n": "ng extract-i18n --format xlf --output-path src/locale",
-    "test": "tsc -p tsconfig.app.json --noEmit",
+    "test": "node ../../scripts/run-web-tests.mjs",
     "lint": "tsc -p tsconfig.app.json --noEmit"
   },
   "dependencies": {
@@ -31,12 +31,14 @@
     "@angular/build": "^20.0.5",
     "@angular/cli": "^20.0.5",
     "@angular/compiler-cli": "^20.0.5",
+    "@types/jasmine": "^6.0.0",
     "@types/node": "^22.15.32",
+    "jasmine-core": "^5.7.1",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-jasmine": "^5.1.0",
-    "jasmine-core": "^5.7.1",
+    "karma-jasmine-html-reporter": "^2.2.0",
     "typescript": "^5.8.3"
   }
 }

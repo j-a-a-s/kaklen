@@ -34,6 +34,29 @@ export interface MessageResponse {
   message: string;
 }
 
+export const PASSWORD_MIN_LENGTH = 10;
+
+export type PasswordStrength = "weak" | "acceptable" | "strong";
+
+export function passwordStrength(password: string): PasswordStrength {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return "weak";
+  }
+
+  const characterGroups = [
+    /[a-z]/.test(password),
+    /[A-Z]/.test(password),
+    /\d/.test(password),
+    /[^A-Za-z0-9]/.test(password)
+  ].filter(Boolean).length;
+
+  if (password.length >= 14 && characterGroups >= 3) {
+    return "strong";
+  }
+
+  return characterGroups >= 2 ? "acceptable" : "weak";
+}
+
 export type OrganizationRole = "OWNER" | "ADMIN" | "MANAGER" | "MEMBER" | "VIEWER";
 export type OrganizationStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
 export type OrganizationMembershipStatus = "ACTIVE" | "INVITED" | "SUSPENDED";

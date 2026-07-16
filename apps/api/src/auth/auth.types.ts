@@ -3,6 +3,12 @@ import type { Request } from "express";
 export interface JwtAccessPayload {
   sub: string;
   email: string;
+  sessionVersion: number;
+}
+
+export interface PasswordRecoveryRequestContext {
+  ipAddress: string;
+  userAgent?: string;
 }
 
 export interface AuthenticatedRequest extends Request {

@@ -13,21 +13,24 @@ import {
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
+  ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
-import type { Response } from "express";
+import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import type { Request, Response } from "express";
 import { readAuthConfig } from "@kaklen/config";
 import { AuthService } from "./auth.service";
 import type { AuthenticatedRequest, CookieRequest } from "./auth.types";
 import { AuthResponseDto, AuthUserDto, MessageResponseDto } from "./dto/auth-response.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ForgotPasswordDto, ResetPasswordDto } from "./dto/password-recovery.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { UpdatePreferencesDto } from "./dto/update-preferences.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
@@ -75,6 +78,32 @@ export class AuthController {
       user: result.user,
       accessToken: result.accessToken
     };
+  }
+
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  @SkipThrottle()
+  @ApiOperation({ summary: "Send password recovery instructions when the account is eligible" })
+  @ApiOkResponse({ type: MessageResponseDto })
+  forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+    @Req() request: Request
+  ): Promise<MessageResponseDto> {
+    return this.authService.forgotPassword(dto, this.passwordRecoveryContext(request));
+  }
+
+  @Post("reset-password")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: "Replace a password using a single-use recovery token" })
+  @ApiOkResponse({ type: MessageResponseDto })
+  @ApiBadRequestResponse({ description: "Token or password is invalid" })
+  @ApiTooManyRequestsResponse({ description: "Too many reset attempts" })
+  resetPassword(
+    @Body() dto: ResetPasswordDto,
+    @Req() request: Request
+  ): Promise<MessageResponseDto> {
+    return this.authService.resetPassword(dto, this.passwordRecoveryContext(request));
   }
 
   @Post("refresh")
@@ -170,5 +199,16 @@ export class AuthController {
     if (!config.authAllowedOrigins.includes(origin)) {
       throw new ForbiddenException("Origin is not allowed");
     }
+  }
+
+  private passwordRecoveryContext(request: Request): {
+    ipAddress: string;
+    userAgent?: string;
+  } {
+    const userAgent = request.headers["user-agent"];
+    return {
+      ipAddress: request.ip || request.socket.remoteAddress || "unknown",
+      ...(typeof userAgent === "string" ? { userAgent } : {})
+    };
   }
 }

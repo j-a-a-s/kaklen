@@ -402,6 +402,7 @@ function user(overrides: Partial<User> = {}): User {
     firstName: "Member",
     lastName: "User",
     passwordHash: "hash",
+    authVersion: 0,
     locale: "es",
     status: UserStatus.ACTIVE,
     createdAt: now,

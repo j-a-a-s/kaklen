@@ -13,11 +13,14 @@ model User {
   firstName                  String
   lastName                   String
   passwordHash               String
+  authVersion                Int                      @default(0)
   locale                     String                   @default("es")
   status                     UserStatus               @default(ACTIVE)
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
   refreshTokens              RefreshToken[]
+  passwordResetTokens        PasswordResetToken[]
+  authAuditLogs              AuthAuditLog[]
   createdOrganizations       Organization[]           @relation("OrganizationCreator")
   organizationMemberships    OrganizationMembership[]
   organizationInvitations    OrganizationInvitation[] @relation("InvitationSender")
@@ -31,6 +34,37 @@ model User {
   assignedEventTasks         EventTask[]              @relation("EventTaskAssignee")
   createdEventTasks          EventTask[]              @relation("EventTaskCreator")
   eventParticipants          EventParticipant[]
+}
+
+model PasswordResetToken {
+  id              String    @id @default(uuid())
+  userId          String
+  tokenHash       String    @unique
+  expiresAt       DateTime
+  usedAt          DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  requestedIpHash String?
+  userAgentHash   String?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+model AuthAuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  event     String
+  success   Boolean
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
 }
 
 model RefreshToken {

@@ -63,6 +63,30 @@ describe("AuthController", () => {
     await expect(controller.updatePreferences(request as never, { locale: "pt-BR" })).resolves.toMatchObject({ locale: "pt-BR" });
     expect(service.updatePreferences).toHaveBeenCalledWith("user-1", { locale: "pt-BR" });
   });
+
+  it("delegates password recovery without exposing request details in the response", async () => {
+    const service = makeAuthService();
+    const controller = new AuthController(service as never);
+    const request = {
+      ip: "127.0.0.1",
+      socket: {},
+      headers: { "user-agent": "Jest" }
+    };
+
+    await expect(
+      controller.forgotPassword({ email: "ada@example.com" }, request as never)
+    ).resolves.toEqual({ message: "generic recovery response" });
+    await expect(
+      controller.resetPassword(
+        { token: "reset-token", password: "UpdatedPass456!", confirmPassword: "UpdatedPass456!" },
+        request as never
+      )
+    ).resolves.toEqual({ message: "password updated" });
+    expect(service.forgotPassword).toHaveBeenCalledWith(
+      { email: "ada@example.com" },
+      { ipAddress: "127.0.0.1", userAgent: "Jest" }
+    );
+  });
 });
 
 function makeAuthService() {
@@ -80,6 +104,8 @@ function makeAuthService() {
     register: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
     login: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
     refresh: jest.fn(async () => ({ user, accessToken: "access-token", refreshToken: "refresh-token" })),
+    forgotPassword: jest.fn(async () => ({ message: "generic recovery response" })),
+    resetPassword: jest.fn(async () => ({ message: "password updated" })),
     logout: jest.fn(async () => undefined),
     me: jest.fn(async () => user),
     updatePreferences: jest.fn(async () => ({ ...user, locale: "pt-BR" }))

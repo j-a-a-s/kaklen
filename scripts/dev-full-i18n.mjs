@@ -101,6 +101,25 @@ export function stopManagedProcess(managed, signal = "SIGTERM") {
   }
 }
 
+export async function stopManagedProcessAndWait(
+  managed,
+  { gracefulTimeoutMs = 5000, forceTimeoutMs = 2000 } = {}
+) {
+  if (hasExited(managed.child)) {
+    return true;
+  }
+
+  const gracefulExit = waitForChildExit(managed.child, gracefulTimeoutMs);
+  stopManagedProcess(managed);
+  if (await gracefulExit) {
+    return true;
+  }
+
+  const forcedExit = waitForChildExit(managed.child, forceTimeoutMs);
+  stopManagedProcess(managed, "SIGKILL");
+  return forcedExit;
+}
+
 async function main() {
   console.log("KAKLEN FULL I18N");
   console.log("");
@@ -123,8 +142,16 @@ async function main() {
   }
 
   await runCommand("pnpm", ["--filter", "@kaklen/api", "clean"], { env: runtimeEnv, timeoutMs: 30000 });
-  startManagedProcess("api", "pnpm", ["--filter", "@kaklen/api", "dev"], runtimeEnv);
+  const apiPortAvailable = await waitForTcpUnavailable(apiPort, 10000);
+  if (!apiPortAvailable) {
+    throw new Error(`El puerto ${apiPort} sigue ocupado. Detenga la API anterior antes de continuar.`);
+  }
+  const apiProcess = startManagedProcess("api", "pnpm", ["--filter", "@kaklen/api", "dev"], runtimeEnv);
   await waitForHttp(apiHealthLiveUrl(), { timeoutMs: 120000 });
+  await delay(500);
+  if (hasExited(apiProcess.child)) {
+    throw new Error("La API termino durante su inicio. Revise el log anterior.");
+  }
   console.log(`✓ API disponible: ${apiBaseUrl}`);
   console.log(`✓ Swagger: http://localhost:${apiPort}/docs`);
 
@@ -282,14 +309,56 @@ async function shutdown(exitCode) {
     return;
   }
   shuttingDown = true;
-  for (const managed of managedProcesses) {
-    stopManagedProcess(managed);
-  }
+  const processShutdowns = managedProcesses.map(async (managed) => {
+    const stopped = await stopManagedProcessAndWait(managed);
+    if (!stopped) {
+      console.error(`! No fue posible confirmar el cierre del proceso ${managed.label}`);
+    }
+  });
   if (server) {
     await closeServer(server);
     server = null;
   }
+  await Promise.all(processShutdowns);
+  if (managedProcesses.some((managed) => managed.label === "api")) {
+    const apiStopped = await waitForTcpUnavailable(apiPort, 5000);
+    if (!apiStopped) {
+      console.error(`! El puerto ${apiPort} continua ocupado despues de detener la API`);
+    }
+  }
   process.exit(exitCode);
+}
+
+function hasExited(child) {
+  return child.exitCode !== null || child.signalCode !== null;
+}
+
+function waitForChildExit(child, timeoutMs) {
+  if (hasExited(child)) {
+    return Promise.resolve(true);
+  }
+  return new Promise((resolveExit) => {
+    const onExit = () => {
+      clearTimeout(timer);
+      resolveExit(true);
+    };
+    const timer = setTimeout(() => {
+      child.off("exit", onExit);
+      resolveExit(false);
+    }, timeoutMs);
+    child.once("exit", onExit);
+  });
+}
+
+async function waitForTcpUnavailable(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!(await isTcpAvailable(port))) {
+      return true;
+    }
+    await delay(100);
+  }
+  return !(await isTcpAvailable(port));
 }
 
 function closeServer(httpServer) {

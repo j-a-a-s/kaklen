@@ -5,6 +5,8 @@ const checks = [
   ["Architecture check", "pnpm", ["architecture:check"]],
   ["Quality scan", "pnpm", ["quality:scan"]],
   ["Secret scan", "pnpm", ["security:scan"]],
+  ["Database and migrations", "pnpm", ["db:validate"]],
+  ["Password recovery contract", "node", ["--test", "scripts/password-recovery.test.mjs"]],
   ["Demo clear", "pnpm", ["db:clear:demo"]],
   ["Demo seed", "pnpm", ["db:seed:demo"]],
   ["Demo verification", "pnpm", ["db:verify:demo"]],

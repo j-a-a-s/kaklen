@@ -11,12 +11,14 @@ test.describe.serial("Kaklen assisted product journey", () => {
   let accessToken = "";
   let organizationId = "";
   let firstClientId = "";
+  let authenticatedCookies = [];
 
   test.beforeAll(async ({ playwright }) => {
     api = await playwright.request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
     const login = await api.post("/api/auth/login", { data: { email: "empresa.angela@demo.kaklen.local", password: demoPassword } });
     expect(login.status()).toBe(200);
     accessToken = (await login.json()).accessToken;
+    authenticatedCookies = (await api.storageState()).cookies;
     const organizations = await authorizedGet("/organizations");
     expect(organizations.status()).toBe(200);
     organizationId = (await organizations.json())[0].id;
@@ -55,8 +57,17 @@ test.describe.serial("Kaklen assisted product journey", () => {
 
   test("does not disclose the first tenant to another demo owner", async ({ playwright }) => {
     const secondTenant = await playwright.request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
-    const login = await secondTenant.post("/api/auth/login", { data: { email: "empresa.koke@demo.kaklen.local", password: demoPassword } });
-    const secondToken = (await login.json()).accessToken;
+    const unique = Date.now();
+    const registration = await secondTenant.post("/api/auth/register", {
+      data: {
+        email: `tenant-isolation-${unique}@demo.kaklen.local`,
+        firstName: "Tenant",
+        lastName: "Isolation",
+        password: demoPassword
+      }
+    });
+    expect(registration.status()).toBe(201);
+    const secondToken = (await registration.json()).accessToken;
     const response = await secondTenant.get(`/api/organizations/${organizationId}/assistant/search?query=comercial`, { headers: { Authorization: `Bearer ${secondToken}` } });
     expect([403, 404]).toContain(response.status());
     await secondTenant.dispose();
@@ -67,7 +78,7 @@ test.describe.serial("Kaklen assisted product journey", () => {
     const unique = Date.now();
     const clientName = `Cliente Guiado ${unique}`;
     const productName = `Producto Guiado ${unique}`;
-    await loginDemo(page);
+    await resumeDemoSession(page, authenticatedCookies);
     await expect(page.locator("kaklen-dashboard")).toBeVisible();
     await expect(page.getByText("Configuración inicial completada")).toBeVisible();
 
@@ -174,11 +185,9 @@ test.describe.serial("Kaklen assisted product journey", () => {
   }
 });
 
-async function loginDemo(page) {
-  await page.goto(`${webBase}/es/login`);
-  await page.getByLabel("Email").fill("empresa.angela@demo.kaklen.local");
-  await page.getByLabel("Contraseña").fill(demoPassword);
-  await page.getByRole("button", { name: "Ingresar" }).click();
+async function resumeDemoSession(page, cookies) {
+  await page.context().addCookies(cookies);
+  await page.goto(`${webBase}/es/dashboard`);
   await expect(page).toHaveURL(/\/es\/dashboard$/);
   await expect(page.locator("kaklen-dashboard")).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("kaklen.activeOrganizationId"))).not.toBeNull();

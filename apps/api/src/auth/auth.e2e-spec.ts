@@ -29,6 +29,7 @@ class FakePrismaService {
         firstName: data.firstName,
         lastName: data.lastName,
         passwordHash: data.passwordHash,
+        authVersion: 0,
         locale: data.locale ?? "es",
         status: UserStatus.ACTIVE,
         createdAt: now,

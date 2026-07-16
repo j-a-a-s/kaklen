@@ -23,6 +23,18 @@ The NestJS API enables Helmet by default. CORS is limited to the local Angular d
 
 Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The frontend must translate user-facing errors from stable `code` values instead of relying on backend message text.
 
+## Password Recovery
+
+- Recovery tokens use 48 random bytes and are persisted only as SHA-256 hashes.
+- Each token expires, is single-use, and a new request revokes earlier valid links.
+- The request response does not confirm whether an account exists or is active.
+- IP and user-agent values are stored only as HMAC values for audit support; passwords, tokens, and full email addresses are not logged.
+- A successful reset updates Argon2id, consumes the token, revokes refresh tokens, and increments `User.authVersion` in one transaction.
+- `JwtAuthGuard` compares the JWT session version with the current user version.
+- Limits by IP, normalized email, and token reduce spam and automated attempts.
+
+See [Password Recovery](auth/PASSWORD_RECOVERY.md) for the complete flow and environment configuration.
+
 ## Dependency Updates
 
 Dependabot is configured for:

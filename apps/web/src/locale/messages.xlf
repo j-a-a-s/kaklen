@@ -110,7 +110,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">165</context>
+          <context context-type="linenumber">179</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -133,7 +133,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">166</context>
+          <context context-type="linenumber">180</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -156,7 +156,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">181</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -179,7 +179,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">168</context>
+          <context context-type="linenumber">182</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -198,7 +198,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">169</context>
+          <context context-type="linenumber">183</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -233,7 +233,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">170</context>
+          <context context-type="linenumber">184</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -509,7 +509,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">80,81</context>
+          <context context-type="linenumber">82,83</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-form.component.ts</context>
@@ -532,7 +532,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">81,82</context>
+          <context context-type="linenumber">83,84</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-form.component.ts</context>
@@ -555,7 +555,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">82,84</context>
+          <context context-type="linenumber">84,86</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-form.component.ts</context>
@@ -578,7 +578,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">83,85</context>
+          <context context-type="linenumber">85,87</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-form.component.ts</context>
@@ -706,7 +706,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">18,21</context>
+          <context context-type="linenumber">20,23</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -721,7 +721,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">21,25</context>
+          <context context-type="linenumber">23,27</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
@@ -733,7 +733,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">25,26</context>
+          <context context-type="linenumber">27,28</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -768,7 +768,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">26,27</context>
+          <context context-type="linenumber">28,29</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
@@ -787,7 +787,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">45,47</context>
+          <context context-type="linenumber">47,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="skuLabel" datatype="html">
@@ -798,7 +798,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">49,51</context>
+          <context context-type="linenumber">51,53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -813,7 +813,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">60,61</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-detail.component.ts</context>
@@ -832,7 +832,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">63,64</context>
+          <context context-type="linenumber">65,66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="priceLabel" datatype="html">
@@ -843,7 +843,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">68,69</context>
+          <context context-type="linenumber">70,71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="taxLabel" datatype="html">
@@ -872,7 +872,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">90,92</context>
+          <context context-type="linenumber">92,94</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-detail.component.ts</context>
@@ -941,14 +941,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">200</context>
+          <context context-type="linenumber">210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="typeLabel" datatype="html">
         <source>Tipo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">28,30</context>
+          <context context-type="linenumber">30,32</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -979,7 +979,7 @@
         <source>Producto</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">32,33</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -994,7 +994,7 @@
         <source>Servicio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">31,34</context>
+          <context context-type="linenumber">33,36</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1009,7 +1009,7 @@
         <source>Estado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">36,38</context>
+          <context context-type="linenumber">38,40</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1036,7 +1036,7 @@
         <source>Activo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">38,39</context>
+          <context context-type="linenumber">40,41</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1055,7 +1055,7 @@
         <source>Inactivo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">41,42</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1074,7 +1074,7 @@
         <source>Archivado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">40,44</context>
+          <context context-type="linenumber">42,46</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1089,7 +1089,7 @@
         <source>Código</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">44,46</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-list.component.ts</context>
@@ -1104,14 +1104,14 @@
         <source>El código es obligatorio.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">46,49</context>
+          <context context-type="linenumber">48,51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="nameLabel" datatype="html">
         <source>Nombre</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">53,55</context>
+          <context context-type="linenumber">55,57</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -1142,56 +1142,56 @@
         <source>El nombre es obligatorio.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">55,58</context>
+          <context context-type="linenumber">57,60</context>
         </context-group>
       </trans-unit>
       <trans-unit id="unitPlaceholder" datatype="html">
         <source>unidad, hora, kg</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">59,60</context>
+          <context context-type="linenumber">61,62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="unitRequired" datatype="html">
         <source>La unidad es obligatoria.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">60,63</context>
+          <context context-type="linenumber">62,65</context>
         </context-group>
       </trans-unit>
       <trans-unit id="costValidation" datatype="html">
         <source>El costo debe ser mayor o igual a 0.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">65,68</context>
+          <context context-type="linenumber">67,70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="priceValidation" datatype="html">
         <source>El precio debe ser mayor o igual a 0.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">70,73</context>
+          <context context-type="linenumber">72,75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="taxPercentLabel" datatype="html">
         <source>Impuesto %</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">73,74</context>
+          <context context-type="linenumber">75,76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="taxValidation" datatype="html">
         <source>El impuesto debe estar entre 0 y 100.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">75,78</context>
+          <context context-type="linenumber">77,80</context>
         </context-group>
       </trans-unit>
       <trans-unit id="currencyLabel" datatype="html">
         <source>Moneda</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">78,80</context>
+          <context context-type="linenumber">80,82</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/event-form.component.ts</context>
@@ -1218,14 +1218,14 @@
         <source>La moneda es obligatoria.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">85,90</context>
+          <context context-type="linenumber">87,92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelLink" datatype="html">
         <source>Cancelar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">100,107</context>
+          <context context-type="linenumber">102,109</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -1236,7 +1236,7 @@
         <source>Guardar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">110</context>
+          <context context-type="linenumber">112</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -1251,7 +1251,7 @@
         <source>Guardando...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">111</context>
+          <context context-type="linenumber">113</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/client-form.component.ts</context>
@@ -1270,56 +1270,56 @@
         <source>Los productos controlan inventario.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">150</context>
+          <context context-type="linenumber">157</context>
         </context-group>
       </trans-unit>
       <trans-unit id="serviceInventoryHint" datatype="html">
         <source>Los servicios no controlan inventario.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogItemSaveError" datatype="html">
         <source>No fue posible guardar el item. Revisa el código y los datos ingresados.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">185</context>
         </context-group>
       </trans-unit>
       <trans-unit id="editCatalogItemTitle" datatype="html">
         <source>Editar item</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">224</context>
+          <context context-type="linenumber">234</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newCatalogItemTitle" datatype="html">
         <source>Nuevo item</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">224</context>
+          <context context-type="linenumber">234</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogUpdatedSuccess" datatype="html">
         <source>Elemento actualizado correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">229</context>
+          <context context-type="linenumber">239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogProductCreatedSuccess" datatype="html">
         <source>Producto creado correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">232</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogServiceCreatedSuccess" datatype="html">
         <source>Servicio creado correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/catalog-form.component.ts</context>
-          <context context-type="linenumber">233</context>
+          <context context-type="linenumber">243</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogTitle" datatype="html">
@@ -1562,7 +1562,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">31,33</context>
+          <context context-type="linenumber">33,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archiveButton" datatype="html">
@@ -1878,8 +1878,12 @@
           <context context-type="linenumber">96,98</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">39,40</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">40,41</context>
+          <context context-type="linenumber">41,42</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/organization-members.component.ts</context>
@@ -1887,7 +1891,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">55,56</context>
+          <context context-type="linenumber">56,57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="phoneLabel" datatype="html">
@@ -2445,7 +2449,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">38,39</context>
+          <context context-type="linenumber">39,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="firstNameExample" datatype="html">
@@ -2463,7 +2467,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">41,46</context>
+          <context context-type="linenumber">42,47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lastNameLabel" datatype="html">
@@ -2474,7 +2478,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">46,47</context>
+          <context context-type="linenumber">47,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lastNameExample" datatype="html">
@@ -2492,7 +2496,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">49,54</context>
+          <context context-type="linenumber">50,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="legalNameLabel" datatype="html">
@@ -2595,12 +2599,16 @@
           <context context-type="linenumber">91,94</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">42,46</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">43,48</context>
+          <context context-type="linenumber">44,49</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">58,63</context>
+          <context context-type="linenumber">59,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="phonePrefixLabel" datatype="html">
@@ -2847,7 +2855,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">52</context>
+          <context context-type="linenumber">54</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -3872,11 +3880,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">33,36</context>
+          <context context-type="linenumber">35,38</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">94</context>
+          <context context-type="linenumber">96</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventTaskAddedSuccess" datatype="html">
@@ -4457,107 +4465,236 @@
           <context context-type="linenumber">162</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="recoveryBrandPromise" datatype="html">
+        <source>Recupera el acceso de forma segura.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">24,27</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="forgotPasswordEyebrow" datatype="html">
+        <source>Recuperación de acceso</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">30,31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="forgotPasswordTitle" datatype="html">
+        <source>Recupera tu cuenta</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">31,33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="forgotPasswordDescription" datatype="html">
+        <source> Ingresa el correo asociado a tu cuenta. Si existe, te enviaremos instrucciones. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">33,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="backToLogin" datatype="html">
+        <source>Volver al inicio de sesión</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">54,58</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">65,72</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">91,94</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">129,136</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="forgotPasswordSentEyebrow" datatype="html">
+        <source>Instrucciones enviadas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">60,62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="checkYourEmailTitle" datatype="html">
+        <source>Revisa tu correo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">61,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="checkYourEmailDescription" datatype="html">
+        <source> Si existe una cuenta asociada a ese correo, recibirás un enlace válido por 30 minutos. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">63,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sendingInstructionsLabel" datatype="html">
+        <source>Enviando...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sendInstructionsLabel" datatype="html">
+        <source>Enviar instrucciones</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recoveryServerTimeout" datatype="html">
+        <source>El servidor está tardando demasiado.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">258</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recoveryServerUnavailable" datatype="html">
+        <source>No pudimos conectar con el servidor. Intenta nuevamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">115</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">120,121</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recoveryRequestFailed" datatype="html">
+        <source>No pudimos enviar las instrucciones. Intenta nuevamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/forgot-password.component.ts</context>
+          <context context-type="linenumber">117</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="authBrandPromise" datatype="html">
         <source>Tu operación, clara y bajo control.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">28,31</context>
+          <context context-type="linenumber">29,32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginEyebrow" datatype="html">
         <source>Bienvenido de vuelta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">33,35</context>
+          <context context-type="linenumber">34,36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginTitle" datatype="html">
         <source>Iniciar sesión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">35,36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginDescription" datatype="html">
         <source>Accede a tu espacio de trabajo para continuar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">35,39</context>
+          <context context-type="linenumber">36,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="passwordLabel" datatype="html">
         <source>Contraseña</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">49,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">63,64</context>
+          <context context-type="linenumber">64,65</context>
         </context-group>
       </trans-unit>
       <trans-unit id="passwordValidation" datatype="html">
-        <source> La contraseña debe tener al menos 8 caracteres. </source>
+        <source> La contraseña debe tener al menos 10 caracteres. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">51,55</context>
+          <context context-type="linenumber">52,56</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">66,70</context>
+          <context context-type="linenumber">67,71</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">57,61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="forgotPasswordLink" datatype="html">
+        <source>¿Olvidaste tu contraseña?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">57,62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">63,64</context>
+          <context context-type="linenumber">68,69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSubmitting" datatype="html">
         <source>Ingresando...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginSubmit" datatype="html">
         <source>Ingresar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginServerTimeout" datatype="html">
         <source>El servidor está tardando demasiado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">148</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginError" datatype="html">
         <source>Email o contraseña inválidos.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">153</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginServerUnavailable" datatype="html">
         <source>No fue posible conectar con el servidor.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">161</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="loginRateLimit" datatype="html">
+        <source>Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo nuevamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/login.component.ts</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="loginServiceUnavailable" datatype="html">
         <source>El servicio no está disponible temporalmente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">159</context>
+          <context context-type="linenumber">167</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/login.component.ts</context>
-          <context context-type="linenumber">163</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="membersEyebrow" datatype="html">
@@ -4912,7 +5049,7 @@
         <source>Cotizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">20,22</context>
+          <context context-type="linenumber">22,24</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -4927,49 +5064,49 @@
         <source>Enviar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">29,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approveQuotationButton" datatype="html">
         <source>Aprobar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">28,29</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectQuotationButton" datatype="html">
         <source>Rechazar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">29,30</context>
+          <context context-type="linenumber">31,32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newVersionButton" datatype="html">
         <source>Nueva versión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">38,39</context>
         </context-group>
       </trans-unit>
       <trans-unit id="createEventButton" datatype="html">
         <source>Crear evento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">37,38</context>
+          <context context-type="linenumber">39,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="downloadPdfButton" datatype="html">
         <source>Descargar PDF</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">38,42</context>
+          <context context-type="linenumber">40,44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="issueDateLabel" datatype="html">
         <source>Fecha de emisión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">49,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -4984,7 +5121,7 @@
         <source>Válida hasta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -4999,7 +5136,7 @@
         <source>Subtotal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -5014,7 +5151,7 @@
         <source>Descuentos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -5029,7 +5166,7 @@
         <source>Impuestos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
@@ -5044,105 +5181,105 @@
         <source>Historial</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">67,69</context>
+          <context context-type="linenumber">69,71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="emptyNoteLabel" datatype="html">
         <source>Sin nota</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">91</context>
+          <context context-type="linenumber">93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelQuotationDialogTitle" datatype="html">
         <source>Cancelar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">92</context>
+          <context context-type="linenumber">94</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelQuotationDialogDescription" datatype="html">
         <source>La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">93</context>
+          <context context-type="linenumber">95</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStatusError" datatype="html">
         <source>No fue posible cambiar el estado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationNewVersionSuccess" datatype="html">
         <source>Nueva versión creada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationVersionError" datatype="html">
         <source>No fue posible crear una nueva versión.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">155</context>
+          <context context-type="linenumber">169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationLoadError" datatype="html">
         <source>No fue posible cargar la cotización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approveQuotationConfirm" datatype="html">
         <source>¿Aprobar esta cotización?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">199</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectQuotationConfirm" datatype="html">
         <source>¿Rechazar esta cotización?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">202</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelQuotationConfirm" datatype="html">
         <source>¿Cancelar esta cotización?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">205</context>
+          <context context-type="linenumber">219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSentSuccess" datatype="html">
         <source>Cotización enviada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">226</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationApprovedSuccess" datatype="html">
         <source>Cotización aprobada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">213</context>
+          <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationRejectedSuccess" datatype="html">
         <source>Cotización rechazada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">214</context>
+          <context context-type="linenumber">228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationCancelledSuccess" datatype="html">
         <source>Cotización cancelada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationFormDescription" datatype="html">
@@ -5537,56 +5674,317 @@
         <source>Empieza simple. Crece con una operación ordenada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">25,28</context>
+          <context context-type="linenumber">26,29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerEyebrow" datatype="html">
         <source>Comienza con Kaklen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">30,32</context>
+          <context context-type="linenumber">31,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerTitle" datatype="html">
         <source>Crear cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">31,32</context>
+          <context context-type="linenumber">32,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerDescription" datatype="html">
         <source>Crea tu acceso. Después podrás configurar tu organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">32,36</context>
+          <context context-type="linenumber">33,37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSwitch" datatype="html">
         <source>¿Ya tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/login&quot;&gt;"/>Ingresa<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">79,80</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerError" datatype="html">
         <source>No fue posible crear la cuenta con esas credenciales.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSubmitting" datatype="html">
         <source>Creando...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerSubmit" datatype="html">
         <source>Crear cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/register.component.ts</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetBrandPromise" datatype="html">
+        <source>Protege tu cuenta con una nueva contraseña.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">28,31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetPasswordEyebrow" datatype="html">
+        <source>Recuperación de acceso</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetPasswordTitle" datatype="html">
+        <source>Crea una nueva contraseña</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">36,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetPasswordDescription" datatype="html">
+        <source>Elige una contraseña distinta a la que utilizabas antes.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">37,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="newPasswordLabel" datatype="html">
+        <source>Nueva contraseña</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">42,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordStrengthLabel" datatype="html">
+        <source>Fortaleza</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">62,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordRequirements" datatype="html">
+        <source> Usa al menos 10 caracteres y evita tu nombre, correo o contraseña anterior. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">67,71</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="confirmNewPasswordLabel" datatype="html">
+        <source>Confirmar contraseña</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">71,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordConfirmationValidation" datatype="html">
+        <source>Las contraseñas deben coincidir.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">80,83</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetCompleteEyebrow" datatype="html">
+        <source>Acceso recuperado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">96,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordUpdatedTitle" datatype="html">
+        <source>Contraseña actualizada</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">97,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordUpdatedDescription" datatype="html">
+        <source>Ya puedes iniciar sesión con tu nueva contraseña.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">98,100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="signInAction" datatype="html">
+        <source>Iniciar sesión</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">99,102</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">113,114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="expiredTokenTitle" datatype="html">
+        <source>Enlace vencido</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">104,105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="expiredTokenMessage" datatype="html">
+        <source>Este enlace ya venció. Solicita uno nuevo.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">105,106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="requestAnotherLink" datatype="html">
+        <source>Solicitar otro enlace</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">106,109</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">114,117</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">128,129</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="usedTokenTitle" datatype="html">
+        <source>Enlace utilizado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">111,112</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="usedTokenMessage" datatype="html">
+        <source>Este enlace ya fue utilizado. Puedes iniciar sesión o solicitar otro.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">112,113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="networkErrorTitle" datatype="html">
+        <source>Sin conexión con el servidor</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">119,120</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tryAgainAction" datatype="html">
+        <source>Intentar nuevamente</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">121,124</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordStrengthWeak" datatype="html">
+        <source>Débil</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">176</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordStrengthAcceptable" datatype="html">
+        <source>Aceptable</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordStrengthStrong" datatype="html">
+        <source>Fuerte</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="hidePasswordAction" datatype="html">
+        <source>Ocultar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">193</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="showPasswordAction" datatype="html">
+        <source>Mostrar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">194</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resettingPasswordLabel" datatype="html">
+        <source>Actualizando...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">232</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="resetPasswordAction" datatype="html">
+        <source>Restablecer contraseña</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">233</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="missingTokenTitle" datatype="html">
+        <source>Falta el enlace de recuperación</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="invalidTokenTitle" datatype="html">
+        <source>Enlace no válido</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="missingTokenMessage" datatype="html">
+        <source>Abre el enlace completo que recibiste por correo.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">244</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="invalidTokenMessage" datatype="html">
+        <source>Este enlace no es válido.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordReuseError" datatype="html">
+        <source>Elige una contraseña distinta a la anterior.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">280</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordPolicyError" datatype="html">
+        <source>La contraseña no cumple los requisitos de seguridad.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">286</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordResetRateLimit" datatype="html">
+        <source>Demasiados intentos. Espera unos minutos.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">292</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="passwordResetFailed" datatype="html">
+        <source>No pudimos actualizar la contraseña. Intenta nuevamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/reset-password.component.ts</context>
+          <context context-type="linenumber">298</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quickSearchLabel" datatype="html">
@@ -5597,7 +5995,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">248,249</context>
+          <context context-type="linenumber">252,253</context>
         </context-group>
       </trans-unit>
       <trans-unit id="commandPaletteEyebrow" datatype="html">
@@ -5766,11 +6164,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">249,250</context>
+          <context context-type="linenumber">253,254</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">250,253</context>
+          <context context-type="linenumber">254,257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navHome" datatype="html">
@@ -5781,7 +6179,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">294,295</context>
+          <context context-type="linenumber">298,299</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navClients" datatype="html">
@@ -5796,7 +6194,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">295,296</context>
+          <context context-type="linenumber">299,300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientsCommandHelp" datatype="html">
@@ -5818,7 +6216,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">296,297</context>
+          <context context-type="linenumber">300,301</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogCommandHelp" datatype="html">
@@ -5840,7 +6238,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">297,298</context>
+          <context context-type="linenumber">301,302</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsCommandHelp" datatype="html">
@@ -5862,7 +6260,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">298,300</context>
+          <context context-type="linenumber">302,304</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventsCommandHelp" datatype="html">
@@ -5880,7 +6278,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">300,301</context>
+          <context context-type="linenumber">304,305</context>
         </context-group>
       </trans-unit>
       <trans-unit id="membersCommandHelp" datatype="html">
@@ -5898,11 +6296,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">258,259</context>
+          <context context-type="linenumber">262,263</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">301,304</context>
+          <context context-type="linenumber">305,308</context>
         </context-group>
       </trans-unit>
       <trans-unit id="settingsCommandHelp" datatype="html">
@@ -6190,95 +6588,95 @@
         <source>Abrir navegación</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">203,208</context>
+          <context context-type="linenumber">207,212</context>
         </context-group>
       </trans-unit>
       <trans-unit id="activeOrganizationLabel" datatype="html">
         <source>Organización activa</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">212,217</context>
+          <context context-type="linenumber">216,221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="primaryNavigationAriaLabel" datatype="html">
         <source>Principal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">217,218</context>
+          <context context-type="linenumber">221,222</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navLogin" datatype="html">
         <source>Iniciar sesión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">218,220</context>
+          <context context-type="linenumber">222,224</context>
         </context-group>
       </trans-unit>
       <trans-unit id="navRegister" datatype="html">
         <source>Registro</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">219,223</context>
+          <context context-type="linenumber">223,227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="openProfileLabel" datatype="html">
         <source>Abrir perfil</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">231,234</context>
+          <context context-type="linenumber">235,238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="accountNavigationAriaLabel" datatype="html">
         <source>Cuenta</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">242,244</context>
+          <context context-type="linenumber">246,248</context>
         </context-group>
       </trans-unit>
       <trans-unit id="logoutButton" datatype="html">
         <source>Salir</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">264,267</context>
+          <context context-type="linenumber">268,271</context>
         </context-group>
       </trans-unit>
       <trans-unit id="closeNavigationLabel" datatype="html">
         <source>Cerrar navegación</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">276,280</context>
+          <context context-type="linenumber">280,284</context>
         </context-group>
       </trans-unit>
       <trans-unit id="organizationNavigationAriaLabel" datatype="html">
         <source>Navegación de organización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">287,290</context>
+          <context context-type="linenumber">291,294</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">293,294</context>
+          <context context-type="linenumber">297,298</context>
         </context-group>
       </trans-unit>
       <trans-unit id="workspaceNavigationLabel" datatype="html">
         <source>Espacio de trabajo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">291,293</context>
+          <context context-type="linenumber">295,297</context>
         </context-group>
       </trans-unit>
       <trans-unit id="needHelpTitle" datatype="html">
         <source>¿Necesitas ayuda?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">305,306</context>
+          <context context-type="linenumber">309,310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="helpComingSoon" datatype="html">
         <source>Centro de ayuda próximamente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/main.ts</context>
-          <context context-type="linenumber">305,310</context>
+          <context context-type="linenumber">309,314</context>
         </context-group>
       </trans-unit>
     </body>

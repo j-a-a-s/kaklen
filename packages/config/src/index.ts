@@ -29,6 +29,17 @@ export interface OrganizationConfig {
   appWebUrl: string;
 }
 
+export interface PasswordRecoveryConfig {
+  appPublicUrl: string;
+  expiresMinutes: number;
+  mailFrom: string;
+  mailHost: string;
+  mailPort: number;
+  mailSecure: boolean;
+  mailUser?: string;
+  mailPassword?: string;
+}
+
 const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
 const LOCAL_ORIGIN = "http://localhost:4200";
 
@@ -94,6 +105,57 @@ export function readOrganizationConfig(env: Record<string, string | undefined>):
   return {
     organizationInvitationExpiresSeconds,
     appWebUrl
+  };
+}
+
+export function readPasswordRecoveryConfig(
+  env: Record<string, string | undefined>
+): PasswordRecoveryConfig {
+  const nodeEnv = parseNodeEnv(env.NODE_ENV);
+  const isProduction = nodeEnv === "production";
+  const appPublicUrl = requireString(
+    env,
+    "APP_PUBLIC_URL",
+    isProduction,
+    env.APP_WEB_URL ?? LOCAL_ORIGIN
+  ).replace(/\/$/, "");
+  const expiresMinutes = Number(env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
+  const mailFrom = requireString(
+    env,
+    "MAIL_FROM",
+    isProduction,
+    "Kaklen <no-reply@kaklen.local>"
+  );
+  const mailHost = requireString(env, "MAIL_HOST", isProduction, "localhost");
+  const mailPort = Number(env.MAIL_PORT ?? env.MAILPIT_SMTP_PORT ?? 1025);
+  const mailSecure = parseBoolean(env.MAIL_SECURE, false);
+  const mailUser = optionalString(env.MAIL_USER);
+  const mailPassword = optionalString(env.MAIL_PASSWORD);
+
+  if (!Number.isInteger(expiresMinutes) || expiresMinutes <= 0 || expiresMinutes > 1440) {
+    throw new Error("PASSWORD_RESET_EXPIRES_MINUTES must be an integer between 1 and 1440");
+  }
+  if (!Number.isInteger(mailPort) || mailPort <= 0 || mailPort > 65535) {
+    throw new Error("MAIL_PORT must be a valid TCP port");
+  }
+  if (Boolean(mailUser) !== Boolean(mailPassword)) {
+    throw new Error("MAIL_USER and MAIL_PASSWORD must be configured together");
+  }
+
+  const publicUrl = new URL(appPublicUrl);
+  if (!["http:", "https:"].includes(publicUrl.protocol)) {
+    throw new Error("APP_PUBLIC_URL must use http or https");
+  }
+
+  return {
+    appPublicUrl,
+    expiresMinutes,
+    mailFrom,
+    mailHost,
+    mailPort,
+    mailSecure,
+    ...(mailUser ? { mailUser } : {}),
+    ...(mailPassword ? { mailPassword } : {})
   };
 }
 

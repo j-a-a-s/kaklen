@@ -4,6 +4,7 @@ import { Component, HostListener, OnDestroy, OnInit, signal } from "@angular/cor
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { TimeoutError } from "rxjs";
+import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
@@ -48,9 +49,13 @@ interface LoginForm {
             <span i18n="@@passwordLabel">Contraseña</span>
             <input type="password" formControlName="password" autocomplete="current-password" />
             <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
-              La contraseña debe tener al menos 8 caracteres.
+              La contraseña debe tener al menos 10 caracteres.
             </small>
           </label>
+
+          <div class="password-help-link">
+            <a routerLink="/forgot-password" i18n="@@forgotPasswordLink">¿Olvidaste tu contraseña?</a>
+          </div>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
@@ -77,7 +82,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }),
     password: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(8)]
+      validators: [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]
     })
   });
 
@@ -154,6 +159,9 @@ export function messageForLoginError(error: unknown): string {
     }
     if (error.status === 0) {
       return $localize`:@@loginServerUnavailable:No fue posible conectar con el servidor.`;
+    }
+    if (error.status === 429) {
+      return $localize`:@@loginRateLimit:Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo nuevamente.`;
     }
     if (error.status >= 500) {
       return $localize`:@@loginServiceUnavailable:El servicio no está disponible temporalmente.`;

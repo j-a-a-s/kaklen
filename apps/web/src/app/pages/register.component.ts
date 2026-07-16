@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
+import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 
 interface RegisterForm {
   firstName: FormControl<string>;
@@ -63,7 +64,7 @@ interface RegisterForm {
             <span i18n="@@passwordLabel">Contraseña</span>
             <input type="password" formControlName="password" autocomplete="new-password" />
             <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
-              La contraseña debe tener al menos 8 caracteres.
+              La contraseña debe tener al menos 10 caracteres.
             </small>
           </label>
 
@@ -98,7 +99,7 @@ export class RegisterComponent {
     }),
     password: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(8), Validators.maxLength(128)]
+      validators: [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH), Validators.maxLength(128)]
     })
   });
 

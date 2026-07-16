@@ -4,9 +4,16 @@ import { AuthenticatedRequest } from "./auth.types";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
 describe("JwtAuthGuard", () => {
+  beforeEach(() => {
+    process.env.JWT_ACCESS_SECRET = "guard-access-secret-that-is-long-enough";
+  });
+
   it("rejects missing and malformed bearer tokens before verification", async () => {
     const jwtService = { verifyAsync: jest.fn() };
-    const guard = new JwtAuthGuard(jwtService as unknown as JwtService);
+    const guard = new JwtAuthGuard(
+      jwtService as unknown as JwtService,
+      activePrisma() as unknown as ConstructorParameters<typeof JwtAuthGuard>[1]
+    );
 
     await expect(guard.canActivate(createContext(undefined))).rejects.toBeInstanceOf(UnauthorizedException);
     await expect(guard.canActivate(createContext("Basic abc"))).rejects.toBeInstanceOf(UnauthorizedException);
@@ -15,15 +22,18 @@ describe("JwtAuthGuard", () => {
   });
 
   it("stores verified access token payload on the request", async () => {
-    const payload = { sub: "user-1", email: "ada@example.com" };
+    const payload = { sub: "user-1", email: "ada@example.com", sessionVersion: 0 };
     const request = createRequest("Bearer access-token");
     const jwtService = { verifyAsync: jest.fn(async () => payload) };
-    const guard = new JwtAuthGuard(jwtService as unknown as JwtService);
+    const guard = new JwtAuthGuard(
+      jwtService as unknown as JwtService,
+      activePrisma() as unknown as ConstructorParameters<typeof JwtAuthGuard>[1]
+    );
 
     await expect(guard.canActivate(createContextFromRequest(request))).resolves.toBe(true);
 
     expect(jwtService.verifyAsync).toHaveBeenCalledWith("access-token", {
-      secret: "local-access-secret-change-me-at-least-32-characters"
+      secret: "guard-access-secret-that-is-long-enough"
     });
     expect(request.user).toEqual(payload);
   });
@@ -34,11 +44,37 @@ describe("JwtAuthGuard", () => {
         throw new Error("jwt expired");
       })
     };
-    const guard = new JwtAuthGuard(jwtService as unknown as JwtService);
+    const guard = new JwtAuthGuard(
+      jwtService as unknown as JwtService,
+      activePrisma() as unknown as ConstructorParameters<typeof JwtAuthGuard>[1]
+    );
 
     await expect(guard.canActivate(createContext("Bearer expired-token"))).rejects.toBeInstanceOf(UnauthorizedException);
   });
+
+  it("rejects access tokens issued before the session version changed", async () => {
+    const jwtService = {
+      verifyAsync: jest.fn(async () => ({
+        sub: "user-1",
+        email: "ada@example.com",
+        sessionVersion: 0
+      }))
+    };
+    const prisma = { user: { findFirst: jest.fn(async () => ({ authVersion: 1 })) } };
+    const guard = new JwtAuthGuard(
+      jwtService as unknown as JwtService,
+      prisma as unknown as ConstructorParameters<typeof JwtAuthGuard>[1]
+    );
+
+    await expect(guard.canActivate(createContext("Bearer old-access-token"))).rejects.toBeInstanceOf(
+      UnauthorizedException
+    );
+  });
 });
+
+function activePrisma(): { user: { findFirst: jest.Mock } } {
+  return { user: { findFirst: jest.fn(async () => ({ authVersion: 0 })) } };
+}
 
 function createContext(authorization: string | undefined): ExecutionContext {
   return createContextFromRequest(createRequest(authorization));

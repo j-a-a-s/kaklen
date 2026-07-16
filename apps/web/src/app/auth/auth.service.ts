@@ -4,7 +4,16 @@ import { firstValueFrom, tap, timeout } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, UpdatePreferencesRequest } from "./auth.models";
+import {
+  AuthResponse,
+  AuthUser,
+  ForgotPasswordRequest,
+  LoginRequest,
+  MessageResponse,
+  RegisterRequest,
+  ResetPasswordRequest,
+  UpdatePreferencesRequest
+} from "./auth.models";
 
 const API_URL = API_BASE_URL;
 const PRIVATE_STORAGE_KEYS = new Set([
@@ -61,6 +70,22 @@ export class AuthService {
       this.http
         .post<AuthResponse>(`${API_URL}/auth/login`, payload, { withCredentials: true })
         .pipe(timeout({ first: 10000 }), tap((response) => this.applyAuthResponse(response)))
+    );
+  }
+
+  forgotPassword(payload: ForgotPasswordRequest): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http.post<MessageResponse>(`${API_URL}/auth/forgot-password`, payload).pipe(
+        timeout({ first: 10000 })
+      )
+    );
+  }
+
+  resetPassword(payload: ResetPasswordRequest): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http.post<MessageResponse>(`${API_URL}/auth/reset-password`, payload).pipe(
+        timeout({ first: 10000 })
+      )
     );
   }
 

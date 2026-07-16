@@ -1750,6 +1750,58 @@
         <source>No fue posible cargar los eventos.</source>
         <target>Não foi possível carregar os eventos.</target>
       </trans-unit>
+      <trans-unit id="recoveryBrandPromise" datatype="html">
+        <source>Recupera el acceso de forma segura.</source>
+        <target>Recupere o acesso com segurança.</target>
+      </trans-unit>
+      <trans-unit id="forgotPasswordEyebrow" datatype="html">
+        <source>Recuperación de acceso</source>
+        <target>Recuperação de acesso</target>
+      </trans-unit>
+      <trans-unit id="forgotPasswordTitle" datatype="html">
+        <source>Recupera tu cuenta</source>
+        <target>Recupere sua conta</target>
+      </trans-unit>
+      <trans-unit id="forgotPasswordDescription" datatype="html">
+        <source> Ingresa el correo asociado a tu cuenta. Si existe, te enviaremos instrucciones. </source>
+        <target>Digite o e-mail associado à sua conta. Se ela existir, enviaremos as instruções.</target>
+      </trans-unit>
+      <trans-unit id="backToLogin" datatype="html">
+        <source>Volver al inicio de sesión</source>
+        <target>Voltar para entrar</target>
+      </trans-unit>
+      <trans-unit id="forgotPasswordSentEyebrow" datatype="html">
+        <source>Instrucciones enviadas</source>
+        <target>Instruções enviadas</target>
+      </trans-unit>
+      <trans-unit id="checkYourEmailTitle" datatype="html">
+        <source>Revisa tu correo</source>
+        <target>Verifique seu e-mail</target>
+      </trans-unit>
+      <trans-unit id="checkYourEmailDescription" datatype="html">
+        <source> Si existe una cuenta asociada a ese correo, recibirás un enlace válido por 30 minutos. </source>
+        <target>Se houver uma conta associada a esse e-mail, você receberá um link válido por 30 minutos.</target>
+      </trans-unit>
+      <trans-unit id="sendingInstructionsLabel" datatype="html">
+        <source>Enviando...</source>
+        <target>Enviando...</target>
+      </trans-unit>
+      <trans-unit id="sendInstructionsLabel" datatype="html">
+        <source>Enviar instrucciones</source>
+        <target>Enviar instruções</target>
+      </trans-unit>
+      <trans-unit id="recoveryServerTimeout" datatype="html">
+        <source>El servidor está tardando demasiado.</source>
+        <target>O servidor está demorando demais para responder.</target>
+      </trans-unit>
+      <trans-unit id="recoveryServerUnavailable" datatype="html">
+        <source>No pudimos conectar con el servidor. Intenta nuevamente.</source>
+        <target>Não foi possível conectar ao servidor. Tente novamente.</target>
+      </trans-unit>
+      <trans-unit id="recoveryRequestFailed" datatype="html">
+        <source>No pudimos enviar las instrucciones. Intenta nuevamente.</source>
+        <target>Não foi possível enviar as instruções. Tente novamente.</target>
+      </trans-unit>
       <trans-unit id="authBrandPromise" datatype="html">
         <source>Tu operación, clara y bajo control.</source>
         <target>Sua operação, clara e sob controle.</target>
@@ -1771,8 +1823,12 @@
         <target>Senha</target>
       </trans-unit>
       <trans-unit id="passwordValidation" datatype="html">
-        <source> La contraseña debe tener al menos 8 caracteres. </source>
-        <target>A senha deve ter pelo menos 8 caracteres.</target>
+        <source> La contraseña debe tener al menos 10 caracteres. </source>
+        <target>A senha deve ter pelo menos 10 caracteres.</target>
+      </trans-unit>
+      <trans-unit id="forgotPasswordLink" datatype="html">
+        <source>¿Olvidaste tu contraseña?</source>
+        <target>Esqueceu sua senha?</target>
       </trans-unit>
       <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
@@ -1797,6 +1853,10 @@
       <trans-unit id="loginServerUnavailable" datatype="html">
         <source>No fue posible conectar con el servidor.</source>
         <target>Não foi possível conectar ao servidor.</target>
+      </trans-unit>
+      <trans-unit id="loginRateLimit" datatype="html">
+        <source>Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo nuevamente.</source>
+        <target>Muitas tentativas de acesso. Aguarde um minuto e tente novamente.</target>
       </trans-unit>
       <trans-unit id="loginServiceUnavailable" datatype="html">
         <source>El servicio no está disponible temporalmente.</source>
@@ -2341,6 +2401,146 @@
       <trans-unit id="registerSubmit" datatype="html">
         <source>Crear cuenta</source>
         <target>Criar conta</target>
+      </trans-unit>
+      <trans-unit id="resetBrandPromise" datatype="html">
+        <source>Protege tu cuenta con una nueva contraseña.</source>
+        <target>Proteja sua conta com uma nova senha.</target>
+      </trans-unit>
+      <trans-unit id="resetPasswordEyebrow" datatype="html">
+        <source>Recuperación de acceso</source>
+        <target>Recuperação de acesso</target>
+      </trans-unit>
+      <trans-unit id="resetPasswordTitle" datatype="html">
+        <source>Crea una nueva contraseña</source>
+        <target>Crie uma nova senha</target>
+      </trans-unit>
+      <trans-unit id="resetPasswordDescription" datatype="html">
+        <source>Elige una contraseña distinta a la que utilizabas antes.</source>
+        <target>Escolha uma senha diferente da que você usava antes.</target>
+      </trans-unit>
+      <trans-unit id="newPasswordLabel" datatype="html">
+        <source>Nueva contraseña</source>
+        <target>Nova senha</target>
+      </trans-unit>
+      <trans-unit id="passwordStrengthLabel" datatype="html">
+        <source>Fortaleza</source>
+        <target>Segurança</target>
+      </trans-unit>
+      <trans-unit id="passwordRequirements" datatype="html">
+        <source> Usa al menos 10 caracteres y evita tu nombre, correo o contraseña anterior. </source>
+        <target>Use pelo menos 10 caracteres e evite seu nome, e-mail ou senha anterior.</target>
+      </trans-unit>
+      <trans-unit id="confirmNewPasswordLabel" datatype="html">
+        <source>Confirmar contraseña</source>
+        <target>Confirmar senha</target>
+      </trans-unit>
+      <trans-unit id="passwordConfirmationValidation" datatype="html">
+        <source>Las contraseñas deben coincidir.</source>
+        <target>As senhas devem ser iguais.</target>
+      </trans-unit>
+      <trans-unit id="resetCompleteEyebrow" datatype="html">
+        <source>Acceso recuperado</source>
+        <target>Acesso recuperado</target>
+      </trans-unit>
+      <trans-unit id="passwordUpdatedTitle" datatype="html">
+        <source>Contraseña actualizada</source>
+        <target>Senha atualizada</target>
+      </trans-unit>
+      <trans-unit id="passwordUpdatedDescription" datatype="html">
+        <source>Ya puedes iniciar sesión con tu nueva contraseña.</source>
+        <target>Agora você pode entrar com sua nova senha.</target>
+      </trans-unit>
+      <trans-unit id="signInAction" datatype="html">
+        <source>Iniciar sesión</source>
+        <target>Entrar</target>
+      </trans-unit>
+      <trans-unit id="expiredTokenTitle" datatype="html">
+        <source>Enlace vencido</source>
+        <target>Link expirado</target>
+      </trans-unit>
+      <trans-unit id="expiredTokenMessage" datatype="html">
+        <source>Este enlace ya venció. Solicita uno nuevo.</source>
+        <target>Este link expirou. Solicite um novo.</target>
+      </trans-unit>
+      <trans-unit id="requestAnotherLink" datatype="html">
+        <source>Solicitar otro enlace</source>
+        <target>Solicitar outro link</target>
+      </trans-unit>
+      <trans-unit id="usedTokenTitle" datatype="html">
+        <source>Enlace utilizado</source>
+        <target>Link já utilizado</target>
+      </trans-unit>
+      <trans-unit id="usedTokenMessage" datatype="html">
+        <source>Este enlace ya fue utilizado. Puedes iniciar sesión o solicitar otro.</source>
+        <target>Este link já foi utilizado. Você pode entrar ou solicitar outro.</target>
+      </trans-unit>
+      <trans-unit id="networkErrorTitle" datatype="html">
+        <source>Sin conexión con el servidor</source>
+        <target>Sem conexão com o servidor</target>
+      </trans-unit>
+      <trans-unit id="tryAgainAction" datatype="html">
+        <source>Intentar nuevamente</source>
+        <target>Tentar novamente</target>
+      </trans-unit>
+      <trans-unit id="passwordStrengthWeak" datatype="html">
+        <source>Débil</source>
+        <target>Fraca</target>
+      </trans-unit>
+      <trans-unit id="passwordStrengthAcceptable" datatype="html">
+        <source>Aceptable</source>
+        <target>Aceitável</target>
+      </trans-unit>
+      <trans-unit id="passwordStrengthStrong" datatype="html">
+        <source>Fuerte</source>
+        <target>Forte</target>
+      </trans-unit>
+      <trans-unit id="hidePasswordAction" datatype="html">
+        <source>Ocultar</source>
+        <target>Ocultar</target>
+      </trans-unit>
+      <trans-unit id="showPasswordAction" datatype="html">
+        <source>Mostrar</source>
+        <target>Mostrar</target>
+      </trans-unit>
+      <trans-unit id="resettingPasswordLabel" datatype="html">
+        <source>Actualizando...</source>
+        <target>Atualizando...</target>
+      </trans-unit>
+      <trans-unit id="resetPasswordAction" datatype="html">
+        <source>Restablecer contraseña</source>
+        <target>Redefinir senha</target>
+      </trans-unit>
+      <trans-unit id="missingTokenTitle" datatype="html">
+        <source>Falta el enlace de recuperación</source>
+        <target>O link de recuperação está incompleto</target>
+      </trans-unit>
+      <trans-unit id="invalidTokenTitle" datatype="html">
+        <source>Enlace no válido</source>
+        <target>Link inválido</target>
+      </trans-unit>
+      <trans-unit id="missingTokenMessage" datatype="html">
+        <source>Abre el enlace completo que recibiste por correo.</source>
+        <target>Abra o link completo que você recebeu por e-mail.</target>
+      </trans-unit>
+      <trans-unit id="invalidTokenMessage" datatype="html">
+        <source>Este enlace no es válido.</source>
+        <target>Este link não é válido.</target>
+      </trans-unit>
+      <trans-unit id="passwordReuseError" datatype="html">
+        <source>Elige una contraseña distinta a la anterior.</source>
+        <target>Escolha uma senha diferente da anterior.</target>
+      </trans-unit>
+      <trans-unit id="passwordPolicyError" datatype="html">
+        <source>La contraseña no cumple los requisitos de seguridad.</source>
+        <target>A senha não atende aos requisitos de segurança.</target>
+      </trans-unit>
+      <trans-unit id="passwordResetRateLimit" datatype="html">
+        <source>Demasiados intentos. Espera unos minutos.</source>
+        <target>Muitas tentativas. Aguarde alguns minutos.</target>
+      </trans-unit>
+      <trans-unit id="passwordResetFailed" datatype="html">
+        <source>No pudimos actualizar la contraseña. Intenta nuevamente.</source>
+        <target>Não foi possível atualizar a senha. Tente novamente.</target>
       </trans-unit>
       <trans-unit id="quickSearchLabel" datatype="html">
         <source>Buscar o ir a...</source>

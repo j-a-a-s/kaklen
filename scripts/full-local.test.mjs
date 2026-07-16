@@ -39,10 +39,23 @@ test("dev:full:i18n propagates shutdown to child processes", () => {
   assert.match(script, /process\.on\("SIGINT"/);
   assert.match(script, /process\.on\("SIGTERM"/);
   assert.match(script, /stopManagedProcess\(managed/);
+  assert.match(script, /stopManagedProcessAndWait\(managed/);
   assert.match(script, /process\.kill\(-pid, signal\)/);
+  assert.match(script, /stopManagedProcess\(managed, "SIGKILL"\)/);
+  assert.match(script, /await Promise\.all\(processShutdowns\)/);
+  assert.match(script, /await waitForTcpUnavailable\(apiPort, 5000\)/);
   assert.match(script, /await closeServer\(server\)/);
   assert.match(script, /httpServer\.close/);
   assert.match(script, /httpServer\.closeAllConnections/);
+});
+
+test("dev:full:i18n does not accept a stale API process", () => {
+  const script = readText("scripts/dev-full-i18n.mjs");
+
+  assert.match(script, /await waitForTcpUnavailable\(apiPort, 10000\)/);
+  assert.match(script, /const apiProcess = startManagedProcess/);
+  assert.match(script, /await waitForHttp\(apiHealthLiveUrl\(\)/);
+  assert.match(script, /if \(hasExited\(apiProcess\.child\)\)/);
 });
 
 test("verify:full-local checks API, frontend, runtime config, CORS, and login connectivity", () => {
@@ -72,6 +85,8 @@ test("login distinguishes API availability failures from invalid credentials", (
   assert.match(login, /@@loginError:Email o contraseña inválidos\./);
   assert.match(login, /error\.status === 0/);
   assert.match(login, /@@loginServerUnavailable:No fue posible conectar con el servidor\./);
+  assert.match(login, /error\.status === 429/);
+  assert.match(login, /@@loginRateLimit:Demasiados intentos de inicio de sesión\./);
   assert.match(login, /@@loginServerTimeout:El servidor está tardando demasiado\./);
   assert.match(login, /error\.status >= 500/);
   assert.match(login, /@@loginServiceUnavailable:El servicio no está disponible temporalmente\./);

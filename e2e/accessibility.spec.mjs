@@ -107,7 +107,7 @@ test.describe("Kaklen accessibility and responsive smoke", () => {
     }
   });
 
-  test("assisted authenticated surfaces expose accessible controls and focus behavior", async ({ page }) => {
+  test("assisted authenticated surfaces are accessible and responsive", async ({ page }) => {
     await loginDemo(page);
     const organizationId = await page.evaluate(() => localStorage.getItem("kaklen.activeOrganizationId"));
     expect(organizationId).toBeTruthy();
@@ -139,11 +139,7 @@ test.describe("Kaklen accessibility and responsive smoke", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(page.locator(".command-trigger")).toBeFocused();
-  });
 
-  test("assisted dashboard and mobile navigation avoid horizontal overflow in required viewports", async ({ page }) => {
-    await loginDemo(page);
-    const organizationId = await page.evaluate(() => localStorage.getItem("kaklen.activeOrganizationId"));
     for (const viewport of viewports.concat([{ name: "compact-desktop", width: 1366, height: 768 }])) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await navigateSpa(page, `/organizations/${organizationId}`);

@@ -122,6 +122,8 @@ La autenticacion expone:
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
 - `PATCH /api/auth/me/preferences`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
 
 `/api/auth/refresh` y `/api/auth/logout` validan el header `Origin` contra
 `AUTH_ALLOWED_ORIGINS`. Para desarrollo local:
@@ -130,6 +132,25 @@ La autenticacion expone:
 AUTH_ALLOWED_ORIGINS="http://localhost:4200"
 COOKIE_SECURE=false
 ```
+
+### Recuperacion de contraseña
+
+El enlace `¿Olvidaste tu contraseña?` de Login inicia un flujo con respuesta publica generica, token aleatorio de un solo uso almacenado como SHA-256 y vencimiento configurable. Al completar el cambio se revocan todos los refresh tokens y se incrementa la version de sesion para invalidar access tokens anteriores.
+
+Configuracion local:
+
+```bash
+APP_PUBLIC_URL=http://localhost:4200
+PASSWORD_RESET_EXPIRES_MINUTES=30
+MAIL_FROM="Kaklen <no-reply@kaklen.local>"
+MAIL_HOST=localhost
+MAIL_PORT=1025
+MAIL_SECURE=false
+MAIL_USER=
+MAIL_PASSWORD=
+```
+
+Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. La especificacion de seguridad y operacion vive en `docs/auth/PASSWORD_RECOVERY.md`.
 
 ## Internacionalizacion y configuracion regional
 

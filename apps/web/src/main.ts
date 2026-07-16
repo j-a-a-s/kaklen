@@ -20,6 +20,8 @@ import { authInterceptor } from "./app/auth/auth.interceptor";
 import { DashboardComponent } from "./app/pages/dashboard.component";
 import { LoginComponent } from "./app/pages/login.component";
 import { RegisterComponent } from "./app/pages/register.component";
+import { ForgotPasswordComponent } from "./app/pages/forgot-password.component";
+import { ResetPasswordComponent } from "./app/pages/reset-password.component";
 import { AcceptInvitationComponent } from "./app/pages/accept-invitation.component";
 import { OrganizationMembersComponent } from "./app/pages/organization-members.component";
 import { OrganizationNewComponent } from "./app/pages/organization-new.component";
@@ -72,6 +74,8 @@ function resolveBootstrapLocale(): SupportedLocale {
 const routes: Routes = [
   { path: "login", component: LoginComponent },
   { path: "register", component: RegisterComponent },
+  { path: "forgot-password", component: ForgotPasswordComponent },
+  { path: "reset-password", component: ResetPasswordComponent },
   { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
   { path: "organizations", component: OrganizationsListComponent, canActivate: [authGuard] },
   { path: "organizations/new", component: OrganizationNewComponent, canActivate: [authGuard] },

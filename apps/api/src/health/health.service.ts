@@ -16,12 +16,22 @@ export class HealthService {
   }
 
   async getReady(): Promise<HealthResponse> {
-    await Promise.race([
-      this.prisma.$queryRaw`SELECT 1`,
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Database readiness check timed out")), 1500);
-      })
-    ]);
+    let rejectTimeout: (error: Error) => void = () => undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      rejectTimeout = reject;
+    });
+    const timeout = setTimeout(
+      () => rejectTimeout(new Error("Database readiness check timed out")),
+      1500
+    );
+    try {
+      await Promise.race([
+        this.prisma.$queryRaw`SELECT 1`,
+        timeoutPromise
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
     return this.base("ok", "ok");
   }
 

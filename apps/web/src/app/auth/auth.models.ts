@@ -27,3 +27,17 @@ export interface RegisterRequest extends LoginRequest {
 export interface UpdatePreferencesRequest {
   locale: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}

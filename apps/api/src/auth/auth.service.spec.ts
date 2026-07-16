@@ -4,6 +4,7 @@ import { Prisma, RefreshToken, User, UserStatus } from "@prisma/client";
 import * as argon2 from "argon2";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
+import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
 import type { AuthenticatedRequest } from "./auth.types";
 
 type StoredRefreshToken = RefreshToken & { user?: User };
@@ -28,6 +29,7 @@ class FakePrismaService {
         firstName: data.firstName,
         lastName: data.lastName,
         passwordHash: data.passwordHash,
+        authVersion: 0,
         locale: data.locale ?? "es",
         status: UserStatus.ACTIVE,
         createdAt: now,
@@ -152,7 +154,9 @@ describe("AuthService", () => {
     prisma = new FakePrismaService();
     service = new AuthService(
       prisma as unknown as ConstructorParameters<typeof AuthService>[0],
-      new JwtService()
+      new JwtService(),
+      { send: jest.fn(async () => undefined) } as unknown as ConstructorParameters<typeof AuthService>[2],
+      new PasswordRecoveryRateLimitService()
     );
   });
 
@@ -309,7 +313,10 @@ describe("AuthService", () => {
 
 describe("JwtAuthGuard", () => {
   it("protects authenticated endpoints when the access token is missing", async () => {
-    const guard = new JwtAuthGuard(new JwtService());
+    const guard = new JwtAuthGuard(
+      new JwtService(),
+      new FakePrismaService() as unknown as ConstructorParameters<typeof JwtAuthGuard>[1]
+    );
     const request = { headers: {} } as AuthenticatedRequest;
     const context = {
       switchToHttp: () => ({
