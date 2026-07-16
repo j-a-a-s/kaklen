@@ -12,6 +12,11 @@ test("dev:full:i18n orchestrates API and localized frontend", () => {
   assert.match(script, /services\.push\("postgres"\)/);
   assert.match(script, /services\.push\("redis"\)/);
   assert.match(script, /services\.push\("mailpit"\)/);
+  assert.match(script, /checkOptionalTcp\("Mailpit SMTP", mailpitSmtpPort\)/);
+  assert.match(script, /checkOptionalTcp\("Mailpit web", mailpitWebPort\)/);
+  assert.match(script, /MAIL_HOST: env\.MAIL_HOST \?\? "localhost"/);
+  assert.match(script, /APP_PUBLIC_URL: env\.APP_PUBLIC_URL \?\? webOrigin/);
+  assert.match(script, /"pnpm", \["mail:verify"\]/);
   assert.match(script, /"pnpm", \["prisma:generate"\]/);
   assert.match(script, /"pnpm", \["prisma:migrate"\]/);
   assert.match(script, /apps\/api\/node_modules\/@nestjs\/cli\/bin\/nest\.js/);

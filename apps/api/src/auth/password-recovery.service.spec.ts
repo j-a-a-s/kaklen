@@ -4,7 +4,11 @@ import { createHash } from "node:crypto";
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { ERROR_CODES } from "../common/error-codes";
-import type { MailMessage } from "../notifications/mail.service";
+import {
+  MailDeliveryError,
+  type MailDeliveryReceipt,
+  type PasswordResetEmailRequest
+} from "../notifications/mail.service";
 import { AuthService } from "./auth.service";
 import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
 
@@ -13,6 +17,7 @@ interface TokenWhere {
   userId?: string;
   usedAt?: null;
   revokedAt?: null;
+  sentAt?: null;
   expiresAt?: { gt: Date };
 }
 
@@ -54,13 +59,14 @@ class RecoveryPrisma {
     create: async ({
       data
     }: {
-      data: Omit<PasswordResetToken, "id" | "createdAt" | "usedAt" | "revokedAt">;
+      data: Omit<PasswordResetToken, "id" | "createdAt" | "sentAt" | "usedAt" | "revokedAt">;
     }): Promise<PasswordResetToken> => {
       const token: PasswordResetToken = {
         id: `reset-${this.passwordResetTokens.length + 1}`,
         userId: data.userId,
         tokenHash: data.tokenHash,
         expiresAt: data.expiresAt,
+        sentAt: null,
         usedAt: null,
         revokedAt: null,
         createdAt: new Date(),
@@ -80,10 +86,13 @@ class RecoveryPrisma {
       data
     }: {
       where: TokenWhere;
-      data: { usedAt?: Date; revokedAt?: Date };
+      data: { sentAt?: Date; usedAt?: Date; revokedAt?: Date };
     }): Promise<{ count: number }> => {
       const matching = this.passwordResetTokens.filter((token) => this.matchesToken(token, where));
       matching.forEach((token) => {
+        if (data.sentAt) {
+          token.sentAt = data.sentAt;
+        }
         if (data.usedAt) {
           token.usedAt = data.usedAt;
         }
@@ -142,6 +151,7 @@ class RecoveryPrisma {
       (!where.userId || token.userId === where.userId) &&
       (where.usedAt !== null || token.usedAt === null) &&
       (where.revokedAt !== null || token.revokedAt === null) &&
+      (where.sentAt !== null || token.sentAt === null) &&
       (!where.expiresAt?.gt || token.expiresAt > where.expiresAt.gt)
     );
   }
@@ -150,7 +160,10 @@ class RecoveryPrisma {
 describe("AuthService password recovery", () => {
   const context = { ipAddress: "127.0.0.1", userAgent: "Jest" };
   let prisma: RecoveryPrisma;
-  let sentMessages: MailMessage[];
+  let sentMessages: PasswordResetEmailRequest[];
+  let sendPasswordResetEmail: jest.MockedFunction<
+    (request: PasswordResetEmailRequest) => Promise<MailDeliveryReceipt>
+  >;
   let service: AuthService;
 
   beforeEach(async () => {
@@ -172,10 +185,21 @@ describe("AuthService password recovery", () => {
       createdAt: new Date(),
       updatedAt: new Date()
     });
+    sendPasswordResetEmail = jest.fn(async (message: PasswordResetEmailRequest) => {
+      sentMessages.push(message);
+      return {
+        recipient: message.recipient.trim().toLowerCase(),
+        messageId: "<password-reset@mail.local>",
+        accepted: [message.recipient.trim().toLowerCase()],
+        rejected: []
+      };
+    });
     const mailService = {
-      send: jest.fn(async (message: MailMessage): Promise<void> => {
-        sentMessages.push(message);
-      })
+      getPasswordResetPolicy: () => ({
+        appPublicUrl: "http://localhost:4200",
+        expiresMinutes: 30
+      }),
+      sendPasswordResetEmail
     };
     service = new AuthService(
       prisma as unknown as ConstructorParameters<typeof AuthService>[0],
@@ -191,6 +215,7 @@ describe("AuthService password recovery", () => {
 
     expect(existing).toEqual(missing);
     expect(sentMessages).toHaveLength(1);
+    expect(sentMessages[0]?.recipient).toBe("ada@example.com");
   });
 
   it("stores only a SHA-256 token hash and hashes request context", async () => {
@@ -199,6 +224,7 @@ describe("AuthService password recovery", () => {
     const stored = prisma.passwordResetTokens[0];
 
     expect(stored.tokenHash).toBe(createHash("sha256").update(rawToken).digest("hex"));
+    expect(stored.sentAt).toBeInstanceOf(Date);
     expect(JSON.stringify(stored)).not.toContain(rawToken);
     expect(stored.requestedIpHash).not.toContain(context.ipAddress);
     expect(stored.userAgentHash).not.toContain(context.userAgent);
@@ -237,6 +263,30 @@ describe("AuthService password recovery", () => {
     expect(response.message).toContain("Si existe una cuenta asociada");
     expect(sentMessages).toHaveLength(0);
     expect(prisma.passwordResetTokens).toHaveLength(0);
+  });
+
+  it("revokes an unsent token and keeps the generic response when SMTP fails", async () => {
+    sendPasswordResetEmail.mockRejectedValueOnce(
+      new MailDeliveryError("ECONNREFUSED", "connection", "SMTP unavailable")
+    );
+
+    const response = await service.forgotPassword({ email: "ada@example.com" }, context);
+
+    expect(response.message).toContain("Si existe una cuenta asociada");
+    expect(prisma.passwordResetTokens[0]?.sentAt).toBeNull();
+    expect(prisma.passwordResetTokens[0]?.revokedAt).toBeInstanceOf(Date);
+    expect(prisma.authAuditLogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: "password_reset_failed",
+          success: false,
+          metadata: { reason: "ECONNREFUSED" }
+        })
+      ])
+    );
+    expect(prisma.authAuditLogs.some((entry) => entry.event === "password_reset_requested")).toBe(
+      false
+    );
   });
 
   it("rejects mismatched, personal, and reused passwords", async () => {
@@ -305,12 +355,11 @@ function resetPayload(token: string, password = "UpdatedPass456!"): {
   return { token, password, confirmPassword: password };
 }
 
-function resetTokenFromMessage(message: MailMessage | undefined): string {
+function resetTokenFromMessage(message: PasswordResetEmailRequest | undefined): string {
   if (!message) {
     throw new Error("Password reset email was not sent");
   }
-  const url = message.text.match(/https?:\/\/\S+/)?.[0];
-  const token = url ? new URL(url).searchParams.get("token") : null;
+  const token = new URL(message.resetUrl).searchParams.get("token");
   if (!token) {
     throw new Error("Password reset token was not found in email");
   }

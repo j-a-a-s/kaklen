@@ -44,6 +44,7 @@
     "verify:api-start": "node scripts/verify-api-start.mjs",
     "verify:i18n-server": "node scripts/verify-i18n-server.mjs",
     "verify:full-local": "node scripts/verify-full-local.mjs",
+    "mail:verify": "pnpm --filter @kaklen/config build && pnpm --filter @kaklen/api exec ts-node --transpile-only scripts/mail-verify.ts",
     "security:scan": "node scripts/scan-secrets.mjs",
     "release:check": "node scripts/release-check.mjs",
     "release:check:strict": "node scripts/release-check-strict.mjs",

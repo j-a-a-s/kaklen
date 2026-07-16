@@ -9,6 +9,7 @@ export interface JwtAccessPayload {
 export interface PasswordRecoveryRequestContext {
   ipAddress: string;
   userAgent?: string;
+  requestId?: string;
 }
 
 export interface AuthenticatedRequest extends Request {

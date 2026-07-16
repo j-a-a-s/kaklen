@@ -6,9 +6,10 @@
 2. `POST /api/auth/forgot-password` normalizes the address and always returns the same public message.
 3. For an active account, the API revokes valid tokens, creates 48 random bytes, and saves only the SHA-256 hash.
 4. SMTP sends an `es`, `en`, or `pt-BR` template with a link built from `APP_PUBLIC_URL`.
-5. `/:locale/reset-password?token=...` submits the new password to `POST /api/auth/reset-password`.
-6. One transaction consumes the token, replaces the Argon2id hash, revokes refresh tokens, increments `User.authVersion`, and writes an audit event.
-7. The user returns to Login manually. Kaklen does not sign in automatically.
+5. The token receives `sentAt` only after SMTP accepts the recipient and returns a `messageId`.
+6. `/:locale/reset-password?token=...` submits the new password to `POST /api/auth/reset-password`.
+7. One transaction consumes the token, replaces the Argon2id hash, revokes refresh tokens, increments `User.authVersion`, and writes an audit event.
+8. The user returns to Login manually. Kaklen does not sign in automatically.
 
 ## Security Controls
 
@@ -19,7 +20,8 @@
 - Silent request limits by IP and email; reset limits by IP and token.
 - Optional IP and user-agent values persisted as HMAC, never plaintext.
 - No client-provided redirect URL; the public origin comes from the environment.
-- No token, password, or full email address in logs or audit metadata.
+- Delivery logs include the normalized recipient because operations require it, but never include the token, complete reset URL, password, message body, or SMTP credentials.
+- A failed or rejected SMTP delivery revokes the newly created token and leaves `sentAt` empty.
 - Immediate access-token invalidation through `authVersion` and refresh-token revocation.
 
 The keyed limiter is process-local. Before horizontally scaling the API, production must use a shared rate-limit store.
@@ -35,6 +37,9 @@ MAIL_PORT=1025
 MAIL_SECURE=false
 MAIL_USER=
 MAIL_PASSWORD=
+MAIL_CONNECTION_TIMEOUT_MS=5000
+MAIL_GREETING_TIMEOUT_MS=5000
+MAIL_SOCKET_TIMEOUT_MS=10000
 ```
 
 `MAIL_USER` and `MAIL_PASSWORD` must be configured together. `APP_PUBLIC_URL` accepts only HTTP or HTTPS and must point to the real public origin.
@@ -48,6 +53,8 @@ pnpm dev:full:i18n
 ```
 
 The web application is available at `http://localhost:4200/es/login`, and Mailpit is available at `http://localhost:8025`. Local email never leaves the machine.
+
+Verify SMTP independently with `pnpm mail:verify`. Use `MAIL_HOST=localhost` when Nest runs on the host and `MAIL_HOST=mailpit` when Nest runs in Docker Compose.
 
 ## Staging
 

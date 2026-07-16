@@ -41,7 +41,10 @@ describe("runtime config", () => {
       expiresMinutes: 45,
       mailHost: "localhost",
       mailPort: 1025,
-      mailSecure: false
+      mailSecure: false,
+      mailConnectionTimeoutMs: 5000,
+      mailGreetingTimeoutMs: 5000,
+      mailSocketTimeoutMs: 10000
     });
   });
 
@@ -49,5 +52,20 @@ describe("runtime config", () => {
     expect(() => readPasswordRecoveryConfig({ MAIL_USER: "mailer" })).toThrow(
       "MAIL_USER and MAIL_PASSWORD must be configured together"
     );
+  });
+
+  it("rejects ambiguous SMTP booleans and invalid public URLs", () => {
+    expect(() => readPasswordRecoveryConfig({ MAIL_SECURE: "sometimes" })).toThrow(
+      "MAIL_SECURE must be a boolean"
+    );
+    expect(() =>
+      readPasswordRecoveryConfig({ APP_PUBLIC_URL: "http://localhost:4200?token=unsafe" })
+    ).toThrow("APP_PUBLIC_URL must not include query parameters or a fragment");
+  });
+
+  it("validates SMTP timeout bounds", () => {
+    expect(() =>
+      readPasswordRecoveryConfig({ MAIL_CONNECTION_TIMEOUT_MS: "99" })
+    ).toThrow("MAIL_CONNECTION_TIMEOUT_MS must be an integer between 100 and 120000");
   });
 });

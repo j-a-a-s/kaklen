@@ -20,11 +20,13 @@ interface RuntimeLogEntry {
 
 interface RequestWithUser extends Request {
   user?: { sub?: string };
+  requestId?: string;
 }
 
 export function requestLoggingMiddleware(request: RequestWithUser, response: Response, next: NextFunction): void {
   const startedAt = process.hrtime.bigint();
   const requestId = firstHeaderValue(request.headers[REQUEST_ID_HEADER]) ?? randomUUID();
+  request.requestId = requestId;
   response.setHeader("X-Request-Id", requestId);
 
   response.on("finish", () => {

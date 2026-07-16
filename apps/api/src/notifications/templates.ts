@@ -50,7 +50,8 @@ export function renderPasswordResetEmail(
       explanation: "Recibimos una solicitud para restablecer la contraseña de tu cuenta Kaklen.",
       action: "Restablecer contraseña",
       expiry: `Este enlace es válido por ${input.expiresMinutes} minutos.`,
-      ignore: "Si no solicitaste este cambio, puedes ignorar este correo."
+      ignore: "Si no solicitaste este cambio, puedes ignorar este correo.",
+      fallback: "Si el botón no funciona, copia y pega este enlace en tu navegador:"
     }, input.resetUrl),
     en: buildTemplate("en", {
       subject: "Reset your Kaklen password",
@@ -58,7 +59,8 @@ export function renderPasswordResetEmail(
       explanation: "We received a request to reset the password for your Kaklen account.",
       action: "Reset password",
       expiry: `This link is valid for ${input.expiresMinutes} minutes.`,
-      ignore: "If you did not request this change, you can ignore this email."
+      ignore: "If you did not request this change, you can ignore this email.",
+      fallback: "If the button does not work, copy and paste this link into your browser:"
     }, input.resetUrl),
     "pt-BR": buildTemplate("pt-BR", {
       subject: "Redefina sua senha do Kaklen",
@@ -66,7 +68,8 @@ export function renderPasswordResetEmail(
       explanation: "Recebemos uma solicitação para redefinir a senha da sua conta Kaklen.",
       action: "Redefinir senha",
       expiry: `Este link é válido por ${input.expiresMinutes} minutos.`,
-      ignore: "Se você não solicitou esta alteração, ignore este e-mail."
+      ignore: "Se você não solicitou esta alteração, ignore este e-mail.",
+      fallback: "Se o botão não funcionar, copie e cole este link no navegador:"
     }, input.resetUrl)
   };
 
@@ -124,6 +127,7 @@ interface TemplateCopy {
   action: string;
   expiry: string;
   ignore: string;
+  fallback: string;
 }
 
 function buildTemplate(
@@ -135,6 +139,8 @@ function buildTemplate(
   return {
     subject: copy.subject,
     text: [
+      "KAKLEN",
+      "",
       copy.greeting,
       "",
       copy.explanation,
@@ -142,13 +148,17 @@ function buildTemplate(
       `${copy.action}: ${resetUrl}`,
       "",
       copy.expiry,
-      copy.ignore
+      copy.ignore,
+      "",
+      copy.fallback,
+      resetUrl
     ].join("\n"),
     html: `<!doctype html>
 <html lang="${locale}">
   <body style="margin:0;background:#f4f6f8;color:#111827;font-family:Arial,sans-serif">
     <div style="max-width:600px;margin:0 auto;padding:32px 20px">
       <div style="background:#ffffff;border:1px solid #dbe1e8;padding:32px">
+        <p style="margin:0 0 28px;color:#165dcc;font-size:14px;font-weight:700;letter-spacing:2px">KAKLEN</p>
         <p>${escapeHtml(copy.greeting)}</p>
         <p>${escapeHtml(copy.explanation)}</p>
         <p style="margin:28px 0">
@@ -156,7 +166,8 @@ function buildTemplate(
         </p>
         <p style="font-size:14px;color:#4b5563">${escapeHtml(copy.expiry)}</p>
         <p style="font-size:14px;color:#4b5563">${escapeHtml(copy.ignore)}</p>
-        <p style="margin-top:28px;font-size:12px;color:#6b7280;word-break:break-all">${escapedUrl}</p>
+        <p style="margin-top:28px;font-size:12px;color:#6b7280">${escapeHtml(copy.fallback)}</p>
+        <p style="font-size:12px;color:#6b7280;word-break:break-all">${escapedUrl}</p>
       </div>
     </div>
   </body>

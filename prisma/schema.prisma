@@ -41,6 +41,7 @@ model PasswordResetToken {
   userId          String
   tokenHash       String    @unique
   expiresAt       DateTime
+  sentAt          DateTime?
   usedAt          DateTime?
   revokedAt       DateTime?
   createdAt       DateTime  @default(now())
@@ -50,6 +51,7 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+  @@index([sentAt])
   @@index([usedAt])
 }
 

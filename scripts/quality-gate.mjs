@@ -5,6 +5,7 @@ const checks = [
   ["Architecture check", "pnpm", ["architecture:check"]],
   ["Quality scan", "pnpm", ["quality:scan"]],
   ["Secret scan", "pnpm", ["security:scan"]],
+  ["Mail SMTP verification", "pnpm", ["mail:verify"]],
   ["Product stabilization contracts", "node", ["--test", "scripts/product-stabilization.test.mjs"]],
   ["Database and migrations", "pnpm", ["db:validate"]],
   ["Password recovery contract", "node", ["--test", "scripts/password-recovery.test.mjs"]],

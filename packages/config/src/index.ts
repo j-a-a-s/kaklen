@@ -36,6 +36,9 @@ export interface PasswordRecoveryConfig {
   mailHost: string;
   mailPort: number;
   mailSecure: boolean;
+  mailConnectionTimeoutMs: number;
+  mailGreetingTimeoutMs: number;
+  mailSocketTimeoutMs: number;
   mailUser?: string;
   mailPassword?: string;
 }
@@ -128,7 +131,22 @@ export function readPasswordRecoveryConfig(
   );
   const mailHost = requireString(env, "MAIL_HOST", isProduction, "localhost");
   const mailPort = Number(env.MAIL_PORT ?? env.MAILPIT_SMTP_PORT ?? 1025);
-  const mailSecure = parseBoolean(env.MAIL_SECURE, false);
+  const mailSecure = parseStrictBoolean(env.MAIL_SECURE, false, "MAIL_SECURE");
+  const mailConnectionTimeoutMs = parseTimeout(
+    env.MAIL_CONNECTION_TIMEOUT_MS,
+    5000,
+    "MAIL_CONNECTION_TIMEOUT_MS"
+  );
+  const mailGreetingTimeoutMs = parseTimeout(
+    env.MAIL_GREETING_TIMEOUT_MS,
+    5000,
+    "MAIL_GREETING_TIMEOUT_MS"
+  );
+  const mailSocketTimeoutMs = parseTimeout(
+    env.MAIL_SOCKET_TIMEOUT_MS,
+    10000,
+    "MAIL_SOCKET_TIMEOUT_MS"
+  );
   const mailUser = optionalString(env.MAIL_USER);
   const mailPassword = optionalString(env.MAIL_PASSWORD);
 
@@ -146,17 +164,52 @@ export function readPasswordRecoveryConfig(
   if (!["http:", "https:"].includes(publicUrl.protocol)) {
     throw new Error("APP_PUBLIC_URL must use http or https");
   }
+  if (publicUrl.search || publicUrl.hash) {
+    throw new Error("APP_PUBLIC_URL must not include query parameters or a fragment");
+  }
+  if (publicUrl.pathname !== "/") {
+    throw new Error("APP_PUBLIC_URL must be an origin without a path");
+  }
 
   return {
-    appPublicUrl,
+    appPublicUrl: publicUrl.toString().replace(/\/$/, ""),
     expiresMinutes,
     mailFrom,
     mailHost,
     mailPort,
     mailSecure,
+    mailConnectionTimeoutMs,
+    mailGreetingTimeoutMs,
+    mailSocketTimeoutMs,
     ...(mailUser ? { mailUser } : {}),
     ...(mailPassword ? { mailPassword } : {})
   };
+}
+
+function parseTimeout(value: string | undefined, fallback: number, key: string): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isInteger(parsed) || parsed < 100 || parsed > 120000) {
+    throw new Error(`${key} must be an integer between 100 and 120000`);
+  }
+  return parsed;
+}
+
+function parseStrictBoolean(
+  value: string | undefined,
+  fallback: boolean,
+  key: string
+): boolean {
+  if (value === undefined) {
+    return fallback;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes"].includes(normalized)) {
+    return true;
+  }
+  if (["0", "false", "no"].includes(normalized)) {
+    return false;
+  }
+  throw new Error(`${key} must be a boolean`);
 }
 
 function parseNodeEnv(value: string | undefined): ApiConfig["nodeEnv"] {

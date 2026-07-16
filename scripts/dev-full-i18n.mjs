@@ -12,6 +12,7 @@ const apiPort = Number(process.env.PORT ?? process.env.API_PORT ?? 3000);
 const webPort = Number(process.env.WEB_PORT ?? 4200);
 const redisPort = Number(process.env.REDIS_PORT ?? 6379);
 const mailpitSmtpPort = Number(process.env.MAILPIT_SMTP_PORT ?? 1025);
+const mailpitWebPort = Number(process.env.MAILPIT_WEB_PORT ?? 8025);
 const distRoot = resolve("apps/web/dist/web");
 const apiBaseUrl = `http://localhost:${apiPort}/api`;
 const webOrigin = `http://localhost:${webPort}`;
@@ -50,7 +51,13 @@ export function createRuntimeEnv(config, env = loadLocalEnv()) {
     API_PORT: String(apiPort),
     WEB_PORT: String(webPort),
     CORS_ALLOWED_ORIGINS: env.CORS_ALLOWED_ORIGINS ?? webOrigin,
-    AUTH_ALLOWED_ORIGINS: env.AUTH_ALLOWED_ORIGINS ?? webOrigin
+    AUTH_ALLOWED_ORIGINS: env.AUTH_ALLOWED_ORIGINS ?? webOrigin,
+    MAIL_FROM: env.MAIL_FROM ?? "Kaklen <no-reply@kaklen.local>",
+    MAIL_HOST: env.MAIL_HOST ?? "localhost",
+    MAIL_PORT: env.MAIL_PORT ?? String(mailpitSmtpPort),
+    MAIL_SECURE: env.MAIL_SECURE ?? "false",
+    APP_PUBLIC_URL: env.APP_PUBLIC_URL ?? webOrigin,
+    PASSWORD_RESET_EXPIRES_MINUTES: env.PASSWORD_RESET_EXPIRES_MINUTES ?? "30"
   };
 }
 
@@ -134,6 +141,7 @@ async function main() {
   const runtimeEnv = createRuntimeEnv(runtime.config);
   console.log(`✓ Runtime config ${runtime.config.version} ${runtime.config.commitSha}`);
 
+  await runCommand("pnpm", ["mail:verify"], { env: runtimeEnv, timeoutMs: 30000 });
   await runCommand("pnpm", ["prisma:generate"], { env: runtimeEnv, timeoutMs: 60000 });
   await runCommand("pnpm", ["prisma:migrate"], { env: runtimeEnv, timeoutMs: 120000 });
   await runCommand("turbo", ["run", "build", "--filter=./packages/*"], { env: runtimeEnv, timeoutMs: 120000 });
@@ -185,7 +193,10 @@ async function startLocalServices() {
   if (!(await isTcpAvailable(redisPort))) {
     services.push("redis");
   }
-  if (!(await isTcpAvailable(mailpitSmtpPort))) {
+  if (
+    !(await isTcpAvailable(mailpitSmtpPort)) ||
+    !(await isTcpAvailable(mailpitWebPort))
+  ) {
     services.push("mailpit");
   }
 
@@ -204,6 +215,7 @@ async function startLocalServices() {
   }
   await checkOptionalTcp("Redis", redisPort);
   await checkOptionalTcp("Mailpit SMTP", mailpitSmtpPort);
+  await checkOptionalTcp("Mailpit web", mailpitWebPort);
 }
 
 async function ensureDatabase() {

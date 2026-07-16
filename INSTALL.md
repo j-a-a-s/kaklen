@@ -51,6 +51,14 @@ No uses solo `pnpm dev:i18n` para pruebas de autenticación o CRUD, porque ese c
 
 `pnpm dev:full:i18n` levanta tambien Mailpit. Solicita la recuperacion desde Login y abre `http://localhost:8025` para inspeccionar el correo y seguir el enlace localizado.
 
+Comprueba la conexion antes del recorrido:
+
+```bash
+pnpm mail:verify
+```
+
+La API ejecutada directamente en macOS usa `MAIL_HOST=localhost`. Una API ejecutada dentro de Docker debe usar el nombre del servicio: `MAIL_HOST=mailpit`.
+
 Los valores de `.env.example` usan SMTP local sin autenticacion. En staging y produccion configura `APP_PUBLIC_URL`, `MAIL_FROM`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER` y `MAIL_PASSWORD` con el proveedor real. Nunca uses credenciales de produccion en `.env` versionado.
 
 ## Nota sobre pnpm setup

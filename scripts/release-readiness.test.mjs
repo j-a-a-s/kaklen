@@ -35,6 +35,7 @@ test("release check prints explicit ready or blocked state", () => {
   assert.match(script, /pnpm", \["e2e"\]/);
   assert.match(script, /pnpm", \["verify:full-local"\]/);
   assert.match(script, /pnpm", \["verify:api-start"\]/);
+  assert.match(script, /pnpm", \["mail:verify"\]/);
 });
 
 test("strict release check blocks until coverage and AWS staging are validated", () => {

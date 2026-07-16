@@ -2,16 +2,23 @@ import { normalizeNotificationLocale, renderPasswordResetEmail, renderQuotationE
 
 describe("password reset email templates", () => {
   it.each([
-    ["es", "Recupera tu acceso a Kaklen"],
-    ["en", "Reset your Kaklen password"],
-    ["pt-BR", "Redefina sua senha do Kaklen"]
-  ] as const)("renders a safe %s template", (locale, subject) => {
+    ["es", "Recupera tu acceso a Kaklen", "Restablecer contraseña", "copia y pega"],
+    ["en", "Reset your Kaklen password", "Reset password", "copy and paste"],
+    ["pt-BR", "Redefina sua senha do Kaklen", "Redefinir senha", "copie e cole"]
+  ] as const)("renders a safe and complete %s template", (locale, subject, action, fallback) => {
     const message = renderPasswordResetEmail(locale, {
       resetUrl: "http://localhost:4200/es/reset-password?token=a&next=<unsafe>",
       expiresMinutes: 30
     });
 
     expect(message.subject).toBe(subject);
+    expect(message.text).toContain("KAKLEN");
+    expect(message.text).toContain(action);
+    expect(message.text).toContain(fallback);
+    expect(message.text).toContain("30");
+    expect(message.html).toContain("KAKLEN");
+    expect(message.html).toContain(action);
+    expect(message.html).toContain(fallback);
     expect(message.text).toContain("token=a&next=<unsafe>");
     expect(message.html).toContain("token=a&amp;next=&lt;unsafe&gt;");
     expect(message.html).not.toContain("next=<unsafe>");

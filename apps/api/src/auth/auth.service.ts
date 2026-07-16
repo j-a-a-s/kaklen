@@ -4,13 +4,14 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   UnauthorizedException
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PasswordResetToken, Prisma, User, UserStatus } from "@prisma/client";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import * as argon2 from "argon2";
-import { readAuthConfig, readPasswordRecoveryConfig } from "@kaklen/config";
+import { readAuthConfig } from "@kaklen/config";
 import {
   PASSWORD_MIN_LENGTH,
   type AuthResponse,
@@ -18,11 +19,8 @@ import {
   type MessageResponse
 } from "@kaklen/shared";
 import { ERROR_CODES } from "../common/error-codes";
-import { MailService } from "../notifications/mail.service";
-import {
-  normalizeNotificationLocale,
-  renderPasswordResetEmail
-} from "../notifications/templates";
+import { MailDeliveryError, MailService } from "../notifications/mail.service";
+import { normalizeNotificationLocale } from "../notifications/templates";
 import { PrismaService } from "../prisma/prisma.service";
 import type { JwtAccessPayload, PasswordRecoveryRequestContext } from "./auth.types";
 import { LoginDto } from "./dto/login.dto";
@@ -44,6 +42,8 @@ const RESET_PASSWORD_MESSAGE = "Tu contraseña fue actualizada correctamente.";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -305,7 +305,7 @@ export class AuthService {
       return;
     }
 
-    const config = readPasswordRecoveryConfig(process.env);
+    const config = this.mailService.getPasswordResetPolicy();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + config.expiresMinutes * 60 * 1000);
     const resetToken = await this.prisma.$transaction(async (tx) => {
@@ -329,47 +329,72 @@ export class AuthService {
             : null
         }
       });
-      await tx.authAuditLog.create({
-        data: {
-          userId: user.id,
-          event: "password_reset_requested",
-          success: true,
-          metadata: { expiresMinutes: config.expiresMinutes }
-        }
-      });
       return created;
     });
 
     const locale = normalizeNotificationLocale(user.locale);
     const resetUrl = new URL(`/${locale}/reset-password`, `${config.appPublicUrl}/`);
     resetUrl.searchParams.set("token", rawToken);
-    const message = renderPasswordResetEmail(locale, {
-      resetUrl: resetUrl.toString(),
-      expiresMinutes: config.expiresMinutes
-    });
 
     try {
-      await this.mailService.send({
-        to: user.email,
-        subject: message.subject,
-        text: message.text,
-        html: message.html
+      const receipt = await this.mailService.sendPasswordResetEmail({
+        recipient: user.email,
+        locale,
+        resetUrl: resetUrl.toString(),
+        expiresInMinutes: config.expiresMinutes,
+        ...(context.requestId ? { requestId: context.requestId } : {})
       });
-    } catch {
+      const sentAt = new Date();
       await this.prisma.$transaction(async (tx) => {
-        await tx.passwordResetToken.updateMany({
-          where: { id: resetToken.id, usedAt: null, revokedAt: null },
-          data: { revokedAt: new Date() }
+        const markedSent = await tx.passwordResetToken.updateMany({
+          where: {
+            id: resetToken.id,
+            usedAt: null,
+            revokedAt: null,
+            sentAt: null
+          },
+          data: { sentAt }
         });
+        if (markedSent.count !== 1) {
+          throw new Error("Password reset token could not be marked as sent");
+        }
         await tx.authAuditLog.create({
           data: {
             userId: user.id,
-            event: "password_reset_failed",
-            success: false,
-            metadata: { reason: "MAIL_DELIVERY_FAILED" }
+            event: "password_reset_requested",
+            success: true,
+            metadata: {
+              expiresMinutes: config.expiresMinutes,
+              locale,
+              messageId: receipt.messageId
+            }
           }
         });
       });
+    } catch (error) {
+      const reason =
+        error instanceof MailDeliveryError ? error.code : "PASSWORD_RESET_STATE_FAILED";
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.passwordResetToken.updateMany({
+            where: { id: resetToken.id, usedAt: null, revokedAt: null },
+            data: { revokedAt: new Date() }
+          });
+          await tx.authAuditLog.create({
+            data: {
+              userId: user.id,
+              event: "password_reset_failed",
+              success: false,
+              metadata: { reason }
+            }
+          });
+        });
+      } catch {
+        this.logPasswordResetStateFailure(user.id, "TOKEN_REVOCATION_FAILED", context.requestId);
+      }
+      if (!(error instanceof MailDeliveryError)) {
+        this.logPasswordResetStateFailure(user.id, reason, context.requestId);
+      }
     }
   }
 
@@ -468,6 +493,9 @@ export class AuthService {
   }
 
   private tokenErrorCode(token: PasswordResetTokenWithUser, now: Date): string | null {
+    if (!token.sentAt) {
+      return ERROR_CODES.passwordResetTokenInvalid;
+    }
     if (token.usedAt) {
       return ERROR_CODES.passwordResetTokenUsed;
     }
@@ -495,6 +523,22 @@ export class AuthService {
 
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
+  }
+
+  private logPasswordResetStateFailure(
+    userId: string,
+    reason: string,
+    requestId?: string
+  ): void {
+    this.logger.error(
+      `[password-reset:failed] ${JSON.stringify({
+        event: "password_reset.failed",
+        userId,
+        reason,
+        timestamp: new Date().toISOString(),
+        ...(requestId ? { requestId } : {})
+      })}`
+    );
   }
 
   private toAuthUser(user: User): AuthUser {

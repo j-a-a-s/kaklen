@@ -1,14 +1,21 @@
 import { expect, test } from "@playwright/test";
+import { PrismaClient } from "@prisma/client";
 
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
 const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
+const demoEmail = "empresa.angela@demo.kaklen.local";
+const demoPassword = "KaklenDemo2026!";
 
-test.describe.serial("secure password recovery with Mailpit", () => {
+test.describe.serial("secure password recovery with real Mailpit delivery", () => {
   test.setTimeout(180_000);
 
   let api;
   let mailpit;
+  let prisma;
+  let genericResponse;
+  let temporaryPassword;
+  let passwordChanged = false;
 
   test.beforeAll(async ({ playwright }) => {
     api = await playwright.request.newContext({
@@ -16,38 +23,83 @@ test.describe.serial("secure password recovery with Mailpit", () => {
       extraHTTPHeaders: { Origin: "http://localhost:4200" }
     });
     mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
+    prisma = new PrismaClient();
+    temporaryPassword = `Recovered-${Date.now()}!`;
     await clearMailpit(mailpit);
   });
 
   test.afterAll(async () => {
+    if (passwordChanged) {
+      await restoreDemoPassword(api, mailpit);
+    }
+    await clearMailpit(mailpit);
+    await prisma?.$disconnect();
     await api?.dispose();
     await mailpit?.dispose();
   });
 
-  test("resets a real account and invalidates old credentials and sessions", async ({ page }) => {
-    const unique = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const email = `recovery-${unique}@kaklen.local`;
-    const oldPassword = "OriginalPass123!";
-    const newPassword = "UpdatedPass456!";
-    const registered = await api.post("/api/auth/register", {
-      data: { email, firstName: "Recovery", lastName: "Tester", password: oldPassword }
+  test("delivers one localized email, resets the demo password, and rejects token reuse", async ({ page }) => {
+    const originalLogin = await api.post("/api/auth/login", {
+      data: { email: demoEmail, password: demoPassword }
     });
-    expect(registered.status()).toBe(201);
-    const originalAccessToken = (await registered.json()).accessToken;
+    expect(originalLogin.status()).toBe(200);
+    const originalAccessToken = (await originalLogin.json()).accessToken;
 
     await page.goto(`${webBase}/es/login`);
     await page.getByRole("link", { name: "¿Olvidaste tu contraseña?" }).click();
     await expect(page).toHaveURL(/\/es\/forgot-password$/);
-    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Email").fill(demoEmail);
+    const recoveryResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/auth/forgot-password") && response.request().method() === "POST"
+    );
     await page.getByRole("button", { name: "Enviar instrucciones" }).click();
+    const recoveryResponse = await recoveryResponsePromise;
+    expect(recoveryResponse.status()).toBe(200);
+    genericResponse = await recoveryResponse.json();
     await expect(page.getByRole("heading", { name: "Revisa tu correo" })).toBeVisible();
 
-    const resetUrl = await waitForResetUrl(mailpit, email);
-    expect(resetUrl).toContain("/es/reset-password?token=");
-    await page.goto(resetUrl);
-    await page.getByLabel(/Nueva contraseña/).fill(newPassword);
-    await page.getByLabel("Confirmar contraseña").fill(newPassword);
+    const delivered = await waitForResetEmail(mailpit, demoEmail);
+    expect(delivered.messages).toHaveLength(1);
+    expect(recipientAddresses(delivered.summary)).toEqual([demoEmail]);
+    expect(delivered.summary.Subject).toBe("Recupera tu acceso a Kaklen");
+    expect(delivered.content).toContain("KAKLEN");
+    expect(delivered.content).toContain("30 minutos");
+    expect(delivered.resetUrl).toContain("/es/reset-password?token=");
+
+    const rawToken = new URL(delivered.resetUrl).searchParams.get("token");
+    expect(rawToken).toBeTruthy();
+    const user = await prisma.user.findUnique({ where: { email: demoEmail } });
+    expect(user).not.toBeNull();
+    const storedToken = await prisma.passwordResetToken.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" }
+    });
+    expect(storedToken?.sentAt).toBeInstanceOf(Date);
+    expect(storedToken?.revokedAt).toBeNull();
+    expect(storedToken?.tokenHash).not.toBe(rawToken);
+    expect(JSON.stringify(storedToken)).not.toContain(rawToken);
+    const audit = await prisma.authAuditLog.findFirst({
+      where: { userId: user.id, event: "password_reset_requested", success: true },
+      orderBy: { createdAt: "desc" }
+    });
+    if (!audit || !audit.metadata || typeof audit.metadata !== "object") {
+      throw new Error("Password reset delivery audit was not persisted");
+    }
+    expect(audit.metadata).toEqual(expect.objectContaining({ locale: "es" }));
+    expect(audit.metadata.messageId).toContain(delivered.summary.MessageID);
+
+    await page.goto(delivered.resetUrl);
+    await page.getByLabel(/Nueva contraseña/).fill(temporaryPassword);
+    await page.getByLabel("Confirmar contraseña").fill(temporaryPassword);
+    const resetResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/auth/reset-password") && response.request().method() === "POST"
+    );
     await page.getByRole("button", { name: "Restablecer contraseña" }).click();
+    const resetResponse = await resetResponsePromise;
+    expect(resetResponse.status()).toBe(200);
+    passwordChanged = true;
     await expect(page.getByRole("heading", { name: "Contraseña actualizada" })).toBeVisible();
     expect(page.url()).not.toContain("token=");
 
@@ -57,36 +109,57 @@ test.describe.serial("secure password recovery with Mailpit", () => {
     expect(oldAccess.status()).toBe(401);
     const oldRefresh = await api.post("/api/auth/refresh");
     expect(oldRefresh.status()).toBe(401);
+    expect(
+      (
+        await api.post("/api/auth/login", {
+          data: { email: demoEmail, password: demoPassword }
+        })
+      ).status()
+    ).toBe(401);
+    expect(
+      (
+        await api.post("/api/auth/login", {
+          data: { email: demoEmail, password: temporaryPassword }
+        })
+      ).status()
+    ).toBe(200);
 
-    const oldLogin = await api.post("/api/auth/login", {
-      data: { email, password: oldPassword }
-    });
-    expect(oldLogin.status()).toBe(401);
-    const newLogin = await api.post("/api/auth/login", {
-      data: { email, password: newPassword }
-    });
-    expect(newLogin.status()).toBe(200);
-
-    await page.goto(resetUrl);
+    await page.goto(delivered.resetUrl);
     await page.getByLabel(/Nueva contraseña/).fill("AnotherPass789!");
     await page.getByLabel("Confirmar contraseña").fill("AnotherPass789!");
     await page.getByRole("button", { name: "Restablecer contraseña" }).click();
     await expect(page.getByRole("heading", { name: "Enlace utilizado" })).toBeVisible();
   });
 
-  test("keeps the same public response and sends no email for a missing account", async ({ page }) => {
+  test("keeps the same public response and sends no email for a missing account", async () => {
     await clearMailpit(mailpit);
     const email = `missing-${Date.now()}@kaklen.local`;
 
-    await page.goto(`${webBase}/es/forgot-password`);
-    await page.getByLabel("Email").fill(email);
-    await page.getByRole("button", { name: "Enviar instrucciones" }).click();
-    await expect(page.getByRole("heading", { name: "Revisa tu correo" })).toBeVisible();
+    const response = await api.post("/api/auth/forgot-password", { data: { email } });
 
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual(genericResponse);
     const messages = await listMessages(mailpit);
-    expect(messages.some((message) => recipientAddresses(message).includes(email))).toBe(false);
+    expect(messages).toHaveLength(0);
+    expect(await prisma.user.findUnique({ where: { email } })).toBeNull();
   });
 });
+
+async function restoreDemoPassword(api, mailpit) {
+  if (!api || !mailpit) return;
+  await clearMailpit(mailpit);
+  const recovery = await api.post("/api/auth/forgot-password", { data: { email: demoEmail } });
+  if (recovery.status() !== 200) return;
+  const delivered = await waitForResetEmail(mailpit, demoEmail);
+  const reset = await api.post("/api/auth/reset-password", {
+    data: {
+      token: new URL(delivered.resetUrl).searchParams.get("token"),
+      password: demoPassword,
+      confirmPassword: demoPassword
+    }
+  });
+  expect(reset.status()).toBe(200);
+}
 
 async function clearMailpit(mailpit) {
   const response = await mailpit.delete("/api/v1/messages");
@@ -95,29 +168,29 @@ async function clearMailpit(mailpit) {
   }
 }
 
-async function waitForResetUrl(mailpit, email) {
+async function waitForResetEmail(mailpit, email) {
+  let result = null;
   await expect
     .poll(
       async () => {
         const messages = await listMessages(mailpit);
-        const message = messages.find((entry) => recipientAddresses(entry).includes(email));
-        if (!message) return "";
-        const id = typeof message.ID === "string" ? message.ID : message.Id;
-        if (typeof id !== "string") return "";
+        const summary = messages.find((entry) => recipientAddresses(entry).includes(email));
+        if (!summary) return false;
+        const id = typeof summary.ID === "string" ? summary.ID : summary.Id;
+        if (typeof id !== "string") return false;
         const response = await mailpit.get(`/api/v1/message/${encodeURIComponent(id)}`);
-        if (!response.ok()) return "";
+        if (!response.ok()) return false;
         const detail = await response.json();
-        return resetUrlFromMessage(detail);
+        const content = messageContent(detail);
+        const resetUrl = resetUrlFromContent(content);
+        if (!resetUrl) return false;
+        result = { messages, summary, detail, content, resetUrl };
+        return true;
       },
       { message: `password reset email for ${email}`, timeout: 15_000, intervals: [100, 250, 500] }
     )
-    .not.toBe("");
-
-  const messages = await listMessages(mailpit);
-  const message = messages.find((entry) => recipientAddresses(entry).includes(email));
-  const id = typeof message?.ID === "string" ? message.ID : message?.Id;
-  const detailResponse = await mailpit.get(`/api/v1/message/${encodeURIComponent(id)}`);
-  return resetUrlFromMessage(await detailResponse.json());
+    .toBe(true);
+  return result;
 }
 
 async function listMessages(mailpit) {
@@ -134,10 +207,13 @@ function recipientAddresses(message) {
     .filter((address) => typeof address === "string");
 }
 
-function resetUrlFromMessage(message) {
-  const content = [message.Text, message.HTML, message.Html]
+function messageContent(message) {
+  return [message.Text, message.HTML, message.Html]
     .filter((value) => typeof value === "string")
     .join("\n")
     .replaceAll("&amp;", "&");
-  return content.match(/https?:\/\/[^\s"<>]+\/es\/reset-password\?token=[A-Za-z0-9_-]+/)?.[0] ?? "";
+}
+
+function resetUrlFromContent(content) {
+  return content.match(/https?:\/\/[^\s"<>]+\/(?:es|en|pt-BR)\/reset-password\?token=[A-Za-z0-9_-]+/)?.[0] ?? "";
 }

@@ -19,6 +19,7 @@ const checks = [
   ["Web pt-BR", "pnpm", ["--filter", "@kaklen/web", "build:pt-BR"]],
   ["i18n server", "pnpm", ["verify:i18n-server"]],
   ["Full local", "pnpm", ["verify:full-local"]],
+  ["Mail SMTP verification", "pnpm", ["mail:verify"]],
   ["E2E", "pnpm", ["e2e"]]
 ];
 

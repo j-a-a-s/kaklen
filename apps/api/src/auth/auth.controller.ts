@@ -201,14 +201,16 @@ export class AuthController {
     }
   }
 
-  private passwordRecoveryContext(request: Request): {
+  private passwordRecoveryContext(request: Request & { requestId?: string }): {
     ipAddress: string;
     userAgent?: string;
+    requestId?: string;
   } {
     const userAgent = request.headers["user-agent"];
     return {
       ipAddress: request.ip || request.socket.remoteAddress || "unknown",
-      ...(typeof userAgent === "string" ? { userAgent } : {})
+      ...(typeof userAgent === "string" ? { userAgent } : {}),
+      ...(request.requestId ? { requestId: request.requestId } : {})
     };
   }
 }

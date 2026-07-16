@@ -196,7 +196,13 @@ test.describe.serial("Kaklen assisted product journey", () => {
     expect(approve.status()).toBe(200);
 
     await navigateSpa(page, `/organizations/${organizationId}/events/new?quotationId=${quotationId}`);
-    for (let step = 1; step < 5; step += 1) await page.getByRole("button", { name: "Continuar" }).click();
+    const eventWizardSteps = page.locator(".event-wizard-steps li");
+    await expect(eventWizardSteps).toHaveCount(5);
+    await expect(eventWizardSteps.first()).toHaveAttribute("aria-current", "step");
+    for (let step = 2; step <= 5; step += 1) {
+      await page.getByRole("button", { name: "Continuar" }).click();
+      await expect(eventWizardSteps.nth(step - 1)).toHaveAttribute("aria-current", "step");
+    }
     await page.getByRole("button", { name: "Crear evento en borrador" }).click();
     await page.getByRole("button", { name: "Crear evento", exact: true }).click();
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]+$/);

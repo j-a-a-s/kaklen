@@ -367,6 +367,8 @@ export class QuotationsService {
     });
 
     await this.mailService.send({
+      mailType: "quotation",
+      locale,
       to: dto.to.trim().toLowerCase(),
       subject: dto.subject.trim(),
       text: content.text,

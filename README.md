@@ -161,9 +161,18 @@ MAIL_PORT=1025
 MAIL_SECURE=false
 MAIL_USER=
 MAIL_PASSWORD=
+MAIL_CONNECTION_TIMEOUT_MS=5000
+MAIL_GREETING_TIMEOUT_MS=5000
+MAIL_SOCKET_TIMEOUT_MS=10000
 ```
 
-Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. La especificacion de seguridad y operacion vive en `docs/auth/PASSWORD_RECOVERY.md`.
+Verifica SMTP antes de probar el formulario:
+
+```bash
+pnpm mail:verify
+```
+
+Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con destinatario, locale y `messageId`; nunca contiene el token, la URL completa, la contraseña ni credenciales SMTP. La especificacion de seguridad y operacion vive en `docs/auth/PASSWORD_RECOVERY.md` y la guia local en `docs/notifications/LOCAL_EMAIL_TESTING.md`.
 
 ## Internacionalizacion y configuracion regional
 
