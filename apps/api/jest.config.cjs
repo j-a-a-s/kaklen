@@ -6,6 +6,7 @@ module.exports = {
     "^.+\\.ts$": "ts-jest"
   },
   moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@kaklen/config$": "<rootDir>/../../packages/config/src/index.ts",
     "^@kaklen/shared$": "<rootDir>/../../packages/shared/src/index.ts"
   },

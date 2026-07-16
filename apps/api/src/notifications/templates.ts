@@ -6,6 +6,18 @@ export interface PasswordResetEmail {
   html: string;
 }
 
+export interface QuotationEmailContent {
+  text: string;
+  html: string;
+}
+
+interface QuotationTemplateInput {
+  organizationName: string;
+  quotationNumber: string;
+  clientName: string;
+  message: string;
+}
+
 interface PasswordResetTemplateInput {
   resetUrl: string;
   expiresMinutes: number;
@@ -59,6 +71,50 @@ export function renderPasswordResetEmail(
   };
 
   return templates[locale];
+}
+
+export function renderQuotationEmail(
+  locale: NotificationLocale,
+  input: QuotationTemplateInput
+): QuotationEmailContent {
+  const copy: Record<NotificationLocale, { heading: string; introduction: string; attachment: string; closing: string }> = {
+    es: {
+      heading: `Cotización ${input.quotationNumber}`,
+      introduction: `Hola ${input.clientName}, ${input.organizationName} te envía la siguiente cotización.`,
+      attachment: "Encontrarás el documento PDF adjunto a este correo.",
+      closing: "Este correo fue enviado desde Kaklen."
+    },
+    en: {
+      heading: `Quotation ${input.quotationNumber}`,
+      introduction: `Hello ${input.clientName}, ${input.organizationName} has sent you the following quotation.`,
+      attachment: "The PDF document is attached to this email.",
+      closing: "This email was sent from Kaklen."
+    },
+    "pt-BR": {
+      heading: `Cotação ${input.quotationNumber}`,
+      introduction: `Olá ${input.clientName}, ${input.organizationName} enviou a seguinte cotação.`,
+      attachment: "O documento PDF está anexado a este e-mail.",
+      closing: "Este e-mail foi enviado pelo Kaklen."
+    }
+  };
+  const selected = copy[locale];
+  return {
+    text: [selected.heading, "", selected.introduction, "", input.message, "", selected.attachment, "", selected.closing].join("\n"),
+    html: `<!doctype html>
+<html lang="${locale}">
+  <body style="margin:0;background:#f4f6f8;color:#14213a;font-family:Arial,sans-serif">
+    <div style="max-width:640px;margin:0 auto;padding:32px 20px">
+      <div style="background:#ffffff;border:1px solid #dce3ec;border-radius:8px;padding:32px">
+        <h1 style="margin:0 0 20px;font-size:22px">${escapeHtml(selected.heading)}</h1>
+        <p>${escapeHtml(selected.introduction)}</p>
+        <div style="margin:24px 0;padding:16px;border-left:4px solid #1769d2;background:#f8fafc;white-space:pre-line">${escapeHtml(input.message)}</div>
+        <p>${escapeHtml(selected.attachment)}</p>
+        <p style="margin-top:28px;font-size:12px;color:#627087">${escapeHtml(selected.closing)}</p>
+      </div>
+    </div>
+  </body>
+</html>`
+  };
 }
 
 interface TemplateCopy {

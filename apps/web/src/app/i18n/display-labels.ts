@@ -30,7 +30,7 @@ export function quotationStatusLabel(status: QuotationStatus): string {
     APPROVED: $localize`:@@approvedLabel:Aprobada`,
     REJECTED: $localize`:@@rejectedLabel:Rechazada`,
     EXPIRED: $localize`:@@expiredLabel:Expirada`,
-    CANCELLED: $localize`:@@cancelledLabel:Cancelada`
+    CANCELLED: $localize`:@@quotationCancelledLabel:Cancelada`
   };
   return labels[status];
 }
@@ -40,8 +40,8 @@ export function eventStatusLabel(status: EventStatus): string {
     DRAFT: $localize`:@@draftLabel:Borrador`,
     CONFIRMED: $localize`:@@confirmedLabel:Confirmado`,
     IN_PROGRESS: $localize`:@@inProgressLabel:En curso`,
-    COMPLETED: $localize`:@@completedLabel:Completado`,
-    CANCELLED: $localize`:@@cancelledLabel:Cancelado`,
+    COMPLETED: $localize`:@@eventCompletedLabel:Completado`,
+    CANCELLED: $localize`:@@eventCancelledLabel:Cancelado`,
     ARCHIVED: $localize`:@@archivedLabel:Archivado`
   };
   return labels[status];
@@ -51,8 +51,8 @@ export function eventTaskStatusLabel(status: EventTaskStatus): string {
   const labels: Record<EventTaskStatus, string> = {
     PENDING: $localize`:@@pendingLabel:Pendiente`,
     IN_PROGRESS: $localize`:@@inProgressLabel:En curso`,
-    COMPLETED: $localize`:@@completedLabel:Completada`,
-    CANCELLED: $localize`:@@cancelledLabel:Cancelada`
+    COMPLETED: $localize`:@@taskCompletedLabel:Completada`,
+    CANCELLED: $localize`:@@taskCancelledLabel:Cancelada`
   };
   return labels[status];
 }

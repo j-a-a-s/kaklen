@@ -124,7 +124,7 @@ test("destructive actions require an explicit dialog and prevent duplicate submi
   for (const page of pages) {
     const contents = await source(`apps/web/src/app/pages/${page}.component.ts`);
     assert.match(contents, /<kaklen-confirmation-dialog/);
-    assert.match(contents, /class="action-menu"/);
+    assert.match(contents, /<kaklen-action-menu/);
     assert.match(contents, /\[busy\]="(?:loading|processing)\(\)"/);
   }
   const dialog = await source("apps/web/src/app/shared/confirmation-dialog.component.ts");
@@ -151,7 +151,7 @@ test("client workflow groups fields and hides infeasible quick actions", async (
   assert.equal((form.match(/<fieldset class="form-section wizard-stage"/g) ?? []).length, 4);
   assert.match(form, /class="form-section client-review wizard-stage"/);
   assert.match(form, /currentStep\(\) === 4/);
-  assert.match(form, /class="form-error-summary"/);
+  assert.match(form, /<kaklen-form-error-summary/);
   assert.match(form, /phonePrefix/);
   assert.match(form, /formatRut/);
   assert.match(detail, /\*ngIf="currentClient\.phone"/);

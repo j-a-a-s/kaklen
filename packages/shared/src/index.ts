@@ -36,6 +36,20 @@ export interface MessageResponse {
 
 export const PASSWORD_MIN_LENGTH = 10;
 
+export const VALIDATION_LIMITS = {
+  email: 254,
+  phone: 40,
+  shortName: 80,
+  name: 160,
+  code: 80,
+  unit: 40,
+  address: 240,
+  note: 2_000,
+  statusNote: 500,
+  emailSubject: 200,
+  emailMessage: 5_000
+} as const;
+
 export type PasswordStrength = "weak" | "acceptable" | "strong";
 
 export function passwordStrength(password: string): PasswordStrength {
@@ -89,3 +103,5 @@ export interface OrganizationMember {
   status: OrganizationMembershipStatus;
   joinedAt: string;
 }
+
+export * from "./quotation-money.js";

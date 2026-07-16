@@ -46,6 +46,14 @@ describe("MailService", () => {
       expect.objectContaining({ auth: { user: "mailer", pass: "smtp-password" } })
     );
   });
+
+  it("passes PDF attachments to Nodemailer", async () => {
+    const attachment = { filename: "quotation.pdf", content: Buffer.from("%PDF-test"), contentType: "application/pdf" };
+
+    await new MailService().send({ ...message(), attachments: [attachment] });
+
+    expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ attachments: [attachment] }));
+  });
 });
 
 function message(): { to: string; subject: string; text: string; html: string } {

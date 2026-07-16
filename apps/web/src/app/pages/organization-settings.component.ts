@@ -5,29 +5,34 @@ import { ActivatedRoute } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
 import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { trimmedRequired } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-organization-settings",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">
         <p class="eyebrow" i18n="@@settingsEyebrow">Ajustes</p>
         <h1 i18n="@@organizationSettingsTitle">Organización</h1>
         <form [formGroup]="form" (ngSubmit)="save()">
+          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
           <label>
-            <span i18n="@@organizationNameLabel">Nombre</span>
-            <input formControlName="name" />
+            <span><span i18n="@@organizationNameLabel">Nombre</span><kaklen-required /></span>
+            <input formControlName="name" maxlength="160" aria-describedby="settings-name-error" />
+            <kaklen-field-error id="settings-name-error" [control]="form.controls.name" [submitted]="submitAttempted()" />
           </label>
           <label>
-            <span i18n="@@legalNameLabel">Razón social</span>
-            <input formControlName="legalName" />
+            <span><span i18n="@@legalNameLabel">Razón social</span><kaklen-optional /></span>
+            <input formControlName="legalName" maxlength="160" />
           </label>
           <label>
-            <span i18n="@@taxIdLabel">RUT o identificación tributaria</span>
-            <input formControlName="taxId" (blur)="formatRut()" />
-            <small *ngIf="form.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
+            <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-optional /></span>
+            <input formControlName="taxId" maxlength="40" (blur)="formatRut()" aria-describedby="settings-tax-id-error" />
+            <kaklen-field-error id="settings-tax-id-error" [control]="form.controls.taxId" [submitted]="submitAttempted()" />
           </label>
           <label>
             <span i18n="@@countryLabel">País</span>
@@ -83,7 +88,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
             </select>
           </label>
           <p class="form-error" *ngIf="message()">{{ message() }}</p>
-          <button type="submit" [disabled]="form.invalid || loading()" i18n="@@saveButton">Guardar</button>
+          <button type="submit" [disabled]="loading()"><kaklen-icon name="check" /><span i18n="@@saveButton">Guardar</span></button>
         </form>
       </section>
     </main>
@@ -92,10 +97,12 @@ import { NotificationService } from "../shared/notifications/notification.servic
 export class OrganizationSettingsComponent implements OnInit {
   readonly loading = signal(false);
   readonly message = signal<string | null>(null);
+  readonly submitAttempted = signal(false);
+  readonly fieldLabels = { name: $localize`:@@organizationNameLabel:Nombre`, legalName: $localize`:@@legalNameLabel:Razón social`, taxId: $localize`:@@taxIdLabel:RUT o identificación tributaria` };
   readonly form = new FormGroup({
-    name: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
-    legalName: new FormControl("", { nonNullable: true }),
-    taxId: new FormControl("", { nonNullable: true, validators: [chileanRutValidator()] }),
+    name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }),
+    legalName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
+    taxId: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), chileanRutValidator()] }),
     country: new FormControl("CL", { nonNullable: true, validators: [Validators.required] }),
     currency: new FormControl("CLP", { nonNullable: true, validators: [Validators.required] }),
     timezone: new FormControl("America/Santiago", { nonNullable: true, validators: [Validators.required] }),
@@ -128,8 +135,10 @@ export class OrganizationSettingsComponent implements OnInit {
   }
 
   async save(): Promise<void> {
+    this.submitAttempted.set(true);
     this.form.markAllAsTouched();
     if (this.form.invalid) {
+      window.setTimeout(() => document.querySelector<HTMLElement>("form .ng-invalid")?.focus(), 0);
       return;
     }
 
@@ -139,6 +148,8 @@ export class OrganizationSettingsComponent implements OnInit {
       const value = this.form.getRawValue();
       await this.organizationService.update(this.organizationId, {
         ...value,
+        name: value.name.trim(),
+        legalName: value.legalName.trim() || null,
         taxId: normalizeChileanRut(value.taxId) || null
       });
       this.notifications.success($localize`:@@organizationUpdated:Organización actualizada.`);

@@ -26,7 +26,7 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
       <kaklen-empty-state
         *ngIf="!loading() && organizations().length === 0"
-        icon="⌂"
+        icon="building"
         [title]="organizationsEmptyTitle"
         [description]="organizationsEmptyDescription"
       >

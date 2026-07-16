@@ -60,6 +60,14 @@ body {
   line-height: 1.5;
 }
 
+body.command-palette-open {
+  overflow: hidden;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
 ::selection {
   background: #cfe2ff;
   color: var(--color-text);
@@ -93,9 +101,32 @@ a:hover {
 button,
 .button-link,
 .secondary-link {
+  display: inline-flex;
+  min-width: 0;
   min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border-radius: var(--radius-md);
+  line-height: 1.2;
+  white-space: nowrap;
   transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+button > span,
+.button-link > span,
+.secondary-link > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+kaklen-icon,
+lucide-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
 }
 
 button {
@@ -122,7 +153,12 @@ button:active:not(:disabled),
 }
 
 button:disabled {
-  opacity: 0.55;
+  border-color: var(--color-border);
+  background: #dfe5ec;
+  color: #657287;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
 }
 
 button.secondary,
@@ -146,6 +182,27 @@ button.danger {
   background: var(--color-danger);
 }
 
+button.danger:hover:not(:disabled) {
+  background: #8f1721;
+  box-shadow: 0 6px 14px rgb(180 35 46 / 18%);
+}
+
+button.ghost,
+.ghost.button-link {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-brand-strong);
+  box-shadow: none;
+}
+
+button.ghost:hover:not(:disabled),
+.ghost.button-link:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-brand-strong);
+  box-shadow: none;
+}
+
 button.success,
 .success.button-link {
   background: var(--color-success);
@@ -164,6 +221,135 @@ button.success:hover:not(:disabled),
   gap: var(--space-2);
   padding: 0 var(--space-4);
   font-weight: 750;
+}
+
+.shared-action-menu {
+  display: inline-flex;
+}
+
+.action-menu-trigger {
+  max-width: min(220px, calc(100vw - 32px));
+}
+
+.shared-action-menu-panel {
+  position: fixed;
+  z-index: 80;
+  display: grid;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 16px));
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.shared-action-menu-panel :where(button, a, kaklen-locale-selector) {
+  width: 100%;
+}
+
+.shared-action-menu-panel :where(button, a[kaklenMenuItem]) {
+  justify-content: flex-start;
+  min-height: 40px;
+  padding-inline: 12px;
+  text-align: left;
+}
+
+.shared-action-menu-panel :where(button, a):focus-visible {
+  outline-offset: -1px;
+}
+
+.required-indicator {
+  margin-inline-start: 3px;
+  color: var(--color-danger);
+  font-weight: 900;
+}
+
+.optional-label {
+  margin-inline-start: 6px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched,
+[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px var(--color-danger);
+}
+
+input.ng-valid.ng-touched:not(:focus),
+select.ng-valid.ng-touched:not(:focus),
+textarea.ng-valid.ng-touched:not(:focus) {
+  border-color: #69a596;
+}
+
+.form-error-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.form-error-summary > span {
+  display: grid;
+  gap: 2px;
+}
+
+.form-error-summary small {
+  color: inherit;
+}
+
+.quotation-email-dialog {
+  width: min(620px, calc(100vw - 24px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
+
+.quotation-email-dialog form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.quotation-email-dialog .verification-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.quotation-history {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quotation-history li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.quotation-history li:last-child {
+  border-bottom: 0;
+}
+
+.quotation-history p,
+.quotation-history small {
+  margin: 3px 0 0;
+  color: var(--color-text-muted);
 }
 
 .topbar {
@@ -197,6 +383,42 @@ button.success:hover:not(:disabled),
 
 .account-menu {
   position: static;
+}
+
+.account-action-menu .action-menu-trigger {
+  width: 44px;
+  padding: 0;
+}
+
+.account-action-menu .shared-action-menu-panel {
+  width: min(320px, calc(100vw - 16px));
+  padding: var(--space-3);
+}
+
+.account-action-menu .mobile-account-action,
+.account-action-menu .mobile-account-summary {
+  display: flex;
+}
+
+.account-action-menu .mobile-account-summary {
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-1) var(--space-3);
+}
+
+.account-action-menu .mobile-account-summary strong,
+.account-action-menu .mobile-account-summary small {
+  display: block;
+}
+
+.account-action-menu .locale-selector,
+.account-action-menu .locale-selector select {
+  width: 100%;
+}
+
+.account-action-menu .user-chip {
+  display: none;
 }
 
 .organizations-link .mobile-account-action {
@@ -1121,6 +1343,11 @@ label {
   color: var(--color-text);
   font-size: 0.88rem;
   font-weight: 720;
+}
+
+.compound-form-field {
+  display: grid;
+  gap: 7px;
 }
 
 input,

@@ -1,13 +1,16 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
+const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
 const demoPassword = "KaklenDemo2026!";
 
 test.describe.serial("Kaklen assisted product journey", () => {
   test.setTimeout(240_000);
 
   let api;
+  let mailpit;
   let accessToken = "";
   let organizationId = "";
   let firstClientId = "";
@@ -15,6 +18,8 @@ test.describe.serial("Kaklen assisted product journey", () => {
 
   test.beforeAll(async ({ playwright }) => {
     api = await playwright.request.newContext({ baseURL: apiBase, extraHTTPHeaders: { Origin: webBase } });
+    mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
+    await clearMailpit(mailpit);
     const login = await api.post("/api/auth/login", { data: { email: "empresa.angela@demo.kaklen.local", password: demoPassword } });
     expect(login.status()).toBe(200);
     accessToken = (await login.json()).accessToken;
@@ -28,6 +33,7 @@ test.describe.serial("Kaklen assisted product journey", () => {
 
   test.afterAll(async () => {
     await api?.dispose();
+    await mailpit?.dispose();
   });
 
   test("derives activation, dashboard metrics, search, and client timeline from demo data", async () => {
@@ -82,11 +88,35 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await expect(page.locator("kaklen-dashboard")).toBeVisible();
     await expect(page.getByText("Configuración inicial completada")).toBeVisible();
 
+    for (const command of [
+      ["create-client", `/organizations/${organizationId}/clients/new`],
+      ["create-catalog", `/organizations/${organizationId}/catalog/new`],
+      ["create-quotation", `/organizations/${organizationId}/quotations/new`],
+      ["create-event", `/organizations/${organizationId}/events/new`],
+      ["invite-member", `/organizations/${organizationId}/members`],
+      ["change-organization", "/organizations"]
+    ]) {
+      await page.keyboard.press("Control+K");
+      await expect(page.getByRole("searchbox", { name: /Buscar clientes/ })).toBeFocused();
+      const commandButton = page.locator(`[data-command-id="${command[0]}"]`);
+      await expect(commandButton).toBeVisible();
+      await commandButton.click();
+      await expect(page).toHaveURL(new RegExp(`/es${command[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+      await navigateSpa(page, `/organizations/${organizationId}`);
+    }
+
     await navigateSpa(page, `/organizations/${organizationId}/clients/new`);
     await page.getByLabel(/^Nombre/).fill("Cliente");
     await page.getByLabel(/^Apellido/).fill(`Guiado ${unique}`);
     await page.getByRole("button", { name: "Continuar" }).click();
-    await page.getByLabel("Email").fill(`guided-${unique}@demo.kaklen.local`);
+    await page.getByLabel("Email").fill("invalid-email");
+    await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 call-me");
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await expect(page.getByText("Ingresa un correo válido, por ejemplo nombre@empresa.cl.")).toBeVisible();
+    await expect(page.getByText("Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.")).toBeVisible();
+    const recipientEmail = `guided-${unique}@demo.kaklen.local`;
+    await page.getByLabel("Email").fill(recipientEmail);
+    await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 9 1234 5678");
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText(clientName, { exact: true })).toBeVisible();
@@ -121,8 +151,47 @@ test.describe.serial("Kaklen assisted product journey", () => {
     const quotationId = page.url().split("/").at(-1);
     expect(quotationId).toBeTruthy();
 
-    const send = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/send`, { note: "Assisted E2E" });
-    expect(send.status()).toBe(200);
+    const storedQuotation = await authorizedGet(`/organizations/${organizationId}/quotations/${quotationId}`);
+    expect(storedQuotation.status()).toBe(200);
+    expect(await storedQuotation.json()).toMatchObject({
+      subtotal: "25000",
+      discountTotal: "1250",
+      taxTotal: "4512.5",
+      total: "28262.5",
+      globalDiscountPercent: "5"
+    });
+
+    await page.getByRole("button", { name: "Más acciones" }).click();
+    await expect(page.getByRole("menu")).toBeVisible();
+    await page.getByRole("heading", { name: /QUO-/ }).click();
+    await expect(page.getByRole("menu")).toBeHidden();
+
+    await page.getByRole("button", { name: "Más acciones" }).click();
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("menuitem", { name: "Descargar PDF" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^cotizacion-quo-\d+-v1\.pdf$/);
+    const downloadPath = await download.path();
+    expect(downloadPath).toBeTruthy();
+    const pdf = await readFile(downloadPath);
+    expect(pdf.subarray(0, 4).toString("ascii")).toBe("%PDF");
+
+    await clearMailpit(mailpit);
+    await page.getByRole("button", { name: "Enviar por email" }).click();
+    const emailDialog = page.getByRole("dialog", { name: "Enviar por email" });
+    await expect(emailDialog).toBeVisible();
+    await expect(emailDialog.getByLabel("Destinatario")).toHaveValue(recipientEmail);
+    await emailDialog.getByRole("button", { name: "Enviar email" }).click();
+    await expect(emailDialog).toBeHidden();
+    await expect(page.getByText("Cotización enviada por email.")).toBeVisible();
+    const deliveredEmail = await waitForQuotationEmail(mailpit, recipientEmail);
+    expect(deliveredEmail.attachments.some((attachment) => {
+      const filename = attachment.FileName ?? attachment.Filename ?? attachment.Name;
+      const contentType = attachment.ContentType ?? attachment.ContentTypeHeader;
+      return typeof filename === "string" && filename.endsWith(".pdf") && contentType === "application/pdf";
+    })).toBe(true);
+    await expect(page.getByText(`Enviada por correo a ${recipientEmail}`)).toBeVisible();
+
     const approve = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/approve`, { note: "Assisted E2E" });
     expect(approve.status()).toBe(200);
 
@@ -131,6 +200,15 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await page.getByRole("button", { name: "Crear evento en borrador" }).click();
     await page.getByRole("button", { name: "Crear evento", exact: true }).click();
     await expect(page).toHaveURL(/\/events\/[0-9a-f-]+$/);
+    const eventName = (await page.getByRole("heading", { level: 1 }).innerText()).trim();
+    const eventId = page.url().split("/").at(-1);
+
+    await navigateSpa(page, `/organizations/${organizationId}/events/calendar`);
+    const weeklyEvent = page.locator(".weekly-event-link", { hasText: eventName });
+    await expect(weeklyEvent).toBeVisible();
+    await weeklyEvent.focus();
+    await page.keyboard.press("Space");
+    await expect(page).toHaveURL(new RegExp(`/organizations/${organizationId}/events/${eventId}$`));
 
     await page.keyboard.press("Control+K");
     const palette = page.getByRole("dialog", { name: "¿Qué necesitas hacer?" });
@@ -163,13 +241,14 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Abrir perfil" }).click();
-    await page.getByRole("button", { name: "Buscar o ir a..." }).click();
+    await page.getByRole("menuitem", { name: "Buscar o ir a..." }).click();
     await expect(page.getByRole("dialog", { name: "¿Qué necesitas hacer?" })).toBeVisible();
     await page.keyboard.press("Escape");
 
     await page.setViewportSize({ width: 1280, height: 720 });
     await navigateSpa(page, `/organizations/${organizationId}/clients/${clientId}`);
-    await page.getByRole("button", { name: "Salir" }).click();
+    await page.getByRole("button", { name: "Abrir perfil" }).click();
+    await page.getByRole("menuitem", { name: "Salir" }).click();
     await expect(page).toHaveURL(/\/es\/login$/);
     await expect(page.getByText(clientName)).toHaveCount(0);
     await page.reload();
@@ -206,4 +285,30 @@ async function navigateSpa(page, route) {
   }, localizedRoute);
   await expect(page).toHaveURL(new RegExp(`${localizedRoute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
   await page.locator("main").last().waitFor();
+}
+
+async function clearMailpit(mailpit) {
+  const response = await mailpit.delete("/api/v1/messages");
+  expect([200, 204]).toContain(response.status());
+}
+
+async function waitForQuotationEmail(mailpit, recipient) {
+  let detail = null;
+  await expect.poll(async () => {
+    const response = await mailpit.get("/api/v1/messages");
+    if (!response.ok()) return false;
+    const body = await response.json();
+    const messages = Array.isArray(body.messages) ? body.messages : [];
+    const message = messages.find((entry) => {
+      const recipients = Array.isArray(entry.To) ? entry.To : [];
+      return recipients.some((item) => item?.Address === recipient);
+    });
+    const id = message?.ID ?? message?.Id;
+    if (typeof id !== "string") return false;
+    const detailResponse = await mailpit.get(`/api/v1/message/${encodeURIComponent(id)}`);
+    if (!detailResponse.ok()) return false;
+    detail = await detailResponse.json();
+    return Array.isArray(detail.Attachments) && detail.Attachments.length > 0;
+  }, { message: `quotation email with PDF for ${recipient}`, timeout: 15_000, intervals: [100, 250, 500] }).toBe(true);
+  return { attachments: detail.Attachments };
 }

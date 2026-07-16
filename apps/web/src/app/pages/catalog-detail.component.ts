@@ -1,15 +1,19 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { CatalogItem, CatalogItemStatus, CatalogItemType } from "../catalog/catalog.models";
 import { CatalogService } from "../catalog/catalog.service";
 import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { NotificationService } from "../shared/notifications/notification.service";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-catalog-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ActionMenuComponent, ActionMenuItemDirective, ConfirmationDialogComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="item() as currentItem">
@@ -19,14 +23,17 @@ import { OrganizationService } from "../organizations/organization.service";
           <p>{{ currentItem.code }} · {{ typeLabel(currentItem.type) }} · {{ statusLabel(currentItem.status) }}</p>
         </div>
         <div class="row-actions">
-        <a [routerLink]="['/organizations', organizationId, 'catalog']" i18n="@@backLink">Volver</a>
+          <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'catalog']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
           <a
             *ngIf="canUpdate()"
             class="button-link"
             [routerLink]="['/organizations', organizationId, 'catalog', currentItem.id, 'edit']"
           >
-            <span i18n="@@editLink">Editar</span>
+            <kaklen-icon name="pencil" /><span i18n="@@editLink">Editar</span>
           </a>
+          <kaklen-action-menu *ngIf="canDelete() && currentItem.status !== 'ARCHIVED'" [contextKey]="organizationId">
+            <button kaklenMenuItem type="button" class="danger" (click)="archiveRequested.set(true)"><kaklen-icon name="archive" /><span i18n="@@archiveButton">Archivar</span></button>
+          </kaklen-action-menu>
         </div>
       </section>
 
@@ -65,23 +72,39 @@ import { OrganizationService } from "../organizations/organization.service";
           </div>
         </dl>
       </section>
+      <kaklen-confirmation-dialog
+        [open]="archiveRequested()"
+        [busy]="processing()"
+        [title]="archiveDialogTitle"
+        [description]="archiveDialogDescription"
+        [confirmLabel]="archiveLabel"
+        (confirm)="archive()"
+        (cancel)="archiveRequested.set(false)"
+      />
     </main>
   `
 })
 export class CatalogDetailComponent implements OnInit {
   readonly item = signal<CatalogItem | null>(null);
   readonly error = signal("");
+  readonly processing = signal(false);
+  readonly archiveRequested = signal(false);
   readonly emptySkuLabel = $localize`:@@emptySkuLabel:Sin SKU`;
   readonly emptyDescriptionLabel = $localize`:@@emptyDescriptionLabel:Sin descripción`;
   readonly trackedInventoryLabel = $localize`:@@trackedInventoryLabel:Controlado`;
   readonly untrackedInventoryLabel = $localize`:@@untrackedInventoryLabel:No controlado`;
+  readonly archiveDialogTitle = $localize`:@@archiveCatalogDetailDialogTitle:Archivar elemento`;
+  readonly archiveDialogDescription = $localize`:@@archiveCatalogDetailDialogDescription:El elemento dejará de estar disponible para nuevas operaciones, pero su información histórica se conservará.`;
+  readonly archiveLabel = $localize`:@@archiveButton:Archivar`;
   organizationId = "";
   itemId = "";
 
   constructor(
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly catalogService: CatalogService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -93,6 +116,26 @@ export class CatalogDetailComponent implements OnInit {
 
   canUpdate(): boolean {
     return this.organizationService.hasPermission("catalog.update");
+  }
+
+  canDelete(): boolean {
+    return this.organizationService.hasPermission("catalog.delete");
+  }
+
+  async archive(): Promise<void> {
+    if (this.processing()) return;
+    this.processing.set(true);
+    try {
+      await this.catalogService.archive(this.organizationId, this.itemId);
+      this.archiveRequested.set(false);
+      this.notifications.success($localize`:@@catalogArchivedSuccess:Elemento archivado correctamente.`);
+      await this.router.navigate(["/organizations", this.organizationId, "catalog"]);
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@catalogArchiveError:No fue posible archivar el elemento.`);
+    } finally {
+      this.processing.set(false);
+    }
   }
 
   typeLabel(type: CatalogItemType): string {

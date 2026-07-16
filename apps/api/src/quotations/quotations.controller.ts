@@ -34,6 +34,7 @@ import {
   ChangeQuotationStatusDto,
   CreateQuotationDto,
   ListQuotationsQueryDto,
+  SendQuotationEmailDto,
   UpdateQuotationDto
 } from "./dto/quotation.dto";
 import { PaginatedQuotations, QuotationSummary, QuotationsService } from "./quotations.service";
@@ -199,9 +200,23 @@ export class QuotationsController {
     @Query("locale") locale: string | undefined,
     @Res() response: Response
   ): Promise<void> {
-    const pdf = await this.quotationsService.pdf(organizationId, quotationId, locale ?? "es");
+    const document = await this.quotationsService.pdfDocument(organizationId, quotationId, locale ?? "es");
     response.setHeader("Content-Type", "application/pdf");
-    response.setHeader("Content-Disposition", `attachment; filename="quotation-${quotationId}.pdf"`);
-    response.send(pdf);
+    response.setHeader("Content-Disposition", `attachment; filename="${document.filename}"`);
+    response.send(document.buffer);
+  }
+
+  @Post(":quotationId/email")
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions("quotations.send")
+  @ApiOperation({ summary: "Send quotation by email", description: "Sends the generated PDF and changes a draft quotation to SENT only after SMTP succeeds." })
+  @ApiOkResponse()
+  sendEmail(
+    @Param("organizationId", new ParseUUIDPipe()) organizationId: string,
+    @Param("quotationId", new ParseUUIDPipe()) quotationId: string,
+    @Req() request: OrganizationRequest,
+    @Body() dto: SendQuotationEmailDto
+  ) {
+    return this.quotationsService.sendEmail(organizationId, quotationId, request.user.sub, dto);
   }
 }

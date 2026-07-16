@@ -10,6 +10,9 @@ import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
 import { VersionService } from "../version/version.service";
+import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface LoginForm {
   email: FormControl<string>;
@@ -19,7 +22,7 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -37,20 +40,17 @@ interface LoginForm {
         </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
           <label>
-            <span i18n="@@emailLabel">Email</span>
-            <input type="email" formControlName="email" autocomplete="email" />
-            <small *ngIf="form.controls.email.touched && form.controls.email.invalid" i18n="@@emailValidation">
-              Ingresa un email válido.
-            </small>
+            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
+            <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="login-email-error" />
+            <kaklen-field-error id="login-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
           </label>
 
           <label>
-            <span i18n="@@passwordLabel">Contraseña</span>
-            <input type="password" formControlName="password" autocomplete="current-password" />
-            <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
-              La contraseña debe tener al menos 10 caracteres.
-            </small>
+            <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
+            <input type="password" formControlName="password" autocomplete="current-password" aria-describedby="login-password-error" />
+            <kaklen-field-error id="login-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
           </label>
 
           <div class="password-help-link">
@@ -59,9 +59,8 @@ interface LoginForm {
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
-          <button type="submit" [disabled]="form.invalid || loading()">
-            <span>{{ submitLabel() }}</span>
-            <span aria-hidden="true">→</span>
+          <button type="submit" [disabled]="loading()">
+            <kaklen-icon name="log-in" /><span>{{ submitLabel() }}</span>
           </button>
         </form>
 
@@ -74,11 +73,17 @@ interface LoginForm {
 export class LoginComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly submitAttempted = signal(false);
   readonly versionPanelVisible = signal(false);
+  readonly passwordErrorLabel = $localize`:@@passwordValidation:La contraseña debe tener al menos 10 caracteres.`;
+  readonly fieldLabels = {
+    email: $localize`:@@emailLabel:Email`,
+    password: $localize`:@@passwordLabel:Contraseña`
+  };
   readonly form = new FormGroup<LoginForm>({
     email: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [emailValidator(true)]
     }),
     password: new FormControl("", {
       nonNullable: true,
@@ -124,6 +129,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async submit(): Promise<void> {
+    this.submitAttempted.set(true);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -134,7 +140,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     try {
       await this.authService.healthReady();
-      await this.authService.login(this.form.getRawValue());
+      const value = this.form.getRawValue();
+      await this.authService.login({ ...value, email: normalizeEmail(value.email) });
       await this.router.navigateByUrl("/dashboard");
     } catch (error) {
       this.error.set(messageForLoginError(error));

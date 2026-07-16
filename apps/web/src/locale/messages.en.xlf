@@ -38,7 +38,7 @@
         <source>Expirada</source>
         <target>Expired</target>
       </trans-unit>
-      <trans-unit id="cancelledLabel" datatype="html">
+      <trans-unit id="quotationCancelledLabel" datatype="html">
         <source>Cancelada</source>
         <target>Cancelled</target>
       </trans-unit>
@@ -50,13 +50,25 @@
         <source>En curso</source>
         <target>In progress</target>
       </trans-unit>
-      <trans-unit id="completedLabel" datatype="html">
+      <trans-unit id="eventCompletedLabel" datatype="html">
         <source>Completado</source>
         <target>Completed</target>
+      </trans-unit>
+      <trans-unit id="eventCancelledLabel" datatype="html">
+        <source>Cancelado</source>
+        <target>Cancelled</target>
       </trans-unit>
       <trans-unit id="pendingLabel" datatype="html">
         <source>Pendiente</source>
         <target>Pending</target>
+      </trans-unit>
+      <trans-unit id="taskCompletedLabel" datatype="html">
+        <source>Completada</source>
+        <target>Completed</target>
+      </trans-unit>
+      <trans-unit id="taskCancelledLabel" datatype="html">
+        <source>Cancelada</source>
+        <target>Cancelled</target>
       </trans-unit>
       <trans-unit id="lowPriorityLabel" datatype="html">
         <source>Baja</source>
@@ -206,6 +218,10 @@
         <source>Editar</source>
         <target>Edit</target>
       </trans-unit>
+      <trans-unit id="archiveButton" datatype="html">
+        <source>Archivar</source>
+        <target>Archive</target>
+      </trans-unit>
       <trans-unit id="dataTitle" datatype="html">
         <source>Datos</source>
         <target>Data</target>
@@ -254,6 +270,22 @@
         <source>No controlado</source>
         <target>Not tracked</target>
       </trans-unit>
+      <trans-unit id="archiveCatalogDetailDialogTitle" datatype="html">
+        <source>Archivar elemento</source>
+        <target>Archive item</target>
+      </trans-unit>
+      <trans-unit id="archiveCatalogDetailDialogDescription" datatype="html">
+        <source>El elemento dejará de estar disponible para nuevas operaciones, pero su información histórica se conservará.</source>
+        <target>The item will no longer be available for new operations, but its historical information will be preserved.</target>
+      </trans-unit>
+      <trans-unit id="catalogArchivedSuccess" datatype="html">
+        <source>Elemento archivado correctamente.</source>
+        <target>Item archived successfully.</target>
+      </trans-unit>
+      <trans-unit id="catalogArchiveError" datatype="html">
+        <source>No fue posible archivar el elemento.</source>
+        <target>We could not archive the item.</target>
+      </trans-unit>
       <trans-unit id="productLabel" datatype="html">
         <source>Producto</source>
         <target>Product</target>
@@ -298,49 +330,21 @@
         <source>Código</source>
         <target>Code</target>
       </trans-unit>
-      <trans-unit id="codeRequired" datatype="html">
-        <source>El código es obligatorio.</source>
-        <target>Code is required.</target>
-      </trans-unit>
       <trans-unit id="nameLabel" datatype="html">
         <source>Nombre</source>
         <target>Name</target>
-      </trans-unit>
-      <trans-unit id="nameRequired" datatype="html">
-        <source>El nombre es obligatorio.</source>
-        <target>Name is required.</target>
       </trans-unit>
       <trans-unit id="unitPlaceholder" datatype="html">
         <source>unidad, hora, kg</source>
         <target>unit, hour, kg</target>
       </trans-unit>
-      <trans-unit id="unitRequired" datatype="html">
-        <source>La unidad es obligatoria.</source>
-        <target>Unit is required.</target>
-      </trans-unit>
-      <trans-unit id="costValidation" datatype="html">
-        <source>El costo debe ser mayor o igual a 0.</source>
-        <target>Cost must be greater than or equal to 0.</target>
-      </trans-unit>
-      <trans-unit id="priceValidation" datatype="html">
-        <source>El precio debe ser mayor o igual a 0.</source>
-        <target>Price must be greater than or equal to 0.</target>
-      </trans-unit>
       <trans-unit id="taxPercentLabel" datatype="html">
         <source>Impuesto %</source>
         <target>Tax %</target>
       </trans-unit>
-      <trans-unit id="taxValidation" datatype="html">
-        <source>El impuesto debe estar entre 0 y 100.</source>
-        <target>Tax must be between 0 and 100.</target>
-      </trans-unit>
       <trans-unit id="currencyLabel" datatype="html">
         <source>Moneda</source>
         <target>Currency</target>
-      </trans-unit>
-      <trans-unit id="currencyRequired" datatype="html">
-        <source>La moneda es obligatoria.</source>
-        <target>Currency is required.</target>
       </trans-unit>
       <trans-unit id="cancelLink" datatype="html">
         <source>Cancelar</source>
@@ -353,6 +357,18 @@
       <trans-unit id="savingButton" datatype="html">
         <source>Guardando...</source>
         <target>Saving...</target>
+      </trans-unit>
+      <trans-unit id="costValidation" datatype="html">
+        <source>El costo debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
+        <target>Cost must be greater than or equal to 0.</target>
+      </trans-unit>
+      <trans-unit id="priceValidation" datatype="html">
+        <source>El precio debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
+        <target>Price must be greater than or equal to 0.</target>
+      </trans-unit>
+      <trans-unit id="taxValidation" datatype="html">
+        <source>El impuesto debe estar entre 0 y 100 y tener máximo 2 decimales.</source>
+        <target>Tax must be between 0 and 100.</target>
       </trans-unit>
       <trans-unit id="productInventoryHint" datatype="html">
         <source>Los productos controlan inventario.</source>
@@ -450,14 +466,6 @@
         <source>Ver</source>
         <target>View</target>
       </trans-unit>
-      <trans-unit id="moreActionsLabel" datatype="html">
-        <source>Más acciones</source>
-        <target>More actions</target>
-      </trans-unit>
-      <trans-unit id="archiveButton" datatype="html">
-        <source>Archivar</source>
-        <target>Archive</target>
-      </trans-unit>
       <trans-unit id="previousPageButton" datatype="html">
         <source>Anterior</source>
         <target>Previous</target>
@@ -489,14 +497,6 @@
       <trans-unit id="undoButton" datatype="html">
         <source>Deshacer</source>
         <target>Undo</target>
-      </trans-unit>
-      <trans-unit id="catalogArchivedSuccess" datatype="html">
-        <source>Elemento archivado correctamente.</source>
-        <target>Item archived successfully.</target>
-      </trans-unit>
-      <trans-unit id="catalogArchiveError" datatype="html">
-        <source>No fue posible archivar el item.</source>
-        <target>We could not archive the item.</target>
       </trans-unit>
       <trans-unit id="catalogRestoredSuccess" datatype="html">
         <source>Elemento restaurado correctamente.</source>
@@ -589,10 +589,6 @@
       <trans-unit id="subjectLabel" datatype="html">
         <source>Asunto</source>
         <target>Subject</target>
-      </trans-unit>
-      <trans-unit id="descriptionRequired" datatype="html">
-        <source>La descripción es obligatoria.</source>
-        <target>Description is required.</target>
       </trans-unit>
       <trans-unit id="addButton" datatype="html">
         <source>Agregar</source>
@@ -762,21 +758,9 @@
         <source>Revisión</source>
         <target>Review</target>
       </trans-unit>
-      <trans-unit id="formErrorSummaryTitle" datatype="html">
-        <source>Revisa los campos marcados antes de continuar.</source>
-        <target>Review the marked fields before continuing.</target>
-      </trans-unit>
-      <trans-unit id="formErrorSummaryHelp" datatype="html">
-        <source>Los mensajes bajo cada campo indican qué debes corregir.</source>
-        <target>The messages below each field explain what needs to be corrected.</target>
-      </trans-unit>
       <trans-unit id="mainInformationSection" datatype="html">
         <source>Información principal</source>
         <target>Main information</target>
-      </trans-unit>
-      <trans-unit id="requiredLabel" datatype="html">
-        <source>Obligatorio</source>
-        <target>Required</target>
       </trans-unit>
       <trans-unit id="naturalPersonOption" datatype="html">
         <source>Persona natural</source>
@@ -798,10 +782,6 @@
         <source>Ej. Camila</source>
         <target>e.g. Camila</target>
       </trans-unit>
-      <trans-unit id="firstNameValidation" datatype="html">
-        <source>El nombre es obligatorio.</source>
-        <target>First name is required.</target>
-      </trans-unit>
       <trans-unit id="lastNameLabel" datatype="html">
         <source>Apellido</source>
         <target>Last name</target>
@@ -809,10 +789,6 @@
       <trans-unit id="lastNameExample" datatype="html">
         <source>Ej. Soto</source>
         <target>e.g. Soto</target>
-      </trans-unit>
-      <trans-unit id="lastNameValidation" datatype="html">
-        <source>El apellido es obligatorio.</source>
-        <target>Last name is required.</target>
       </trans-unit>
       <trans-unit id="legalNameLabel" datatype="html">
         <source>Razón social</source>
@@ -822,29 +798,13 @@
         <source>Ej. Comercial Andes SpA</source>
         <target>e.g. Comercial Andes SpA</target>
       </trans-unit>
-      <trans-unit id="legalNameRequired" datatype="html">
-        <source>La razón social es obligatoria.</source>
-        <target>Legal name is required.</target>
-      </trans-unit>
-      <trans-unit id="optionalLabel" datatype="html">
-        <source>Opcional</source>
-        <target>Optional</target>
-      </trans-unit>
       <trans-unit id="rutFormatHelp" datatype="html">
         <source>Formato esperado: 12.345.678-5.</source>
         <target>Expected format: 12.345.678-5.</target>
       </trans-unit>
-      <trans-unit id="rutValidation" datatype="html">
-        <source>Ingresa un RUT válido.</source>
-        <target>Enter a valid RUT.</target>
-      </trans-unit>
       <trans-unit id="contactSection" datatype="html">
         <source>Contacto</source>
         <target>Contact</target>
-      </trans-unit>
-      <trans-unit id="emailValidation" datatype="html">
-        <source>Ingresa un email válido.</source>
-        <target>Enter a valid email.</target>
       </trans-unit>
       <trans-unit id="phonePrefixLabel" datatype="html">
         <source>Prefijo telefónico</source>
@@ -862,13 +822,17 @@
         <source>Región</source>
         <target>Region</target>
       </trans-unit>
+      <trans-unit id="optionalLabel" datatype="html">
+        <source>Opcional</source>
+        <target>Optional</target>
+      </trans-unit>
       <trans-unit id="selectRegionOption" datatype="html">
         <source>Selecciona una región</source>
         <target>Select a region</target>
       </trans-unit>
-      <trans-unit id="cityLabel" datatype="html">
+      <trans-unit id="cityOrCommuneLabel" datatype="html">
         <source>Comuna o ciudad</source>
-        <target>City</target>
+        <target>City or district</target>
       </trans-unit>
       <trans-unit id="selectCityOption" datatype="html">
         <source>Selecciona una comuna o ciudad</source>
@@ -918,10 +882,6 @@
         <source>No fue posible guardar el cliente. Revisa los datos e intenta nuevamente.</source>
         <target>We could not save the client.</target>
       </trans-unit>
-      <trans-unit id="clientStepValidationError" datatype="html">
-        <source>Completa los campos obligatorios de esta etapa para continuar.</source>
-        <target>Complete the required fields in this step to continue.</target>
-      </trans-unit>
       <trans-unit id="editClientTitle" datatype="html">
         <source>Editar cliente</source>
         <target>Edit client</target>
@@ -929,6 +889,14 @@
       <trans-unit id="newClientTitle" datatype="html">
         <source>Nuevo cliente</source>
         <target>New client</target>
+      </trans-unit>
+      <trans-unit id="clientStepSingleValidationError" datatype="html">
+        <source>Falta completar o corregir 1 campo de esta etapa.</source>
+        <target>Complete or correct 1 field in this step.</target>
+      </trans-unit>
+      <trans-unit id="clientStepValidationError" datatype="html">
+        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
+        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
       </trans-unit>
       <trans-unit id="clientsTitle" datatype="html">
         <source>Clientes</source>
@@ -961,6 +929,10 @@
       <trans-unit id="clientsSearchPlaceholder" datatype="html">
         <source>Nombre, email o RUT</source>
         <target>Name, email or tax ID</target>
+      </trans-unit>
+      <trans-unit id="cityLabel" datatype="html">
+        <source>Ciudad</source>
+        <target>City</target>
       </trans-unit>
       <trans-unit id="clientsEmptyTitle" datatype="html">
         <source>Aún no tienes clientes</source>
@@ -1033,6 +1005,10 @@
       <trans-unit id="hideOnboardingButton" datatype="html">
         <source>Ocultar por ahora</source>
         <target>Hide for now</target>
+      </trans-unit>
+      <trans-unit id="onboardingCompletedLabel" datatype="html">
+        <source>Completado</source>
+        <target>Completed</target>
       </trans-unit>
       <trans-unit id="showOnboardingButton" datatype="html">
         <source>Ver guía de primeros pasos</source>
@@ -1326,6 +1302,14 @@
         <source>Sin cliente</source>
         <target>No client</target>
       </trans-unit>
+      <trans-unit id="noVenueLabel" datatype="html">
+        <source>Sin lugar</source>
+        <target>No venue</target>
+      </trans-unit>
+      <trans-unit id="openWeeklyEventAriaLabel" datatype="html">
+        <source>Abrir evento <x id="eventName" equiv-text="event.name"/>, <x id="eventDate" equiv-text="this.dateLabel(event.startAt)"/> a las <x id="eventTime" equiv-text="this.timeLabel(event.startAt)"/></source>
+        <target>Open event <x id="eventName" equiv-text="event.name"/>, <x id="eventDate" equiv-text="this.dateLabel(event.startAt)"/> at <x id="eventTime" equiv-text="this.timeLabel(event.startAt)"/></target>
+      </trans-unit>
       <trans-unit id="eventCalendarLoadError" datatype="html">
         <source>No fue posible cargar el calendario.</source>
         <target>The calendar could not be loaded.</target>
@@ -1382,6 +1366,10 @@
         <source>Participantes</source>
         <target>Participants</target>
       </trans-unit>
+      <trans-unit id="participantIdentityRequired" datatype="html">
+        <source>Ingresa el nombre o el email del participante.</source>
+        <target>Enter the participant's name or email.</target>
+      </trans-unit>
       <trans-unit id="roleLabel" datatype="html">
         <source>Rol</source>
         <target>Role</target>
@@ -1413,10 +1401,6 @@
       <trans-unit id="addTimelineEntryButton" datatype="html">
         <source>Agregar al cronograma</source>
         <target>Add to timeline</target>
-      </trans-unit>
-      <trans-unit id="noVenueLabel" datatype="html">
-        <source>Sin lugar</source>
-        <target>No venue</target>
       </trans-unit>
       <trans-unit id="noCityLabel" datatype="html">
         <source>Sin ciudad</source>
@@ -1694,13 +1678,21 @@
         <source>Crear evento</source>
         <target>Create event</target>
       </trans-unit>
+      <trans-unit id="eventDateValidation" datatype="html">
+        <source>La fecha de término debe ser posterior a la fecha de inicio.</source>
+        <target>The end date must be after the start date.</target>
+      </trans-unit>
+      <trans-unit id="quantityValidation" datatype="html">
+        <source>La cantidad debe ser mayor que 0 y tener máximo 3 decimales.</source>
+        <target>Quantity must be greater than 0 and have no more than 3 decimal places.</target>
+      </trans-unit>
+      <trans-unit id="budgetValidation" datatype="html">
+        <source>El presupuesto debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
+        <target>Budget must be 0 or greater and have no more than 2 decimal places.</target>
+      </trans-unit>
       <trans-unit id="eventForQuotationPrefix" datatype="html">
         <source>Evento</source>
         <target>Event</target>
-      </trans-unit>
-      <trans-unit id="eventStepValidationError" datatype="html">
-        <source>Completa los campos obligatorios de esta etapa para continuar.</source>
-        <target>Complete the required fields in this step to continue.</target>
       </trans-unit>
       <trans-unit id="eventUpdatedSuccess" datatype="html">
         <source>Evento actualizado correctamente.</source>
@@ -1718,6 +1710,14 @@
         <source>No fue posible guardar el evento.</source>
         <target>The event could not be saved.</target>
       </trans-unit>
+      <trans-unit id="eventStepSingleValidationError" datatype="html">
+        <source>Falta completar o corregir 1 campo de esta etapa.</source>
+        <target>Complete or correct 1 field in this step.</target>
+      </trans-unit>
+      <trans-unit id="eventStepValidationError" datatype="html">
+        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
+        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
+      </trans-unit>
       <trans-unit id="eventsTitle" datatype="html">
         <source>Operaciones de eventos</source>
         <target>Event operations</target>
@@ -1729,6 +1729,18 @@
       <trans-unit id="eventCalendarButton" datatype="html">
         <source>Calendario</source>
         <target>Calendar</target>
+      </trans-unit>
+      <trans-unit id="eventConfirmedPluralLabel" datatype="html">
+        <source>Confirmados</source>
+        <target>Confirmed</target>
+      </trans-unit>
+      <trans-unit id="eventCompletedPluralLabel" datatype="html">
+        <source>Completados</source>
+        <target>Completed</target>
+      </trans-unit>
+      <trans-unit id="eventCancelledPluralLabel" datatype="html">
+        <source>Cancelados</source>
+        <target>Cancelled</target>
       </trans-unit>
       <trans-unit id="eventSearchPlaceholder" datatype="html">
         <source>Código, nombre o cliente</source>
@@ -1822,10 +1834,6 @@
         <source>Contraseña</source>
         <target>Password</target>
       </trans-unit>
-      <trans-unit id="passwordValidation" datatype="html">
-        <source> La contraseña debe tener al menos 10 caracteres. </source>
-        <target>The password must be at least 10 characters long.</target>
-      </trans-unit>
       <trans-unit id="forgotPasswordLink" datatype="html">
         <source>¿Olvidaste tu contraseña?</source>
         <target>Forgot your password?</target>
@@ -1833,6 +1841,10 @@
       <trans-unit id="loginSwitch" datatype="html">
         <source>¿Aún no tienes cuenta? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Crea una<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target>Don’t have an account? <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/register&quot;&gt;"/>Create one<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="passwordValidation" datatype="html">
+        <source>La contraseña debe tener al menos 10 caracteres.</source>
+        <target>The password must be at least 10 characters long.</target>
       </trans-unit>
       <trans-unit id="loginSubmitting" datatype="html">
         <source>Ingresando...</source>
@@ -2058,9 +2070,9 @@
         <source>Cotizaciones</source>
         <target>Quotations</target>
       </trans-unit>
-      <trans-unit id="sendQuotationButton" datatype="html">
-        <source>Enviar</source>
-        <target>Send</target>
+      <trans-unit id="sendQuotationEmailTitle" datatype="html">
+        <source>Enviar por email</source>
+        <target>Send by email</target>
       </trans-unit>
       <trans-unit id="approveQuotationButton" datatype="html">
         <source>Aprobar</source>
@@ -2070,17 +2082,17 @@
         <source>Rechazar</source>
         <target>Reject</target>
       </trans-unit>
-      <trans-unit id="newVersionButton" datatype="html">
-        <source>Nueva versión</source>
-        <target>New version</target>
-      </trans-unit>
       <trans-unit id="createEventButton" datatype="html">
         <source>Crear evento</source>
         <target>Create event</target>
       </trans-unit>
-      <trans-unit id="downloadPdfButton" datatype="html">
-        <source>Descargar PDF</source>
-        <target>Download PDF</target>
+      <trans-unit id="resendQuotationEmailButton" datatype="html">
+        <source>Reenviar por email</source>
+        <target>Resend by email</target>
+      </trans-unit>
+      <trans-unit id="newVersionButton" datatype="html">
+        <source>Nueva versión</source>
+        <target>New version</target>
       </trans-unit>
       <trans-unit id="issueDateLabel" datatype="html">
         <source>Fecha de emisión</source>
@@ -2094,11 +2106,11 @@
         <source>Subtotal</source>
         <target>Subtotal</target>
       </trans-unit>
-      <trans-unit id="discountTotalLabel" datatype="html">
+      <trans-unit id="discountsTotalLabel" datatype="html">
         <source>Descuentos</source>
         <target>Discounts</target>
       </trans-unit>
-      <trans-unit id="taxTotalLabel" datatype="html">
+      <trans-unit id="taxesTotalLabel" datatype="html">
         <source>Impuestos</source>
         <target>Taxes</target>
       </trans-unit>
@@ -2106,17 +2118,13 @@
         <source>Historial</source>
         <target>History</target>
       </trans-unit>
-      <trans-unit id="emptyNoteLabel" datatype="html">
-        <source>Sin nota</source>
-        <target>No note</target>
+      <trans-unit id="downloadPdfButton" datatype="html">
+        <source>Descargar PDF</source>
+        <target>Download PDF</target>
       </trans-unit>
-      <trans-unit id="cancelQuotationDialogTitle" datatype="html">
-        <source>Cancelar cotización</source>
-        <target>Cancel quotation</target>
-      </trans-unit>
-      <trans-unit id="cancelQuotationDialogDescription" datatype="html">
-        <source>La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.</source>
-        <target>The quotation will no longer be available for approval and will retain its cancelled status in the history.</target>
+      <trans-unit id="preparingPdfMessage" datatype="html">
+        <source>Preparando PDF...</source>
+        <target>Preparing PDF...</target>
       </trans-unit>
       <trans-unit id="quotationStatusError" datatype="html">
         <source>No fue posible cambiar el estado.</source>
@@ -2130,25 +2138,93 @@
         <source>No fue posible crear una nueva versión.</source>
         <target>We could not create a new version.</target>
       </trans-unit>
+      <trans-unit id="preparingPdfNotification" datatype="html">
+        <source>Estamos preparando tu PDF.</source>
+        <target>We are preparing your PDF.</target>
+      </trans-unit>
+      <trans-unit id="pdfDownloadedSuccess" datatype="html">
+        <source>Cotización descargada.</source>
+        <target>Quotation downloaded.</target>
+      </trans-unit>
+      <trans-unit id="pdfDownloadError" datatype="html">
+        <source>No pudimos generar el PDF. Intenta nuevamente.</source>
+        <target>We could not generate the PDF. Try again.</target>
+      </trans-unit>
+      <trans-unit id="quotationEmailSentSuccess" datatype="html">
+        <source>Cotización enviada por email.</source>
+        <target>Quotation sent by email.</target>
+      </trans-unit>
+      <trans-unit id="quotationEmailSendError" datatype="html">
+        <source>No pudimos enviar el correo. La cotización no cambió de estado.</source>
+        <target>We could not send the email. The quotation status was not changed.</target>
+      </trans-unit>
+      <trans-unit id="approveQuotationDialogTitle" datatype="html">
+        <source>Aprobar cotización</source>
+        <target>Approve quotation</target>
+      </trans-unit>
+      <trans-unit id="rejectQuotationDialogTitle" datatype="html">
+        <source>Rechazar cotización</source>
+        <target>Reject quotation</target>
+      </trans-unit>
+      <trans-unit id="cancelQuotationDialogTitle" datatype="html">
+        <source>Cancelar cotización</source>
+        <target>Cancel quotation</target>
+      </trans-unit>
+      <trans-unit id="approveQuotationDialogDescription" datatype="html">
+        <source>La cotización quedará aprobada y podrá originar un evento.</source>
+        <target>The quotation will be approved and can be used to create an event.</target>
+      </trans-unit>
+      <trans-unit id="rejectQuotationDialogDescription" datatype="html">
+        <source>La cotización quedará rechazada y esta decisión se registrará en el historial.</source>
+        <target>The quotation will be rejected and this decision will be recorded in its history.</target>
+      </trans-unit>
+      <trans-unit id="cancelQuotationDialogDescription" datatype="html">
+        <source>La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.</source>
+        <target>The quotation will no longer be available for approval and will retain its cancelled status in the history.</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationEmailed" datatype="html">
+        <source>Cotización enviada por email</source>
+        <target>Quotation sent by email</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationVersionCreated" datatype="html">
+        <source>Nueva versión creada</source>
+        <target>New version created</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationCreated" datatype="html">
+        <source>Cotización creada</source>
+        <target>Quotation created</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationSent" datatype="html">
+        <source>Cotización enviada</source>
+        <target>Quotation sent</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationApproved" datatype="html">
+        <source>Cotización aprobada</source>
+        <target>Quotation approved</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationRejected" datatype="html">
+        <source>Cotización rechazada</source>
+        <target>Quotation rejected</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationCancelled" datatype="html">
+        <source>Cotización cancelada</source>
+        <target>Quotation cancelled</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationUpdated" datatype="html">
+        <source>Cotización actualizada</source>
+        <target>Quotation updated</target>
+      </trans-unit>
+      <trans-unit id="historyQuotationEmailedDescription" datatype="html">
+        <source>Enviada por correo a <x id="recipientEmail" equiv-text="recipient"/></source>
+        <target>Sent by email to <x id="recipientEmail" equiv-text="recipient"/></target>
+      </trans-unit>
+      <trans-unit id="systemActorLabel" datatype="html">
+        <source>Sistema</source>
+        <target>System</target>
+      </trans-unit>
       <trans-unit id="quotationLoadError" datatype="html">
         <source>No fue posible cargar la cotización.</source>
         <target>We could not load the quotation.</target>
-      </trans-unit>
-      <trans-unit id="approveQuotationConfirm" datatype="html">
-        <source>¿Aprobar esta cotización?</source>
-        <target>Approve this quotation?</target>
-      </trans-unit>
-      <trans-unit id="rejectQuotationConfirm" datatype="html">
-        <source>¿Rechazar esta cotización?</source>
-        <target>Reject this quotation?</target>
-      </trans-unit>
-      <trans-unit id="cancelQuotationConfirm" datatype="html">
-        <source>¿Cancelar esta cotización?</source>
-        <target>Cancel this quotation?</target>
-      </trans-unit>
-      <trans-unit id="quotationSentSuccess" datatype="html">
-        <source>Cotización enviada.</source>
-        <target>Quotation sent.</target>
       </trans-unit>
       <trans-unit id="quotationApprovedSuccess" datatype="html">
         <source>Cotización aprobada.</source>
@@ -2310,6 +2386,14 @@
         <source>Resumen</source>
         <target>Summary</target>
       </trans-unit>
+      <trans-unit id="discountTotalLabel" datatype="html">
+        <source>Descuento</source>
+        <target>Discounts</target>
+      </trans-unit>
+      <trans-unit id="taxTotalLabel" datatype="html">
+        <source>IVA</source>
+        <target>Taxes</target>
+      </trans-unit>
       <trans-unit id="newQuotationTitle" datatype="html">
         <source>Nueva cotización</source>
         <target>New quotation</target>
@@ -2326,6 +2410,22 @@
         <source>Cliente registrado sin datos de contacto</source>
         <target>Client registered without contact details</target>
       </trans-unit>
+      <trans-unit id="moneyValidation" datatype="html">
+        <source>Ingresa un monto mayor o igual a 0 con máximo 2 decimales.</source>
+        <target>Enter an amount of 0 or greater with no more than 2 decimal places.</target>
+      </trans-unit>
+      <trans-unit id="discountValidation" datatype="html">
+        <source>El descuento debe estar entre 0 y 100 cuando es porcentual.</source>
+        <target>A percentage discount must be between 0 and 100.</target>
+      </trans-unit>
+      <trans-unit id="quotationDateValidation" datatype="html">
+        <source>La fecha válida hasta debe ser posterior o igual a la fecha de emisión.</source>
+        <target>The valid-until date must be on or after the issue date.</target>
+      </trans-unit>
+      <trans-unit id="itemsLabel" datatype="html">
+        <source>Ítems</source>
+        <target>Items</target>
+      </trans-unit>
       <trans-unit id="quotationUpdatedSuccess" datatype="html">
         <source>Cotización actualizada correctamente.</source>
         <target>Quotation updated successfully.</target>
@@ -2338,9 +2438,13 @@
         <source>No fue posible guardar la cotización.</source>
         <target>We could not save the quotation.</target>
       </trans-unit>
+      <trans-unit id="quotationStepSingleValidationError" datatype="html">
+        <source>Falta completar o corregir 1 campo de esta etapa.</source>
+        <target>Complete or correct 1 field in this step.</target>
+      </trans-unit>
       <trans-unit id="quotationStepValidationError" datatype="html">
-        <source>Completa los campos obligatorios de esta etapa para continuar.</source>
-        <target>Complete the required fields in this step to continue.</target>
+        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
+        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
       </trans-unit>
       <trans-unit id="quotationsTitle" datatype="html">
         <source>Cotizaciones</source>
@@ -2349,6 +2453,18 @@
       <trans-unit id="quotationsDescription" datatype="html">
         <source>Crea, envía y controla propuestas comerciales por organización.</source>
         <target>Create, send, and control commercial proposals by organization.</target>
+      </trans-unit>
+      <trans-unit id="quotationDraftPluralLabel" datatype="html">
+        <source>Borradores</source>
+        <target>Drafts</target>
+      </trans-unit>
+      <trans-unit id="quotationSentPluralLabel" datatype="html">
+        <source>Enviadas</source>
+        <target>Sent</target>
+      </trans-unit>
+      <trans-unit id="quotationApprovedPluralLabel" datatype="html">
+        <source>Aprobadas</source>
+        <target>Approved</target>
       </trans-unit>
       <trans-unit id="approvedAmountLabel" datatype="html">
         <source>Monto aprobado</source>
@@ -2542,6 +2658,46 @@
         <source>No pudimos actualizar la contraseña. Intenta nuevamente.</source>
         <target>We could not update the password. Try again.</target>
       </trans-unit>
+      <trans-unit id="sendQuotationEmailEyebrow" datatype="html">
+        <source>Correo de cotización</source>
+        <target>Quotation email</target>
+      </trans-unit>
+      <trans-unit id="closeButton" datatype="html">
+        <source>Cerrar</source>
+        <target>Close</target>
+      </trans-unit>
+      <trans-unit id="recipientEmailLabel" datatype="html">
+        <source>Destinatario</source>
+        <target>Recipient</target>
+      </trans-unit>
+      <trans-unit id="messageLabel" datatype="html">
+        <source>Mensaje</source>
+        <target>Message</target>
+      </trans-unit>
+      <trans-unit id="quotationPdfAttachmentHelp" datatype="html">
+        <source>Se adjuntará automáticamente el PDF actualizado de la cotización.</source>
+        <target>The updated quotation PDF will be attached automatically.</target>
+      </trans-unit>
+      <trans-unit id="sendEmailButton" datatype="html">
+        <source>Enviar email</source>
+        <target>Send email</target>
+      </trans-unit>
+      <trans-unit id="sendingEmailButton" datatype="html">
+        <source>Enviando...</source>
+        <target>Sending...</target>
+      </trans-unit>
+      <trans-unit id="quotationEmailDefaultSubject" datatype="html">
+        <source>Cotización <x id="quotationNumber" equiv-text="this.quotationNumber"/></source>
+        <target>Quotation <x id="quotationNumber" equiv-text="this.quotationNumber"/></target>
+      </trans-unit>
+      <trans-unit id="quotationEmailDefaultMessage" datatype="html">
+        <source>Adjuntamos nuestra propuesta comercial para tu revisión.</source>
+        <target>Our commercial proposal is attached for your review.</target>
+      </trans-unit>
+      <trans-unit id="moreActionsLabel" datatype="html">
+        <source>Más acciones</source>
+        <target>More actions</target>
+      </trans-unit>
       <trans-unit id="quickSearchLabel" datatype="html">
         <source>Buscar o ir a...</source>
         <target>Search or go to...</target>
@@ -2553,10 +2709,6 @@
       <trans-unit id="commandPaletteTitle" datatype="html">
         <source>¿Qué necesitas hacer?</source>
         <target>Where do you want to go?</target>
-      </trans-unit>
-      <trans-unit id="closeButton" datatype="html">
-        <source>Cerrar</source>
-        <target>Close</target>
       </trans-unit>
       <trans-unit id="globalSearchLabel" datatype="html">
         <source>Buscar clientes, catálogo, cotizaciones y eventos</source>
@@ -2571,7 +2723,7 @@
         <target>Searching...</target>
       </trans-unit>
       <trans-unit id="searchMinimumHelp" datatype="html">
-        <source>Escribe al menos 2 caracteres.</source>
+        <source>Las acciones se filtran ahora. Escribe 2 caracteres para buscar también en tus datos.</source>
         <target>Enter at least 2 characters.</target>
       </trans-unit>
       <trans-unit id="recentActionsTitle" datatype="html">
@@ -2591,7 +2743,7 @@
         <target>No matches found.</target>
       </trans-unit>
       <trans-unit id="noSearchResultsHelp" datatype="html">
-        <source>Prueba con un nombre, código o número diferente.</source>
+        <source>Prueba con un nombre, código, SKU, cliente o número diferente.</source>
         <target>Try a different name, code, or number.</target>
       </trans-unit>
       <trans-unit id="commandNavigateHelp" datatype="html">
@@ -2701,6 +2853,46 @@
       <trans-unit id="processingButton" datatype="html">
         <source>Procesando...</source>
         <target>Processing...</target>
+      </trans-unit>
+      <trans-unit id="requiredLabel" datatype="html">
+        <source>Obligatorio</source>
+        <target>Required</target>
+      </trans-unit>
+      <trans-unit id="fieldRequiredError" datatype="html">
+        <source>Este campo es obligatorio.</source>
+        <target>This field is required.</target>
+      </trans-unit>
+      <trans-unit id="fieldInvalidError" datatype="html">
+        <source>Revisa el valor ingresado.</source>
+        <target>Review the value entered.</target>
+      </trans-unit>
+      <trans-unit id="emailValidation" datatype="html">
+        <source>Ingresa un correo válido, por ejemplo nombre@empresa.cl.</source>
+        <target>Enter a valid email.</target>
+      </trans-unit>
+      <trans-unit id="phoneValidation" datatype="html">
+        <source>Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.</source>
+        <target>Enter a valid phone number with country code, for example +56 9 1234 5678.</target>
+      </trans-unit>
+      <trans-unit id="rutValidation" datatype="html">
+        <source>Ingresa un RUT válido.</source>
+        <target>Enter a valid RUT.</target>
+      </trans-unit>
+      <trans-unit id="dateOrderValidation" datatype="html">
+        <source>La fecha de término debe ser posterior o igual a la fecha de inicio.</source>
+        <target>The end date must be on or after the start date.</target>
+      </trans-unit>
+      <trans-unit id="singleFieldMissingError" datatype="html">
+        <source>Falta completar o corregir 1 campo.</source>
+        <target>Complete or correct 1 field.</target>
+      </trans-unit>
+      <trans-unit id="multipleFieldsMissingError" datatype="html">
+        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalid.length"/> campos.</source>
+        <target>Complete or correct <x id="fieldCount" equiv-text="invalid.length"/> fields.</target>
+      </trans-unit>
+      <trans-unit id="formErrorSummaryHelp" datatype="html">
+        <source>Los mensajes bajo cada campo indican qué debes corregir.</source>
+        <target>The messages below each field explain what needs to be corrected.</target>
       </trans-unit>
       <trans-unit id="notificationsAriaLabel" datatype="html">
         <source>Notificaciones</source>
@@ -2862,14 +3054,6 @@
         <source>Registro</source>
         <target>Register</target>
       </trans-unit>
-      <trans-unit id="openProfileLabel" datatype="html">
-        <source>Abrir perfil</source>
-        <target>Open profile</target>
-      </trans-unit>
-      <trans-unit id="accountNavigationAriaLabel" datatype="html">
-        <source>Cuenta</source>
-        <target>Account</target>
-      </trans-unit>
       <trans-unit id="logoutButton" datatype="html">
         <source>Salir</source>
         <target>Log out</target>
@@ -2893,6 +3077,10 @@
       <trans-unit id="helpComingSoon" datatype="html">
         <source>Centro de ayuda próximamente</source>
         <target>Help center coming soon</target>
+      </trans-unit>
+      <trans-unit id="openProfileLabel" datatype="html">
+        <source>Abrir perfil</source>
+        <target>Open profile</target>
       </trans-unit>
     </body>
   </file>

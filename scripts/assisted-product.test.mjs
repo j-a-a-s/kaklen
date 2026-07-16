@@ -28,7 +28,7 @@ test("command palette is keyboard complete, permission aware, and query efficien
   assert.match(source, /event\.key === "Enter"/);
   assert.match(source, /event\.key === "Escape"/);
   assert.match(source, /trapFocus/);
-  assert.match(source, /setTimeout\(\(\) => void this\.search\(value\), 250\)/);
+  assert.match(source, /setTimeout\(\(\) => void this\.search\(value, sequence\), 250\)/);
   assert.match(source, /value\.trim\(\)\.length < 2/);
   assert.match(source, /hasPermission/);
   assert.doesNotMatch(source, /localStorage\.setItem\([^\n]*(query|result)/i);
@@ -43,7 +43,7 @@ test("guided workflows preserve the requested step counts and safeguards", () =>
   assert.match(client, /chileanRutValidator/);
   assert.match(quotation, /globalDiscountPercent/);
   assert.match(quotation, /Math\.min\(4,/);
-  assert.match(quotation, /Math\.round\(item\.unitPrice \* 100\)/);
+  assert.match(quotation, /calculateQuotationMoney/);
   assert.match(event, /Math\.min\(5,/);
   assert.match(event, /Promise\.allSettled/);
   assert.match(event, /createFromQuotation/);

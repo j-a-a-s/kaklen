@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { organizationRoleLabel } from "../i18n/display-labels";
 import { OrganizationInvitation, OrganizationMember, OrganizationRole } from "../organizations/organization.models";
@@ -8,11 +8,15 @@ import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { EmptyStateComponent } from "../shared/empty-state.component";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
+import { FieldErrorComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-organization-members",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent, ActionMenuComponent, ActionMenuItemDirective, FieldErrorComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -26,11 +30,12 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
         <h2 i18n="@@invitePersonTitle">Invitar persona</h2>
         <form [formGroup]="inviteForm" (ngSubmit)="invite()">
           <label>
-            <span i18n="@@emailLabel">Email</span>
-            <input id="member-invite-email" type="email" formControlName="email" />
+            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
+            <input id="member-invite-email" type="email" inputmode="email" maxlength="254" formControlName="email" aria-describedby="member-email-error" />
+            <kaklen-field-error id="member-email-error" [control]="inviteForm.controls.email" [submitted]="submitAttempted()" />
           </label>
           <label>
-            <span i18n="@@roleLabel">Rol</span>
+            <span><span i18n="@@roleLabel">Rol</span><kaklen-required /></span>
             <select formControlName="role">
               <option value="VIEWER">{{ roleLabel('VIEWER') }}</option>
               <option value="MEMBER">{{ roleLabel('MEMBER') }}</option>
@@ -38,8 +43,8 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
               <option value="ADMIN">{{ roleLabel('ADMIN') }}</option>
             </select>
           </label>
-          <button type="submit" [disabled]="inviteForm.invalid || loading()">
-            {{ loading() ? invitingLabel : inviteLabel }}
+          <button type="submit" [disabled]="loading()">
+            <kaklen-icon name="mail" /><span>{{ loading() ? invitingLabel : inviteLabel }}</span>
           </button>
         </form>
         <p *ngIf="lastInvitation()">
@@ -61,12 +66,12 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
               <option value="MEMBER">{{ roleLabel('MEMBER') }}</option>
               <option value="VIEWER">{{ roleLabel('VIEWER') }}</option>
             </select>
-            <details class="action-menu"><summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary><div class="action-menu-panel"><button type="button" class="danger" (click)="pendingRemoval.set(member)" i18n="@@removeButton">Quitar</button></div></details>
+            <kaklen-action-menu [contextKey]="organizationId"><button kaklenMenuItem type="button" class="danger" (click)="pendingRemoval.set(member)"><kaklen-icon name="x-circle" /><span i18n="@@removeButton">Quitar</span></button></kaklen-action-menu>
           </div>
         </article>
       </section>
       <ng-template #emptyMembers>
-        <kaklen-empty-state icon="♙" [title]="membersEmptyTitle" [description]="membersEmptyDescription">
+        <kaklen-empty-state icon="users" [title]="membersEmptyTitle" [description]="membersEmptyDescription">
           <button type="button" *ngIf="canInvite()" (click)="focusInvite()" i18n="@@inviteFirstMemberAction">Invitar al primer miembro</button>
         </kaklen-empty-state>
       </ng-template>
@@ -86,6 +91,7 @@ export class OrganizationMembersComponent implements OnInit {
   readonly members = signal<OrganizationMember[]>([]);
   readonly lastInvitation = signal<OrganizationInvitation | null>(null);
   readonly loading = signal(false);
+  readonly submitAttempted = signal(false);
   readonly pendingRemoval = signal<OrganizationMember | null>(null);
   readonly inviteLabel = $localize`:@@inviteButton:Invitar`;
   readonly invitingLabel = $localize`:@@invitingButton:Invitando...`;
@@ -95,10 +101,10 @@ export class OrganizationMembersComponent implements OnInit {
   readonly membersEmptyTitle = $localize`:@@membersEmptyTitle:Tu equipo comienza contigo`;
   readonly membersEmptyDescription = $localize`:@@membersEmptyDescription:Invita personas para repartir tareas y mantener permisos claros dentro de la organización.`;
   readonly inviteForm = new FormGroup({
-    email: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    email: new FormControl("", { nonNullable: true, validators: [emailValidator(true)] }),
     role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true })
   });
-  private organizationId = "";
+  organizationId = "";
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -133,14 +139,19 @@ export class OrganizationMembersComponent implements OnInit {
   }
 
   async invite(): Promise<void> {
+    this.submitAttempted.set(true);
     if (this.inviteForm.invalid) {
+      this.inviteForm.markAllAsTouched();
+      this.focusInvite();
       return;
     }
     this.loading.set(true);
     try {
-      this.lastInvitation.set(await this.organizationService.invite(this.organizationId, this.inviteForm.getRawValue()));
+      const value = this.inviteForm.getRawValue();
+      this.lastInvitation.set(await this.organizationService.invite(this.organizationId, { ...value, email: normalizeEmail(value.email) }));
       this.notifications.success($localize`:@@invitationSentSuccess:Invitación enviada correctamente.`);
       this.inviteForm.reset({ email: "", role: "MEMBER" });
+      this.submitAttempted.set(false);
     } catch (error) {
       this.notifications.fromError(error);
     } finally {

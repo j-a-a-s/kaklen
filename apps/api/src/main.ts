@@ -26,7 +26,8 @@ export async function bootstrap(): Promise<void> {
   app.use(requestLoggingMiddleware);
   app.enableCors({
     origin: config.corsAllowedOrigins,
-    credentials: true
+    credentials: true,
+    exposedHeaders: ["Content-Disposition"]
   });
   if (typeof expressApp.disable === "function") {
     expressApp.disable("x-powered-by");

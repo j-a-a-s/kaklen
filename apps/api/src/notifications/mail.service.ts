@@ -7,30 +7,39 @@ export interface MailMessage {
   subject: string;
   text: string;
   html: string;
+  attachments?: MailAttachment[];
+}
+
+export interface MailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
 }
 
 @Injectable()
 export class MailService {
+  private readonly config = readPasswordRecoveryConfig(process.env);
+
   async send(message: MailMessage): Promise<void> {
-    const config = readPasswordRecoveryConfig(process.env);
     const transport = nodemailer.createTransport({
-      host: config.mailHost,
-      port: config.mailPort,
-      secure: config.mailSecure,
+      host: this.config.mailHost,
+      port: this.config.mailPort,
+      secure: this.config.mailSecure,
       connectionTimeout: 5000,
       greetingTimeout: 5000,
       socketTimeout: 10000,
-      ...(config.mailUser && config.mailPassword
-        ? { auth: { user: config.mailUser, pass: config.mailPassword } }
+      ...(this.config.mailUser && this.config.mailPassword
+        ? { auth: { user: this.config.mailUser, pass: this.config.mailPassword } }
         : {})
     });
 
     await transport.sendMail({
-      from: config.mailFrom,
+      from: this.config.mailFrom,
       to: message.to,
       subject: message.subject,
       text: message.text,
-      html: message.html
+      html: message.html,
+      attachments: message.attachments
     });
   }
 }

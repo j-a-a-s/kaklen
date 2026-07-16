@@ -19,7 +19,7 @@ test("brand assets are versioned PNG files", async () => {
 test("application shell owns one locale selector per authentication state", async () => {
   const main = await source("apps/web/src/main.ts");
   assert.equal((main.match(/<kaklen-locale-selector(?:\s+\*ngIf="!isAuthenticated\(\)")?\s*\/>/g) ?? []).length, 2);
-  assert.match(main, /<nav[\s\S]*class="topbar-actions account-menu"[\s\S]*<kaklen-locale-selector\s*\/>/);
+  assert.match(main, /<kaklen-action-menu[\s\S]*class="account-action-menu"[\s\S]*<kaklen-locale-selector\s*\/>/);
   assert.match(main, /<kaklen-locale-selector \*ngIf="!isAuthenticated\(\)"\s*\/>/);
   assert.match(main, /<kaklen-brand-logo\s*\/>/);
   assert.match(main, /<kaklen-command-palette/);

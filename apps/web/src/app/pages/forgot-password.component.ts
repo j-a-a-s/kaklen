@@ -1,11 +1,14 @@
 import { CommonModule } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
+import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface ForgotPasswordForm {
   email: FormControl<string>;
@@ -14,7 +17,7 @@ interface ForgotPasswordForm {
 @Component({
   selector: "kaklen-forgot-password",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -35,19 +38,17 @@ interface ForgotPasswordForm {
           </header>
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
             <label>
-              <span i18n="@@emailLabel">Email</span>
-              <input type="email" formControlName="email" autocomplete="email" />
-              <small *ngIf="form.controls.email.touched && form.controls.email.invalid" i18n="@@emailValidation">
-                Ingresa un email válido.
-              </small>
+              <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
+              <input type="email" formControlName="email" autocomplete="email" inputmode="email" maxlength="254" aria-required="true" aria-describedby="forgot-email-error" />
+              <kaklen-field-error id="forgot-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
             </label>
 
             <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>
 
-            <button type="submit" [disabled]="form.invalid || loading()">
-              <span>{{ submitLabel() }}</span>
-              <span aria-hidden="true">→</span>
+            <button type="submit" [disabled]="loading()">
+              <kaklen-icon name="mail" /><span>{{ submitLabel() }}</span>
             </button>
           </form>
 
@@ -56,7 +57,7 @@ interface ForgotPasswordForm {
 
         <ng-template #successState>
           <div class="auth-result" role="status" aria-live="polite">
-            <span class="result-icon success" aria-hidden="true">✓</span>
+            <span class="result-icon success" aria-hidden="true"><kaklen-icon name="check-circle" /></span>
             <p class="eyebrow" i18n="@@forgotPasswordSentEyebrow">Instrucciones enviadas</p>
             <h1 i18n="@@checkYourEmailTitle">Revisa tu correo</h1>
             <p i18n="@@checkYourEmailDescription">
@@ -73,16 +74,19 @@ export class ForgotPasswordComponent {
   readonly loading = signal(false);
   readonly sent = signal(false);
   readonly error = signal<string | null>(null);
+  readonly submitAttempted = signal(false);
+  readonly fieldLabels = { email: $localize`:@@emailLabel:Email` };
   readonly form = new FormGroup<ForgotPasswordForm>({
     email: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [emailValidator(true)]
     })
   });
 
   constructor(private readonly authService: AuthService) {}
 
   async submit(): Promise<void> {
+    this.submitAttempted.set(true);
     if (this.form.invalid || this.loading()) {
       this.form.markAllAsTouched();
       return;
@@ -91,7 +95,7 @@ export class ForgotPasswordComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      await this.authService.forgotPassword(this.form.getRawValue());
+      await this.authService.forgotPassword({ email: normalizeEmail(this.form.controls.email.value) });
       this.sent.set(true);
     } catch (error) {
       this.error.set(recoveryRequestError(error));

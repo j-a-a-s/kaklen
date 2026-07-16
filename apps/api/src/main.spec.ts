@@ -23,7 +23,11 @@ describe("API bootstrap", () => {
     expect(app.enableShutdownHooks).toHaveBeenCalled();
     expect(expressApp.set).toHaveBeenCalledWith("trust proxy", 1);
     expect(app.use).toHaveBeenCalledTimes(5);
-    expect(app.enableCors).toHaveBeenCalledWith({ origin: ["http://localhost:4200"], credentials: true });
+    expect(app.enableCors).toHaveBeenCalledWith({
+      origin: ["http://localhost:4200"],
+      credentials: true,
+      exposedHeaders: ["Content-Disposition"]
+    });
     expect(expressApp.disable).toHaveBeenCalledWith("x-powered-by");
     expect(app.useGlobalPipes).toHaveBeenCalledTimes(1);
     expect(app.useGlobalFilters).toHaveBeenCalledTimes(1);

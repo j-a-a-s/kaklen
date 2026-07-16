@@ -5,7 +5,9 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsDateString,
+  IsEmail,
   IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -13,6 +15,7 @@ import {
   IsUUID,
   Max,
   MaxLength,
+  MinLength,
   Min,
   ValidateNested
 } from "class-validator";
@@ -100,6 +103,14 @@ export class CreateQuotationDto {
   @MaxLength(3)
   currency?: string;
 
+  @ApiPropertyOptional({ minimum: 0, maximum: 100, example: 5, default: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Max(100)
+  globalDiscountPercent?: number;
+
   @ApiPropertyOptional({ maxLength: 2000 })
   @IsOptional()
   @IsString()
@@ -141,6 +152,14 @@ export class UpdateQuotationDto {
   @IsString()
   @MaxLength(3)
   currency?: string;
+
+  @ApiPropertyOptional({ minimum: 0, maximum: 100, example: 5 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Max(100)
+  globalDiscountPercent?: number;
 
   @ApiPropertyOptional({ maxLength: 2000 })
   @IsOptional()
@@ -232,4 +251,28 @@ export class ChangeQuotationStatusDto {
   @IsString()
   @MaxLength(500)
   note?: string;
+}
+
+export class SendQuotationEmailDto {
+  @ApiProperty({ format: "email", maxLength: 254, example: "cliente@empresa.cl" })
+  @IsEmail()
+  @MaxLength(254)
+  to!: string;
+
+  @ApiProperty({ minLength: 1, maxLength: 200, example: "Cotización QUO-000001" })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  subject!: string;
+
+  @ApiProperty({ minLength: 1, maxLength: 5000, example: "Adjuntamos nuestra propuesta comercial." })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(5000)
+  message!: string;
+
+  @ApiPropertyOptional({ enum: ["es", "en", "pt-BR"], default: "es" })
+  @IsOptional()
+  @IsIn(["es", "en", "pt-BR"])
+  locale?: "es" | "en" | "pt-BR";
 }

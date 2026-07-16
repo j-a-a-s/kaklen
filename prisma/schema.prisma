@@ -317,6 +317,7 @@ model Quotation {
   issueDate       DateTime
   validUntil      DateTime
   currency        String
+  globalDiscountPercent Decimal                  @default(0) @db.Decimal(5, 2)
   subtotal        Decimal                  @db.Decimal(14, 2)
   discountTotal   Decimal                  @db.Decimal(14, 2)
   taxTotal        Decimal                  @db.Decimal(14, 2)

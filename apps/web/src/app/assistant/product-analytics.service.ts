@@ -10,6 +10,8 @@ export type ProductAnalyticsEvent =
   | "first_quotation_approved"
   | "first_event_created"
   | "command_palette_opened"
+  | "command_action_executed"
+  | "command_search_result_opened"
   | "global_search_used"
   | "wizard_abandoned"
   | "wizard_completed";
@@ -18,6 +20,8 @@ export interface ProductAnalyticsContext {
   flow?: "onboarding" | "client" | "quotation" | "event" | "command_palette";
   step?: string;
   source?: "dashboard" | "navigation" | "quick_action" | "detail";
+  action?: string;
+  resultType?: "client" | "catalog_item" | "quotation" | "event";
 }
 
 @Injectable({ providedIn: "root" })

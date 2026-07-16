@@ -30,10 +30,10 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       <section class="dashboard-panel" *ngIf="summary() as item">
         <div class="metrics-grid">
           <span><strong>{{ item.total }}</strong><small i18n="@@totalLabel">Total</small></span>
-          <span><strong>{{ item.confirmed }}</strong><small i18n="@@confirmedLabel">Confirmados</small></span>
+          <span><strong>{{ item.confirmed }}</strong><small i18n="@@eventConfirmedPluralLabel">Confirmados</small></span>
           <span><strong>{{ item.inProgress }}</strong><small i18n="@@inProgressLabel">En curso</small></span>
-          <span><strong>{{ item.completed }}</strong><small i18n="@@completedLabel">Completados</small></span>
-          <span><strong>{{ item.cancelled }}</strong><small i18n="@@cancelledLabel">Cancelados</small></span>
+          <span><strong>{{ item.completed }}</strong><small i18n="@@eventCompletedPluralLabel">Completados</small></span>
+          <span><strong>{{ item.cancelled }}</strong><small i18n="@@eventCancelledPluralLabel">Cancelados</small></span>
         </div>
       </section>
 
@@ -58,8 +58,8 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
                 <option value="DRAFT" i18n="@@draftLabel">Borrador</option>
                 <option value="CONFIRMED" i18n="@@confirmedLabel">Confirmado</option>
                 <option value="IN_PROGRESS" i18n="@@inProgressLabel">En curso</option>
-                <option value="COMPLETED" i18n="@@completedLabel">Completado</option>
-                <option value="CANCELLED" i18n="@@cancelledLabel">Cancelado</option>
+                <option value="COMPLETED" i18n="@@eventCompletedLabel">Completado</option>
+                <option value="CANCELLED" i18n="@@eventCancelledLabel">Cancelado</option>
               </select>
             </label>
             <label class="advanced-filter">
@@ -103,7 +103,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       </section>
 
       <ng-template #emptyState>
-        <kaklen-empty-state icon="□" [title]="eventsEmptyTitle" [description]="eventsEmptyDescription">
+        <kaklen-empty-state icon="calendar" [title]="eventsEmptyTitle" [description]="eventsEmptyDescription">
           <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" i18n="@@newEventButton">Nuevo evento</a>
         </kaklen-empty-state>
       </ng-template>
@@ -179,8 +179,8 @@ export class EventListComponent implements OnInit {
       DRAFT: $localize`:@@draftLabel:Borrador`,
       CONFIRMED: $localize`:@@confirmedLabel:Confirmado`,
       IN_PROGRESS: $localize`:@@inProgressLabel:En curso`,
-      COMPLETED: $localize`:@@completedLabel:Completado`,
-      CANCELLED: $localize`:@@cancelledLabel:Cancelado`,
+      COMPLETED: $localize`:@@eventCompletedLabel:Completado`,
+      CANCELLED: $localize`:@@eventCancelledLabel:Cancelado`,
       ARCHIVED: $localize`:@@archivedLabel:Archivado`
     };
     return labels[status];

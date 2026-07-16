@@ -25,11 +25,14 @@ describe("QuotationsController", () => {
     await controller.cancel("org-1", "quotation-1", request as never, { note: "Cancelled" });
     await controller.newVersion("org-1", "quotation-1", request as never);
     await controller.history("org-1", "quotation-1");
+    const emailDto = { to: "client@example.com", subject: "Quotation", message: "Please review", locale: "en" as const };
+    await controller.sendEmail("org-1", "quotation-1", request as never, emailDto);
 
     expect(service.create).toHaveBeenCalledWith("org-1", "user-1", createDto);
     expect(service.update).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { notes: "Updated" });
     expect(service.approve).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { note: "Approved" });
     expect(service.newVersion).toHaveBeenCalledWith("org-1", "quotation-1", "user-1");
+    expect(service.sendEmail).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", emailDto);
   });
 
   it("sends quotation PDFs with stable content headers", async () => {
@@ -42,9 +45,9 @@ describe("QuotationsController", () => {
 
     await controller.pdf("org-1", "quotation-1", undefined, response as never);
 
-    expect(service.pdf).toHaveBeenCalledWith("org-1", "quotation-1", "es");
+    expect(service.pdfDocument).toHaveBeenCalledWith("org-1", "quotation-1", "es");
     expect(response.setHeader).toHaveBeenCalledWith("Content-Type", "application/pdf");
-    expect(response.setHeader).toHaveBeenCalledWith("Content-Disposition", 'attachment; filename="quotation-quotation-1.pdf"');
+    expect(response.setHeader).toHaveBeenCalledWith("Content-Disposition", 'attachment; filename="cotizacion-quo-000001-v1.pdf"');
     expect(response.send).toHaveBeenCalledWith(Buffer.from("pdf"));
   });
 });
@@ -64,6 +67,8 @@ function makeQuotationsService() {
     cancel: jest.fn(ok),
     newVersion: jest.fn(ok),
     history: jest.fn(ok),
-    pdf: jest.fn(async () => Buffer.from("pdf"))
+    pdf: jest.fn(async () => Buffer.from("pdf")),
+    pdfDocument: jest.fn(async () => ({ buffer: Buffer.from("pdf"), filename: "cotizacion-quo-000001-v1.pdf" })),
+    sendEmail: jest.fn(ok)
   };
 }

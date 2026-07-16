@@ -79,3 +79,18 @@ Esta auditoría registra el sprint final de estabilización de los flujos princi
 ## Criterio de cierre
 
 El sprint se considera cerrado cuando lint, tests, cobertura, build, E2E, accesibilidad y release check finalizan correctamente; los tres locales construyen sin mensajes faltantes; y las capturas posteriores muestran los cambios en los viewports definidos. Cualquier restricción del entorno se reporta separada de un defecto del producto.
+
+## Diagnóstico transversal de esta estabilización
+
+| Grupo | Causa raíz | Resolución compartida |
+| --- | --- | --- |
+| A. Diseño y botones | Variantes locales sin una semántica única | Tokens y variantes Primary, Success, Danger, Secondary y Ghost en el Design System; iconos Lucide compartidos |
+| B. Dropdowns/submenús | `details` y listeners implementados por pantalla | `ActionMenuComponent` con ciclo de vida, teclado, posicionamiento y contexto únicos |
+| C. Command Palette | Catálogo parcial y navegación desacoplada de RBAC | Matriz tipada de acciones/rutas, búsqueda multigrupo, debounce remoto, focus trap y analytics sin PII |
+| D. Validaciones | Reglas manuales distintas entre formularios | Validadores, límites y componentes de feedback compartidos desde `@kaklen/shared` |
+| E. PDF | Navegación directa sin Bearer y respuesta sin contrato de descarga | `HttpClient` autenticado con blob, PDF real, tenant scope y filename seguro |
+| F. Correo | Acción visual sin transacción posterior a SMTP | Nodemailer real, PDF adjunto, plantillas localizadas y escrituras solo tras envío exitoso |
+| G. i18n | IDs XLIFF reutilizados para textos con género o plural distinto | IDs semánticos únicos, catálogo tipado y sincronización estricta de 770 mensajes por locale |
+| H. Cálculo monetario | Cálculos duplicados y susceptibles a `float` | Algoritmo compartido con enteros escalados, redondeo explícito y descuento global documentado |
+| I. Responsive | Acciones y resúmenes sin restricciones estables | Breakpoints del Design System, wrapping/stacking, menú secundario y comprobación de overflow |
+| J. Navegación y enlaces | Tarjetas y acciones aparentaban ser interactivas sin un destino consistente | Rutas localizadas, tarjetas semanales navegables y acciones centralizadas con pruebas de teclado |

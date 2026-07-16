@@ -1,10 +1,12 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { CalendarEvent } from "../events/event.models";
 import { EventsService } from "../events/events.service";
 import { formatRegionalDate } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
+import { eventStatusLabel } from "../i18n/display-labels";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface CalendarDay {
   date: Date;
@@ -15,7 +17,7 @@ interface CalendarDay {
 @Component({
   selector: "kaklen-event-calendar",
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -25,9 +27,9 @@ interface CalendarDay {
           <p>{{ monthLabel() }}</p>
         </div>
         <div class="row-actions">
-          <button type="button" class="secondary" (click)="moveMonth(-1)" i18n="@@previousPageButton">Anterior</button>
-          <button type="button" class="secondary" (click)="moveMonth(1)" i18n="@@nextPageButton">Siguiente</button>
-          <a class="button-link" [routerLink]="['/organizations', organizationId, 'events']" i18n="@@backToListButton">Volver al listado</a>
+          <button type="button" class="secondary" (click)="moveMonth(-1)"><kaklen-icon name="arrow-left" /><span i18n="@@previousPageButton">Anterior</span></button>
+          <button type="button" class="secondary" (click)="moveMonth(1)"><span i18n="@@nextPageButton">Siguiente</span></button>
+          <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'events']"><kaklen-icon name="arrow-left" /><span i18n="@@backToListButton">Volver al listado</span></a>
         </div>
       </section>
 
@@ -45,9 +47,16 @@ interface CalendarDay {
 
       <section class="dashboard-panel">
         <h2 i18n="@@weeklyViewTitle">Vista semanal</h2>
-        <article class="item-row" *ngFor="let event of weekEvents()">
-          <span><strong>{{ event.name }}</strong><small>{{ dateLabel(event.startAt) }} · {{ event.client?.displayName || noClientLabel }}</small></span>
-        </article>
+        <a
+          class="item-row weekly-event-link"
+          *ngFor="let event of weekEvents()"
+          [routerLink]="['/organizations', organizationId, 'events', event.id]"
+          [attr.aria-label]="weeklyEventAriaLabel(event)"
+          (keydown.space)="openWeeklyEvent(event.id, $event)"
+        >
+          <span><strong>{{ event.code }} · {{ event.name }}</strong><small>{{ dateLabel(event.startAt) }} · {{ timeLabel(event.startAt) }} · {{ event.client?.displayName || noClientLabel }}</small><small>{{ eventStatus(event.status) }} · {{ event.city || event.venueName || noVenueLabel }}</small></span>
+          <kaklen-icon name="calendar" />
+        </a>
       </section>
     </main>
   `,
@@ -76,6 +85,14 @@ interface CalendarDay {
       .calendar-day small {
         display: block;
       }
+      .weekly-event-link {
+        color: inherit;
+        text-decoration: none;
+      }
+      .weekly-event-link:hover {
+        border-color: var(--color-brand);
+        background: var(--color-brand-soft);
+      }
       @media (max-width: 760px) {
         .calendar-grid {
           grid-template-columns: 1fr;
@@ -92,13 +109,15 @@ export class EventCalendarComponent implements OnInit {
   readonly weekEvents = signal<CalendarEvent[]>([]);
   readonly error = signal("");
   readonly noClientLabel = $localize`:@@noClientLabel:Sin cliente`;
+  readonly noVenueLabel = $localize`:@@noVenueLabel:Sin lugar`;
   organizationId = "";
   current = new Date();
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly organizationService: OrganizationService,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
+    private readonly router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -125,6 +144,26 @@ export class EventCalendarComponent implements OnInit {
       dateFormat: organization?.dateFormat ?? "dd-MM-yyyy",
       numberFormat: organization?.numberFormat ?? "es"
     });
+  }
+
+  timeLabel(value: string): string {
+    return new Date(value).toLocaleTimeString(this.organizationService.activeOrganization()?.numberFormat ?? "es", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  eventStatus(status: CalendarEvent["status"]): string {
+    return eventStatusLabel(status);
+  }
+
+  weeklyEventAriaLabel(event: CalendarEvent): string {
+    return $localize`:@@openWeeklyEventAriaLabel:Abrir evento ${event.name}:eventName:, ${this.dateLabel(event.startAt)}:eventDate: a las ${this.timeLabel(event.startAt)}:eventTime:`;
+  }
+
+  openWeeklyEvent(eventId: string, keyboardEvent: Event): void {
+    keyboardEvent.preventDefault();
+    void this.router.navigate(["/organizations", this.organizationId, "events", eventId]);
   }
 
   private async load(): Promise<void> {

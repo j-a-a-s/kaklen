@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional, ServiceUnavailableException } from "@nestjs/common";
 import {
   CatalogItem,
   Client,
@@ -12,11 +12,15 @@ import {
   QuotationStatusHistory
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { calculateQuotationMoney, QuotationDecimalInput, QuotationMoneyAmounts } from "@kaklen/shared";
+import { MailService } from "../notifications/mail.service";
+import { normalizeNotificationLocale, renderQuotationEmail } from "../notifications/templates";
 import {
   ChangeQuotationStatusDto,
   CreateQuotationDto,
   ListQuotationsQueryDto,
   QuotationItemInputDto,
+  SendQuotationEmailDto,
   UpdateQuotationDto
 } from "./dto/quotation.dto";
 import { createSimplePdf } from "./pdf";
@@ -74,9 +78,21 @@ export interface QuotationSummary {
   amountApproved: string;
 }
 
+export interface QuotationPdfDocument {
+  buffer: Buffer;
+  filename: string;
+}
+
+export type QuotationHistoryView = QuotationStatusHistory & {
+  changedBy: Pick<Prisma.UserGetPayload<object>, "firstName" | "lastName">;
+};
+
 @Injectable()
 export class QuotationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly mailService?: MailService
+  ) {}
 
   async create(organizationId: string, userId: string, dto: CreateQuotationDto): Promise<QuotationWithDetails> {
     this.assertDates(dto.issueDate, dto.validUntil);
@@ -84,7 +100,7 @@ export class QuotationsService {
 
     return this.prisma.$transaction(async (tx) => {
       const organization = await this.findOrganization(organizationId, tx);
-      const totals = await this.calculateItems(organizationId, dto.items, tx);
+      const totals = await this.calculateItems(organizationId, dto.items, dto.globalDiscountPercent ?? 0, tx);
       const number = await this.nextNumber(organizationId, tx);
       const quotation = await tx.quotation.create({
         data: {
@@ -94,6 +110,7 @@ export class QuotationsService {
           issueDate: new Date(dto.issueDate),
           validUntil: new Date(dto.validUntil),
           currency: this.clean(dto.currency)?.toUpperCase() ?? organization.currency,
+          globalDiscountPercent: new Prisma.Decimal(dto.globalDiscountPercent ?? 0),
           subtotal: totals.subtotal,
           discountTotal: totals.discountTotal,
           taxTotal: totals.taxTotal,
@@ -178,7 +195,22 @@ export class QuotationsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const totals = dto.items ? await this.calculateItems(organizationId, dto.items, tx) : null;
+      const shouldRecalculate = dto.items !== undefined || dto.globalDiscountPercent !== undefined;
+      const calculationItems = dto.items ?? existing.items.map((item) => ({
+        catalogItemId: item.catalogItemId ?? undefined,
+        type: item.type,
+        code: item.code ?? undefined,
+        name: item.name,
+        description: item.description ?? undefined,
+        quantity: item.quantity.toNumber(),
+        unit: item.unit,
+        unitPrice: item.unitPrice.toNumber(),
+        discountType: item.discountType,
+        discountValue: item.discountValue.toNumber(),
+        taxPercent: item.taxPercent.toNumber()
+      }));
+      const globalDiscountPercent = dto.globalDiscountPercent ?? existing.globalDiscountPercent.toNumber();
+      const totals = shouldRecalculate ? await this.calculateItems(organizationId, calculationItems, globalDiscountPercent, tx) : null;
       if (totals) {
         await tx.quotationItem.deleteMany({ where: { quotationId } });
       }
@@ -189,6 +221,7 @@ export class QuotationsService {
           issueDate: dto.issueDate ? new Date(dto.issueDate) : undefined,
           validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
           currency: dto.currency?.trim().toUpperCase(),
+          globalDiscountPercent: dto.globalDiscountPercent === undefined ? undefined : new Prisma.Decimal(dto.globalDiscountPercent),
           notes: dto.notes === undefined ? undefined : this.clean(dto.notes),
           terms: dto.terms === undefined ? undefined : this.clean(dto.terms),
           ...(totals
@@ -257,6 +290,7 @@ export class QuotationsService {
           issueDate: new Date(),
           validUntil: existing.validUntil,
           currency: existing.currency,
+          globalDiscountPercent: existing.globalDiscountPercent,
           subtotal: existing.subtotal,
           discountTotal: existing.discountTotal,
           taxTotal: existing.taxTotal,
@@ -292,19 +326,81 @@ export class QuotationsService {
     });
   }
 
-  async history(organizationId: string, quotationId: string): Promise<QuotationStatusHistory[]> {
+  async history(organizationId: string, quotationId: string): Promise<QuotationHistoryView[]> {
     await this.findQuotation(organizationId, quotationId, this.prisma);
     return this.prisma.quotationStatusHistory.findMany({
       where: { organizationId, quotationId },
+      include: { changedBy: { select: { firstName: true, lastName: true } } },
       orderBy: { createdAt: "asc" }
     });
   }
 
   async pdf(organizationId: string, quotationId: string, locale: string): Promise<Buffer> {
+    return (await this.pdfDocument(organizationId, quotationId, locale)).buffer;
+  }
+
+  async pdfDocument(organizationId: string, quotationId: string, locale: string): Promise<QuotationPdfDocument> {
     const quotation = await this.findQuotation(organizationId, quotationId, this.prisma, true);
-    const language = ["es", "en", "pt-BR"].includes(locale) ? locale : "es";
+    return this.renderPdfDocument(quotation, locale);
+  }
+
+  async sendEmail(
+    organizationId: string,
+    quotationId: string,
+    userId: string,
+    dto: SendQuotationEmailDto
+  ): Promise<QuotationWithDetails> {
+    const quotation = await this.findQuotation(organizationId, quotationId, this.prisma, true);
+    if (quotation.status !== QuotationStatus.DRAFT && quotation.status !== QuotationStatus.SENT) {
+      throw new BadRequestException("Quotation cannot be emailed from its current status");
+    }
+    if (!this.mailService) {
+      throw new ServiceUnavailableException("Mail service is not available");
+    }
+    const locale = normalizeNotificationLocale(dto.locale);
+    const document = this.renderPdfDocument(quotation, locale);
+    const content = renderQuotationEmail(locale, {
+      organizationName: quotation.organization?.name ?? "Kaklen",
+      quotationNumber: `${quotation.number} v${quotation.version}`,
+      clientName: quotation.client.displayName,
+      message: dto.message.trim()
+    });
+
+    await this.mailService.send({
+      to: dto.to.trim().toLowerCase(),
+      subject: dto.subject.trim(),
+      text: content.text,
+      html: content.html,
+      attachments: [{ filename: document.filename, content: document.buffer, contentType: "application/pdf" }]
+    });
+
+    return this.prisma.$transaction(async (tx) => {
+      const nextStatus = QuotationStatus.SENT;
+      if (quotation.status === QuotationStatus.DRAFT) {
+        await tx.quotation.update({
+          where: { id: quotationId },
+          data: { status: nextStatus, sentAt: new Date() }
+        });
+      }
+      await this.recordStatus(
+        tx,
+        organizationId,
+        quotationId,
+        quotation.status,
+        nextStatus,
+        userId,
+        `quotation.email.sent|${dto.to.trim().toLowerCase()}`
+      );
+      const recipientDomain = dto.to.trim().toLowerCase().split("@")[1] ?? "unknown";
+      await this.audit(tx, organizationId, userId, "quotation.email.sent", quotationId, { recipientDomain });
+      return this.findQuotation(organizationId, quotationId, tx);
+    });
+  }
+
+  private renderPdfDocument(quotation: QuotationWithDetails, locale: string): QuotationPdfDocument {
+    const language = normalizeNotificationLocale(locale);
     const labels = pdfLabels(language);
-    return createSimplePdf([
+    const buffer = createSimplePdf([
       { text: quotation.organization?.name ?? "Kaklen", size: 16 },
       { text: `${labels.quotation}: ${quotation.number} v${quotation.version}`, size: 14 },
       { text: `${labels.client}: ${quotation.client.displayName}` },
@@ -319,10 +415,17 @@ export class QuotationsService {
       ...(quotation.notes ? [{ text: `${labels.notes}: ${quotation.notes}` }] : []),
       ...(quotation.terms ? [{ text: `${labels.terms}: ${quotation.terms}` }] : [])
     ]);
+    const prefix = language === "en" ? "quotation" : language === "pt-BR" ? "cotacao" : "cotizacion";
+    const safeNumber = quotation.number.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    return { buffer, filename: `${prefix}-${safeNumber}-v${quotation.version}.pdf` };
   }
 
-  calculateQuotationItems(items: QuotationItemInputDto[], catalogItems = new Map<string, CatalogItem>()): CalculatedTotals {
-    const calculatedItems = items.map((item, index) => this.calculateItem(item, index, catalogItems.get(item.catalogItemId ?? "")));
+  calculateQuotationItems(
+    items: QuotationItemInputDto[],
+    catalogItems = new Map<string, CatalogItem>(),
+    globalDiscountPercent: QuotationDecimalInput = 0
+  ): CalculatedTotals {
+    const calculatedItems = items.map((item, index) => this.calculateItem(item, index, catalogItems.get(item.catalogItemId ?? ""), globalDiscountPercent));
     return {
       items: calculatedItems,
       subtotal: this.sum(calculatedItems.map((item) => item.subtotal)),
@@ -335,6 +438,7 @@ export class QuotationsService {
   private async calculateItems(
     organizationId: string,
     items: QuotationItemInputDto[],
+    globalDiscountPercent: QuotationDecimalInput,
     tx: Prisma.TransactionClient
   ): Promise<CalculatedTotals> {
     const catalogIds = items.map((item) => item.catalogItemId).filter((item): item is string => Boolean(item));
@@ -344,27 +448,32 @@ export class QuotationsService {
     if (catalogItems.length !== new Set(catalogIds).size) {
       throw new BadRequestException("Catalog item does not belong to this organization");
     }
-    return this.calculateQuotationItems(items, new Map(catalogItems.map((item) => [item.id, item])));
+    return this.calculateQuotationItems(items, new Map(catalogItems.map((item) => [item.id, item])), globalDiscountPercent);
   }
 
-  private calculateItem(item: QuotationItemInputDto, index: number, catalogItem?: CatalogItem): CalculatedItem {
+  private calculateItem(
+    item: QuotationItemInputDto,
+    index: number,
+    catalogItem: CatalogItem | undefined,
+    globalDiscountPercent: QuotationDecimalInput
+  ): CalculatedItem {
     const quantity = new Prisma.Decimal(item.quantity);
     const unitPrice = new Prisma.Decimal(catalogItem?.price ?? item.unitPrice);
     const discountType = item.discountType ?? QuotationDiscountType.NONE;
     const discountValue = new Prisma.Decimal(item.discountValue ?? 0);
     const taxPercent = new Prisma.Decimal(catalogItem?.taxPercent ?? item.taxPercent);
-    if (discountType === QuotationDiscountType.PERCENTAGE && discountValue.gt(100)) {
-      throw new BadRequestException("Percentage discount must be between 0 and 100");
+    let amounts: QuotationMoneyAmounts;
+    try {
+      amounts = calculateQuotationMoney([{
+        quantity: quantity.toString(),
+        unitPrice: unitPrice.toString(),
+        discountType,
+        discountValue: discountValue.toString(),
+        taxPercent: taxPercent.toString()
+      }], globalDiscountPercent).lines[0];
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : "Invalid quotation amounts");
     }
-    const subtotal = this.money(quantity.mul(unitPrice));
-    const discountTotal =
-      discountType === QuotationDiscountType.NONE
-        ? new Prisma.Decimal(0)
-        : discountType === QuotationDiscountType.PERCENTAGE
-          ? this.money(subtotal.mul(discountValue).div(100))
-          : Prisma.Decimal.min(discountValue, subtotal);
-    const taxableBase = subtotal.minus(discountTotal);
-    const taxTotal = this.money(taxableBase.mul(taxPercent).div(100));
     return {
       catalogItemId: catalogItem?.id ?? item.catalogItemId ?? null,
       type: catalogItem ? (catalogItem.type as unknown as QuotationItemType) : item.type,
@@ -377,10 +486,10 @@ export class QuotationsService {
       discountType,
       discountValue,
       taxPercent,
-      subtotal,
-      discountTotal,
-      taxTotal,
-      total: this.money(taxableBase.plus(taxTotal)),
+      subtotal: new Prisma.Decimal(amounts.subtotal),
+      discountTotal: new Prisma.Decimal(amounts.discountTotal),
+      taxTotal: new Prisma.Decimal(amounts.taxTotal),
+      total: new Prisma.Decimal(amounts.total),
       sortOrder: index + 1
     };
   }
@@ -515,10 +624,11 @@ export class QuotationsService {
     organizationId: string,
     actorUserId: string,
     action: string,
-    targetId: string
+    targetId: string,
+    metadata?: Prisma.InputJsonValue
   ): Promise<unknown> {
     return tx.organizationAuditLog.create({
-      data: { organizationId, actorUserId, action, targetType: "quotation", targetId }
+      data: { organizationId, actorUserId, action, targetType: "quotation", targetId, metadata }
     });
   }
 

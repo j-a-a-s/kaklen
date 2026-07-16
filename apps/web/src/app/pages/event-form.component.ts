@@ -13,11 +13,14 @@ import { Quotation } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { dateOrderValidator, decimalValidator, emailValidator, internationalPhoneValidator, normalizeEmail, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-event-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell guided-event-shell">
       <section class="dashboard-header"><div><p class="eyebrow" i18n="@@eventsEyebrow">Eventos</p><h1>{{ eventId ? editTitle : createTitle }}</h1><p i18n="@@eventFormDescription">Define lo esencial ahora y completa la operación después.</p></div></section>
@@ -27,6 +30,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
       </ol>
 
       <form class="dashboard-panel form-panel wide-card" [formGroup]="form" (ngSubmit)="requestSave()">
+        <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
         <section class="wizard-stage" *ngIf="eventId || currentStep() === 1">
           <h2 i18n="@@eventStepMain">Información principal</h2><p i18n="@@eventStepMainHelp">Elige si partirás desde una cotización aprobada o desde cero.</p>
           <div class="event-source-choice" *ngIf="!eventId" role="radiogroup" aria-label="Origen del evento" i18n-aria-label="@@eventSourceLabel">
@@ -35,7 +39,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
           </div>
           <div class="field-grid">
             <label *ngIf="creationMode() === 'quotation' || eventId"><span i18n="@@approvedQuotationLabel">Cotización aprobada</span><select formControlName="quotationId" (change)="applyQuotation()"><option value="" i18n="@@selectQuotationOption">Selecciona una cotización</option><option *ngFor="let quotation of approvedQuotations()" [value]="quotation.id">{{ quotation.number }} · {{ quotation.client.displayName }}</option></select></label>
-            <label><span><span i18n="@@nameLabel">Nombre</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span><input formControlName="name" placeholder="Ej. Lanzamiento de temporada" i18n-placeholder="@@eventNameExample" /></label>
+            <label><span><span i18n="@@nameLabel">Nombre</span><kaklen-required /></span><input formControlName="name" maxlength="160" placeholder="Ej. Lanzamiento de temporada" i18n-placeholder="@@eventNameExample" aria-describedby="event-name-error" /><kaklen-field-error id="event-name-error" [control]="form.controls.name" [submitted]="submitAttempted()" /></label>
             <label><span i18n="@@clientLabel">Cliente</span><select formControlName="clientId"><option value="" i18n="@@noClientLabel">Sin cliente</option><option *ngFor="let client of clients()" [value]="client.id">{{ client.displayName }}</option></select></label>
           </div>
           <label><span i18n="@@descriptionLabel">Descripción</span><textarea formControlName="description" rows="3" placeholder="Objetivo y alcance principal" i18n-placeholder="@@eventDescriptionExample"></textarea></label>
@@ -44,9 +48,9 @@ import { NotificationService } from "../shared/notifications/notification.servic
         <section class="wizard-stage" *ngIf="eventId || currentStep() === 2">
           <h2 i18n="@@eventStepDateLocation">Fecha y ubicación</h2><p i18n="@@eventStepDateLocationHelp">Define cuándo y dónde ocurrirá el trabajo.</p>
           <div class="field-grid">
-            <label><span i18n="@@startAtLabel">Inicio</span><input type="datetime-local" formControlName="startAt" required /></label>
-            <label><span i18n="@@endAtLabel">Término</span><input type="datetime-local" formControlName="endAt" required /></label>
-            <label><span i18n="@@timezoneLabel">Zona horaria</span><select formControlName="timezone"><option value="America/Santiago" i18n="@@timezoneSantiagoLabel">Santiago, Chile</option><option value="America/Sao_Paulo" i18n="@@timezoneSaoPauloLabel">São Paulo, Brasil</option><option value="America/New_York" i18n="@@timezoneNewYorkLabel">Nueva York, Estados Unidos</option><option value="UTC" i18n="@@timezoneUtcLabel">Tiempo universal (UTC)</option></select></label>
+            <label><span><span i18n="@@startAtLabel">Inicio</span><kaklen-required /></span><input type="datetime-local" formControlName="startAt" aria-describedby="event-start-error" /><kaklen-field-error id="event-start-error" [control]="form.controls.startAt" [submitted]="submitAttempted()" /></label>
+            <label><span><span i18n="@@endAtLabel">Término</span><kaklen-required /></span><input type="datetime-local" formControlName="endAt" aria-describedby="event-end-error" /><kaklen-field-error id="event-end-error" [control]="form.controls.endAt" [submitted]="submitAttempted()" [invalidMessage]="dateErrorLabel" /></label>
+            <label><span><span i18n="@@timezoneLabel">Zona horaria</span><kaklen-required /></span><select formControlName="timezone"><option value="America/Santiago" i18n="@@timezoneSantiagoLabel">Santiago, Chile</option><option value="America/Sao_Paulo" i18n="@@timezoneSaoPauloLabel">São Paulo, Brasil</option><option value="America/New_York" i18n="@@timezoneNewYorkLabel">Nueva York, Estados Unidos</option><option value="UTC" i18n="@@timezoneUtcLabel">Tiempo universal (UTC)</option></select></label>
             <label><span i18n="@@venueNameLabel">Lugar</span><input formControlName="venueName" placeholder="Ej. Centro de eventos" i18n-placeholder="@@venueExample" /></label>
             <label><span i18n="@@addressLabel">Dirección</span><input formControlName="address" /></label>
             <label><span i18n="@@cityLabel">Ciudad</span><input formControlName="city" /></label>
@@ -58,13 +62,13 @@ import { NotificationService } from "../shared/notifications/notification.servic
           <h2 i18n="@@eventStepTeamResources">Equipo y recursos</h2><p i18n="@@eventStepTeamResourcesHelp">Estos datos son opcionales. Podrás agregar más participantes y recursos desde el evento.</p>
           <div class="field-grid">
             <label><span i18n="@@contactNameLabel">Contacto principal</span><input formControlName="contactName" /></label>
-            <label><span i18n="@@contactEmailLabel">Email contacto</span><input type="email" formControlName="contactEmail" /></label>
-            <label><span i18n="@@contactPhoneLabel">Teléfono contacto</span><input formControlName="contactPhone" /></label>
+            <label><span><span i18n="@@contactEmailLabel">Email contacto</span><kaklen-optional /></span><input type="email" inputmode="email" maxlength="254" formControlName="contactEmail" aria-describedby="event-email-error" /><kaklen-field-error id="event-email-error" [control]="form.controls.contactEmail" [submitted]="submitAttempted()" /></label>
+            <label><span><span i18n="@@contactPhoneLabel">Teléfono contacto</span><kaklen-optional /></span><input type="tel" inputmode="tel" maxlength="40" formControlName="contactPhone" aria-describedby="event-phone-error" /><kaklen-field-error id="event-phone-error" [control]="form.controls.contactPhone" [submitted]="submitAttempted()" /></label>
             <label><span i18n="@@initialParticipantLabel">Participante inicial</span><input formControlName="initialParticipant" placeholder="Nombre del participante" i18n-placeholder="@@participantNameExample" /></label>
             <label><span i18n="@@initialResourceLabel">Recurso inicial</span><input formControlName="initialResource" placeholder="Ej. Equipo de sonido" i18n-placeholder="@@resourceNameExample" /></label>
-            <label><span i18n="@@resourceQuantityLabel">Cantidad del recurso</span><input type="number" min="0.001" step="0.001" formControlName="resourceQuantity" /></label>
+            <label><span i18n="@@resourceQuantityLabel">Cantidad del recurso</span><input type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="resourceQuantity" /><kaklen-field-error [control]="form.controls.resourceQuantity" [submitted]="submitAttempted()" [invalidMessage]="quantityErrorLabel" /></label>
             <label><span i18n="@@currencyLabel">Moneda</span><select formControlName="currency"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
-            <label><span i18n="@@budgetLabel">Presupuesto</span><input type="number" min="0" step="0.01" formControlName="budget" /></label>
+            <label><span><span i18n="@@budgetLabel">Presupuesto</span><kaklen-optional /></span><input type="number" inputmode="decimal" min="0" step="0.01" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [submitted]="submitAttempted()" [invalidMessage]="budgetErrorLabel" /></label>
           </div>
         </section>
 
@@ -84,7 +88,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
         <div class="row-actions wizard-actions">
           <button type="button" class="secondary" *ngIf="!eventId && currentStep() > 1" (click)="previousStep()" i18n="@@backButton">Volver</button>
           <button type="button" *ngIf="!eventId && currentStep() < 5" (click)="nextStep()" i18n="@@continueButton">Continuar</button>
-          <button type="submit" *ngIf="eventId || currentStep() === 5" [disabled]="loading()">{{ loading() ? savingLabel : (eventId ? saveChangesLabel : createDraftLabel) }}</button>
+          <button type="submit" *ngIf="eventId || currentStep() === 5" [disabled]="loading()"><kaklen-icon name="check" /><span>{{ loading() ? savingLabel : (eventId ? saveChangesLabel : createDraftLabel) }}</span></button>
           <button type="button" class="secondary" (click)="back()" i18n="@@cancelButton">Cancelar</button>
         </div>
       </form>
@@ -96,6 +100,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
 export class EventFormComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly submitAttempted = signal(false);
   readonly stepError = signal("");
   readonly currentStep = signal(1);
   readonly creationMode = signal<"manual" | "quotation">("manual");
@@ -113,6 +118,16 @@ export class EventFormComponent implements OnInit, OnDestroy {
   readonly quotationConfirmTitle = $localize`:@@createFromQuotationConfirmTitle:Crear evento desde esta cotización`;
   readonly quotationConfirmDescription = $localize`:@@createFromQuotationConfirmDescription:Kaklen reutilizará el cliente, el presupuesto y el contexto de la cotización aprobada. Solo puede existir un evento vinculado a ella.`;
   readonly createEventLabel = $localize`:@@createEventConfirmButton:Crear evento`;
+  readonly dateErrorLabel = $localize`:@@eventDateValidation:La fecha de término debe ser posterior a la fecha de inicio.`;
+  readonly quantityErrorLabel = $localize`:@@quantityValidation:La cantidad debe ser mayor que 0 y tener máximo 3 decimales.`;
+  readonly budgetErrorLabel = $localize`:@@budgetValidation:El presupuesto debe ser mayor o igual a 0 y tener máximo 2 decimales.`;
+  readonly fieldLabels = {
+    clientId: $localize`:@@clientLabel:Cliente`, quotationId: $localize`:@@approvedQuotationLabel:Cotización aprobada`,
+    name: $localize`:@@nameLabel:Nombre`, description: $localize`:@@descriptionLabel:Descripción`,
+    startAt: $localize`:@@startAtLabel:Inicio`, endAt: $localize`:@@endAtLabel:Término`, timezone: $localize`:@@timezoneLabel:Zona horaria`,
+    contactName: $localize`:@@contactNameLabel:Contacto principal`, contactEmail: $localize`:@@contactEmailLabel:Email contacto`,
+    contactPhone: $localize`:@@contactPhoneLabel:Teléfono contacto`, budget: $localize`:@@budgetLabel:Presupuesto`
+  };
   readonly eventSteps = [
     { number: 1, label: $localize`:@@eventStepMain:Información principal` },
     { number: 2, label: $localize`:@@eventStepDateLocation:Fecha y ubicación` },
@@ -126,13 +141,13 @@ export class EventFormComponent implements OnInit, OnDestroy {
   private wizardCompleted = false;
   readonly form = new FormGroup({
     clientId: new FormControl("", { nonNullable: true }), quotationId: new FormControl("", { nonNullable: true }),
-    name: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(160)] }), description: new FormControl("", { nonNullable: true }),
+    name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }), description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] }),
     startAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), endAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), timezone: new FormControl("", { nonNullable: true }),
-    venueName: new FormControl("", { nonNullable: true }), address: new FormControl("", { nonNullable: true }), city: new FormControl("", { nonNullable: true }), region: new FormControl("", { nonNullable: true }),
-    currency: new FormControl("", { nonNullable: true }), budget: new FormControl<number | null>(null), contactName: new FormControl("", { nonNullable: true }), contactEmail: new FormControl("", { nonNullable: true, validators: [Validators.email] }), contactPhone: new FormControl("", { nonNullable: true }),
-    initialParticipant: new FormControl("", { nonNullable: true }), initialResource: new FormControl("", { nonNullable: true }), resourceQuantity: new FormControl(1, { nonNullable: true, validators: [Validators.min(0.001)] }),
-    initialTask: new FormControl("", { nonNullable: true }), initialTaskPriority: new FormControl<EventTaskPriority>("MEDIUM", { nonNullable: true }), notes: new FormControl("", { nonNullable: true })
-  });
+    venueName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), address: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(240)] }), city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }), region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
+    currency: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] }), budget: new FormControl<number | null>(null, { validators: [decimalValidator(0, 999_999_999_999.99, 2, false)] }), contactName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), contactEmail: new FormControl("", { nonNullable: true, validators: [emailValidator()] }), contactPhone: new FormControl("", { nonNullable: true, validators: [internationalPhoneValidator()] }),
+    initialParticipant: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialResource: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), resourceQuantity: new FormControl(1, { nonNullable: true, validators: [decimalValidator(0.001, 999_999_999.999, 3)] }),
+    initialTask: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialTaskPriority: new FormControl<EventTaskPriority>("MEDIUM", { nonNullable: true }), notes: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] })
+  }, { validators: [dateOrderValidator("startAt", "endAt", false)] });
 
   constructor(
     private readonly route: ActivatedRoute, private readonly router: Router, private readonly organizationService: OrganizationService,
@@ -173,14 +188,15 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   nextStep(): void {
-    if (!this.validateStep(this.currentStep())) { this.stepError.set($localize`:@@eventStepValidationError:Completa los campos obligatorios de esta etapa para continuar.`); return; }
+    if (!this.validateStep(this.currentStep())) { this.stepError.set(this.stepValidationMessage(this.currentStep())); this.focusFirstInvalid(); return; }
     this.stepError.set(""); this.currentStep.update((step) => Math.min(5, step + 1)); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   previousStep(): void { this.stepError.set(""); this.currentStep.update((step) => Math.max(1, step - 1)); }
 
   requestSave(): void {
-    if (!this.validateStep(5)) return;
+    this.submitAttempted.set(true);
+    if (!this.validateStep(5)) { this.focusFirstInvalid(); return; }
     if (!this.eventId && this.creationMode() === "quotation") this.confirmationOpen.set(true);
     else void this.saveConfirmed();
   }
@@ -223,7 +239,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   private payload(): EventPayload {
     const value = this.form.getRawValue();
-    return { clientId: value.clientId || null, quotationId: value.quotationId || undefined, name: value.name.trim(), description: value.description.trim() || null, startAt: new Date(value.startAt).toISOString(), endAt: new Date(value.endAt).toISOString(), timezone: value.timezone, venueName: value.venueName.trim() || null, address: value.address.trim() || null, city: value.city.trim() || null, region: value.region.trim() || null, currency: value.currency, budget: value.budget, contactName: value.contactName.trim() || null, contactEmail: value.contactEmail.trim() || null, contactPhone: value.contactPhone.trim() || null, notes: value.notes.trim() || null };
+    return { clientId: value.clientId || null, quotationId: value.quotationId || undefined, name: value.name.trim(), description: value.description.trim() || null, startAt: new Date(value.startAt).toISOString(), endAt: new Date(value.endAt).toISOString(), timezone: value.timezone, venueName: value.venueName.trim() || null, address: value.address.trim() || null, city: value.city.trim() || null, region: value.region.trim() || null, currency: value.currency, budget: value.budget, contactName: value.contactName.trim() || null, contactEmail: normalizeEmail(value.contactEmail) || null, contactPhone: normalizePhone(value.contactPhone) || null, notes: value.notes.trim() || null };
   }
 
   private async createOptionalOperations(eventId: string): Promise<boolean> {
@@ -237,4 +253,16 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   private toLocalInput(value: string): string { const date = new Date(value); const offset = date.getTimezoneOffset() * 60000; return new Date(date.getTime() - offset).toISOString().slice(0, 16); }
+
+  private stepValidationMessage(step: number): string {
+    const controls = step === 1 ? [this.form.controls.name, ...(this.creationMode() === "quotation" ? [this.form.controls.quotationId] : [])] : step === 2 ? [this.form.controls.startAt, this.form.controls.endAt, this.form.controls.timezone] : step === 3 ? [this.form.controls.contactEmail, this.form.controls.contactPhone, this.form.controls.resourceQuantity, this.form.controls.budget] : step === 4 ? [this.form.controls.initialTask] : Object.values(this.form.controls);
+    const invalidCount = controls.filter((control) => control.invalid).length + (step === 2 && this.form.hasError("dateOrder") ? 1 : 0);
+    return invalidCount === 1
+      ? $localize`:@@eventStepSingleValidationError:Falta completar o corregir 1 campo de esta etapa.`
+      : $localize`:@@eventStepValidationError:Falta completar o corregir ${invalidCount}:fieldCount: campos de esta etapa.`;
+  }
+
+  private focusFirstInvalid(): void {
+    window.setTimeout(() => document.querySelector<HTMLElement>(".wizard-stage .ng-invalid")?.focus(), 0);
+  }
 }

@@ -1,16 +1,22 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpParams, HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { firstValueFrom } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import {
   PaginatedQuotations,
   Quotation,
+  QuotationEmailPayload,
   QuotationPayload,
   QuotationStatusHistory,
   QuotationSummary
 } from "./quotation.models";
 
 const API_URL = API_BASE_URL;
+
+export interface QuotationPdfDownload {
+  blob: Blob;
+  filename: string;
+}
 
 @Injectable({ providedIn: "root" })
 export class QuotationsService {
@@ -96,7 +102,46 @@ export class QuotationsService {
     );
   }
 
-  pdfUrl(organizationId: string, quotationId: string, locale: string): string {
-    return `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/pdf?locale=${encodeURIComponent(locale)}`;
+  async downloadPdf(organizationId: string, quotationId: string, locale: string): Promise<QuotationPdfDownload> {
+    const params = new HttpParams().set("locale", locale);
+    const response = await firstValueFrom(
+      this.http.get(`${API_URL}/organizations/${organizationId}/quotations/${quotationId}/pdf`, {
+        params,
+        observe: "response",
+        responseType: "blob",
+        withCredentials: true
+      })
+    );
+    return {
+      blob: response.body ?? new Blob([], { type: "application/pdf" }),
+      filename: this.responseFilename(response, `quotation-${quotationId}.pdf`)
+    };
+  }
+
+  sendEmail(
+    organizationId: string,
+    quotationId: string,
+    payload: QuotationEmailPayload
+  ): Promise<Quotation> {
+    return firstValueFrom(
+      this.http.post<Quotation>(
+        `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/email`,
+        payload,
+        { withCredentials: true }
+      )
+    );
+  }
+
+  private responseFilename(response: HttpResponse<Blob>, fallback: string): string {
+    const disposition = response.headers.get("Content-Disposition") ?? response.headers.get("content-disposition") ?? "";
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+    if (encoded) {
+      try {
+        return decodeURIComponent(encoded);
+      } catch {
+        return fallback;
+      }
+    }
+    return /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? fallback;
   }
 }

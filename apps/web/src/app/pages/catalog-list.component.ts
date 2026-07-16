@@ -10,11 +10,13 @@ import { NotificationService } from "../shared/notifications/notification.servic
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-catalog-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -28,7 +30,7 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
           class="button-link"
           [routerLink]="['/organizations', organizationId, 'catalog', 'new']"
         >
-          <span i18n="@@newCatalogItemButton">Nuevo producto o servicio</span>
+          <kaklen-icon name="plus" /><span i18n="@@newCatalogItemButton">Nuevo producto o servicio</span>
         </a>
       </section>
 
@@ -122,19 +124,16 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
             >
               <span i18n="@@editLink">Editar</span>
             </a>
-            <details class="action-menu" *ngIf="canDelete() && item.status !== 'ARCHIVED'">
-              <summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary>
-              <div class="action-menu-panel">
-                <button type="button" class="danger" (click)="requestArchive(item)" [disabled]="loading()" i18n="@@archiveButton">Archivar</button>
-              </div>
-            </details>
+            <kaklen-action-menu *ngIf="canDelete() && item.status !== 'ARCHIVED'" [contextKey]="organizationId" [showLabel]="false">
+              <button kaklenMenuItem type="button" class="danger" (click)="requestArchive(item)" [disabled]="loading()"><kaklen-icon name="archive" /><span i18n="@@archiveButton">Archivar</span></button>
+            </kaklen-action-menu>
           </div>
         </article>
       </section>
 
       <ng-template #emptyState>
-        <kaklen-empty-state icon="◇" [title]="catalogEmptyTitle" [description]="catalogEmptyDescription">
-          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'catalog', 'new']" i18n="@@newCatalogItemButton">Nuevo producto o servicio</a>
+        <kaklen-empty-state icon="package" [title]="catalogEmptyTitle" [description]="catalogEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'catalog', 'new']"><kaklen-icon name="plus" /><span i18n="@@newCatalogItemButton">Nuevo producto o servicio</span></a>
         </kaklen-empty-state>
       </ng-template>
 
@@ -296,7 +295,7 @@ export class CatalogListComponent implements OnInit {
       );
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@catalogArchiveError:No fue posible archivar el item.`);
+      this.error.set($localize`:@@catalogArchiveError:No fue posible archivar el elemento.`);
     } finally {
       this.loading.set(false);
     }

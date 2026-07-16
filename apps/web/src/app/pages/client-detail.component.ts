@@ -12,11 +12,15 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { AssistantService } from "../assistant/assistant.service";
 import { ClientTimelineItem } from "../assistant/assistant.models";
 import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
+import { trimmedRequired } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-client-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="client() as currentClient">
@@ -26,32 +30,29 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
           <p>{{ typeLabel(currentClient.type) }} · {{ statusLabel(currentClient.status) }}</p>
         </div>
         <div class="row-actions">
-          <a [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@backLink">Volver</a>
+          <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'clients']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
           <a
             *ngIf="canUpdate()"
             class="button-link"
             [routerLink]="['/organizations', organizationId, 'clients', currentClient.id, 'edit']"
           >
-            <span i18n="@@editLink">Editar</span>
+            <kaklen-icon name="pencil" /><span i18n="@@editLink">Editar</span>
           </a>
-          <details class="action-menu" *ngIf="canDelete() && currentClient.status !== 'ARCHIVED'">
-            <summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary>
-            <div class="action-menu-panel">
-              <button type="button" class="danger" (click)="archiveRequested.set(true)" i18n="@@archiveButton">Archivar</button>
-            </div>
-          </details>
+          <kaklen-action-menu *ngIf="canDelete() && currentClient.status !== 'ARCHIVED'" [contextKey]="organizationId">
+            <button kaklenMenuItem type="button" class="danger" (click)="archiveRequested.set(true)"><kaklen-icon name="archive" /><span i18n="@@archiveButton">Archivar</span></button>
+          </kaklen-action-menu>
         </div>
       </section>
 
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
       <nav class="client-quick-actions" *ngIf="client() as currentClient" aria-label="Acciones rápidas del cliente" i18n-aria-label="@@clientQuickActionsLabel">
-        <a *ngIf="currentClient.phone" class="secondary-link" [href]="'tel:' + currentClient.phone" i18n="@@callClientAction">Llamar</a>
-        <a *ngIf="currentClient.whatsapp" class="secondary-link" [href]="whatsappUrl(currentClient.whatsapp)" target="_blank" rel="noopener" i18n="@@whatsappClientAction">WhatsApp</a>
-        <a *ngIf="currentClient.email" class="secondary-link" [href]="'mailto:' + currentClient.email" i18n="@@emailClientAction">Enviar email</a>
-        <a *ngIf="canCreateQuotation()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" [queryParams]="{ clientId: currentClient.id }" i18n="@@newQuotationButton">Nueva cotización</a>
-        <a *ngIf="canCreateEvent()" class="secondary-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ clientId: currentClient.id }" i18n="@@newEventButton">Nuevo evento</a>
-        <button *ngIf="canUpdate()" type="button" class="secondary" (click)="scrollToInteraction()" i18n="@@registerInteractionAction">Registrar interacción</button>
+        <a *ngIf="currentClient.phone" class="secondary-link" [href]="'tel:' + currentClient.phone"><kaklen-icon name="phone" /><span i18n="@@callClientAction">Llamar</span></a>
+        <a *ngIf="currentClient.whatsapp" class="secondary-link" [href]="whatsappUrl(currentClient.whatsapp)" target="_blank" rel="noopener"><kaklen-icon name="message-circle" /><span i18n="@@whatsappClientAction">WhatsApp</span></a>
+        <a *ngIf="currentClient.email" class="secondary-link" [href]="'mailto:' + currentClient.email"><kaklen-icon name="mail" /><span i18n="@@emailClientAction">Enviar email</span></a>
+        <a *ngIf="canCreateQuotation()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" [queryParams]="{ clientId: currentClient.id }"><kaklen-icon name="plus" /><span i18n="@@newQuotationButton">Nueva cotización</span></a>
+        <a *ngIf="canCreateEvent()" class="secondary-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ clientId: currentClient.id }"><kaklen-icon name="calendar" /><span i18n="@@newEventButton">Nuevo evento</span></a>
+        <button *ngIf="canUpdate()" type="button" class="secondary" (click)="scrollToInteraction()"><kaklen-icon name="plus" /><span i18n="@@registerInteractionAction">Registrar interacción</span></button>
       </nav>
 
       <section class="dashboard-panel" *ngIf="client() as currentClient">
@@ -87,9 +88,10 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
       <section id="client-interaction-form" class="dashboard-panel" *ngIf="canUpdate()">
         <h2 i18n="@@newInteractionTitle">Nueva interacción</h2>
         <form [formGroup]="interactionForm" (ngSubmit)="addInteraction()">
+          <kaklen-form-error-summary [form]="interactionForm" [submitted]="interactionSubmitted()" [labels]="interactionFieldLabels" />
           <div class="field-grid">
             <label>
-              <span i18n="@@typeLabel">Tipo</span>
+              <span><span i18n="@@typeLabel">Tipo</span><kaklen-required /></span>
               <select formControlName="type">
                 <option value="NOTE" i18n="@@noteOption">Nota</option>
                 <option value="CALL" i18n="@@callOption">Llamada</option>
@@ -99,18 +101,16 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
               </select>
             </label>
             <label>
-              <span i18n="@@subjectLabel">Asunto</span>
+              <span><span i18n="@@subjectLabel">Asunto</span><kaklen-optional /></span>
               <input formControlName="subject" maxlength="160" />
             </label>
           </div>
           <label>
-            <span i18n="@@descriptionLabel">Descripción</span>
-            <textarea formControlName="description" maxlength="2000"></textarea>
-            <small *ngIf="interactionForm.controls.description.invalid && interactionForm.controls.description.touched">
-              <span i18n="@@descriptionRequired">La descripción es obligatoria.</span>
-            </small>
+            <span><span i18n="@@descriptionLabel">Descripción</span><kaklen-required /></span>
+            <textarea formControlName="description" maxlength="2000" aria-required="true" aria-describedby="interaction-description-error"></textarea>
+            <kaklen-field-error id="interaction-description-error" [control]="interactionForm.controls.description" [submitted]="interactionSubmitted()" />
           </label>
-          <button type="submit" [disabled]="loading() || interactionForm.invalid" i18n="@@addButton">Agregar</button>
+          <button type="submit" [disabled]="loading()"><kaklen-icon name="plus" /><span i18n="@@addButton">Agregar</span></button>
         </form>
       </section>
 
@@ -118,7 +118,7 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
         <div class="section-heading"><div><p class="eyebrow" i18n="@@clientHistoryEyebrow">Relación con el cliente</p><h2 i18n="@@clientTimelineTitle">Línea de tiempo</h2></div></div>
         <ol class="client-timeline" aria-label="Línea de tiempo del cliente" i18n-aria-label="@@clientTimelineAriaLabel">
           <li *ngFor="let entry of timeline()">
-            <span class="timeline-marker" aria-hidden="true">{{ timelineIcon(entry.type) }}</span>
+            <span class="timeline-marker" aria-hidden="true"><kaklen-icon [name]="timelineIcon(entry.type)" /></span>
             <div><strong>{{ timelineLabel(entry.type) }}</strong><p>{{ timelineDescription(entry) }}</p><small>{{ dateLabel(entry.occurredAt) }}<ng-container *ngIf="entry.actor"> · {{ entry.actor.name }}</ng-container><ng-container *ngIf="entry.status"> · {{ timelineStatus(entry) }}</ng-container></small></div>
             <a *ngIf="entry.resource.type !== 'client'" [routerLink]="entry.resource.route" i18n="@@openResourceAction">Abrir</a>
           </li>
@@ -143,6 +143,8 @@ export class ClientDetailComponent implements OnInit {
   readonly archiveRequested = signal(false);
   readonly client = signal<Client | null>(null);
   readonly timeline = signal<ClientTimelineItem[]>([]);
+  readonly interactionSubmitted = signal(false);
+  readonly interactionFieldLabels = { type: $localize`:@@typeLabel:Tipo`, subject: $localize`:@@subjectLabel:Asunto`, description: $localize`:@@descriptionLabel:Descripción` };
   readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
   readonly emptyNotesLabel = $localize`:@@emptyNotesLabel:Sin notas`;
   readonly emptySubjectLabel = $localize`:@@emptySubjectLabel:Sin asunto`;
@@ -155,7 +157,7 @@ export class ClientDetailComponent implements OnInit {
     subject: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
     description: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(2000)]
+      validators: [Validators.required, trimmedRequired(), Validators.maxLength(2000)]
     })
   });
   organizationId = "";
@@ -235,11 +237,11 @@ export class ClientDetailComponent implements OnInit {
     return labels[type] ?? $localize`:@@timelineResourceUpdated:Actividad actualizada`;
   }
 
-  timelineIcon(type: string): string {
-    if (type.startsWith("quotation.")) return "▤";
-    if (type.startsWith("event.")) return "□";
-    if (type.startsWith("interaction.")) return "●";
-    return "◎";
+  timelineIcon(type: string): UiIconName {
+    if (type.startsWith("quotation.")) return "file-text";
+    if (type.startsWith("event.")) return "calendar";
+    if (type.startsWith("interaction.")) return "message-circle";
+    return "user";
   }
 
   timelineDescription(entry: ClientTimelineItem): string {
@@ -264,6 +266,7 @@ export class ClientDetailComponent implements OnInit {
   }
 
   async addInteraction(): Promise<void> {
+    this.interactionSubmitted.set(true);
     this.interactionForm.markAllAsTouched();
     if (this.interactionForm.invalid) {
       return;
@@ -279,6 +282,7 @@ export class ClientDetailComponent implements OnInit {
       });
       this.notifications.success($localize`:@@interactionAddedSuccess:Interacción agregada correctamente.`);
       this.interactionForm.reset({ type: "NOTE", subject: "", description: "" });
+      this.interactionSubmitted.set(false);
       await this.loadTimeline();
     } catch (error) {
       this.notifications.fromError(error);

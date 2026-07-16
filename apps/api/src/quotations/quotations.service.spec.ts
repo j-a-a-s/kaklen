@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { CatalogItemStatus, CatalogItemType, Prisma, QuotationDiscountType, QuotationItemType, QuotationStatus } from "@prisma/client";
 import { QuotationsService } from "./quotations.service";
 
@@ -54,8 +54,26 @@ describe("QuotationsService", () => {
       item({ quantity: 3, unitPrice: 33.333, taxPercent: 19 })
     ]);
 
-    expect(result.subtotal.toFixed(2)).toBe("100.00");
+    expect(result.subtotal.toFixed(2)).toBe("99.99");
     expect(result.taxTotal.toFixed(2)).toBe("19.00");
+  });
+
+  it("applies a global discount only to lines without a specific discount", () => {
+    const result = service.calculateQuotationItems([
+      item({ unitPrice: 1000, taxPercent: 19 }),
+      item({ unitPrice: 1000, discountType: QuotationDiscountType.PERCENTAGE, discountValue: 10, taxPercent: 19 }),
+      item({ unitPrice: 1000, discountType: QuotationDiscountType.FIXED, discountValue: 50, taxPercent: 0 })
+    ], new Map(), 5);
+
+    expect(result.subtotal.toFixed(2)).toBe("3000.00");
+    expect(result.discountTotal.toFixed(2)).toBe("200.00");
+    expect(result.taxTotal.toFixed(2)).toBe("351.50");
+    expect(result.total.toFixed(2)).toBe("3151.50");
+  });
+
+  it("rejects invalid global discounts", () => {
+    expect(() => service.calculateQuotationItems([item()], new Map(), -0.01)).toThrow(BadRequestException);
+    expect(() => service.calculateQuotationItems([item()], new Map(), 100.01)).toThrow(BadRequestException);
   });
 
   it("rejects invalid date ranges", () => {
@@ -356,6 +374,146 @@ describe("QuotationsService", () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it("generates a localized real PDF for an organization-scoped quotation", async () => {
+    const prisma = makeQuotationsPrisma();
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    const document = await realService.pdfDocument("org-1", "quotation-1", "pt-BR");
+
+    expect(document.buffer.subarray(0, 4).toString()).toBe("%PDF");
+    expect(document.filename).toBe("cotacao-quo-000001-v1.pdf");
+    expect(prisma.quotation.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "quotation-1", organizationId: "org-1", archivedAt: null }
+    }));
+  });
+
+  it("sends quotation email with a PDF before marking the quotation as sent", async () => {
+    const prisma = makeQuotationsPrisma();
+    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
+    );
+
+    await realService.sendEmail("org-1", "quotation-1", "user-1", {
+      to: " CLIENTE@EXAMPLE.COM ",
+      subject: " Cotización de servicios ",
+      message: " Revisa nuestra propuesta. ",
+      locale: "es"
+    });
+
+    expect(mailService.send).toHaveBeenCalledWith(expect.objectContaining({
+      to: "cliente@example.com",
+      subject: "Cotización de servicios",
+      attachments: [expect.objectContaining({
+        filename: "cotizacion-quo-000001-v1.pdf",
+        contentType: "application/pdf",
+        content: expect.any(Buffer)
+      })]
+    }));
+    const sentMessage = mailService.send.mock.calls[0]?.[0] as { attachments?: Array<{ content: Buffer }> } | undefined;
+    const attachment = sentMessage?.attachments?.[0]?.content;
+    expect(attachment?.subarray(0, 4).toString()).toBe("%PDF");
+    expect(callData(prisma.quotation.update)).toMatchObject({ status: QuotationStatus.SENT, sentAt: expect.any(Date) });
+    expect(prisma.quotationStatusHistory.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ note: "quotation.email.sent|cliente@example.com" })
+    });
+    expect(prisma.organizationAuditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ action: "quotation.email.sent", metadata: { recipientDomain: "example.com" } })
+    });
+  });
+
+  it("does not change state or write audit history when SMTP fails", async () => {
+    const prisma = makeQuotationsPrisma();
+    const mailService = { send: jest.fn(async (_message: unknown) => { throw new Error("SMTP unavailable"); }) };
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
+    );
+
+    await expect(realService.sendEmail("org-1", "quotation-1", "user-1", {
+      to: "cliente@example.com",
+      subject: "Cotización",
+      message: "Revisa nuestra propuesta.",
+      locale: "es"
+    })).rejects.toThrow("SMTP unavailable");
+
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+    expect(prisma.quotationStatusHistory.create).not.toHaveBeenCalled();
+    expect(prisma.organizationAuditLog.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects email from a final status before contacting SMTP", async () => {
+    const prisma = makeQuotationsPrisma({ quotationStatus: QuotationStatus.APPROVED });
+    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
+    );
+
+    await expect(realService.sendEmail("org-1", "quotation-1", "user-1", {
+      to: "cliente@example.com",
+      subject: "Cotización",
+      message: "Revisa nuestra propuesta."
+    })).rejects.toBeInstanceOf(BadRequestException);
+    expect(mailService.send).not.toHaveBeenCalled();
+  });
+
+  it("reports unavailable mail delivery without writing quotation state", async () => {
+    const prisma = makeQuotationsPrisma();
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]
+    );
+
+    await expect(realService.sendEmail("org-1", "quotation-1", "user-1", {
+      to: "cliente@example.com",
+      subject: "Cotización",
+      message: "Revisa nuestra propuesta."
+    })).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+  });
+
+  it("re-sends a sent quotation without changing status and uses safe fallbacks", async () => {
+    const prisma = makeQuotationsPrisma({
+      quotation: quotation({ status: QuotationStatus.SENT, organization: null })
+    });
+    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
+    );
+
+    await realService.sendEmail("org-1", "quotation-1", "user-1", {
+      to: "local-recipient",
+      subject: "Quotation",
+      message: "Please review.",
+      locale: "en"
+    });
+
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+    expect(mailService.send).toHaveBeenCalledWith(expect.objectContaining({
+      to: "local-recipient",
+      text: expect.stringContaining("Kaklen has sent you")
+    }));
+    expect(prisma.organizationAuditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ metadata: { recipientDomain: "unknown" } })
+    });
+  });
+
+  it("rejects quotation creation when its organization no longer exists", async () => {
+    const prisma = makeQuotationsPrisma();
+    prisma.organization.findFirst.mockImplementationOnce(async () => null as never);
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.create("org-1", "user-1", {
+      clientId: "client-1",
+      issueDate: "2026-08-01",
+      validUntil: "2026-08-31",
+      items: [item()]
+    })).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.quotation.create).not.toHaveBeenCalled();
+  });
+
   it("rejects percentage discounts over one hundred percent", () => {
     expect(() =>
       service.calculateQuotationItems([
@@ -533,6 +691,7 @@ function quotation(overrides: Record<string, unknown> = {}) {
     issueDate: new Date("2026-08-01T00:00:00.000Z"),
     validUntil: new Date("2026-08-31T00:00:00.000Z"),
     currency: "CLP",
+    globalDiscountPercent: new Prisma.Decimal(0),
     subtotal: new Prisma.Decimal(1000),
     discountTotal: new Prisma.Decimal(0),
     taxTotal: new Prisma.Decimal(190),

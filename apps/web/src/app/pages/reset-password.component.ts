@@ -7,6 +7,8 @@ import { PASSWORD_MIN_LENGTH, passwordStrength, type PasswordStrength } from "@k
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
+import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface ResetPasswordForm {
   password: FormControl<string>;
@@ -18,7 +20,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
 @Component({
   selector: "kaklen-reset-password",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -38,13 +40,17 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
             </header>
 
             <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+              <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
               <label>
-                <span i18n="@@newPasswordLabel">Nueva contraseña</span>
+                <span><span i18n="@@newPasswordLabel">Nueva contraseña</span><kaklen-required /></span>
                 <span class="password-input-wrap">
                   <input
                     [type]="passwordVisible() ? 'text' : 'password'"
                     formControlName="password"
                     autocomplete="new-password"
+                    maxlength="128"
+                    aria-required="true"
+                    aria-describedby="reset-password-error password-requirements"
                   />
                   <button
                     type="button"
@@ -53,9 +59,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
                     [attr.aria-pressed]="passwordVisible()"
                   >{{ visibilityLabel() }}</button>
                 </span>
-                <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
-                  La contraseña debe tener al menos 10 caracteres.
-                </small>
+                <kaklen-field-error id="reset-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
               </label>
 
               <div class="password-strength" [attr.data-strength]="strength()" aria-live="polite">
@@ -63,18 +67,22 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
                 <strong>{{ strengthLabel() }}</strong>
                 <span class="strength-track" aria-hidden="true"><span></span></span>
               </div>
-              <p class="form-help" i18n="@@passwordRequirements">
+              <p id="password-requirements" class="form-help" i18n="@@passwordRequirements">
                 Usa al menos 10 caracteres y evita tu nombre, correo o contraseña anterior.
               </p>
 
               <label>
-                <span i18n="@@confirmNewPasswordLabel">Confirmar contraseña</span>
+                <span><span i18n="@@confirmNewPasswordLabel">Confirmar contraseña</span><kaklen-required /></span>
                 <input
                   [type]="passwordVisible() ? 'text' : 'password'"
                   formControlName="confirmPassword"
                   autocomplete="new-password"
+                  maxlength="128"
+                  aria-required="true"
+                  aria-describedby="reset-confirm-password-error"
                 />
-                <small
+                <kaklen-field-error id="reset-confirm-password-error" [control]="form.controls.confirmPassword" [submitted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
+                <small class="field-error"
                   *ngIf="form.controls.confirmPassword.touched && !passwordsMatch()"
                   i18n="@@passwordConfirmationValidation"
                 >Las contraseñas deben coincidir.</small>
@@ -82,9 +90,8 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
 
               <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>
 
-              <button type="submit" [disabled]="form.invalid || !passwordsMatch() || loading()">
-                <span>{{ submitLabel() }}</span>
-                <span aria-hidden="true">→</span>
+              <button type="submit" [disabled]="loading()">
+                <kaklen-icon name="check" /><span>{{ submitLabel() }}</span>
               </button>
             </form>
 
@@ -92,7 +99,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
           </ng-container>
 
           <div *ngSwitchCase="'success'" class="auth-result" role="status" aria-live="polite">
-            <span class="result-icon success" aria-hidden="true">✓</span>
+            <span class="result-icon success" aria-hidden="true"><kaklen-icon name="check-circle" /></span>
             <p class="eyebrow" i18n="@@resetCompleteEyebrow">Acceso recuperado</p>
             <h1 i18n="@@passwordUpdatedTitle">Contraseña actualizada</h1>
             <p i18n="@@passwordUpdatedDescription">Ya puedes iniciar sesión con tu nueva contraseña.</p>
@@ -137,6 +144,12 @@ export class ResetPasswordComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly passwordVisible = signal(false);
+  readonly submitAttempted = signal(false);
+  readonly passwordValidationLabel = $localize`:@@passwordValidation:La contraseña debe tener al menos 10 caracteres.`;
+  readonly fieldLabels = {
+    password: $localize`:@@newPasswordLabel:Nueva contraseña`,
+    confirmPassword: $localize`:@@confirmNewPasswordLabel:Confirmar contraseña`
+  };
   readonly token: string | null;
   readonly state = signal<ResetPasswordState>("missing");
   readonly form = new FormGroup<ResetPasswordForm>({
@@ -195,6 +208,7 @@ export class ResetPasswordComponent {
   }
 
   async submit(): Promise<void> {
+    this.submitAttempted.set(true);
     if (!this.token) {
       this.state.set("missing");
       return;

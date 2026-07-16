@@ -9,11 +9,13 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { NotificationService } from "../shared/notifications/notification.service";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-clients-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -27,7 +29,7 @@ import { NotificationService } from "../shared/notifications/notification.servic
           class="button-link"
           [routerLink]="['/organizations', organizationId, 'clients', 'new']"
         >
-          <span i18n="@@newClientButton">Nuevo cliente</span>
+          <kaklen-icon name="plus" /><span i18n="@@newClientButton">Nuevo cliente</span>
         </a>
       </section>
 
@@ -130,19 +132,16 @@ import { NotificationService } from "../shared/notifications/notification.servic
             >
               <span i18n="@@editLink">Editar</span>
             </a>
-            <details class="action-menu" *ngIf="canDelete() && client.status !== 'ARCHIVED'">
-              <summary aria-label="Más acciones" i18n-aria-label="@@moreActionsLabel">•••</summary>
-              <div class="action-menu-panel">
-                <button type="button" class="danger" (click)="requestArchive(client)" [disabled]="loading()" i18n="@@archiveButton">Archivar</button>
-              </div>
-            </details>
+            <kaklen-action-menu *ngIf="canDelete() && client.status !== 'ARCHIVED'" [contextKey]="organizationId" [showLabel]="false">
+              <button kaklenMenuItem type="button" class="danger" (click)="requestArchive(client)" [disabled]="loading()"><kaklen-icon name="archive" /><span i18n="@@archiveButton">Archivar</span></button>
+            </kaklen-action-menu>
           </div>
         </article>
       </section>
 
       <ng-template #emptyState>
-        <kaklen-empty-state icon="◎" [title]="clientsEmptyTitle" [description]="clientsEmptyDescription">
-          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'clients', 'new']" i18n="@@newClientButton">Nuevo cliente</a>
+        <kaklen-empty-state icon="users" [title]="clientsEmptyTitle" [description]="clientsEmptyDescription">
+          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'clients', 'new']"><kaklen-icon name="plus" /><span i18n="@@newClientButton">Nuevo cliente</span></a>
         </kaklen-empty-state>
       </ng-template>
 

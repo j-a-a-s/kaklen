@@ -48,6 +48,8 @@ import { Permission } from "./app/organizations/organization.models";
 import { NotificationContainerComponent } from "./app/shared/notifications/notification-container.component";
 import { BrandLogoComponent } from "./app/shared/brand-logo.component";
 import { CommandPaletteComponent } from "./app/shared/command-palette.component";
+import { ActionMenuComponent, ActionMenuItemDirective } from "./app/shared/action-menu.component";
+import { UiIconComponent } from "./app/shared/ui-icon.component";
 
 registerLocaleData(localeEs, "es");
 registerLocaleData(localeEn, "en");
@@ -191,7 +193,10 @@ const routes: Routes = [
     LocaleSelectorComponent,
     NotificationContainerComponent,
     BrandLogoComponent,
-    CommandPaletteComponent
+    CommandPaletteComponent,
+    ActionMenuComponent,
+    ActionMenuItemDirective,
+    UiIconComponent
   ],
   template: `
     <header class="topbar" [class.public-topbar]="!isAuthenticated()">
@@ -207,7 +212,7 @@ const routes: Routes = [
           aria-label="Abrir navegación"
           i18n-aria-label="@@openNavigationLabel"
         >
-          ☰
+          <kaklen-icon name="menu" />
         </button>
         <a class="brand" [routerLink]="isAuthenticated() ? '/dashboard' : '/login'" aria-label="Kaklen">
           <kaklen-brand-logo />
@@ -225,48 +230,39 @@ const routes: Routes = [
 
       <div *ngIf="isAuthenticated()" class="authenticated-actions">
         <kaklen-command-palette #commandPalette [organizationId]="activeOrganizationId()" />
-        <button
-          #mobileProfileButton
-          type="button"
-          class="icon-button mobile-profile-button"
-          (click)="toggleProfile()"
-          [attr.aria-expanded]="profileOpen()"
-          aria-controls="account-menu"
-          aria-label="Abrir perfil"
-          i18n-aria-label="@@openProfileLabel"
-        >
-          <span class="user-avatar" *ngIf="auth.user() as user" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
-        </button>
-        <nav
-          #profileMenu
-          id="account-menu"
-          class="topbar-actions account-menu"
-          [class.open]="profileOpen()"
-          aria-label="Cuenta"
-          i18n-aria-label="@@accountNavigationAriaLabel"
+        <kaklen-action-menu
+          class="account-action-menu"
+          [label]="openProfileLabel"
+          icon="user"
+          [showLabel]="false"
+          [triggerText]="userInitials()"
+          [contextKey]="activeOrganizationId()"
         >
           <div class="mobile-account-summary" *ngIf="auth.user() as user">
-            <span class="user-avatar" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+            <span class="user-avatar" aria-hidden="true">{{ userInitials() }}</span>
             <span><strong>{{ user.firstName }} {{ user.lastName }}</strong><small>{{ activeOrganizationName() }}</small></span>
           </div>
-          <button type="button" class="secondary mobile-account-action" (click)="openCommandPalette()" i18n="@@quickSearchLabel">Buscar o ir a...</button>
-          <a class="icon-link organizations-link" routerLink="/organizations" aria-label="Organizaciones" i18n-aria-label="@@navOrganizations" (click)="closeProfile()">
-            <span aria-hidden="true">⌂</span><span class="mobile-account-action" i18n="@@navOrganizations">Organizaciones</span>
+          <button kaklenMenuItem type="button" class="secondary mobile-account-action" (click)="openCommandPalette()">
+            <kaklen-icon name="search" /><span i18n="@@quickSearchLabel">Buscar o ir a...</span>
+          </button>
+          <a kaklenMenuItem class="secondary-link mobile-account-action" routerLink="/organizations">
+            <kaklen-icon name="building" /><span i18n="@@navOrganizations">Organizaciones</span>
           </a>
           <a
+            kaklenMenuItem
             *ngIf="activeOrganizationId() && can('organization.update')"
             class="secondary-link mobile-account-action"
             [routerLink]="['/organizations', activeOrganizationId(), 'settings']"
-            (click)="closeProfile()"
-            i18n="@@navSettings"
-          >Configuración</a>
+          ><kaklen-icon name="settings" /><span i18n="@@navSettings">Configuración</span></a>
           <span class="user-chip" *ngIf="auth.user() as user" [title]="user.firstName + ' ' + user.lastName">
-            <span class="user-avatar" aria-hidden="true">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+            <span class="user-avatar" aria-hidden="true">{{ userInitials() }}</span>
             <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
           </span>
           <kaklen-locale-selector />
-          <button type="button" class="secondary compact-button" (click)="logout()" i18n="@@logoutButton">Salir</button>
-        </nav>
+          <button kaklenMenuItem type="button" class="secondary compact-button" (click)="logout()">
+            <kaklen-icon name="arrow-left" /><span i18n="@@logoutButton">Salir</span>
+          </button>
+        </kaklen-action-menu>
       </div>
       <kaklen-locale-selector *ngIf="!isAuthenticated()" />
     </header>
@@ -295,14 +291,14 @@ const routes: Routes = [
           <span i18n="@@workspaceNavigationLabel">Espacio de trabajo</span>
         </div>
         <nav aria-label="Navegación de organización" i18n-aria-label="@@organizationNavigationAriaLabel">
-          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">⌂</span><span i18n="@@navHome">Inicio</span></a>
-          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">◎</span><span i18n="@@navClients">Clientes</span></a>
-          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">◇</span><span i18n="@@navCatalog">Productos y servicios</span></a>
-          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">▤</span><span i18n="@@navQuotations">Cotizaciones</span></a>
-          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">□</span><span i18n="@@navEvents">Eventos</span></a>
+          <a [routerLink]="['/organizations', organizationId]" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="home" /><span i18n="@@navHome">Inicio</span></a>
+          <a *ngIf="can('clients.read')" [routerLink]="['/organizations', organizationId, 'clients']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="users" /><span i18n="@@navClients">Clientes</span></a>
+          <a *ngIf="can('catalog.read')" [routerLink]="['/organizations', organizationId, 'catalog']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="package" /><span i18n="@@navCatalog">Productos y servicios</span></a>
+          <a *ngIf="can('quotations.read')" [routerLink]="['/organizations', organizationId, 'quotations']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="file-text" /><span i18n="@@navQuotations">Cotizaciones</span></a>
+          <a *ngIf="can('events.read')" [routerLink]="['/organizations', organizationId, 'events']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="calendar" /><span i18n="@@navEvents">Eventos</span></a>
           <span class="sidebar-divider" aria-hidden="true"></span>
-          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">♙</span><span i18n="@@navMembers">Miembros</span></a>
-          <a class="sidebar-settings-link" *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><span aria-hidden="true">⚙</span><span i18n="@@navSettings">Configuración</span></a>
+          <a *ngIf="can('organization.members.read')" [routerLink]="['/organizations', organizationId, 'members']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="users" /><span i18n="@@navMembers">Miembros</span></a>
+          <a class="sidebar-settings-link" *ngIf="can('organization.update')" [routerLink]="['/organizations', organizationId, 'settings']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" (click)="closeMenu()"><kaklen-icon name="settings" /><span i18n="@@navSettings">Configuración</span></a>
         </nav>
         <div class="sidebar-help">
           <span class="help-icon" aria-hidden="true">?</span>
@@ -320,11 +316,9 @@ const routes: Routes = [
 class AppComponent implements OnDestroy {
   @ViewChild("mobileMenuButton") private mobileMenuButton?: ElementRef<HTMLButtonElement>;
   @ViewChild("mobileDrawer") private mobileDrawer?: ElementRef<HTMLElement>;
-  @ViewChild("mobileProfileButton") private mobileProfileButton?: ElementRef<HTMLButtonElement>;
-  @ViewChild("profileMenu") private profileMenu?: ElementRef<HTMLElement>;
   @ViewChild("commandPalette") private commandPalette?: CommandPaletteComponent;
   readonly menuOpen = signal(false);
-  readonly profileOpen = signal(false);
+  readonly openProfileLabel = $localize`:@@openProfileLabel:Abrir perfil`;
 
   constructor(
     readonly auth: AuthService,
@@ -349,7 +343,6 @@ class AppComponent implements OnDestroy {
   }
 
   openMenu(): void {
-    this.closeProfile();
     this.menuOpen.set(true);
     document.body.classList.add("navigation-drawer-open");
     window.setTimeout(() => this.focusFirst(this.mobileDrawer?.nativeElement), 0);
@@ -363,24 +356,7 @@ class AppComponent implements OnDestroy {
     }
   }
 
-  toggleProfile(): void {
-    const next = !this.profileOpen();
-    this.closeMenu();
-    this.profileOpen.set(next);
-    if (next) {
-      window.setTimeout(() => this.focusFirst(this.profileMenu?.nativeElement), 0);
-    }
-  }
-
-  closeProfile(returnFocus = false): void {
-    this.profileOpen.set(false);
-    if (returnFocus) {
-      window.setTimeout(() => this.mobileProfileButton?.nativeElement.focus(), 0);
-    }
-  }
-
   openCommandPalette(): void {
-    this.closeProfile();
     this.commandPalette?.open();
   }
 
@@ -390,25 +366,24 @@ class AppComponent implements OnDestroy {
       if (this.menuOpen()) {
         event.preventDefault();
         this.closeMenu(true);
-      } else if (this.profileOpen()) {
-        event.preventDefault();
-        this.closeProfile(true);
       }
       return;
     }
 
     if (event.key === "Tab" && this.menuOpen()) {
       this.trapFocus(event, this.mobileDrawer?.nativeElement);
-    } else if (event.key === "Tab" && this.profileOpen()) {
-      this.trapFocus(event, this.profileMenu?.nativeElement);
     }
   }
 
   async logout(): Promise<void> {
     await this.auth.logout();
     this.closeMenu();
-    this.closeProfile();
     await this.router.navigateByUrl("/login", { replaceUrl: true });
+  }
+
+  userInitials(): string {
+    const user = this.auth.user();
+    return user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` : "";
   }
 
   ngOnDestroy(): void {

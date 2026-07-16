@@ -5,6 +5,9 @@ import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
+import { emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface RegisterForm {
   firstName: FormControl<string>;
@@ -16,7 +19,7 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -34,45 +37,37 @@ interface RegisterForm {
         </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
           <div class="field-grid">
             <label>
-              <span i18n="@@firstNameLabel">Nombre</span>
-              <input type="text" formControlName="firstName" autocomplete="given-name" />
-              <small *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid" i18n="@@firstNameValidation">
-                El nombre es obligatorio.
-              </small>
+              <span><span i18n="@@firstNameLabel">Nombre</span><kaklen-required /></span>
+              <input type="text" formControlName="firstName" autocomplete="given-name" maxlength="80" aria-describedby="register-first-name-error" />
+              <kaklen-field-error id="register-first-name-error" [control]="form.controls.firstName" [submitted]="submitAttempted()" />
             </label>
 
             <label>
-              <span i18n="@@lastNameLabel">Apellido</span>
-              <input type="text" formControlName="lastName" autocomplete="family-name" />
-              <small *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid" i18n="@@lastNameValidation">
-                El apellido es obligatorio.
-              </small>
+              <span><span i18n="@@lastNameLabel">Apellido</span><kaklen-required /></span>
+              <input type="text" formControlName="lastName" autocomplete="family-name" maxlength="80" aria-describedby="register-last-name-error" />
+              <kaklen-field-error id="register-last-name-error" [control]="form.controls.lastName" [submitted]="submitAttempted()" />
             </label>
           </div>
 
           <label>
-            <span i18n="@@emailLabel">Email</span>
-            <input type="email" formControlName="email" autocomplete="email" />
-            <small *ngIf="form.controls.email.touched && form.controls.email.invalid" i18n="@@emailValidation">
-              Ingresa un email válido.
-            </small>
+            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
+            <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="register-email-error" />
+            <kaklen-field-error id="register-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
           </label>
 
           <label>
-            <span i18n="@@passwordLabel">Contraseña</span>
-            <input type="password" formControlName="password" autocomplete="new-password" />
-            <small *ngIf="form.controls.password.touched && form.controls.password.invalid" i18n="@@passwordValidation">
-              La contraseña debe tener al menos 10 caracteres.
-            </small>
+            <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
+            <input type="password" formControlName="password" autocomplete="new-password" aria-describedby="register-password-error" />
+            <kaklen-field-error id="register-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
           </label>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
-          <button type="submit" [disabled]="form.invalid || loading()">
-            <span>{{ submitLabel() }}</span>
-            <span aria-hidden="true">→</span>
+          <button type="submit" [disabled]="loading()">
+            <kaklen-icon name="user-plus" /><span>{{ submitLabel() }}</span>
           </button>
         </form>
 
@@ -84,18 +79,26 @@ interface RegisterForm {
 export class RegisterComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly submitAttempted = signal(false);
+  readonly passwordErrorLabel = $localize`:@@passwordValidation:La contraseña debe tener al menos 10 caracteres.`;
+  readonly fieldLabels = {
+    firstName: $localize`:@@firstNameLabel:Nombre`,
+    lastName: $localize`:@@lastNameLabel:Apellido`,
+    email: $localize`:@@emailLabel:Email`,
+    password: $localize`:@@passwordLabel:Contraseña`
+  };
   readonly form = new FormGroup<RegisterForm>({
     firstName: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(80)]
+      validators: [Validators.required, trimmedRequired(), Validators.maxLength(80)]
     }),
     lastName: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(80)]
+      validators: [Validators.required, trimmedRequired(), Validators.maxLength(80)]
     }),
     email: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [emailValidator(true)]
     }),
     password: new FormControl("", {
       nonNullable: true,
@@ -109,6 +112,7 @@ export class RegisterComponent {
   ) {}
 
   async submit(): Promise<void> {
+    this.submitAttempted.set(true);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -118,7 +122,13 @@ export class RegisterComponent {
     this.error.set(null);
 
     try {
-      await this.authService.register(this.form.getRawValue());
+      const value = this.form.getRawValue();
+      await this.authService.register({
+        ...value,
+        firstName: value.firstName.trim(),
+        lastName: value.lastName.trim(),
+        email: normalizeEmail(value.email)
+      });
       await this.router.navigateByUrl("/dashboard");
     } catch {
       this.error.set($localize`:@@registerError:No fue posible crear la cuenta con esas credenciales.`);

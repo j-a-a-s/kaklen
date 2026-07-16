@@ -4,17 +4,20 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
-import { Quotation, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
+import { Quotation, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
+import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dialog.component";
 
 @Component({
   selector: "kaklen-quotation-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink, ConfirmationDialogComponent],
+  imports: [CommonModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, QuotationEmailDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="quotation() as currentQuotation">
@@ -24,20 +27,18 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
           <p>{{ currentQuotation.client.displayName }} · {{ statusLabel(currentQuotation.status) }} · {{ moneyLabel(currentQuotation.total, currentQuotation.currency) }}</p>
         </div>
         <div class="row-actions">
-          <a [routerLink]="['/organizations', organizationId, 'quotations']" i18n="@@backLink">Volver</a>
-          <a *ngIf="canUpdate() && currentQuotation.status === 'DRAFT'" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', currentQuotation.id, 'edit']" i18n="@@editLink">Editar</a>
-          <button type="button" *ngIf="canSend() && currentQuotation.status === 'DRAFT'" (click)="changeStatus('send')" i18n="@@sendQuotationButton">Enviar</button>
-          <button type="button" class="success" *ngIf="canApprove() && currentQuotation.status === 'SENT'" (click)="changeStatus('approve')" i18n="@@approveQuotationButton">Aprobar</button>
-          <button type="button" class="secondary" *ngIf="canReject() && currentQuotation.status === 'SENT'" (click)="changeStatus('reject')" i18n="@@rejectQuotationButton">Rechazar</button>
-          <details class="action-menu" *ngIf="canSend() && (currentQuotation.status === 'SENT' || currentQuotation.status === 'DRAFT')">
-            <summary i18n="@@moreActionsLabel">Más acciones</summary>
-            <div class="action-menu-panel">
-              <button type="button" class="danger" (click)="cancelRequested.set(true)" [disabled]="processing()" i18n="@@cancelDefinitelyButton">Cancelar definitivamente</button>
-            </div>
-          </details>
-          <button type="button" class="secondary" *ngIf="canUpdate() && currentQuotation.status !== 'DRAFT'" (click)="newVersion()" i18n="@@newVersionButton">Nueva versión</button>
-          <a *ngIf="currentQuotation.status === 'APPROVED'" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ quotationId: currentQuotation.id }" i18n="@@createEventButton">Crear evento</a>
-          <a class="secondary-link" [href]="pdfUrl(currentQuotation)" target="_blank" i18n="@@downloadPdfButton">Descargar PDF</a>
+          <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'quotations']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
+          <a *ngIf="canUpdate() && currentQuotation.status === 'DRAFT'" class="secondary button-link" [routerLink]="['/organizations', organizationId, 'quotations', currentQuotation.id, 'edit']"><kaklen-icon name="pencil" /><span i18n="@@editLink">Editar</span></a>
+          <button type="button" *ngIf="canSend() && currentQuotation.status === 'DRAFT'" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@sendQuotationEmailTitle">Enviar por email</span></button>
+          <button type="button" class="success" *ngIf="canApprove() && currentQuotation.status === 'SENT'" (click)="requestStatusChange('approve')" [disabled]="processing()"><kaklen-icon name="check" /><span i18n="@@approveQuotationButton">Aprobar</span></button>
+          <button type="button" class="danger" *ngIf="canReject() && currentQuotation.status === 'SENT'" (click)="requestStatusChange('reject')" [disabled]="processing()"><kaklen-icon name="x-circle" /><span i18n="@@rejectQuotationButton">Rechazar</span></button>
+          <a *ngIf="currentQuotation.status === 'APPROVED'" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ quotationId: currentQuotation.id }"><kaklen-icon name="calendar" /><span i18n="@@createEventButton">Crear evento</span></a>
+          <kaklen-action-menu [contextKey]="organizationId">
+            <button kaklenMenuItem type="button" class="secondary" (click)="downloadPdf()" [disabled]="downloadingPdf()"><kaklen-icon name="download" /><span>{{ downloadingPdf() ? preparingPdfLabel : downloadPdfLabel }}</span></button>
+            <button *ngIf="canSend() && currentQuotation.status === 'SENT'" kaklenMenuItem type="button" class="secondary" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@resendQuotationEmailButton">Reenviar por email</span></button>
+            <button *ngIf="canUpdate() && canCreateVersion(currentQuotation.status)" kaklenMenuItem type="button" class="secondary" (click)="newVersion()" [disabled]="processing()"><kaklen-icon name="copy" /><span i18n="@@newVersionButton">Nueva versión</span></button>
+            <button *ngIf="canSend() && canCancel(currentQuotation.status)" kaklenMenuItem type="button" class="danger" (click)="requestStatusChange('cancel')" [disabled]="processing()"><kaklen-icon name="x-circle" /><span i18n="@@cancelDefinitelyButton">Cancelar definitivamente</span></button>
+          </kaklen-action-menu>
         </div>
       </section>
 
@@ -49,8 +50,8 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
           <div><dt i18n="@@issueDateLabel">Fecha de emisión</dt><dd>{{ dateLabel(currentQuotation.issueDate) }}</dd></div>
           <div><dt i18n="@@validUntilLabel">Válida hasta</dt><dd>{{ dateLabel(currentQuotation.validUntil) }}</dd></div>
           <div><dt i18n="@@subtotalLabel">Subtotal</dt><dd>{{ moneyLabel(currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
-          <div><dt i18n="@@discountTotalLabel">Descuentos</dt><dd>{{ moneyLabel(currentQuotation.discountTotal, currentQuotation.currency) }}</dd></div>
-          <div><dt i18n="@@taxTotalLabel">Impuestos</dt><dd>{{ moneyLabel(currentQuotation.taxTotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@discountsTotalLabel">Descuentos</dt><dd>{{ moneyLabel(currentQuotation.discountTotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@taxesTotalLabel">Impuestos</dt><dd>{{ moneyLabel(currentQuotation.taxTotal, currentQuotation.currency) }}</dd></div>
           <div><dt i18n="@@totalLabel">Total</dt><dd>{{ moneyLabel(currentQuotation.total, currentQuotation.currency) }}</dd></div>
         </dl>
       </section>
@@ -67,19 +68,32 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 
       <section class="dashboard-panel">
         <h2 i18n="@@statusHistoryTitle">Historial</h2>
-        <article class="item-row" *ngFor="let item of history()">
-          <strong>{{ statusLabel(item.newStatus) }}</strong>
-          <small>{{ dateLabel(item.createdAt) }} · {{ item.note || emptyNoteLabel }}</small>
-        </article>
+        <ol class="quotation-history">
+          <li *ngFor="let item of history()">
+            <span class="timeline-marker" aria-hidden="true"><kaklen-icon [name]="historyIcon(item)" /></span>
+            <div><strong>{{ historyTitle(item) }}</strong><p *ngIf="historyDescription(item)">{{ historyDescription(item) }}</p><small>{{ historyDateLabel(item.createdAt) }} · {{ actorName(item) }} · {{ statusLabel(item.newStatus) }}</small></div>
+          </li>
+        </ol>
       </section>
       <kaklen-confirmation-dialog
-        [open]="cancelRequested()"
+        [open]="pendingStatusAction() !== null"
         [busy]="processing()"
-        [title]="cancelDialogTitle"
-        [description]="cancelDialogDescription"
-        [confirmLabel]="cancelDialogAction"
-        (confirm)="changeStatus('cancel')"
-        (cancel)="cancelRequested.set(false)"
+        [title]="statusDialogTitle()"
+        [description]="statusDialogDescription()"
+        [confirmLabel]="statusDialogAction()"
+        [tone]="pendingStatusAction() === 'approve' ? 'success' : 'danger'"
+        [icon]="pendingStatusAction() === 'approve' ? 'check' : 'x-circle'"
+        (confirm)="confirmStatusChange()"
+        (cancel)="pendingStatusAction.set(null)"
+      />
+      <kaklen-quotation-email-dialog
+        [open]="emailDialogOpen()"
+        [busy]="emailSending()"
+        [recipient]="quotation()?.client?.email || ''"
+        [quotationNumber]="quotationNumberLabel()"
+        [locale]="currentLocale()"
+        (sendRequested)="sendQuotationEmail($event)"
+        (cancelled)="emailDialogOpen.set(false)"
       />
     </main>
   `
@@ -89,11 +103,12 @@ export class QuotationDetailComponent implements OnInit {
   readonly history = signal<QuotationStatusHistory[]>([]);
   readonly error = signal("");
   readonly processing = signal(false);
-  readonly cancelRequested = signal(false);
-  readonly emptyNoteLabel = $localize`:@@emptyNoteLabel:Sin nota`;
-  readonly cancelDialogTitle = $localize`:@@cancelQuotationDialogTitle:Cancelar cotización`;
-  readonly cancelDialogDescription = $localize`:@@cancelQuotationDialogDescription:La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.`;
-  readonly cancelDialogAction = $localize`:@@cancelDefinitelyButton:Cancelar definitivamente`;
+  readonly downloadingPdf = signal(false);
+  readonly emailDialogOpen = signal(false);
+  readonly emailSending = signal(false);
+  readonly pendingStatusAction = signal<"approve" | "reject" | "cancel" | null>(null);
+  readonly downloadPdfLabel = $localize`:@@downloadPdfButton:Descargar PDF`;
+  readonly preparingPdfLabel = $localize`:@@preparingPdfMessage:Preparando PDF...`;
   organizationId = "";
   quotationId = "";
   private initialQuotationApproved = false;
@@ -137,8 +152,8 @@ export class QuotationDetailComponent implements OnInit {
     return this.organizationService.hasPermission("quotations.reject");
   }
 
-  async changeStatus(action: "send" | "approve" | "reject" | "cancel"): Promise<void> {
-    if (this.processing() || (action !== "cancel" && !this.confirmStatusChange(action))) {
+  async changeStatus(action: "approve" | "reject" | "cancel"): Promise<void> {
+    if (this.processing()) {
       return;
     }
     this.processing.set(true);
@@ -150,7 +165,7 @@ export class QuotationDetailComponent implements OnInit {
         this.analytics.track("first_quotation_approved", { flow: "quotation", source: "detail" });
         this.initialQuotationApproved = true;
       }
-      this.cancelRequested.set(false);
+      this.pendingStatusAction.set(null);
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
@@ -160,6 +175,8 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   async newVersion(): Promise<void> {
+    if (this.processing()) return;
+    this.processing.set(true);
     try {
       const quotation = await this.quotationsService.newVersion(this.organizationId, this.quotationId);
       this.notifications.success($localize`:@@quotationNewVersionSuccess:Nueva versión creada.`);
@@ -167,11 +184,146 @@ export class QuotationDetailComponent implements OnInit {
     } catch (error) {
       this.notifications.fromError(error);
       this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
+    } finally {
+      this.processing.set(false);
     }
   }
 
-  pdfUrl(quotation: Quotation): string {
-    return this.quotationsService.pdfUrl(this.organizationId, quotation.id, this.localeService.getLocale());
+  async downloadPdf(): Promise<void> {
+    if (this.downloadingPdf()) return;
+    this.downloadingPdf.set(true);
+    this.notifications.info($localize`:@@preparingPdfNotification:Estamos preparando tu PDF.`);
+    try {
+      const download = await this.quotationsService.downloadPdf(this.organizationId, this.quotationId, this.currentLocale());
+      if (download.blob.type && download.blob.type !== "application/pdf") {
+        throw new Error("Unexpected PDF content type");
+      }
+      const url = URL.createObjectURL(download.blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = download.filename;
+      anchor.hidden = true;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      this.notifications.success($localize`:@@pdfDownloadedSuccess:Cotización descargada.`);
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@pdfDownloadError:No pudimos generar el PDF. Intenta nuevamente.`);
+    } finally {
+      this.downloadingPdf.set(false);
+    }
+  }
+
+  openEmailDialog(): void {
+    this.emailDialogOpen.set(true);
+  }
+
+  async sendQuotationEmail(payload: QuotationEmailPayload): Promise<void> {
+    if (this.emailSending()) return;
+    this.emailSending.set(true);
+    this.error.set("");
+    try {
+      this.quotation.set(await this.quotationsService.sendEmail(this.organizationId, this.quotationId, payload));
+      this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
+      this.emailDialogOpen.set(false);
+      this.notifications.success($localize`:@@quotationEmailSentSuccess:Cotización enviada por email.`);
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@quotationEmailSendError:No pudimos enviar el correo. La cotización no cambió de estado.`);
+    } finally {
+      this.emailSending.set(false);
+    }
+  }
+
+  currentLocale(): "es" | "en" | "pt-BR" {
+    return this.localeService.getLocale();
+  }
+
+  quotationNumberLabel(): string {
+    const current = this.quotation();
+    return current ? `${current.number} v${current.version}` : "";
+  }
+
+  canCancel(status: QuotationStatus): boolean {
+    return status === "DRAFT" || status === "SENT";
+  }
+
+  canCreateVersion(status: QuotationStatus): boolean {
+    return status === "SENT" || status === "APPROVED" || status === "REJECTED" || status === "CANCELLED";
+  }
+
+  requestStatusChange(action: "approve" | "reject" | "cancel"): void {
+    this.pendingStatusAction.set(action);
+  }
+
+  confirmStatusChange(): void {
+    const action = this.pendingStatusAction();
+    if (action) void this.changeStatus(action);
+  }
+
+  statusDialogTitle(): string {
+    const action = this.pendingStatusAction();
+    if (action === "approve") return $localize`:@@approveQuotationDialogTitle:Aprobar cotización`;
+    if (action === "reject") return $localize`:@@rejectQuotationDialogTitle:Rechazar cotización`;
+    return $localize`:@@cancelQuotationDialogTitle:Cancelar cotización`;
+  }
+
+  statusDialogDescription(): string {
+    const action = this.pendingStatusAction();
+    if (action === "approve") return $localize`:@@approveQuotationDialogDescription:La cotización quedará aprobada y podrá originar un evento.`;
+    if (action === "reject") return $localize`:@@rejectQuotationDialogDescription:La cotización quedará rechazada y esta decisión se registrará en el historial.`;
+    return $localize`:@@cancelQuotationDialogDescription:La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.`;
+  }
+
+  statusDialogAction(): string {
+    const action = this.pendingStatusAction();
+    if (action === "approve") return $localize`:@@approveQuotationButton:Aprobar`;
+    if (action === "reject") return $localize`:@@rejectQuotationButton:Rechazar`;
+    return $localize`:@@cancelDefinitelyButton:Cancelar definitivamente`;
+  }
+
+  historyTitle(item: QuotationStatusHistory): string {
+    if (item.note?.startsWith("quotation.email.sent|")) return $localize`:@@historyQuotationEmailed:Cotización enviada por email`;
+    if (item.note === "quotation.version.created") return $localize`:@@historyQuotationVersionCreated:Nueva versión creada`;
+    if (item.previousStatus === null) return $localize`:@@historyQuotationCreated:Cotización creada`;
+    const labels: Partial<Record<QuotationStatus, string>> = {
+      SENT: $localize`:@@historyQuotationSent:Cotización enviada`,
+      APPROVED: $localize`:@@historyQuotationApproved:Cotización aprobada`,
+      REJECTED: $localize`:@@historyQuotationRejected:Cotización rechazada`,
+      CANCELLED: $localize`:@@historyQuotationCancelled:Cotización cancelada`
+    };
+    return labels[item.newStatus] ?? $localize`:@@historyQuotationUpdated:Cotización actualizada`;
+  }
+
+  historyDescription(item: QuotationStatusHistory): string {
+    if (item.note?.startsWith("quotation.email.sent|")) {
+      const recipient = item.note.split("|")[1] ?? "";
+      return $localize`:@@historyQuotationEmailedDescription:Enviada por correo a ${recipient}:recipientEmail:`;
+    }
+    return item.note && !item.note.startsWith("quotation.") ? item.note : "";
+  }
+
+  actorName(item: QuotationStatusHistory): string {
+    return item.changedBy
+      ? `${item.changedBy.firstName} ${item.changedBy.lastName}`.trim()
+      : $localize`:@@systemActorLabel:Sistema`;
+  }
+
+  historyIcon(item: QuotationStatusHistory): UiIconName {
+    if (item.note?.startsWith("quotation.email.sent|")) return "mail";
+    if (item.note === "quotation.version.created") return "copy";
+    if (item.newStatus === "APPROVED") return "check-circle";
+    if (item.newStatus === "REJECTED" || item.newStatus === "CANCELLED") return "x-circle";
+    return "file-text";
+  }
+
+  historyDateLabel(value: string): string {
+    return new Date(value).toLocaleString(this.organizationService.activeOrganization()?.numberFormat ?? "es", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
   }
 
   statusLabel(status: QuotationStatus): string {
@@ -181,7 +333,7 @@ export class QuotationDetailComponent implements OnInit {
       APPROVED: $localize`:@@approvedLabel:Aprobada`,
       REJECTED: $localize`:@@rejectedLabel:Rechazada`,
       EXPIRED: $localize`:@@expiredLabel:Expirada`,
-      CANCELLED: $localize`:@@cancelledLabel:Cancelada`
+      CANCELLED: $localize`:@@quotationCancelledLabel:Cancelada`
     };
     return labels[status];
   }
@@ -208,22 +360,8 @@ export class QuotationDetailComponent implements OnInit {
     }
   }
 
-  private confirmStatusChange(action: "send" | "approve" | "reject" | "cancel"): boolean {
-    if (action === "approve") {
-      return confirm($localize`:@@approveQuotationConfirm:¿Aprobar esta cotización?`);
-    }
-    if (action === "reject") {
-      return confirm($localize`:@@rejectQuotationConfirm:¿Rechazar esta cotización?`);
-    }
-    if (action === "cancel") {
-      return confirm($localize`:@@cancelQuotationConfirm:¿Cancelar esta cotización?`);
-    }
-    return true;
-  }
-
-  private statusSuccessMessage(action: "send" | "approve" | "reject" | "cancel"): string {
+  private statusSuccessMessage(action: "approve" | "reject" | "cancel"): string {
     const messages: Record<typeof action, string> = {
-      send: $localize`:@@quotationSentSuccess:Cotización enviada.`,
       approve: $localize`:@@quotationApprovedSuccess:Cotización aprobada.`,
       reject: $localize`:@@quotationRejectedSuccess:Cotización rechazada.`,
       cancel: $localize`:@@quotationCancelledSuccess:Cotización cancelada.`

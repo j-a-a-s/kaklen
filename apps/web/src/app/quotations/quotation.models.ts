@@ -31,6 +31,17 @@ export interface QuotationStatusHistory {
   newStatus: QuotationStatus;
   note: string | null;
   createdAt: string;
+  changedBy?: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface QuotationEmailPayload {
+  to: string;
+  subject: string;
+  message: string;
+  locale: "es" | "en" | "pt-BR";
 }
 
 export interface Quotation {
@@ -43,6 +54,7 @@ export interface Quotation {
   issueDate: string;
   validUntil: string;
   currency: string;
+  globalDiscountPercent: string;
   subtotal: string;
   discountTotal: string;
   taxTotal: string;
@@ -79,6 +91,7 @@ export interface QuotationPayload {
   issueDate: string;
   validUntil: string;
   currency?: string;
+  globalDiscountPercent?: number;
   notes?: string;
   terms?: string;
   items: QuotationItemPayload[];

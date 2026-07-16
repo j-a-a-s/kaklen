@@ -27,9 +27,9 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       <section class="dashboard-panel pipeline-summary" *ngIf="summary() as currentSummary">
         <div class="metrics-grid">
           <span><strong>{{ currentSummary.total }}</strong><small i18n="@@totalLabel">Total</small></span>
-          <span><strong>{{ currentSummary.draft }}</strong><small i18n="@@draftLabel">Borradores</small></span>
-          <span><strong>{{ currentSummary.sent }}</strong><small i18n="@@sentLabel">Enviadas</small></span>
-          <span><strong>{{ currentSummary.approved }}</strong><small i18n="@@approvedLabel">Aprobadas</small></span>
+          <span><strong>{{ currentSummary.draft }}</strong><small i18n="@@quotationDraftPluralLabel">Borradores</small></span>
+          <span><strong>{{ currentSummary.sent }}</strong><small i18n="@@quotationSentPluralLabel">Enviadas</small></span>
+          <span><strong>{{ currentSummary.approved }}</strong><small i18n="@@quotationApprovedPluralLabel">Aprobadas</small></span>
           <span><strong>{{ moneyLabel(currentSummary.amountApproved) }}</strong><small i18n="@@approvedAmountLabel">Monto aprobado</small></span>
         </div>
       </section>
@@ -56,7 +56,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
                 <option value="SENT" i18n="@@sentLabel">Enviada</option>
                 <option value="APPROVED" i18n="@@approvedLabel">Aprobada</option>
                 <option value="REJECTED" i18n="@@rejectedLabel">Rechazada</option>
-                <option value="CANCELLED" i18n="@@cancelledLabel">Cancelada</option>
+                <option value="CANCELLED" i18n="@@quotationCancelledLabel">Cancelada</option>
               </select>
             </label>
           <div class="row-actions filter-actions">
@@ -94,7 +94,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       </section>
 
       <ng-template #emptyState>
-        <kaklen-empty-state icon="▤" [title]="quotationsEmptyTitle" [description]="quotationsEmptyDescription">
+        <kaklen-empty-state icon="file-text" [title]="quotationsEmptyTitle" [description]="quotationsEmptyDescription">
           <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" i18n="@@newQuotationButton">Nueva cotización</a>
         </kaklen-empty-state>
       </ng-template>
@@ -170,7 +170,7 @@ export class QuotationListComponent implements OnInit {
       APPROVED: $localize`:@@approvedLabel:Aprobada`,
       REJECTED: $localize`:@@rejectedLabel:Rechazada`,
       EXPIRED: $localize`:@@expiredLabel:Expirada`,
-      CANCELLED: $localize`:@@cancelledLabel:Cancelada`
+      CANCELLED: $localize`:@@quotationCancelledLabel:Cancelada`
     };
     return labels[status];
   }

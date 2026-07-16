@@ -10,11 +10,25 @@ import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../s
 import { NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
+import {
+  emailValidator,
+  internationalPhoneValidator,
+  normalizeEmail,
+  normalizePhone,
+  trimmedRequired
+} from "../shared/forms/form-validators";
+import {
+  FieldErrorComponent,
+  FormErrorSummaryComponent,
+  OptionalFieldLabelComponent,
+  RequiredFieldIndicatorComponent
+} from "../shared/forms/form-feedback.components";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-client-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -22,7 +36,7 @@ import { ProductAnalyticsService } from "../assistant/product-analytics.service"
           <p class="eyebrow" i18n="@@crmEyebrow">CRM</p>
           <h1>{{ titleLabel() }}</h1>
         </div>
-        <a [routerLink]="['/organizations', organizationId, 'clients']" i18n="@@backLink">Volver</a>
+        <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'clients']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
       </section>
 
       <section class="dashboard-panel">
@@ -33,23 +47,20 @@ import { ProductAnalyticsService } from "../assistant/product-analytics.service"
             <li [class.active]="currentStep() === 3" [class.complete]="currentStep() > 3" [attr.aria-current]="currentStep() === 3 ? 'step' : null"><span>3</span><strong i18n="@@clientStepAddress">Dirección</strong></li>
             <li [class.active]="currentStep() === 4" [attr.aria-current]="currentStep() === 4 ? 'step' : null"><span>4</span><strong i18n="@@clientStepReview">Revisión</strong></li>
           </ol>
-          <div class="form-error-summary" *ngIf="submitAttempted() && clientForm.invalid" role="alert" tabindex="-1">
-            <strong i18n="@@formErrorSummaryTitle">Revisa los campos marcados antes de continuar.</strong>
-            <span i18n="@@formErrorSummaryHelp">Los mensajes bajo cada campo indican qué debes corregir.</span>
-          </div>
+          <kaklen-form-error-summary [form]="clientForm" [submitted]="submitAttempted()" [labels]="fieldLabels" />
 
           <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 1">
             <legend i18n="@@mainInformationSection">Información principal</legend>
             <div class="field-grid">
               <label>
-                <span><span i18n="@@typeLabel">Tipo</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
+                <span><span i18n="@@typeLabel">Tipo</span><kaklen-required /></span>
                 <select formControlName="type">
                   <option value="NATURAL_PERSON" i18n="@@naturalPersonOption">Persona natural</option>
                   <option value="LEGAL_ENTITY" i18n="@@companyOption">Empresa</option>
                 </select>
               </label>
               <label>
-                <span><span i18n="@@statusLabel">Estado</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
+                <span><span i18n="@@statusLabel">Estado</span><kaklen-required /></span>
                 <select formControlName="status">
                   <option value="LEAD" i18n="@@leadOption">Lead</option>
                   <option value="ACTIVE" i18n="@@activeOption">Activo</option>
@@ -59,26 +70,26 @@ import { ProductAnalyticsService } from "../assistant/product-analytics.service"
             </div>
             <div class="field-grid" *ngIf="clientForm.controls.type.value === 'NATURAL_PERSON'">
               <label>
-                <span><span i18n="@@firstNameLabel">Nombre</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
-                <input formControlName="firstName" maxlength="80" placeholder="Ej. Camila" i18n-placeholder="@@firstNameExample" />
-                <small class="field-error" *ngIf="showError('firstName')" i18n="@@firstNameValidation">El nombre es obligatorio.</small>
+                <span><span i18n="@@firstNameLabel">Nombre</span><kaklen-required /></span>
+                <input formControlName="firstName" maxlength="80" placeholder="Ej. Camila" i18n-placeholder="@@firstNameExample" aria-describedby="client-first-name-error" />
+                <kaklen-field-error id="client-first-name-error" [control]="clientForm.controls.firstName" [submitted]="submitAttempted()" />
               </label>
               <label>
-                <span><span i18n="@@lastNameLabel">Apellido</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
-                <input formControlName="lastName" maxlength="80" placeholder="Ej. Soto" i18n-placeholder="@@lastNameExample" />
-                <small class="field-error" *ngIf="showError('lastName')" i18n="@@lastNameValidation">El apellido es obligatorio.</small>
+                <span><span i18n="@@lastNameLabel">Apellido</span><kaklen-required /></span>
+                <input formControlName="lastName" maxlength="80" placeholder="Ej. Soto" i18n-placeholder="@@lastNameExample" aria-describedby="client-last-name-error" />
+                <kaklen-field-error id="client-last-name-error" [control]="clientForm.controls.lastName" [submitted]="submitAttempted()" />
               </label>
             </div>
             <label *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'">
-              <span><span i18n="@@legalNameLabel">Razón social</span> <small class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
-              <input formControlName="legalName" maxlength="160" placeholder="Ej. Comercial Andes SpA" i18n-placeholder="@@legalNameExample" />
-              <small class="field-error" *ngIf="showError('legalName')" i18n="@@legalNameRequired">La razón social es obligatoria.</small>
+              <span><span i18n="@@legalNameLabel">Razón social</span><kaklen-required /></span>
+              <input formControlName="legalName" maxlength="160" placeholder="Ej. Comercial Andes SpA" i18n-placeholder="@@legalNameExample" aria-describedby="client-legal-name-error" />
+              <kaklen-field-error id="client-legal-name-error" [control]="clientForm.controls.legalName" [submitted]="submitAttempted()" />
             </label>
             <label>
-              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span> <small *ngIf="clientForm.controls.type.value !== 'LEGAL_ENTITY'" i18n="@@optionalLabel">Opcional</small><small *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'" class="required-label" i18n="@@requiredLabel">Obligatorio</small></span>
-              <input formControlName="taxId" maxlength="40" (input)="formatRut()" placeholder="12.345.678-5" />
-              <small i18n="@@rutFormatHelp">Formato esperado: 12.345.678-5.</small>
-              <small class="field-error" *ngIf="clientForm.controls.taxId.hasError('chileanRut')" i18n="@@rutValidation">Ingresa un RUT válido.</small>
+              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-optional *ngIf="clientForm.controls.type.value !== 'LEGAL_ENTITY'" /><kaklen-required *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'" /></span>
+              <input formControlName="taxId" maxlength="40" (input)="formatRut()" placeholder="12.345.678-5" aria-describedby="client-tax-id-help client-tax-id-error" />
+              <small id="client-tax-id-help" i18n="@@rutFormatHelp">Formato esperado: 12.345.678-5.</small>
+              <kaklen-field-error id="client-tax-id-error" [control]="clientForm.controls.taxId" [submitted]="submitAttempted()" />
             </label>
           </fieldset>
 
@@ -86,17 +97,19 @@ import { ProductAnalyticsService } from "../assistant/product-analytics.service"
             <legend i18n="@@contactSection">Contacto</legend>
             <div class="field-grid">
               <label>
-                <span><span i18n="@@emailLabel">Email</span> <small i18n="@@optionalLabel">Opcional</small></span>
-                <input type="email" formControlName="email" placeholder="nombre@empresa.cl" />
-                <small class="field-error" *ngIf="showError('email')" i18n="@@emailValidation">Ingresa un email válido.</small>
+                <span><span i18n="@@emailLabel">Email</span><kaklen-optional /></span>
+                <input type="email" formControlName="email" maxlength="254" inputmode="email" placeholder="nombre@empresa.cl" aria-describedby="client-email-error" />
+                <kaklen-field-error id="client-email-error" [control]="clientForm.controls.email" [submitted]="submitAttempted()" />
               </label>
+              <div class="compound-form-field">
+                <label for="client-phone"><span><span i18n="@@phoneLabel">Teléfono</span><kaklen-optional /></span></label>
+                <span class="phone-control"><select formControlName="phonePrefix" aria-label="Prefijo telefónico" i18n-aria-label="@@phonePrefixLabel"><option value="+56">+56</option><option value="+54">+54</option><option value="+55">+55</option><option value="+1">+1</option></select><input id="client-phone" type="tel" inputmode="tel" formControlName="phone" maxlength="40" placeholder="9 1234 5678" aria-describedby="client-phone-error" /></span>
+                <kaklen-field-error id="client-phone-error" [control]="clientForm.controls.phone" [submitted]="submitAttempted()" />
+              </div>
               <label>
-                <span><span i18n="@@phoneLabel">Teléfono</span> <small i18n="@@optionalLabel">Opcional</small></span>
-                <span class="phone-control"><select formControlName="phonePrefix" aria-label="Prefijo telefónico" i18n-aria-label="@@phonePrefixLabel"><option value="+56">+56</option><option value="+54">+54</option><option value="+55">+55</option><option value="+1">+1</option></select><input type="tel" formControlName="phone" maxlength="40" placeholder="9 1234 5678" /></span>
-              </label>
-              <label>
-                <span><span i18n="@@whatsappLabel">WhatsApp</span> <small i18n="@@optionalLabel">Opcional</small></span>
-                <input type="tel" formControlName="whatsapp" maxlength="40" placeholder="+56 9 1234 5678" />
+                <span><span i18n="@@whatsappLabel">WhatsApp</span><kaklen-optional /></span>
+                <input type="tel" inputmode="tel" formControlName="whatsapp" maxlength="40" placeholder="+56 9 1234 5678" aria-describedby="client-whatsapp-error" />
+                <kaklen-field-error id="client-whatsapp-error" [control]="clientForm.controls.whatsapp" [submitted]="submitAttempted()" />
               </label>
             </div>
           </fieldset>
@@ -122,7 +135,7 @@ import { ProductAnalyticsService } from "../assistant/product-analytics.service"
                 </select>
               </label>
               <label>
-                <span><span i18n="@@cityLabel">Comuna o ciudad</span> <small i18n="@@optionalLabel">Opcional</small></span>
+                <span><span i18n="@@cityOrCommuneLabel">Comuna o ciudad</span> <small i18n="@@optionalLabel">Opcional</small></span>
                 <select formControlName="city">
                   <option value="" i18n="@@selectCityOption">Selecciona una comuna o ciudad</option>
                   <option *ngFor="let city of availableCities()" [value]="city">{{ city }}</option>
@@ -184,6 +197,23 @@ export class ClientFormComponent implements OnInit, OnDestroy {
   readonly companyLabel = $localize`:@@companyLabel:Empresa`;
   readonly naturalPersonLabel = $localize`:@@naturalPersonLabel:Persona natural`;
   readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
+  readonly fieldLabels = {
+    type: $localize`:@@typeLabel:Tipo`,
+    status: $localize`:@@statusLabel:Estado`,
+    firstName: $localize`:@@firstNameLabel:Nombre`,
+    lastName: $localize`:@@lastNameLabel:Apellido`,
+    legalName: $localize`:@@legalNameLabel:Razón social`,
+    taxId: $localize`:@@taxIdLabel:RUT o identificación tributaria`,
+    email: $localize`:@@emailLabel:Email`,
+    phone: $localize`:@@phoneLabel:Teléfono`,
+    whatsapp: $localize`:@@whatsappLabel:WhatsApp`,
+    country: $localize`:@@countryLabel:País`,
+    region: $localize`:@@regionLabel:Región`,
+    city: $localize`:@@cityOrCommuneLabel:Comuna o ciudad`,
+    address: $localize`:@@addressLabel:Dirección`,
+    notes: $localize`:@@notesLabel:Notas`
+  };
+  private readonly phoneCountry = signal("CL");
   readonly clientForm = new FormGroup({
     type: new FormControl<ClientType>("NATURAL_PERSON", { nonNullable: true }),
     status: new FormControl<ClientStatus>("LEAD", { nonNullable: true }),
@@ -191,10 +221,10 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     lastName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(80)] }),
     legalName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
     taxId: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), chileanRutValidator()] }),
-    email: new FormControl("", { nonNullable: true, validators: [Validators.email] }),
-    phone: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40)] }),
+    email: new FormControl("", { nonNullable: true, validators: [emailValidator()] }),
+    phone: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), internationalPhoneValidator({ country: () => this.phoneCountry() })] }),
     phonePrefix: new FormControl("+56", { nonNullable: true }),
-    whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40)] }),
+    whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), internationalPhoneValidator({ country: () => this.phoneCountry() })] }),
     country: new FormControl("CL", { nonNullable: true, validators: [Validators.maxLength(80)] }),
     region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
@@ -233,7 +263,10 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     await this.organizationService.setActiveOrganization(this.organizationId);
     this.clientForm.controls.type.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyTypeValidators());
     this.clientForm.controls.country.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.phoneCountry.set(this.clientForm.controls.country.value);
       this.clientForm.controls.taxId.updateValueAndValidity();
+      this.clientForm.controls.phone.updateValueAndValidity();
+      this.clientForm.controls.whatsapp.updateValueAndValidity();
       this.applyTypeValidators();
     });
     this.applyTypeValidators();
@@ -261,6 +294,7 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     this.applyTypeValidators();
     this.clientForm.markAllAsTouched();
     if (this.clientForm.invalid) {
+      this.focusFirstInvalid();
       return;
     }
 
@@ -300,7 +334,8 @@ export class ClientFormComponent implements OnInit, OnDestroy {
 
   nextStep(): void {
     if (!this.validateStep(this.currentStep())) {
-      this.stepError.set($localize`:@@clientStepValidationError:Completa los campos obligatorios de esta etapa para continuar.`);
+      this.stepError.set(this.stepValidationMessage(this.currentStep()));
+      this.focusFirstInvalid();
       return;
     }
     this.stepError.set("");
@@ -353,6 +388,9 @@ export class ClientFormComponent implements OnInit, OnDestroy {
         address: client.address ?? "",
         notes: client.notes ?? ""
       });
+      this.phoneCountry.set(client.country);
+      this.clientForm.controls.phone.updateValueAndValidity();
+      this.clientForm.controls.whatsapp.updateValueAndValidity();
       this.applyTypeValidators();
     } catch {
       this.error.set($localize`:@@clientLoadError:No fue posible cargar el cliente.`);
@@ -367,13 +405,13 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     const legalName = this.clientForm.controls.legalName;
 
     if (this.clientForm.controls.type.value === "NATURAL_PERSON") {
-      firstName.setValidators([Validators.required, Validators.maxLength(80)]);
-      lastName.setValidators([Validators.required, Validators.maxLength(80)]);
+      firstName.setValidators([Validators.required, trimmedRequired(), Validators.maxLength(80)]);
+      lastName.setValidators([Validators.required, trimmedRequired(), Validators.maxLength(80)]);
       legalName.setValidators([Validators.maxLength(160)]);
     } else {
       firstName.setValidators([Validators.maxLength(80)]);
       lastName.setValidators([Validators.maxLength(80)]);
-      legalName.setValidators([Validators.required, Validators.maxLength(160)]);
+      legalName.setValidators([Validators.required, trimmedRequired(), Validators.maxLength(160)]);
     }
 
     const taxId = this.clientForm.controls.taxId;
@@ -416,9 +454,9 @@ export class ClientFormComponent implements OnInit, OnDestroy {
       lastName: this.optional(value.lastName),
       legalName: this.optional(value.legalName),
       taxId: value.country.toUpperCase() === "CL" ? this.optional(normalizeChileanRut(value.taxId)) : this.optional(value.taxId),
-      email: this.optional(value.email),
+      email: this.optional(normalizeEmail(value.email)),
       phone: this.phoneValue(value.phonePrefix, value.phone),
-      whatsapp: this.optional(value.whatsapp),
+      whatsapp: this.optional(normalizePhone(value.whatsapp)),
       country: this.optional(value.country) ?? "CL",
       region: this.optional(value.region),
       city: this.optional(value.city),
@@ -440,7 +478,25 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     if (!normalized) {
       return undefined;
     }
-    return normalized.startsWith("+") ? normalized : `${prefix} ${normalized}`;
+    return normalized.startsWith("+") ? normalizePhone(normalized) : normalizePhone(`${prefix}${normalized}`);
+  }
+
+  private stepValidationMessage(step: number): string {
+    const controls = step === 1
+      ? this.identityControls()
+      : step === 2
+        ? [this.clientForm.controls.email, this.clientForm.controls.phone, this.clientForm.controls.whatsapp]
+        : [this.clientForm.controls.country, this.clientForm.controls.region, this.clientForm.controls.city, this.clientForm.controls.address, this.clientForm.controls.notes];
+    const invalidCount = controls.filter((control) => control.invalid).length;
+    return invalidCount === 1
+      ? $localize`:@@clientStepSingleValidationError:Falta completar o corregir 1 campo de esta etapa.`
+      : $localize`:@@clientStepValidationError:Falta completar o corregir ${invalidCount}:fieldCount: campos de esta etapa.`;
+  }
+
+  private focusFirstInvalid(): void {
+    window.setTimeout(() => {
+      document.querySelector<HTMLElement>(".wizard-stage input.ng-invalid, .wizard-stage select.ng-invalid, .wizard-stage textarea.ng-invalid")?.focus();
+    }, 0);
   }
 
   private optional(value: string): string | undefined {

@@ -37,7 +37,7 @@ interface OnboardingStepView {
         <a class="secondary-link" routerLink="/organizations" i18n="@@changeOrganizationButton">Cambiar organización</a>
       </section>
 
-      <kaklen-empty-state *ngIf="!loading() && !organizationId()" icon="⌂" [title]="noOrganizationTitle" [description]="noOrganizationDescription">
+      <kaklen-empty-state *ngIf="!loading() && !organizationId()" icon="building" [title]="noOrganizationTitle" [description]="noOrganizationDescription">
         <a class="button-link" routerLink="/organizations/new" i18n="@@createOrganizationLink">Crear organización</a>
       </kaklen-empty-state>
 
@@ -71,7 +71,7 @@ interface OnboardingStepView {
             <li *ngFor="let step of onboardingSteps(summary)" [class.complete]="step.completed">
               <span class="step-state" aria-hidden="true">{{ step.completed ? '✓' : step.number }}</span>
               <div><strong>{{ step.title }}</strong><p>{{ step.description }}</p></div>
-              <span *ngIf="step.completed" class="status-success" i18n="@@completedLabel">Completado</span>
+              <span *ngIf="step.completed" class="status-success" i18n="@@onboardingCompletedLabel">Completado</span>
               <a *ngIf="!step.completed" class="secondary-link" [routerLink]="step.route">{{ step.action }}</a>
             </li>
           </ol>
