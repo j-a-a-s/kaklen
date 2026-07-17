@@ -9,6 +9,7 @@ Usar este checklist antes de crear el primer tag pre-MVP. No crear tag si algun 
 - [x] API build (`pnpm --filter @kaklen/api build`)
 - [x] API start (`pnpm verify:api-start`)
 - [x] DB migrations (`pnpm db:validate`)
+- [x] clean migration rebuild (`pnpm db:verify:migrations`)
 - [x] seed (`pnpm db:seed`)
 - [x] i18n es (`pnpm --filter @kaklen/web build:es`)
 - [x] i18n en (`pnpm --filter @kaklen/web build:en`)

@@ -108,6 +108,12 @@ Para revisar solo base de datos:
 pnpm db:validate
 ```
 
+Para comprobar todo el historial en un schema temporal vacío sin modificar datos locales:
+
+```bash
+pnpm db:verify:migrations
+```
+
 Para recrear la base local de desarrollo con seed demo:
 
 ```bash

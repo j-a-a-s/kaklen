@@ -237,6 +237,12 @@ Validar conexion, schema Prisma, migraciones y tablas accesibles:
 pnpm db:validate
 ```
 
+Reconstruir todas las migraciones en un schema temporal, comprobar drift, estructura crítica y dataset demo:
+
+```bash
+pnpm db:verify:migrations
+```
+
 Aplicar seed reproducible local:
 
 ```bash
@@ -264,7 +270,7 @@ Antes de crear un tag estable ejecuta:
 pnpm release:check
 ```
 
-El comando termina con `RELEASE READY` solo si pasan secret scan, doctor, setup, DB validate, Prisma, API build, lint, tests, build, i18n, full local y E2E. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
+El comando termina con `RELEASE READY` solo si pasan secret scan, doctor, setup, validación de la base activa, reconstrucción limpia de migraciones, Prisma, API build, lint, tests, build, i18n, full local y E2E. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
 
 Para evaluar el criterio estricto 10/10:
 

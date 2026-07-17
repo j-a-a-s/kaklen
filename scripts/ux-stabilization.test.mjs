@@ -108,6 +108,7 @@ test("operational lists expose compact mobile filters and active chips", async (
 
 test("quotation creation is a four-stage validated wizard with responsive summary", async () => {
   const quotation = await source("apps/web/src/app/pages/quotation-form.component.ts");
+  const css = await source("apps/web/src/design-system.css");
   const wizardSteps = quotation.match(/readonly wizardSteps = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
   assert.equal((wizardSteps.match(/\{ id:/g) ?? []).length, 4);
   assert.match(quotation, /<kaklen-wizard-steps \[steps\]="wizardSteps"/);
@@ -119,6 +120,9 @@ test("quotation creation is a four-stage validated wizard with responsive summar
   assert.match(quotation, /discountTotal\(\)/);
   assert.match(quotation, /taxTotal\(\)/);
   assert.match(quotation, /grandTotal\(\)/);
+  assert.match(css, /\.wizard-support-row\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.wizard-support-row \.search-control\s*\{[\s\S]*grid-column: 1 \/ -1/);
+  assert.match(css, /\.wizard-support-row > \.secondary-link,[\s\S]*white-space: normal/);
 });
 
 test("destructive actions require an explicit dialog and prevent duplicate submits", async () => {

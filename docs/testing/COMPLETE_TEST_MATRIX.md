@@ -21,8 +21,9 @@
 | Responsive | component CSS/specs | 7 viewports Playwright | cero overflow horizontal |
 | Accesibilidad | componentes compartidos | `pnpm accessibility:test` | nombres, foco, teclado, landmarks |
 | DB demo | dataset unit tests | `pnpm db:verify:demo` | tenant, RUT, WhatsApp e idempotencia |
+| Migraciones limpias | núcleo del verificador | `pnpm db:verify:migrations` | 18 migraciones, schema, índices, seed y cero drift |
 | Arquitectura/seguridad | static checks | quality/release gates | sin secretos ni límites rotos |
 
 ## Gate final
 
-`pnpm quality:gate` ejecuta arquitectura, quality scan, formularios, secretos, SMTP, contratos de producto, migraciones, auth, seed idempotente, lint, tests, cobertura, build, API, tres locales, servidor i18n, E2E, accesibilidad, release y restauración demo. El único cierre válido es `QUALITY GATE PASSED`.
+`pnpm quality:gate` ejecuta arquitectura, quality scan, formularios, secretos, SMTP, contratos de producto, validación de la base activa, reconstrucción limpia de migraciones, auth, seed idempotente, lint, tests, cobertura, build, API, tres locales, servidor i18n, E2E, accesibilidad, release y restauración demo. El único cierre válido es `QUALITY GATE PASSED`.

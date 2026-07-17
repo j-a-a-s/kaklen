@@ -38,6 +38,7 @@
     "db:verify:demo": "node scripts/verify-demo.mjs",
     "db:reset:dev": "node scripts/db-reset-dev.mjs",
     "db:validate": "node scripts/db-validate.mjs",
+    "db:verify:migrations": "node scripts/verify-migrations.mjs",
     "doctor": "node scripts/doctor.mjs",
     "setup": "node scripts/init-local.mjs",
     "verify": "pnpm run doctor && pnpm lint && pnpm test && pnpm build",

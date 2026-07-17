@@ -6,6 +6,7 @@ const checks = [
   ["Doctor", "pnpm", ["run", "doctor"]],
   ["Setup", "pnpm", ["run", "setup"]],
   ["DB validate", "pnpm", ["db:validate"]],
+  ["Clean migration verification", "pnpm", ["db:verify:migrations"]],
   ["Prisma generate", "pnpm", ["prisma:generate"]],
   ["API clean", "pnpm", ["--filter", "@kaklen/api", "clean"]],
   ["API build", "pnpm", ["--filter", "@kaklen/api", "build"]],

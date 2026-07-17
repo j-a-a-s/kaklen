@@ -7,6 +7,7 @@ test("release scripts and database safety commands are wired", () => {
 
   assert.equal(packageJson.scripts["db:reset:dev"], "node scripts/db-reset-dev.mjs");
   assert.equal(packageJson.scripts["db:validate"], "node scripts/db-validate.mjs");
+  assert.equal(packageJson.scripts["db:verify:migrations"], "node scripts/verify-migrations.mjs");
   assert.equal(packageJson.scripts["security:scan"], "node scripts/scan-secrets.mjs");
   assert.equal(packageJson.scripts["security:sast"], "node scripts/static-security-scan.mjs");
   assert.equal(packageJson.scripts["security:sbom"], "node scripts/generate-sbom.mjs");
@@ -36,6 +37,7 @@ test("release check prints explicit ready or blocked state", () => {
   assert.match(script, /pnpm", \["verify:full-local"\]/);
   assert.match(script, /pnpm", \["verify:api-start"\]/);
   assert.match(script, /pnpm", \["mail:verify"\]/);
+  assert.match(script, /pnpm", \["db:verify:migrations"\]/);
 });
 
 test("strict release check blocks until coverage and AWS staging are validated", () => {

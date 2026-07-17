@@ -3300,9 +3300,20 @@ kbd {
 
 .wizard-support-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: end;
   gap: var(--space-3);
+}
+
+.wizard-support-row .search-control {
+  grid-column: 1 / -1;
+}
+
+.wizard-support-row > .secondary-link,
+.wizard-support-row > button {
+  width: 100%;
+  white-space: normal;
+  text-align: center;
 }
 
 .search-control {
