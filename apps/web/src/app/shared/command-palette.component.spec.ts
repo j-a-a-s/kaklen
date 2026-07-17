@@ -1,6 +1,7 @@
 import { fakeAsync, flushMicrotasks, tick } from "@angular/core/testing";
 import { Subject } from "rxjs";
 import { CommandPaletteComponent } from "./command-palette.component";
+import { ActionRegistryService } from "./action-registry.service";
 
 describe("CommandPaletteComponent", () => {
   const organizationId = "organization-1";
@@ -32,6 +33,7 @@ describe("CommandPaletteComponent", () => {
       { hasPermission: (permission: string) => permissions.has(permission) } as never,
       { search } as never,
       { track: analytics } as never,
+      new ActionRegistryService(),
       { events: new Subject(), navigateByUrl: routes } as never
     );
     component.organizationId = organizationId;

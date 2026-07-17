@@ -7,7 +7,7 @@ import { PASSWORD_MIN_LENGTH, passwordStrength, type PasswordStrength } from "@k
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
-import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface ResetPasswordForm {
@@ -20,7 +20,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
 @Component({
   selector: "kaklen-reset-password",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">

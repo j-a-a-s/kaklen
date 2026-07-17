@@ -54,6 +54,9 @@ export class OrganizationsService {
           timezone: dto.timezone?.trim(),
           dateFormat: dto.dateFormat,
           numberFormat: dto.numberFormat,
+          address: dto.address?.trim() || null,
+          phone: dto.phone?.trim() || null,
+          whatsapp: dto.whatsapp?.trim() || null,
           createdByUserId: userId
         }
       });
@@ -110,7 +113,10 @@ export class OrganizationsService {
           timezone: dto.timezone?.trim(),
           dateFormat: dto.dateFormat,
           numberFormat: dto.numberFormat,
-          defaultLocale: dto.defaultLocale
+          defaultLocale: dto.defaultLocale,
+          address: dto.address === undefined ? undefined : dto.address?.trim() || null,
+          phone: dto.phone === undefined ? undefined : dto.phone?.trim() || null,
+          whatsapp: dto.whatsapp === undefined ? undefined : dto.whatsapp?.trim() || null
         }
       });
       await this.audit(tx, organizationId, actorUserId, "organization.updated", "organization", organizationId);
@@ -398,6 +404,9 @@ export class OrganizationsService {
       dateFormat: organization.dateFormat,
       numberFormat: organization.numberFormat,
       defaultLocale: organization.defaultLocale,
+      address: organization.address,
+      phone: organization.phone,
+      whatsapp: organization.whatsapp,
       status: organization.status,
       createdAt: organization.createdAt.toISOString(),
       updatedAt: organization.updatedAt.toISOString()

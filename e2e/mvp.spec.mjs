@@ -16,6 +16,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   let clientId = "";
   let productId = "";
   let quotationId = "";
+  let publicToken = "";
+  let checkoutToken = "";
   let eventId = "";
 
   test.beforeAll(async ({ playwright }, testInfo) => {
@@ -146,6 +148,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       type: "LEGAL_ENTITY",
       legalName: "RUT Inválido SpA",
       taxId: "123",
+      whatsapp: "+56911111110",
       country: "CL"
     });
     expect(invalidRut.status()).toBe(400);
@@ -156,6 +159,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       firstName: "Ángela",
       lastName: "Pérez",
       email: "angela.mvp@kaklen.local",
+      taxId: "11.111.111-1",
+      whatsapp: "+56911111111",
       country: "CL"
     });
     expect(createNatural.status()).toBe(201);
@@ -166,6 +171,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       status: "ACTIVE",
       legalName: "Empresa MVP SpA",
       taxId: "12.345.678-5",
+      whatsapp: "+56911111112",
       country: "CL"
     });
     expect(createCompany.status()).toBe(201);
@@ -174,6 +180,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       type: "LEGAL_ENTITY",
       legalName: "Empresa Duplicada SpA",
       taxId: "12.345.678-5",
+      whatsapp: "+56911111113",
       country: "CL"
     });
     expect(duplicateRut.status()).toBe(409);
@@ -236,7 +243,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect((await filtered.json()).total).toBeGreaterThanOrEqual(1);
   });
 
-  test("creates, sends, approves, and versions a quotation", async () => {
+  test("completes the secure quotation, WhatsApp, payment, notification, and provider flow", async () => {
     const create = await authorizedPost(`/organizations/${organizationId}/quotations`, {
       clientId,
       issueDate: "2026-07-15",
@@ -260,21 +267,150 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     quotationId = quotation.id;
     expect(quotation.total).toBeTruthy();
 
-    const send = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/send`, {
-      note: "E2E send"
+    const link = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/public-link`, {
+      locale: "es"
     });
-    expect(send.status()).toBe(200);
-    expect((await send.json()).status).toBe("SENT");
+    expect(link.status()).toBe(201);
+    const linkBody = await link.json();
+    publicToken = linkBody.publicToken;
+    expect(publicToken).toMatch(/^[A-Za-z0-9_-]{40,80}$/);
+    expect(linkBody.url).toContain(`/es/p/quotations/${publicToken}`);
 
-    const approve = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/approve`, {
-      note: "E2E approve"
+    const publicView = await api.get(`/api/portal/quotations/${publicToken}`);
+    expect(publicView.status()).toBe(200);
+    expect(await publicView.json()).toMatchObject({
+      quotation: { version: 1, isLatestVersion: true, status: "SENT" },
+      actions: { canRequestChanges: true, canApproveAndPay: true }
     });
-    expect(approve.status()).toBe(200);
-    expect((await approve.json()).status).toBe("APPROVED");
+
+    const whatsapp = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/whatsapp/prepare`, {
+      publicToken,
+      locale: "es"
+    });
+    expect(whatsapp.status()).toBe(200);
+    const whatsappBody = await whatsapp.json();
+    expect(whatsappBody).toMatchObject({ mode: "manual", status: "PREPARED" });
+    expect(whatsappBody.waUrl).toContain("https://wa.me/56911111111?text=");
+    expect(whatsappBody.message).toContain(linkBody.url);
+    expect(whatsappBody.message).not.toContain("Ángela Pérez");
+    expect(whatsappBody.message).not.toContain(quotation.total);
+
+    const changes = await api.post(`/api/portal/quotations/${publicToken}/change-requests`, {
+      data: { comment: "Necesito ajustar la cantidad del producto.", itemIndexes: [0] }
+    });
+    expect(changes.status()).toBe(201);
+    expect((await changes.json()).status).toBe("CHANGES_REQUESTED");
 
     const version = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/new-version`, {});
     expect(version.status()).toBe(200);
-    expect((await version.json()).version).toBe(2);
+    const versionBody = await version.json();
+    expect(versionBody.version).toBe(2);
+    quotationId = versionBody.id;
+
+    const oldVersion = await api.get(`/api/portal/quotations/${publicToken}`);
+    expect(oldVersion.status()).toBe(200);
+    expect(await oldVersion.json()).toMatchObject({
+      quotation: { version: 1, latestVersion: 2, isLatestVersion: false },
+      actions: { canRequestChanges: false, canApproveAndPay: false }
+    });
+
+    const latestLink = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/public-link`, {
+      locale: "es"
+    });
+    expect(latestLink.status()).toBe(201);
+    publicToken = (await latestLink.json()).publicToken;
+
+    const idempotencyKey = crypto.randomUUID();
+    const payment = await api.post(`/api/portal/quotations/${publicToken}/payments`, {
+      data: { idempotencyKey, locale: "es" }
+    });
+    expect(payment.status()).toBe(201);
+    const paymentBody = await payment.json();
+    expect(paymentBody).toMatchObject({ status: "PENDING", currency: "CLP" });
+
+    const repeatedPayment = await api.post(`/api/portal/quotations/${publicToken}/payments`, {
+      data: { idempotencyKey, locale: "es" }
+    });
+    expect(repeatedPayment.status()).toBe(201);
+    const repeatedPaymentBody = await repeatedPayment.json();
+    expect(repeatedPaymentBody.paymentId).toBe(paymentBody.paymentId);
+    checkoutToken = new URL(repeatedPaymentBody.checkoutUrl).pathname.split("/").at(-1) ?? "";
+    expect(checkoutToken).toMatch(/^[A-Za-z0-9_-]{40,80}$/);
+
+    const checkout = await api.get(`/api/portal/payments/checkout/${checkoutToken}`);
+    expect(checkout.status()).toBe(200);
+    expect(await checkout.json()).toMatchObject({ payment: { status: "PENDING" }, sandbox: true });
+
+    const completed = await api.post(`/api/portal/payments/checkout/${checkoutToken}/complete`, {
+      data: { outcome: "PAID" }
+    });
+    expect(completed.status()).toBe(200);
+    expect((await completed.json()).status).toBe("PAID");
+
+    const paidQuotation = await authorizedGet(`/organizations/${organizationId}/quotations/${quotationId}`);
+    expect(paidQuotation.status()).toBe(200);
+    expect((await paidQuotation.json()).paidAt).toBeTruthy();
+
+    const notifications = await authorizedGet(`/organizations/${organizationId}/notifications`);
+    expect(notifications.status()).toBe(200);
+    expect((await notifications.json()).map((notification) => notification.type)).toEqual(
+      expect.arrayContaining([
+        "QUOTATION_VIEWED",
+        "QUOTATION_CHANGES_REQUESTED",
+        "QUOTATION_APPROVED",
+        "PAYMENT_STARTED",
+        "PAYMENT_CONFIRMED"
+      ])
+    );
+
+    const paidPortal = await api.get(`/api/portal/quotations/${publicToken}`);
+    expect(paidPortal.status()).toBe(200);
+    expect(await paidPortal.json()).toMatchObject({ actions: { canOfferServices: true } });
+
+    const recommendation = await api.post(`/api/portal/quotations/${publicToken}/provider-profile/recommendation-view`);
+    expect(recommendation.status()).toBe(200);
+    const provider = await api.post(`/api/portal/quotations/${publicToken}/provider-profile`, {
+      data: {
+        consent: true,
+        category: "Producción de eventos",
+        description: "Servicios profesionales de producción y coordinación de eventos.",
+        country: "CL",
+        region: "Metropolitana de Santiago",
+        city: "Santiago",
+        whatsapp: "+56911111111",
+        price: 50000,
+        currency: "CLP"
+      }
+    });
+    expect(provider.status()).toBe(201);
+    expect(await provider.json()).toMatchObject({ status: "IN_REVIEW", whatsapp: "+56911111111" });
+  });
+
+  test("renders the public quotation and payment checkout without horizontal overflow", async ({ page }) => {
+    for (const locale of ["es", "en", "pt-BR"]) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`${webBase}/${locale}/p/quotations/${publicToken}`);
+      await expect(page.locator("kaklen-public-quotation")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    }
+
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 390, height: 844 },
+      { width: 768, height: 1024 },
+      { width: 820, height: 1180 },
+      { width: 1366, height: 768 },
+      { width: 1440, height: 900 },
+      { width: 1920, height: 1080 }
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
+      await expect(page.locator("kaklen-public-quotation")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      await page.goto(`${webBase}/es/p/payments/${checkoutToken}`);
+      await expect(page.locator("kaklen-payment-checkout")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    }
   });
 
   test("creates event from approved quotation and completes operations", async () => {
@@ -375,4 +511,12 @@ async function expectRuntimeConfig(request, locale) {
   expect(body.commitSha).toBeTruthy();
   expect(body.buildTime).toBeTruthy();
   expect(body.environment).toBeTruthy();
+}
+
+async function expectNoHorizontalOverflow(page) {
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
 }

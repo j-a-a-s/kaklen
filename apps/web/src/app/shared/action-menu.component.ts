@@ -17,6 +17,10 @@ import {
 import { NavigationStart, Router } from "@angular/router";
 import { Subscription } from "rxjs";
 import { UiIconComponent, UiIconName } from "./ui-icon.component";
+import { OverlayCoordinatorService } from "./overlay-coordinator.service";
+import { KaklenTooltipDirective } from "./ui/tooltip.directive";
+
+let actionMenuSequence = 0;
 
 @Directive({
   selector: "[kaklenMenuItem]",
@@ -33,7 +37,7 @@ export class ActionMenuItemDirective {
 @Component({
   selector: "kaklen-action-menu",
   standalone: true,
-  imports: [CommonModule, UiIconComponent],
+  imports: [CommonModule, UiIconComponent, KaklenTooltipDirective],
   template: `
     <div class="shared-action-menu">
       <button
@@ -42,23 +46,26 @@ export class ActionMenuItemDirective {
         class="secondary action-menu-trigger"
         aria-haspopup="menu"
         [attr.aria-expanded]="open()"
+        [attr.aria-controls]="panelId"
         [attr.aria-label]="label"
-        [title]="label"
+        [kaklenTooltip]="label"
         (click)="toggle()"
         (keydown)="onTriggerKeydown($event)"
       >
         <span class="user-avatar" *ngIf="triggerText; else triggerIcon" aria-hidden="true">{{ triggerText }}</span>
         <ng-template #triggerIcon><kaklen-icon [name]="icon" /></ng-template>
+        <span class="action-menu-badge" *ngIf="badge" aria-hidden="true">{{ badge }}</span>
         <span *ngIf="showLabel">{{ label }}</span>
       </button>
       <div
         #panel
         *ngIf="open()"
         class="shared-action-menu-panel"
+        [class.open-above]="openAbove()"
+        [class.align-start]="alignStart()"
+        [id]="panelId"
         role="menu"
         [attr.aria-label]="label"
-        [style.top.px]="panelTop()"
-        [style.left.px]="panelLeft()"
         (click)="onPanelClick($event)"
         (keydown)="onPanelKeydown($event)"
       >
@@ -72,19 +79,22 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
   @Input() icon: UiIconName = "ellipsis";
   @Input() showLabel = true;
   @Input() triggerText = "";
+  @Input() badge = "";
   @Input() contextKey: string | null = null;
   @ViewChild("trigger") private trigger?: ElementRef<HTMLButtonElement>;
   @ViewChild("panel") private panel?: ElementRef<HTMLElement>;
   @ContentChildren(ActionMenuItemDirective, { descendants: true }) private menuItems?: QueryList<ActionMenuItemDirective>;
+  readonly panelId = `kaklen-action-menu-${++actionMenuSequence}`;
   readonly open = signal(false);
-  readonly panelTop = signal(0);
-  readonly panelLeft = signal(0);
+  readonly openAbove = signal(false);
+  readonly alignStart = signal(false);
   private activeIndex = 0;
   private readonly routeSubscription: Subscription;
   private itemsSubscription?: Subscription;
 
   constructor(
     private readonly host: ElementRef<HTMLElement>,
+    private readonly overlays: OverlayCoordinatorService,
     router: Router
   ) {
     this.routeSubscription = router.events.subscribe((event) => {
@@ -110,10 +120,11 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
   }
 
   show(focus: "first" | "last" | null = null): void {
+    this.overlays.open(this, (returnFocus) => this.close(returnFocus));
     this.open.set(true);
     this.activeIndex = focus === "last" ? Math.max(0, this.items().length - 1) : 0;
     queueMicrotask(() => {
-      this.positionPanel();
+      this.updatePlacement();
       if (focus) {
         this.focusItem(this.activeIndex);
       }
@@ -123,6 +134,7 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
   close(returnFocus = true): void {
     if (!this.open()) return;
     this.open.set(false);
+    this.overlays.closed(this);
     if (returnFocus) {
       queueMicrotask(() => this.trigger?.nativeElement.focus());
     }
@@ -175,15 +187,16 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
 
   @HostListener("window:resize")
   onViewportChange(): void {
-    if (this.open()) this.positionPanel();
+    if (this.open()) this.updatePlacement();
   }
 
   @HostListener("window:scroll")
   onWindowScroll(): void {
-    if (this.open()) this.positionPanel();
+    if (this.open()) this.updatePlacement();
   }
 
   ngOnDestroy(): void {
+    this.close(false);
     this.routeSubscription.unsubscribe();
     this.itemsSubscription?.unsubscribe();
   }
@@ -202,7 +215,7 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
     this.items()[index]?.focus();
   }
 
-  private positionPanel(): void {
+  private updatePlacement(): void {
     const trigger = this.trigger?.nativeElement;
     const panel = this.panel?.nativeElement;
     if (!trigger || !panel) return;
@@ -210,15 +223,9 @@ export class ActionMenuComponent implements AfterContentInit, OnChanges, OnDestr
     const gap = 6;
     const triggerRect = trigger.getBoundingClientRect();
     const panelRect = panel.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(margin, triggerRect.right - panelRect.width),
-      window.innerWidth - panelRect.width - margin
-    );
-    const below = triggerRect.bottom + gap;
-    const top = below + panelRect.height <= window.innerHeight - margin
-      ? below
-      : Math.max(margin, triggerRect.top - panelRect.height - gap);
-    this.panelLeft.set(left);
-    this.panelTop.set(top);
+    const roomBelow = window.innerHeight - triggerRect.bottom - gap - margin;
+    const roomAbove = triggerRect.top - gap - margin;
+    this.openAbove.set(roomBelow < panelRect.height && roomAbove > roomBelow);
+    this.alignStart.set(triggerRect.right - panelRect.width < margin);
   }
 }

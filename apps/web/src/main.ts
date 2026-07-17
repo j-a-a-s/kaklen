@@ -1,5 +1,5 @@
 import { bootstrapApplication } from "@angular/platform-browser";
-import { provideRouter, Routes, RouterOutlet, RouterLink, Router, RouterLinkActive } from "@angular/router";
+import { provideRouter, Routes, RouterOutlet, RouterLink, Router, RouterLinkActive, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import {
   Component,
@@ -9,6 +9,7 @@ import {
   LOCALE_ID,
   OnDestroy,
   ViewChild,
+  effect,
   signal
 } from "@angular/core";
 import { CommonModule, registerLocaleData } from "@angular/common";
@@ -42,6 +43,8 @@ import { EventCalendarComponent } from "./app/pages/event-calendar.component";
 import { EventDetailComponent } from "./app/pages/event-detail.component";
 import { EventFormComponent } from "./app/pages/event-form.component";
 import { EventListComponent } from "./app/pages/event-list.component";
+import { PublicQuotationComponent } from "./app/pages/public-quotation.component";
+import { PaymentCheckoutComponent } from "./app/pages/payment-checkout.component";
 import { LocaleSelectorComponent } from "./app/i18n/locale-selector.component";
 import { SupportedLocale } from "./app/i18n/locale.service";
 import { AuthService } from "./app/auth/auth.service";
@@ -52,6 +55,14 @@ import { BrandLogoComponent } from "./app/shared/brand-logo.component";
 import { CommandPaletteComponent } from "./app/shared/command-palette.component";
 import { ActionMenuComponent, ActionMenuItemDirective } from "./app/shared/action-menu.component";
 import { UiIconComponent } from "./app/shared/ui-icon.component";
+import { globalBusyInterceptor } from "./app/shared/busy/global-busy.interceptor";
+import { GlobalBusyIndicatorComponent } from "./app/shared/busy/global-busy-indicator.component";
+import { BusyOperation, GlobalBusyService } from "./app/shared/busy/global-busy.service";
+import { SessionIdleService } from "./app/session/session-idle.service";
+import { SessionIdleWarningComponent } from "./app/session/session-idle-warning.component";
+import { EffectRef } from "@angular/core";
+import { Subscription } from "rxjs";
+import { NotificationCenterComponent } from "./app/in-app-notifications/notification-center.component";
 
 registerLocaleData(localeEs, "es");
 registerLocaleData(localeEn, "en");
@@ -76,6 +87,8 @@ function resolveBootstrapLocale(): SupportedLocale {
 }
 
 const routes: Routes = [
+  { path: "p/quotations/:publicToken", component: PublicQuotationComponent },
+  { path: "p/payments/:checkoutToken", component: PaymentCheckoutComponent },
   { path: "login", component: LoginComponent },
   { path: "register", component: RegisterComponent },
   { path: "forgot-password", component: ForgotPasswordComponent },
@@ -200,7 +213,10 @@ const routes: Routes = [
     CommandPaletteComponent,
     ActionMenuComponent,
     ActionMenuItemDirective,
-    UiIconComponent
+    UiIconComponent,
+    GlobalBusyIndicatorComponent,
+    SessionIdleWarningComponent,
+    NotificationCenterComponent
   ],
   template: `
     <header class="topbar" [class.public-topbar]="!isAuthenticated()">
@@ -234,6 +250,7 @@ const routes: Routes = [
 
       <div *ngIf="isAuthenticated()" class="authenticated-actions">
         <kaklen-command-palette #commandPalette [organizationId]="activeOrganizationId()" />
+        <kaklen-notification-center [organizationId]="activeOrganizationId()" />
         <kaklen-action-menu
           class="account-action-menu"
           [label]="openProfileLabel"
@@ -315,6 +332,8 @@ const routes: Routes = [
       </main>
     </div>
     <kaklen-notification-container />
+    <kaklen-global-busy />
+    <kaklen-session-idle-warning />
   `
 })
 class AppComponent implements OnDestroy {
@@ -322,16 +341,46 @@ class AppComponent implements OnDestroy {
   @ViewChild("mobileDrawer") private mobileDrawer?: ElementRef<HTMLElement>;
   @ViewChild("commandPalette") private commandPalette?: CommandPaletteComponent;
   readonly menuOpen = signal(false);
+  readonly publicExperience = signal(false);
   readonly openProfileLabel = $localize`:@@openProfileLabel:Abrir perfil`;
+  private readonly sessionEffect: EffectRef;
+  private readonly navigationSubscription: Subscription;
+  private navigationBusy: BusyOperation | null = null;
 
   constructor(
     readonly auth: AuthService,
     private readonly organizationService: OrganizationService,
-    private readonly router: Router
-  ) {}
+    private readonly router: Router,
+    private readonly idle: SessionIdleService,
+    private readonly busy: GlobalBusyService
+  ) {
+    this.sessionEffect = effect(() => {
+      if (this.auth.user()) {
+        this.idle.start();
+      } else {
+        this.idle.stop();
+      }
+    });
+    this.navigationSubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.navigationBusy?.end();
+        this.navigationBusy = this.busy.begin();
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this.navigationBusy?.end();
+        this.navigationBusy = null;
+        if (event instanceof NavigationEnd) {
+          this.publicExperience.set(isPublicExperienceUrl(event.urlAfterRedirects));
+        }
+      }
+    });
+  }
 
   isAuthenticated(): boolean {
-    return this.auth.user() !== null;
+    return this.auth.user() !== null && !this.publicExperience();
   }
 
   activeOrganizationId(): string | null {
@@ -380,9 +429,8 @@ class AppComponent implements OnDestroy {
   }
 
   async logout(): Promise<void> {
-    await this.auth.logout();
     this.closeMenu();
-    await this.router.navigateByUrl("/login", { replaceUrl: true });
+    await this.idle.logoutNow("manual");
   }
 
   userInitials(): string {
@@ -391,6 +439,11 @@ class AppComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.sessionEffect.destroy();
+    this.navigationSubscription.unsubscribe();
+    this.navigationBusy?.end();
+    this.idle.stop();
+    this.busy.reset();
     document.body.classList.remove("navigation-drawer-open");
   }
 
@@ -429,10 +482,15 @@ class AppComponent implements OnDestroy {
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([globalBusyInterceptor, authInterceptor])),
     { provide: LOCALE_ID, useFactory: resolveBootstrapLocale },
     { provide: DEFAULT_CURRENCY_CODE, useValue: "CLP" }
   ]
 }).catch((error: unknown) => {
   console.error(error);
 });
+
+function isPublicExperienceUrl(url: string): boolean {
+  const path = url.split(/[?#]/, 1)[0];
+  return /^\/p\/(quotations|payments)\//.test(path);
+}

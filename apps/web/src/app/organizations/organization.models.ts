@@ -42,6 +42,9 @@ export interface Organization {
   dateFormat: string;
   numberFormat: string;
   defaultLocale: string;
+  address: string | null;
+  phone: string | null;
+  whatsapp: string | null;
   status: "ACTIVE" | "SUSPENDED" | "DELETED";
   createdAt: string;
   updatedAt: string;

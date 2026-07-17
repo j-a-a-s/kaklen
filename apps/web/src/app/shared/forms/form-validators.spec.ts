@@ -77,7 +77,11 @@ describe("shared form validation", () => {
     summary.submitted = true;
 
     expect(summary.visible).toBeTrue();
-    expect(summary.title).toContain("2");
+    expect(summary.title).toContain("Corrige");
     expect(summary.description).toBe("Nombre, Email");
+    expect(summary.entries.map((entry) => entry.message)).toEqual([
+      "Este campo es obligatorio.",
+      "Ingresa un correo válido, por ejemplo nombre@empresa.cl."
+    ]);
   });
 });

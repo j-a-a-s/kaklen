@@ -1,6 +1,6 @@
 import { Client } from "../clients/client.models";
 
-export type QuotationStatus = "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+export type QuotationStatus = "DRAFT" | "SENT" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "EXPIRED" | "CANCELLED";
 export type QuotationItemType = "PRODUCT" | "SERVICE" | "CUSTOM";
 export type QuotationDiscountType = "NONE" | "PERCENTAGE" | "FIXED";
 
@@ -34,7 +34,7 @@ export interface QuotationStatusHistory {
   changedBy?: {
     firstName: string;
     lastName: string;
-  };
+  } | null;
 }
 
 export interface QuotationEmailPayload {
@@ -64,6 +64,7 @@ export interface Quotation {
   approvedAt: string | null;
   rejectedAt: string | null;
   sentAt: string | null;
+  paidAt: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt: string | null;
@@ -109,6 +110,7 @@ export interface QuotationSummary {
   total: number;
   draft: number;
   sent: number;
+  changesRequested: number;
   approved: number;
   rejected: number;
   expired: number;

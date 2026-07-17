@@ -15,7 +15,7 @@ import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { calculateQuotationMoney, QuotationMoneyResult } from "@kaklen/shared";
 import { dateOrderValidator, decimalValidator, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, WizardStepIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 type ItemForm = FormGroup<{
@@ -35,7 +35,7 @@ type ItemForm = FormGroup<{
 @Component({
   selector: "kaklen-quotation-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, WizardStepIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -47,16 +47,11 @@ type ItemForm = FormGroup<{
         <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'quotations']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
       </section>
 
-      <ol class="wizard-steps" aria-label="Progreso de la cotización" i18n-aria-label="@@quotationProgressLabel">
-        <li [class.active]="currentStep() === 1" [class.complete]="currentStep() > 1" [attr.aria-current]="currentStep() === 1 ? 'step' : null"><span>1</span><strong i18n="@@quotationStepClient">Elegir cliente</strong></li>
-        <li [class.active]="currentStep() === 2" [class.complete]="currentStep() > 2" [attr.aria-current]="currentStep() === 2 ? 'step' : null"><span>2</span><strong i18n="@@quotationStepItems">Agregar productos y servicios</strong></li>
-        <li [class.active]="currentStep() === 3" [class.complete]="currentStep() > 3" [attr.aria-current]="currentStep() === 3 ? 'step' : null"><span>3</span><strong i18n="@@quotationStepAdjustments">Ajustar descuentos e impuestos</strong></li>
-        <li [class.active]="currentStep() === 4" [attr.aria-current]="currentStep() === 4 ? 'step' : null"><span>4</span><strong i18n="@@quotationStepReview">Revisar y guardar</strong></li>
-      </ol>
+      <kaklen-wizard-steps [steps]="wizardSteps" [currentStep]="currentStep()" [ariaLabel]="quotationProgressLabel" />
 
       <form class="quotation-wizard-layout" [formGroup]="form" (ngSubmit)="save()">
         <section class="dashboard-panel wizard-panel">
-          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
+          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" [fieldIds]="fieldIds" [groupErrorFields]="groupErrorFields" [messages]="fieldMessages" />
           <div *ngIf="currentStep() === 1" class="wizard-stage">
             <h2 i18n="@@quotationStepClient">Elegir cliente</h2>
             <p i18n="@@quotationClientStepHelp">Selecciona quién recibirá la propuesta y define su vigencia.</p>
@@ -88,9 +83,9 @@ type ItemForm = FormGroup<{
                 <label><span i18n="@@typeLabel">Tipo</span><select formControlName="type"><option value="PRODUCT" i18n="@@productOption">Producto</option><option value="SERVICE" i18n="@@serviceOption">Servicio</option><option value="CUSTOM" i18n="@@customOption">Personalizado</option></select></label>
                 <label><span><span i18n="@@codeLabel">Código</span><kaklen-optional /></span><input formControlName="code" maxlength="80" /></label>
                 <label><span><span i18n="@@nameLabel">Nombre</span><kaklen-required /></span><input formControlName="name" maxlength="160" /><kaklen-field-error [control]="item.controls.name" [submitted]="submitAttempted()" /></label>
-                <label><span><span i18n="@@quantityLabel">Cantidad</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="quantity" /><kaklen-field-error [control]="item.controls.quantity" [submitted]="submitAttempted()" [invalidMessage]="quantityErrorLabel" /></label>
+                <label><span><span i18n="@@quantityLabel">Cantidad</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="quantity" (input)="updateDiscountValidators(index)" /><kaklen-field-error [control]="item.controls.quantity" [submitted]="submitAttempted()" [invalidMessage]="quantityErrorLabel" /></label>
                 <label><span><span i18n="@@unitLabel">Unidad</span><kaklen-required /></span><input formControlName="unit" maxlength="40" /><kaklen-field-error [control]="item.controls.unit" [submitted]="submitAttempted()" /></label>
-                <label><span><span i18n="@@unitPriceLabel">Precio unitario</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0" step="0.01" formControlName="unitPrice" /><kaklen-field-error [control]="item.controls.unitPrice" [submitted]="submitAttempted()" [invalidMessage]="moneyErrorLabel" /></label>
+                <label><span><span i18n="@@unitPriceLabel">Precio unitario</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0" step="0.01" formControlName="unitPrice" (input)="updateDiscountValidators(index)" /><kaklen-field-error [control]="item.controls.unitPrice" [submitted]="submitAttempted()" [invalidMessage]="moneyErrorLabel" /></label>
               </div>
               <div class="row-actions"><button type="button" class="secondary" (click)="duplicateItem(index)" i18n="@@duplicateLineButton">Duplicar línea</button><button type="button" class="secondary" (click)="removeItem(index)" [disabled]="items.length === 1" i18n="@@removeButton">Quitar</button></div>
             </article>
@@ -100,8 +95,8 @@ type ItemForm = FormGroup<{
             <h2 i18n="@@quotationStepAdjustments">Ajustar descuentos e impuestos</h2>
             <p i18n="@@quotationAdjustmentsStepHelp">Revisa cada concepto y aplica solo los ajustes necesarios.</p>
             <div class="field-grid">
-              <label><span><span i18n="@@issueDateLabel">Fecha de emisión</span><kaklen-required /></span><input type="date" formControlName="issueDate" /><kaklen-field-error [control]="form.controls.issueDate" [submitted]="submitAttempted()" /></label>
-              <label><span><span i18n="@@validUntilLabel">Válida hasta</span><kaklen-required /></span><input type="date" formControlName="validUntil" /><kaklen-field-error [control]="form.controls.validUntil" [submitted]="submitAttempted()" [invalidMessage]="dateErrorLabel" /></label>
+              <label><span><span i18n="@@issueDateLabel">Fecha de emisión</span><kaklen-required /></span><input id="quotation-issue-date" type="date" formControlName="issueDate" aria-required="true" [attr.aria-invalid]="form.controls.issueDate.invalid && (form.controls.issueDate.touched || submitAttempted())" /><kaklen-field-error [control]="form.controls.issueDate" [submitted]="submitAttempted()" /></label>
+              <label><span><span i18n="@@validUntilLabel">Válida hasta</span><kaklen-required /></span><input id="quotation-valid-until" type="date" formControlName="validUntil" aria-required="true" aria-describedby="quotation-valid-until-error" [attr.aria-invalid]="dateRangeInvalid()" /><small *ngIf="dateRangeInvalid()" id="quotation-valid-until-error" class="field-error" role="alert"><kaklen-icon name="x-circle" [size]="15" /><span>{{ dateErrorLabel }}</span></small><kaklen-field-error *ngIf="!form.hasError('dateOrder')" [control]="form.controls.validUntil" [submitted]="submitAttempted()" [invalidMessage]="dateErrorLabel" /></label>
               <label><span><span i18n="@@currencyLabel">Moneda</span><kaklen-required /></span><select formControlName="currency"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
               <label><span><span i18n="@@globalDiscountLabel">Descuento global (%)</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="globalDiscountPercent" /><small i18n="@@globalDiscountHelp">Se aplica a las líneas que no tienen un descuento específico.</small><kaklen-field-error [control]="form.controls.globalDiscountPercent" [submitted]="submitAttempted()" [invalidMessage]="discountErrorLabel" /></label>
             </div>
@@ -109,14 +104,14 @@ type ItemForm = FormGroup<{
               <article class="quotation-item-editor" *ngFor="let item of items.controls; let index = index" [formGroupName]="index">
                 <div class="section-heading compact"><strong>{{ item.controls.name.value }}</strong><strong>{{ previewItemTotal(index) }}</strong></div>
                 <div class="field-grid">
-                  <label><span i18n="@@discountTypeLabel">Tipo de descuento</span><select formControlName="discountType"><option value="NONE" i18n="@@discountNoneOption">Sin descuento</option><option value="PERCENTAGE" i18n="@@discountPercentageOption">Porcentaje</option><option value="FIXED" i18n="@@discountFixedOption">Monto fijo</option></select></label>
-                  <label><span i18n="@@discountValueLabel">Descuento</span><input type="number" inputmode="decimal" min="0" step="0.01" formControlName="discountValue" /><kaklen-field-error [control]="item.controls.discountValue" [submitted]="submitAttempted()" [invalidMessage]="discountErrorLabel" /></label>
+                  <label><span i18n="@@discountTypeLabel">Tipo de descuento</span><select formControlName="discountType" (change)="onDiscountTypeChange(index)"><option value="NONE" i18n="@@discountNoneOption">Sin descuento</option><option value="PERCENTAGE" i18n="@@discountPercentageOption">Porcentaje</option><option value="FIXED" i18n="@@discountFixedOption">Monto fijo</option></select></label>
+                  <label><span i18n="@@discountValueLabel">Descuento</span><input type="number" inputmode="decimal" min="0" [attr.max]="discountMaximum(index)" step="0.01" formControlName="discountValue" [attr.aria-disabled]="item.controls.discountValue.disabled" /><kaklen-field-error [control]="item.controls.discountValue" [submitted]="submitAttempted()" [invalidMessage]="discountErrorLabel" /></label>
                   <label><span><span i18n="@@taxPercentLabel">Impuesto %</span><kaklen-required /></span><input type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="taxPercent" /><kaklen-field-error [control]="item.controls.taxPercent" [submitted]="submitAttempted()" [invalidMessage]="taxErrorLabel" /></label>
                 </div>
               </article>
             </ng-container>
-            <label><span i18n="@@termsLabel">Términos</span><textarea formControlName="terms" placeholder="Forma de pago, plazos y condiciones" i18n-placeholder="@@termsExample"></textarea></label>
-            <label><span i18n="@@notesLabel">Notas</span><textarea formControlName="notes" placeholder="Información útil para el cliente" i18n-placeholder="@@quotationNotesExample"></textarea></label>
+            <label><span i18n="@@termsLabel">Términos</span><textarea formControlName="terms" maxlength="2000" placeholder="Forma de pago, plazos y condiciones" i18n-placeholder="@@termsExample"></textarea></label>
+            <label><span i18n="@@notesLabel">Notas</span><textarea formControlName="notes" maxlength="2000" placeholder="Información útil para el cliente" i18n-placeholder="@@quotationNotesExample"></textarea></label>
           </div>
 
           <div *ngIf="currentStep() === 4" class="wizard-stage">
@@ -165,11 +160,24 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   readonly discountErrorLabel = $localize`:@@discountValidation:El descuento debe estar entre 0 y 100 cuando es porcentual.`;
   readonly taxErrorLabel = $localize`:@@taxValidation:El impuesto debe estar entre 0 y 100 y tener máximo 2 decimales.`;
   readonly dateErrorLabel = $localize`:@@quotationDateValidation:La fecha válida hasta debe ser posterior o igual a la fecha de emisión.`;
+  readonly quotationProgressLabel = $localize`:@@quotationProgressLabel:Progreso de la cotización`;
+  readonly wizardSteps = [
+    { id: "client", label: $localize`:@@quotationStepClient:Elegir cliente` },
+    { id: "items", label: $localize`:@@quotationStepItems:Agregar productos y servicios` },
+    { id: "adjustments", label: $localize`:@@quotationStepAdjustments:Ajustar descuentos e impuestos` },
+    { id: "review", label: $localize`:@@quotationStepReview:Revisar y guardar` }
+  ] as const;
   readonly fieldLabels = {
     clientId: $localize`:@@clientLabel:Cliente`, issueDate: $localize`:@@issueDateLabel:Fecha de emisión`,
     validUntil: $localize`:@@validUntilLabel:Válida hasta`, currency: $localize`:@@currencyLabel:Moneda`,
     globalDiscountPercent: $localize`:@@globalDiscountLabel:Descuento global (%)`, items: $localize`:@@itemsLabel:Ítems`
   };
+  readonly fieldIds = {
+    issueDate: "quotation-issue-date",
+    validUntil: "quotation-valid-until"
+  };
+  readonly groupErrorFields = { dateOrder: "validUntil" };
+  readonly fieldMessages = { validUntil: this.dateErrorLabel };
   readonly form = new FormGroup({
     clientId: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     issueDate: new FormControl(new Date().toISOString().slice(0, 10), { nonNullable: true, validators: [Validators.required] }),
@@ -318,6 +326,44 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
     this.items.removeAt(index);
   }
 
+  onDiscountTypeChange(index: number): void {
+    const item = this.items.at(index);
+    if (item.controls.discountType.value === "NONE") {
+      item.controls.discountValue.setValue(0);
+    }
+    this.updateDiscountValidators(index);
+  }
+
+  updateDiscountValidators(index: number): void {
+    const item = this.items.at(index);
+    const control = item.controls.discountValue;
+    const type = item.controls.discountType.value;
+    if (type === "NONE") {
+      control.setValue(0, { emitEvent: false });
+      control.disable({ emitEvent: false });
+      return;
+    }
+    control.enable({ emitEvent: false });
+    control.setValidators([
+      decimalValidator(0, type === "PERCENTAGE" ? 100 : this.discountMaximum(index), 2)
+    ]);
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  discountMaximum(index: number): number {
+    const item = this.items.at(index).getRawValue();
+    return item.discountType === "PERCENTAGE"
+      ? 100
+      : Math.max(0, Number(item.quantity) * Number(item.unitPrice));
+  }
+
+  dateRangeInvalid(): boolean {
+    return Boolean(
+      this.form.hasError("dateOrder") &&
+      (this.form.controls.validUntil.touched || this.submitAttempted())
+    );
+  }
+
   applyCatalogItem(index: number): void {
     const control = this.items.at(index);
     const catalogItem = this.catalogItems().find((item) => item.id === control.controls.catalogItemId.value);
@@ -389,7 +435,7 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   }
 
   private createItem(value?: Partial<QuotationItemPayload>): ItemForm {
-    return new FormGroup({
+    const item = new FormGroup({
       catalogItemId: new FormControl(value?.catalogItemId ?? "", { nonNullable: true }),
       type: new FormControl(value?.type ?? "CUSTOM", { nonNullable: true }),
       code: new FormControl(value?.code ?? "", { nonNullable: true }),
@@ -402,6 +448,11 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       discountValue: new FormControl(value?.discountValue ?? 0, { nonNullable: true, validators: [decimalValidator(0, 99_999_999_999.99, 2)] }),
       taxPercent: new FormControl(value?.taxPercent ?? 0, { nonNullable: true, validators: [decimalValidator(0, 100, 2)] })
     });
+    if (item.controls.discountType.value === "NONE") {
+      item.controls.discountValue.setValue(0, { emitEvent: false });
+      item.controls.discountValue.disable({ emitEvent: false });
+    }
+    return item;
   }
 
   private mapItem(item: ReturnType<ItemForm["getRawValue"]>): QuotationItemPayload {
@@ -447,9 +498,10 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
     }
 
     if (step === 3) {
+      this.items.controls.forEach((_item, index) => this.updateDiscountValidators(index));
       const controls = [this.form.controls.issueDate, this.form.controls.validUntil, this.form.controls.currency, this.form.controls.globalDiscountPercent, ...this.items.controls.flatMap((item) => [item.controls.discountValue, item.controls.taxPercent])];
       controls.forEach((control) => control.markAsTouched());
-      return controls.every((control) => control.valid) && this.form.controls.validUntil.value >= this.form.controls.issueDate.value && this.items.controls.every((item) => {
+      return controls.every((control) => control.disabled || control.valid) && this.form.controls.validUntil.value >= this.form.controls.issueDate.value && this.items.controls.every((item) => {
         const value = item.getRawValue();
         return value.discountType !== "PERCENTAGE" || value.discountValue <= 100;
       });
@@ -484,20 +536,21 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
         this.form.controls.globalDiscountPercent.value
       );
     } catch {
-      const zero = { subtotal: "0.00", discountTotal: "0.00", taxableBase: "0.00", taxTotal: "0.00", total: "0.00" };
+      const zero = {
+        subtotal: "0.00",
+        lineDiscountTotal: "0.00",
+        globalDiscountTotal: "0.00",
+        discountTotal: "0.00",
+        taxableBase: "0.00",
+        taxTotal: "0.00",
+        total: "0.00"
+      };
       return { ...zero, lines: this.items.controls.map(() => ({ ...zero })) };
     }
   }
 
   private stepValidationMessage(step: number): string {
-    const invalidCount = step === 1
-      ? Number(this.form.controls.clientId.invalid)
-      : step === 2
-        ? this.items.controls.flatMap((item) => [item.controls.name, item.controls.quantity, item.controls.unit, item.controls.unitPrice]).filter((control) => control.invalid).length
-        : [this.form.controls.issueDate, this.form.controls.validUntil, this.form.controls.currency, this.form.controls.globalDiscountPercent, ...this.items.controls.flatMap((item) => [item.controls.discountValue, item.controls.taxPercent])].filter((control) => control.invalid).length + (this.form.hasError("dateOrder") ? 1 : 0);
-    return invalidCount === 1
-      ? $localize`:@@quotationStepSingleValidationError:Falta completar o corregir 1 campo de esta etapa.`
-      : $localize`:@@quotationStepValidationError:Falta completar o corregir ${invalidCount}:fieldCount: campos de esta etapa.`;
+    return $localize`:@@quotationStepValidationError:No puedes continuar. Corrige los campos marcados en esta etapa.`;
   }
 
   private focusFirstInvalid(): void {

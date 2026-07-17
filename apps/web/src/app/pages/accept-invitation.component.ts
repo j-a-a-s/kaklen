@@ -4,13 +4,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { Router } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-accept-invitation",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">

@@ -20,7 +20,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow" i18n="@@crmEyebrow">CRM</p>
+          <p class="eyebrow" i18n="@@clientsEyebrow">Relaciones</p>
           <h1 i18n="@@clientsTitle">Clientes</h1>
           <p i18n="@@clientsDescription">Gestiona personas, empresas e interacciones por organización.</p>
         </div>
@@ -53,11 +53,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
       </section>
 
       <section class="dashboard-panel filters-panel">
-        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+        <form class="filters-form" role="search" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
+              <input type="search" formControlName="search" maxlength="200" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="client-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@moreFiltersButton">Más filtros</span>
@@ -68,7 +68,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div id="client-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
-              <input type="search" formControlName="city" />
+              <input type="search" formControlName="city" maxlength="120" />
             </label>
             <label>
               <span i18n="@@typeLabel">Tipo</span>
@@ -82,7 +82,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <span i18n="@@statusLabel">Estado</span>
               <select formControlName="status">
                 <option value="" i18n="@@allOption">Todos</option>
-                <option value="LEAD" i18n="@@leadOption">Lead</option>
+                <option value="LEAD" i18n="@@leadOption">Prospecto</option>
                 <option value="ACTIVE" i18n="@@activeOption">Activo</option>
                 <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
                 <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>

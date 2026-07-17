@@ -45,6 +45,15 @@ describe("ActionMenuComponent", () => {
     expect(panel()).toBeNull();
   });
 
+  it("links the trigger to its menu and keeps placement anchored", () => {
+    const button = trigger();
+    button.click();
+    fixture.detectChanges();
+    const currentPanel = panel();
+    expect(button.getAttribute("aria-controls")).toBe(currentPanel?.id ?? null);
+    expect(getComputedStyle(currentPanel as HTMLElement).position).toBe("absolute");
+  });
+
   it("supports arrow navigation, Escape, and focus return", async () => {
     const button = trigger();
     button.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));

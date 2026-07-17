@@ -362,7 +362,7 @@ function buildClients(definition, organizationIndex, organizationId, userId, bas
       taxId: createChileanRut(taxBody),
       email: `cliente.${definition.key}.${String(clientIndex + 1).padStart(2, "0")}@demo.kaklen.local`,
       phone,
-      whatsapp: clientIndex % 2 === 0 ? phone : null,
+      whatsapp: phone,
       country: "CL",
       region: "Metropolitana de Santiago",
       city: clientDefinition.city,

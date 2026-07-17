@@ -16,6 +16,7 @@ import { QuotationEmailPayload } from "./quotation.models";
 import { emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
 import {
   FieldErrorComponent,
+  FormControlA11yDirective,
   FormErrorSummaryComponent,
   RequiredFieldIndicatorComponent
 } from "../shared/forms/form-feedback.components";
@@ -28,6 +29,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
     CommonModule,
     ReactiveFormsModule,
     FieldErrorComponent,
+    FormControlA11yDirective,
     FormErrorSummaryComponent,
     RequiredFieldIndicatorComponent,
     UiIconComponent

@@ -129,6 +129,7 @@ export class MailService implements OnModuleDestroy {
   async sendPasswordResetEmail(
     request: PasswordResetEmailRequest
   ): Promise<MailDeliveryReceipt> {
+    this.assertAuthEmailEnabled();
     const locale = normalizeNotificationLocale(request.locale);
     let content: ReturnType<typeof renderPasswordResetEmail>;
     try {
@@ -173,6 +174,7 @@ export class MailService implements OnModuleDestroy {
   async sendEmailVerification(
     request: EmailVerificationRequest
   ): Promise<MailDeliveryReceipt> {
+    this.assertAuthEmailEnabled();
     const locale = normalizeNotificationLocale(request.locale);
     let content: ReturnType<typeof renderEmailVerificationEmail>;
     try {
@@ -215,6 +217,13 @@ export class MailService implements OnModuleDestroy {
   }
 
   async send(message: MailMessage): Promise<MailDeliveryReceipt> {
+    if (message.mailType === "quotation" && !this.config.commercialEmailEnabled) {
+      throw new MailDeliveryError(
+        "COMMERCIAL_EMAIL_DISABLED",
+        "validation",
+        "Commercial email delivery is disabled"
+      );
+    }
     const recipient = normalizeRecipient(message.to);
     try {
       if (!isEmail(recipient)) {
@@ -246,6 +255,20 @@ export class MailService implements OnModuleDestroy {
   onModuleDestroy(): void {
     if (typeof this.transporter.close === "function") {
       this.transporter.close();
+    }
+  }
+
+  isCommercialEmailEnabled(): boolean {
+    return this.config.commercialEmailEnabled;
+  }
+
+  private assertAuthEmailEnabled(): void {
+    if (!this.config.authEmailEnabled) {
+      throw new MailDeliveryError(
+        "AUTH_EMAIL_DISABLED",
+        "validation",
+        "Authentication email delivery is disabled"
+      );
     }
   }
 

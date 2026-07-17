@@ -17,12 +17,12 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent } from "../shared/ui-icon.component";
 import { atLeastOneValidator, decimalValidator, emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-event-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
   template: `
     <main class="dashboard-shell" *ngIf="event() as item">
       <section class="dashboard-header">

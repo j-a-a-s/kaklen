@@ -86,6 +86,9 @@ export class OrganizationService {
       dateFormat?: string;
       numberFormat?: string;
       defaultLocale?: string;
+      address?: string | null;
+      phone?: string | null;
+      whatsapp?: string | null;
     }
   ): Promise<Organization> {
     return firstValueFrom(

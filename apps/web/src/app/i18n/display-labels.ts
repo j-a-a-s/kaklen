@@ -27,6 +27,7 @@ export function quotationStatusLabel(status: QuotationStatus): string {
   const labels: Record<QuotationStatus, string> = {
     DRAFT: $localize`:@@draftLabel:Borrador`,
     SENT: $localize`:@@sentLabel:Enviada`,
+    CHANGES_REQUESTED: $localize`:@@changesRequestedLabel:Cambios solicitados`,
     APPROVED: $localize`:@@approvedLabel:Aprobada`,
     REJECTED: $localize`:@@rejectedLabel:Rechazada`,
     EXPIRED: $localize`:@@expiredLabel:Expirada`,

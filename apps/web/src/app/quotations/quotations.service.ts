@@ -18,6 +18,23 @@ export interface QuotationPdfDownload {
   filename: string;
 }
 
+export interface QuotationPublicLink {
+  id: string;
+  expiresAt: string;
+  publicToken: string;
+  path: string;
+  url: string;
+}
+
+export interface PreparedWhatsApp {
+  id: string;
+  mode: "manual" | "provider";
+  status: "PREPARED" | "SENT";
+  message: string;
+  publicUrl: string;
+  waUrl?: string;
+}
+
 @Injectable({ providedIn: "root" })
 export class QuotationsService {
   constructor(private readonly http: HttpClient) {}
@@ -130,6 +147,31 @@ export class QuotationsService {
         { withCredentials: true }
       )
     );
+  }
+
+  createPublicLink(
+    organizationId: string,
+    quotationId: string,
+    locale: "es" | "en" | "pt-BR"
+  ): Promise<QuotationPublicLink> {
+    return firstValueFrom(this.http.post<QuotationPublicLink>(
+      `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/public-link`,
+      { expiresInHours: 168, locale },
+      { withCredentials: true }
+    ));
+  }
+
+  prepareWhatsApp(
+    organizationId: string,
+    quotationId: string,
+    publicToken: string,
+    locale: "es" | "en" | "pt-BR"
+  ): Promise<PreparedWhatsApp> {
+    return firstValueFrom(this.http.post<PreparedWhatsApp>(
+      `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/whatsapp/prepare`,
+      { publicToken, locale },
+      { withCredentials: true }
+    ));
   }
 
   private responseFilename(response: HttpResponse<Blob>, fallback: string): string {

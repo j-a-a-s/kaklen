@@ -1,6 +1,6 @@
 # Coverage Report
 
-Fecha: 2026-07-15
+Fecha: 2026-07-17
 
 Comandos principales:
 
@@ -9,7 +9,24 @@ pnpm test:coverage
 pnpm test:mutation:critical
 ```
 
-## Resultado Final
+## Estabilización integral de producto
+
+La entrega iniciada en `1581565` aumentó el universo instrumentado con portal público,
+pagos sandbox, perfiles de proveedor, WhatsApp y notificaciones internas. La comparación
+se realiza contra la medición tomada antes de modificar código y registrada en
+`docs/quality/STABILIZATION_BASELINE.md`.
+
+| Métrica | Baseline estabilización | Final estabilización | Cubiertos / total |
+| --- | ---: | ---: | ---: |
+| Statements | 96.69% | 96.94% | 2985 / 3079 |
+| Branches | 85.18% | 85.23% | 1218 / 1429 |
+| Functions | 93.59% | 93.71% | 611 / 652 |
+| Lines | 96.95% | 97.20% | 2819 / 2900 |
+
+Resultado: 46 suites y 341 pruebas API aprobadas. Ninguna métrica quedó bajo el
+baseline, aun cuando la entrega incorporó nuevos módulos de negocio completos.
+
+## Resultado histórico de ampliación de cobertura
 
 | Metrica | Baseline | Final | Umbral |
 | --- | ---: | ---: | ---: |

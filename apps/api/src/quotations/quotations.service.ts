@@ -23,13 +23,14 @@ import {
   SendQuotationEmailDto,
   UpdateQuotationDto
 } from "./dto/quotation.dto";
-import { createSimplePdf } from "./pdf";
+import { QuotationDocumentService } from "./quotation-document.service";
 
 type QuotationWithDetails = Quotation & {
   client: Client;
   items: QuotationItem[];
   history?: QuotationStatusHistory[];
   organization?: Organization;
+  createdBy?: { firstName: string; lastName: string };
 };
 
 interface CalculatedItem {
@@ -71,6 +72,7 @@ export interface QuotationSummary {
   total: number;
   draft: number;
   sent: number;
+  changesRequested: number;
   approved: number;
   rejected: number;
   expired: number;
@@ -84,14 +86,15 @@ export interface QuotationPdfDocument {
 }
 
 export type QuotationHistoryView = QuotationStatusHistory & {
-  changedBy: Pick<Prisma.UserGetPayload<object>, "firstName" | "lastName">;
+  changedBy: Pick<Prisma.UserGetPayload<object>, "firstName" | "lastName"> | null;
 };
 
 @Injectable()
 export class QuotationsService {
   constructor(
     private readonly prisma: PrismaService,
-    @Optional() private readonly mailService?: MailService
+    @Optional() private readonly mailService?: MailService,
+    @Optional() private readonly quotationDocumentService?: QuotationDocumentService
   ) {}
 
   async create(organizationId: string, userId: string, dto: CreateQuotationDto): Promise<QuotationWithDetails> {
@@ -165,6 +168,7 @@ export class QuotationsService {
       total: grouped.reduce((sum, item) => sum + (typeof item._count === "object" ? item._count._all ?? 0 : 0), 0),
       draft: count(QuotationStatus.DRAFT),
       sent: count(QuotationStatus.SENT),
+      changesRequested: count(QuotationStatus.CHANGES_REQUESTED),
       approved: count(QuotationStatus.APPROVED),
       rejected: count(QuotationStatus.REJECTED),
       expired: count(QuotationStatus.EXPIRED),
@@ -270,6 +274,7 @@ export class QuotationsService {
       QuotationStatus.APPROVED,
       QuotationStatus.REJECTED,
       QuotationStatus.SENT,
+      QuotationStatus.CHANGES_REQUESTED,
       QuotationStatus.CANCELLED
     ];
     if (!versionableStatuses.includes(existing.status)) {
@@ -351,11 +356,14 @@ export class QuotationsService {
     dto: SendQuotationEmailDto
   ): Promise<QuotationWithDetails> {
     const quotation = await this.findQuotation(organizationId, quotationId, this.prisma, true);
+    if (!this.mailService?.isCommercialEmailEnabled()) {
+      throw new ServiceUnavailableException({
+        code: "COMMERCIAL_EMAIL_DISABLED",
+        message: "Commercial email delivery is disabled"
+      });
+    }
     if (quotation.status !== QuotationStatus.DRAFT && quotation.status !== QuotationStatus.SENT) {
       throw new BadRequestException("Quotation cannot be emailed from its current status");
-    }
-    if (!this.mailService) {
-      throw new ServiceUnavailableException("Mail service is not available");
     }
     const locale = normalizeNotificationLocale(dto.locale);
     const document = this.renderPdfDocument(quotation, locale);
@@ -401,22 +409,8 @@ export class QuotationsService {
 
   private renderPdfDocument(quotation: QuotationWithDetails, locale: string): QuotationPdfDocument {
     const language = normalizeNotificationLocale(locale);
-    const labels = pdfLabels(language);
-    const buffer = createSimplePdf([
-      { text: quotation.organization?.name ?? "Kaklen", size: 16 },
-      { text: `${labels.quotation}: ${quotation.number} v${quotation.version}`, size: 14 },
-      { text: `${labels.client}: ${quotation.client.displayName}` },
-      { text: `${labels.issueDate}: ${quotation.issueDate.toISOString().slice(0, 10)}` },
-      { text: `${labels.validUntil}: ${quotation.validUntil.toISOString().slice(0, 10)}` },
-      { text: `${labels.items}:` },
-      ...quotation.items.map((item) => ({ text: `- ${item.name} ${item.quantity.toString()} x ${item.unitPrice.toFixed(2)} = ${item.total.toFixed(2)}` })),
-      { text: `${labels.subtotal}: ${quotation.currency} ${quotation.subtotal.toFixed(2)}` },
-      { text: `${labels.discount}: ${quotation.currency} ${quotation.discountTotal.toFixed(2)}` },
-      { text: `${labels.tax}: ${quotation.currency} ${quotation.taxTotal.toFixed(2)}` },
-      { text: `${labels.total}: ${quotation.currency} ${quotation.total.toFixed(2)}`, size: 14 },
-      ...(quotation.notes ? [{ text: `${labels.notes}: ${quotation.notes}` }] : []),
-      ...(quotation.terms ? [{ text: `${labels.terms}: ${quotation.terms}` }] : [])
-    ]);
+    const service = this.quotationDocumentService ?? new QuotationDocumentService();
+    const buffer = service.render(service.buildViewModel(quotation, language));
     const prefix = language === "en" ? "quotation" : language === "pt-BR" ? "cotacao" : "cotizacion";
     const safeNumber = quotation.number.toLowerCase().replace(/[^a-z0-9-]/g, "-");
     return { buffer, filename: `${prefix}-${safeNumber}-v${quotation.version}.pdf` };
@@ -427,7 +421,36 @@ export class QuotationsService {
     catalogItems = new Map<string, CatalogItem>(),
     globalDiscountPercent: QuotationDecimalInput = 0
   ): CalculatedTotals {
-    const calculatedItems = items.map((item, index) => this.calculateItem(item, index, catalogItems.get(item.catalogItemId ?? ""), globalDiscountPercent));
+    const resolvedItems = items.map((item, index) => {
+      const catalogItem = catalogItems.get(item.catalogItemId ?? "");
+      const quantity = new Prisma.Decimal(item.quantity);
+      const unitPrice = new Prisma.Decimal(catalogItem?.price ?? item.unitPrice);
+      const discountType = item.discountType ?? QuotationDiscountType.NONE;
+      const discountValue = new Prisma.Decimal(item.discountValue ?? 0);
+      const taxPercent = new Prisma.Decimal(catalogItem?.taxPercent ?? item.taxPercent);
+      return { item, index, catalogItem, quantity, unitPrice, discountType, discountValue, taxPercent };
+    });
+    let calculatedAmounts: QuotationMoneyAmounts[];
+    try {
+      calculatedAmounts = calculateQuotationMoney(
+        resolvedItems.map((resolved) => ({
+          quantity: resolved.quantity.toString(),
+          unitPrice: resolved.unitPrice.toString(),
+          discountType: resolved.discountType,
+          discountValue: resolved.discountValue.toString(),
+          taxPercent: resolved.taxPercent.toString()
+        })),
+        globalDiscountPercent
+      ).lines;
+    } catch (error) {
+      throw new BadRequestException({
+        code: "QUOTATION_AMOUNTS_INVALID",
+        message: error instanceof Error ? error.message : "Invalid quotation amounts"
+      });
+    }
+    const calculatedItems = resolvedItems.map((resolved) =>
+      this.mapCalculatedItem(resolved, calculatedAmounts[resolved.index])
+    );
     return {
       items: calculatedItems,
       subtotal: this.sum(calculatedItems.map((item) => item.subtotal)),
@@ -453,29 +476,20 @@ export class QuotationsService {
     return this.calculateQuotationItems(items, new Map(catalogItems.map((item) => [item.id, item])), globalDiscountPercent);
   }
 
-  private calculateItem(
-    item: QuotationItemInputDto,
-    index: number,
-    catalogItem: CatalogItem | undefined,
-    globalDiscountPercent: QuotationDecimalInput
+  private mapCalculatedItem(
+    resolved: {
+      item: QuotationItemInputDto;
+      index: number;
+      catalogItem: CatalogItem | undefined;
+      quantity: Prisma.Decimal;
+      unitPrice: Prisma.Decimal;
+      discountType: QuotationDiscountType;
+      discountValue: Prisma.Decimal;
+      taxPercent: Prisma.Decimal;
+    },
+    amounts: QuotationMoneyAmounts
   ): CalculatedItem {
-    const quantity = new Prisma.Decimal(item.quantity);
-    const unitPrice = new Prisma.Decimal(catalogItem?.price ?? item.unitPrice);
-    const discountType = item.discountType ?? QuotationDiscountType.NONE;
-    const discountValue = new Prisma.Decimal(item.discountValue ?? 0);
-    const taxPercent = new Prisma.Decimal(catalogItem?.taxPercent ?? item.taxPercent);
-    let amounts: QuotationMoneyAmounts;
-    try {
-      amounts = calculateQuotationMoney([{
-        quantity: quantity.toString(),
-        unitPrice: unitPrice.toString(),
-        discountType,
-        discountValue: discountValue.toString(),
-        taxPercent: taxPercent.toString()
-      }], globalDiscountPercent).lines[0];
-    } catch (error) {
-      throw new BadRequestException(error instanceof Error ? error.message : "Invalid quotation amounts");
-    }
+    const { item, index, catalogItem, quantity, unitPrice, discountType, discountValue, taxPercent } = resolved;
     return {
       catalogItemId: catalogItem?.id ?? item.catalogItemId ?? null,
       type: catalogItem ? (catalogItem.type as unknown as QuotationItemType) : item.type,
@@ -525,6 +539,7 @@ export class QuotationsService {
     const allowed: Record<QuotationStatus, QuotationStatus[]> = {
       DRAFT: [QuotationStatus.SENT, QuotationStatus.CANCELLED],
       SENT: [QuotationStatus.APPROVED, QuotationStatus.REJECTED, QuotationStatus.CANCELLED, QuotationStatus.DRAFT],
+      CHANGES_REQUESTED: [QuotationStatus.DRAFT, QuotationStatus.CANCELLED],
       APPROVED: [],
       REJECTED: [],
       EXPIRED: [],
@@ -590,6 +605,7 @@ export class QuotationsService {
       include: {
         client: true,
         organization: includeOrganization,
+        createdBy: includeOrganization ? { select: { firstName: true, lastName: true } } : false,
         items: { orderBy: { sortOrder: "asc" } },
         history: { orderBy: { createdAt: "asc" } }
       }
@@ -613,7 +629,7 @@ export class QuotationsService {
     quotationId: string,
     previousStatus: QuotationStatus | null,
     newStatus: QuotationStatus,
-    changedByUserId: string,
+    changedByUserId: string | null,
     note?: string
   ): Promise<QuotationStatusHistory> {
     return tx.quotationStatusHistory.create({
@@ -646,50 +662,4 @@ export class QuotationsService {
     const cleaned = value?.trim();
     return cleaned ? cleaned : null;
   }
-}
-
-function pdfLabels(locale: string): Record<string, string> {
-  if (locale === "en") {
-    return {
-      quotation: "Quotation",
-      client: "Client",
-      issueDate: "Issue date",
-      validUntil: "Valid until",
-      items: "Items",
-      subtotal: "Subtotal",
-      discount: "Discount",
-      tax: "Tax",
-      total: "Total",
-      notes: "Notes",
-      terms: "Terms"
-    };
-  }
-  if (locale === "pt-BR") {
-    return {
-      quotation: "Cotação",
-      client: "Cliente",
-      issueDate: "Data de emissão",
-      validUntil: "Válida até",
-      items: "Itens",
-      subtotal: "Subtotal",
-      discount: "Desconto",
-      tax: "Imposto",
-      total: "Total",
-      notes: "Notas",
-      terms: "Termos"
-    };
-  }
-  return {
-    quotation: "Cotización",
-    client: "Cliente",
-    issueDate: "Fecha de emisión",
-    validUntil: "Válida hasta",
-    items: "Ítems",
-    subtotal: "Subtotal",
-    discount: "Descuento",
-    tax: "Impuesto",
-    total: "Total",
-    notes: "Notas",
-    terms: "Términos"
-  };
 }

@@ -40,8 +40,17 @@ export interface PasswordRecoveryConfig {
   mailConnectionTimeoutMs: number;
   mailGreetingTimeoutMs: number;
   mailSocketTimeoutMs: number;
+  authEmailEnabled: boolean;
+  commercialEmailEnabled: boolean;
   mailUser?: string;
   mailPassword?: string;
+}
+
+export interface ProductIntegrationsConfig {
+  whatsappMode: "manual" | "provider";
+  whatsappHashSecret: string;
+  paymentGateway: "sandbox";
+  paymentSandboxSecret: string;
 }
 
 const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
@@ -153,6 +162,16 @@ export function readPasswordRecoveryConfig(
   );
   const mailUser = optionalString(env.MAIL_USER);
   const mailPassword = optionalString(env.MAIL_PASSWORD);
+  const authEmailEnabled = parseStrictBoolean(
+    env.AUTH_EMAIL_ENABLED,
+    true,
+    "AUTH_EMAIL_ENABLED"
+  );
+  const commercialEmailEnabled = parseStrictBoolean(
+    env.COMMERCIAL_EMAIL_ENABLED,
+    false,
+    "COMMERCIAL_EMAIL_ENABLED"
+  );
 
   if (!Number.isInteger(expiresMinutes) || expiresMinutes <= 0 || expiresMinutes > 1440) {
     throw new Error("PASSWORD_RESET_EXPIRES_MINUTES must be an integer between 1 and 1440");
@@ -195,8 +214,50 @@ export function readPasswordRecoveryConfig(
     mailConnectionTimeoutMs,
     mailGreetingTimeoutMs,
     mailSocketTimeoutMs,
+    authEmailEnabled,
+    commercialEmailEnabled,
     ...(mailUser ? { mailUser } : {}),
     ...(mailPassword ? { mailPassword } : {})
+  };
+}
+
+export function readProductIntegrationsConfig(
+  env: Record<string, string | undefined>
+): ProductIntegrationsConfig {
+  const nodeEnv = parseNodeEnv(env.NODE_ENV);
+  const whatsappMode = env.WHATSAPP_MODE ?? "manual";
+  const paymentGateway = env.PAYMENT_GATEWAY ?? "sandbox";
+  const whatsappHashSecret = requireString(
+    env,
+    "WHATSAPP_HASH_SECRET",
+    nodeEnv === "production",
+    "local-whatsapp-hash-secret-change-me"
+  );
+  const paymentSandboxSecret = requireString(
+    env,
+    "PAYMENT_SANDBOX_SECRET",
+    nodeEnv === "production",
+    "local-payment-sandbox-secret-change-me"
+  );
+
+  if (whatsappMode !== "manual" && whatsappMode !== "provider") {
+    throw new Error("WHATSAPP_MODE must be manual or provider");
+  }
+  if (paymentGateway !== "sandbox") {
+    throw new Error("PAYMENT_GATEWAY must be sandbox until a production provider is configured");
+  }
+  if (whatsappHashSecret.length < 32) {
+    throw new Error("WHATSAPP_HASH_SECRET must be at least 32 characters");
+  }
+  if (paymentSandboxSecret.length < 32) {
+    throw new Error("PAYMENT_SANDBOX_SECRET must be at least 32 characters");
+  }
+
+  return {
+    whatsappMode,
+    whatsappHashSecret,
+    paymentGateway,
+    paymentSandboxSecret
   };
 }
 

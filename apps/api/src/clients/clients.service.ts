@@ -2,6 +2,11 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Client, ClientInteraction, ClientStatus, ClientType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { isValidChileanRut, normalizeChileanRut } from "../common/validation/chilean-rut";
+import {
+  countryBusinessPolicy,
+  isValidCountryPhone,
+  normalizeInternationalPhone
+} from "@kaklen/shared";
 import { CreateClientDto, CreateClientInteractionDto, ListClientsQueryDto, UpdateClientDto } from "./dto/client.dto";
 
 interface ClientInput {
@@ -204,6 +209,7 @@ export class ClientsService {
     const lastName = this.clean(dto.lastName);
     const legalName = this.clean(dto.legalName);
     const country = this.clean(dto.country) ?? "CL";
+    const policy = countryBusinessPolicy(country);
 
     if (type === ClientType.NATURAL_PERSON && (!firstName || !lastName)) {
       throw new BadRequestException("Persona natural requiere nombre y apellido");
@@ -213,8 +219,20 @@ export class ClientsService {
       throw new BadRequestException("Persona juridica requiere razon social");
     }
 
-    if (type === ClientType.LEGAL_ENTITY && country.toUpperCase() === "CL" && !this.clean(dto.taxId)) {
-      throw new BadRequestException({ code: "RUT_REQUIRED", message: "Chilean companies require a RUT" });
+    if (policy.taxIdRequired && !this.clean(dto.taxId)) {
+      throw new BadRequestException({ code: "RUT_REQUIRED", message: "Chilean clients require a RUT" });
+    }
+    if (policy.whatsappRequired && !this.clean(dto.whatsapp)) {
+      throw new BadRequestException({ code: "WHATSAPP_REQUIRED", message: "Chilean clients require WhatsApp" });
+    }
+    if (policy.country === "CL" && this.clean(dto.taxId) && !isValidChileanRut(this.clean(dto.taxId) ?? "")) {
+      throw new BadRequestException({ code: "RUT_INVALID", message: "RUT is invalid" });
+    }
+    if (this.clean(dto.whatsapp) && !isValidCountryPhone(dto.whatsapp, policy.country)) {
+      throw new BadRequestException({ code: "WHATSAPP_INVALID", message: "WhatsApp number is invalid" });
+    }
+    if (this.clean(dto.phone) && !isValidCountryPhone(dto.phone, policy.country)) {
+      throw new BadRequestException({ code: "PHONE_INVALID", message: "Phone number is invalid" });
     }
 
     return {
@@ -227,9 +245,9 @@ export class ClientsService {
       legalName: type === ClientType.LEGAL_ENTITY ? legalName : null,
       taxId: this.cleanTaxId(dto.taxId),
       email: this.clean(dto.email)?.toLowerCase() ?? null,
-      phone: this.clean(dto.phone),
-      whatsapp: this.clean(dto.whatsapp),
-      country,
+      phone: this.cleanPhone(dto.phone),
+      whatsapp: this.cleanPhone(dto.whatsapp),
+      country: policy.country,
       region: this.clean(dto.region),
       city: this.clean(dto.city),
       address: this.clean(dto.address),
@@ -295,6 +313,11 @@ export class ClientsService {
       return null;
     }
     return isValidChileanRut(cleaned) ? normalizeChileanRut(cleaned) : cleaned;
+  }
+
+  private cleanPhone(value: string | null | undefined): string | null {
+    const normalized = normalizeInternationalPhone(value);
+    return normalized || null;
   }
 
   private audit(

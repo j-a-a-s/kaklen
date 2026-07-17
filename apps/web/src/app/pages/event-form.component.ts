@@ -14,13 +14,13 @@ import { QuotationsService } from "../quotations/quotations.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { dateOrderValidator, decimalValidator, emailValidator, internationalPhoneValidator, normalizeEmail, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-event-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell guided-event-shell">
       <section class="dashboard-header"><div><p class="eyebrow" i18n="@@eventsEyebrow">Eventos</p><h1>{{ eventId ? editTitle : createTitle }}</h1><p i18n="@@eventFormDescription">Define lo esencial ahora y completa la operación después.</p></div></section>
@@ -42,7 +42,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <label><span><span i18n="@@nameLabel">Nombre</span><kaklen-required /></span><input formControlName="name" maxlength="160" placeholder="Ej. Lanzamiento de temporada" i18n-placeholder="@@eventNameExample" aria-describedby="event-name-error" /><kaklen-field-error id="event-name-error" [control]="form.controls.name" [submitted]="submitAttempted()" /></label>
             <label><span i18n="@@clientLabel">Cliente</span><select formControlName="clientId"><option value="" i18n="@@noClientLabel">Sin cliente</option><option *ngFor="let client of clients()" [value]="client.id">{{ client.displayName }}</option></select></label>
           </div>
-          <label><span i18n="@@descriptionLabel">Descripción</span><textarea formControlName="description" rows="3" placeholder="Objetivo y alcance principal" i18n-placeholder="@@eventDescriptionExample"></textarea></label>
+          <label><span i18n="@@descriptionLabel">Descripción</span><textarea formControlName="description" rows="3" maxlength="2000" placeholder="Objetivo y alcance principal" i18n-placeholder="@@eventDescriptionExample"></textarea></label>
         </section>
 
         <section class="wizard-stage" *ngIf="eventId || currentStep() === 2">
@@ -51,21 +51,21 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <label><span><span i18n="@@startAtLabel">Inicio</span><kaklen-required /></span><input type="datetime-local" formControlName="startAt" aria-describedby="event-start-error" /><kaklen-field-error id="event-start-error" [control]="form.controls.startAt" [submitted]="submitAttempted()" /></label>
             <label><span><span i18n="@@endAtLabel">Término</span><kaklen-required /></span><input type="datetime-local" formControlName="endAt" aria-describedby="event-end-error" /><kaklen-field-error id="event-end-error" [control]="form.controls.endAt" [submitted]="submitAttempted()" [invalidMessage]="dateErrorLabel" /></label>
             <label><span><span i18n="@@timezoneLabel">Zona horaria</span><kaklen-required /></span><select formControlName="timezone"><option value="America/Santiago" i18n="@@timezoneSantiagoLabel">Santiago, Chile</option><option value="America/Sao_Paulo" i18n="@@timezoneSaoPauloLabel">São Paulo, Brasil</option><option value="America/New_York" i18n="@@timezoneNewYorkLabel">Nueva York, Estados Unidos</option><option value="UTC" i18n="@@timezoneUtcLabel">Tiempo universal (UTC)</option></select></label>
-            <label><span i18n="@@venueNameLabel">Lugar</span><input formControlName="venueName" placeholder="Ej. Centro de eventos" i18n-placeholder="@@venueExample" /></label>
-            <label><span i18n="@@addressLabel">Dirección</span><input formControlName="address" /></label>
-            <label><span i18n="@@cityLabel">Ciudad</span><input formControlName="city" /></label>
-            <label><span i18n="@@regionLabel">Región</span><input formControlName="region" /></label>
+            <label><span i18n="@@venueNameLabel">Lugar</span><input formControlName="venueName" maxlength="160" placeholder="Ej. Centro de eventos" i18n-placeholder="@@venueExample" /></label>
+            <label><span i18n="@@addressLabel">Dirección</span><input formControlName="address" maxlength="240" /></label>
+            <label><span i18n="@@cityLabel">Ciudad</span><input formControlName="city" maxlength="120" /></label>
+            <label><span i18n="@@regionLabel">Región</span><input formControlName="region" maxlength="120" /></label>
           </div>
         </section>
 
         <section class="wizard-stage" *ngIf="eventId || currentStep() === 3">
           <h2 i18n="@@eventStepTeamResources">Equipo y recursos</h2><p i18n="@@eventStepTeamResourcesHelp">Estos datos son opcionales. Podrás agregar más participantes y recursos desde el evento.</p>
           <div class="field-grid">
-            <label><span i18n="@@contactNameLabel">Contacto principal</span><input formControlName="contactName" /></label>
+            <label><span i18n="@@contactNameLabel">Contacto principal</span><input formControlName="contactName" maxlength="160" /></label>
             <label><span><span i18n="@@contactEmailLabel">Email contacto</span><kaklen-optional /></span><input type="email" inputmode="email" maxlength="254" formControlName="contactEmail" aria-describedby="event-email-error" /><kaklen-field-error id="event-email-error" [control]="form.controls.contactEmail" [submitted]="submitAttempted()" /></label>
             <label><span><span i18n="@@contactPhoneLabel">Teléfono contacto</span><kaklen-optional /></span><input type="tel" inputmode="tel" maxlength="40" formControlName="contactPhone" aria-describedby="event-phone-error" /><kaklen-field-error id="event-phone-error" [control]="form.controls.contactPhone" [submitted]="submitAttempted()" /></label>
-            <label><span i18n="@@initialParticipantLabel">Participante inicial</span><input formControlName="initialParticipant" placeholder="Nombre del participante" i18n-placeholder="@@participantNameExample" /></label>
-            <label><span i18n="@@initialResourceLabel">Recurso inicial</span><input formControlName="initialResource" placeholder="Ej. Equipo de sonido" i18n-placeholder="@@resourceNameExample" /></label>
+            <label><span i18n="@@initialParticipantLabel">Participante inicial</span><input formControlName="initialParticipant" maxlength="160" placeholder="Nombre del participante" i18n-placeholder="@@participantNameExample" /></label>
+            <label><span i18n="@@initialResourceLabel">Recurso inicial</span><input formControlName="initialResource" maxlength="160" placeholder="Ej. Equipo de sonido" i18n-placeholder="@@resourceNameExample" /></label>
             <label><span i18n="@@resourceQuantityLabel">Cantidad del recurso</span><input type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="resourceQuantity" /><kaklen-field-error [control]="form.controls.resourceQuantity" [submitted]="submitAttempted()" [invalidMessage]="quantityErrorLabel" /></label>
             <label><span i18n="@@currencyLabel">Moneda</span><select formControlName="currency"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
             <label><span><span i18n="@@budgetLabel">Presupuesto</span><kaklen-optional /></span><input type="number" inputmode="decimal" min="0" step="0.01" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [submitted]="submitAttempted()" [invalidMessage]="budgetErrorLabel" /></label>
@@ -74,8 +74,8 @@ import { UiIconComponent } from "../shared/ui-icon.component";
 
         <section class="wizard-stage" *ngIf="eventId || currentStep() === 4">
           <h2 i18n="@@eventStepTasks">Tareas iniciales</h2><p i18n="@@eventStepTasksHelp">Puedes guardar sin tareas y agregarlas cuando planifiques la ejecución.</p>
-          <div class="field-grid"><label><span i18n="@@initialTaskLabel">Primera tarea</span><input formControlName="initialTask" placeholder="Ej. Confirmar proveedores" i18n-placeholder="@@initialTaskExample" /></label><label><span i18n="@@priorityLabel">Prioridad</span><select formControlName="initialTaskPriority"><option value="LOW" i18n="@@priorityLow">Baja</option><option value="MEDIUM" i18n="@@priorityMedium">Media</option><option value="HIGH" i18n="@@priorityHigh">Alta</option><option value="URGENT" i18n="@@priorityUrgent">Urgente</option></select></label></div>
-          <label><span i18n="@@notesLabel">Notas</span><textarea formControlName="notes" rows="3"></textarea></label>
+          <div class="field-grid"><label><span i18n="@@initialTaskLabel">Primera tarea</span><input formControlName="initialTask" maxlength="160" placeholder="Ej. Confirmar proveedores" i18n-placeholder="@@initialTaskExample" /></label><label><span i18n="@@priorityLabel">Prioridad</span><select formControlName="initialTaskPriority"><option value="LOW" i18n="@@priorityLow">Baja</option><option value="MEDIUM" i18n="@@priorityMedium">Media</option><option value="HIGH" i18n="@@priorityHigh">Alta</option><option value="URGENT" i18n="@@priorityUrgent">Urgente</option></select></label></div>
+          <label><span i18n="@@notesLabel">Notas</span><textarea formControlName="notes" rows="3" maxlength="2000"></textarea></label>
         </section>
 
         <section class="wizard-stage event-review" *ngIf="!eventId && currentStep() === 5">

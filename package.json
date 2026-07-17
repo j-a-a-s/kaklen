@@ -21,6 +21,7 @@
     "lint": "turbo run lint",
     "architecture:check": "node scripts/check-architecture.mjs",
     "quality:scan": "node scripts/quality-scan.mjs",
+    "forms:audit": "node scripts/forms-audit.mjs",
     "quality:gate": "node scripts/quality-gate.mjs",
     "security:sast": "node scripts/static-security-scan.mjs",
     "security:sbom": "node scripts/generate-sbom.mjs",

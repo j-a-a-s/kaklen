@@ -215,7 +215,7 @@ function buildTemplate(
         <p style="font-size:14px;color:#4b5563">${escapeHtml(copy.expiry)}</p>
         <p style="font-size:14px;color:#4b5563">${escapeHtml(copy.ignore)}</p>
         <p style="margin-top:28px;font-size:12px;color:#6b7280">${escapeHtml(copy.fallback)}</p>
-        <p style="font-size:12px;color:#6b7280;word-break:break-all">${escapedUrl}</p>
+        <p style="font-size:12px;color:#6b7280;overflow-wrap:anywhere">${escapedUrl}</p>
       </div>
     </div>
   </body>

@@ -108,7 +108,9 @@ test("operational lists expose compact mobile filters and active chips", async (
 
 test("quotation creation is a four-stage validated wizard with responsive summary", async () => {
   const quotation = await source("apps/web/src/app/pages/quotation-form.component.ts");
-  assert.equal((quotation.match(/<li \[class\.active\]="currentStep\(\) === [1-4]"/g) ?? []).length, 4);
+  const wizardSteps = quotation.match(/readonly wizardSteps = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
+  assert.equal((wizardSteps.match(/\{ id:/g) ?? []).length, 4);
+  assert.match(quotation, /<kaklen-wizard-steps \[steps\]="wizardSteps"/);
   assert.match(quotation, /nextStep\(\)[\s\S]*validateStep\(step\)/);
   assert.match(quotation, /private validateStep\(step: number\)/);
   assert.match(quotation, /class="quotation-summary desktop-quotation-summary"/);

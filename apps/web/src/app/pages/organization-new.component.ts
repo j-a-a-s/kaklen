@@ -6,7 +6,7 @@ import { OrganizationService } from "../organizations/organization.service";
 import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface OrganizationForm {
@@ -18,7 +18,7 @@ interface OrganizationForm {
 @Component({
   selector: "kaklen-organization-new",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">

@@ -53,8 +53,10 @@ test("public layout does not render previous user or organization after logout",
 
 test("logout navigation replaces private history entry", () => {
   const shell = readText("apps/web/src/main.ts");
+  const idleSession = readText("apps/web/src/app/session/session-idle.service.ts");
 
-  assert.match(shell, /navigateByUrl\("\/login", \{ replaceUrl: true \}\)/);
+  assert.match(shell, /await this\.idle\.logoutNow\("manual"\)/);
+  assert.match(idleSession, /navigateByUrl\("\/login", \{ replaceUrl: true \}\)/);
   assert.match(shell, /this\.closeMenu\(\)/);
 });
 

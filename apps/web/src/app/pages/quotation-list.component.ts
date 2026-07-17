@@ -35,11 +35,11 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       </section>
 
       <section class="dashboard-panel filters-panel">
-        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="load(1)">
+        <form class="filters-form" role="search" [formGroup]="filtersForm" (ngSubmit)="load(1)">
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" placeholder="Número o cliente" i18n-placeholder="@@quotationSearchPlaceholder" />
+              <input type="search" formControlName="search" maxlength="200" placeholder="Número o cliente" i18n-placeholder="@@quotationSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="quotation-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@filtersButton">Filtros</span>
@@ -54,6 +54,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="DRAFT" i18n="@@draftLabel">Borrador</option>
                 <option value="SENT" i18n="@@sentLabel">Enviada</option>
+                <option value="CHANGES_REQUESTED" i18n="@@changesRequestedLabel">Cambios solicitados</option>
                 <option value="APPROVED" i18n="@@approvedLabel">Aprobada</option>
                 <option value="REJECTED" i18n="@@rejectedLabel">Rechazada</option>
                 <option value="CANCELLED" i18n="@@quotationCancelledLabel">Cancelada</option>
@@ -167,6 +168,7 @@ export class QuotationListComponent implements OnInit {
     const labels: Record<QuotationStatus, string> = {
       DRAFT: $localize`:@@draftLabel:Borrador`,
       SENT: $localize`:@@sentLabel:Enviada`,
+      CHANGES_REQUESTED: $localize`:@@changesRequestedLabel:Cambios solicitados`,
       APPROVED: $localize`:@@approvedLabel:Aprobada`,
       REJECTED: $localize`:@@rejectedLabel:Rechazada`,
       EXPIRED: $localize`:@@expiredLabel:Expirada`,

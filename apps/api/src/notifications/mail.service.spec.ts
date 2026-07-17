@@ -34,6 +34,7 @@ describe("MailService", () => {
     process.env.MAIL_CONNECTION_TIMEOUT_MS = "5000";
     process.env.MAIL_GREETING_TIMEOUT_MS = "5000";
     process.env.MAIL_SOCKET_TIMEOUT_MS = "10000";
+    process.env.COMMERCIAL_EMAIL_ENABLED = "true";
     delete process.env.MAIL_USER;
     delete process.env.MAIL_PASSWORD;
     createTransport.mockReset();
@@ -56,6 +57,16 @@ describe("MailService", () => {
   afterEach(() => {
     successLog.mockRestore();
     failureLog.mockRestore();
+  });
+
+  it("blocks commercial quotation email when the feature flag is disabled", async () => {
+    process.env.COMMERCIAL_EMAIL_ENABLED = "false";
+
+    await expect(new MailService().send(message())).rejects.toMatchObject({
+      code: "COMMERCIAL_EMAIL_DISABLED",
+      phase: "validation"
+    });
+    expect(sendMail).not.toHaveBeenCalled();
   });
 
   it("reuses an unauthenticated local SMTP transport with bounded timeouts", async () => {

@@ -15,12 +15,12 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-client-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="client() as currentClient">

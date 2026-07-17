@@ -19,21 +19,24 @@ import {
 } from "../shared/forms/form-validators";
 import {
   FieldErrorComponent,
+  FormControlA11yDirective,
   FormErrorSummaryComponent,
   OptionalFieldLabelComponent,
   RequiredFieldIndicatorComponent
 } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
+import { countryBusinessPolicy } from "@kaklen/shared";
+import { CHILE_REGIONS } from "../shared/forms/chile-locations";
+import { WizardStepIndicatorComponent } from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-client-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, WizardStepIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow" i18n="@@crmEyebrow">CRM</p>
           <h1>{{ titleLabel() }}</h1>
         </div>
         <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'clients']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
@@ -41,12 +44,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
 
       <section class="dashboard-panel">
         <form [formGroup]="clientForm" (ngSubmit)="save()">
-          <ol *ngIf="!clientId" class="wizard-steps client-wizard-steps" aria-label="Progreso del cliente" i18n-aria-label="@@clientProgressLabel">
-            <li [class.active]="currentStep() === 1" [class.complete]="currentStep() > 1" [attr.aria-current]="currentStep() === 1 ? 'step' : null"><span>1</span><strong i18n="@@clientStepIdentity">Tipo e identificación</strong></li>
-            <li [class.active]="currentStep() === 2" [class.complete]="currentStep() > 2" [attr.aria-current]="currentStep() === 2 ? 'step' : null"><span>2</span><strong i18n="@@clientStepContact">Datos de contacto</strong></li>
-            <li [class.active]="currentStep() === 3" [class.complete]="currentStep() > 3" [attr.aria-current]="currentStep() === 3 ? 'step' : null"><span>3</span><strong i18n="@@clientStepAddress">Dirección</strong></li>
-            <li [class.active]="currentStep() === 4" [attr.aria-current]="currentStep() === 4 ? 'step' : null"><span>4</span><strong i18n="@@clientStepReview">Revisión</strong></li>
-          </ol>
+          <kaklen-wizard-steps *ngIf="!clientId" class="client-wizard-steps" [steps]="wizardSteps" [currentStep]="currentStep()" [ariaLabel]="clientProgressLabel" />
           <kaklen-form-error-summary [form]="clientForm" [submitted]="submitAttempted()" [labels]="fieldLabels" />
 
           <fieldset class="form-section wizard-stage" *ngIf="clientId || currentStep() === 1">
@@ -62,7 +60,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <label>
                 <span><span i18n="@@statusLabel">Estado</span><kaklen-required /></span>
                 <select formControlName="status">
-                  <option value="LEAD" i18n="@@leadOption">Lead</option>
+                  <option value="LEAD" i18n="@@leadOption">Prospecto</option>
                   <option value="ACTIVE" i18n="@@activeOption">Activo</option>
                   <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
                 </select>
@@ -86,8 +84,8 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <kaklen-field-error id="client-legal-name-error" [control]="clientForm.controls.legalName" [submitted]="submitAttempted()" />
             </label>
             <label>
-              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-optional *ngIf="clientForm.controls.type.value !== 'LEGAL_ENTITY'" /><kaklen-required *ngIf="clientForm.controls.type.value === 'LEGAL_ENTITY'" /></span>
-              <input formControlName="taxId" maxlength="40" (input)="formatRut()" placeholder="12.345.678-5" aria-describedby="client-tax-id-help client-tax-id-error" />
+              <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-required *ngIf="currentPolicy().taxIdRequired" /><kaklen-optional *ngIf="!currentPolicy().taxIdRequired" /></span>
+              <input id="client-tax-id" formControlName="taxId" maxlength="40" (input)="formatRut()" placeholder="12.345.678-5" aria-describedby="client-tax-id-help client-tax-id-error" [attr.aria-required]="currentPolicy().taxIdRequired" [attr.aria-invalid]="clientForm.controls.taxId.invalid && (clientForm.controls.taxId.touched || submitAttempted())" />
               <small id="client-tax-id-help" i18n="@@rutFormatHelp">Formato esperado: 12.345.678-5.</small>
               <kaklen-field-error id="client-tax-id-error" [control]="clientForm.controls.taxId" [submitted]="submitAttempted()" />
             </label>
@@ -107,8 +105,8 @@ import { UiIconComponent } from "../shared/ui-icon.component";
                 <kaklen-field-error id="client-phone-error" [control]="clientForm.controls.phone" [submitted]="submitAttempted()" />
               </div>
               <label>
-                <span><span i18n="@@whatsappLabel">WhatsApp</span><kaklen-optional /></span>
-                <input type="tel" inputmode="tel" formControlName="whatsapp" maxlength="40" placeholder="+56 9 1234 5678" aria-describedby="client-whatsapp-error" />
+                <span><span i18n="@@whatsappLabel">WhatsApp</span><kaklen-required *ngIf="currentPolicy().whatsappRequired" /><kaklen-optional *ngIf="!currentPolicy().whatsappRequired" /></span>
+                <input id="client-whatsapp" type="tel" inputmode="tel" formControlName="whatsapp" maxlength="40" [placeholder]="currentPolicy().phoneExample" aria-describedby="client-whatsapp-error" [attr.aria-required]="currentPolicy().whatsappRequired" [attr.aria-invalid]="clientForm.controls.whatsapp.invalid && (clientForm.controls.whatsapp.touched || submitAttempted())" />
                 <kaklen-field-error id="client-whatsapp-error" [control]="clientForm.controls.whatsapp" [submitted]="submitAttempted()" />
               </label>
             </div>
@@ -197,6 +195,13 @@ export class ClientFormComponent implements OnInit, OnDestroy {
   readonly companyLabel = $localize`:@@companyLabel:Empresa`;
   readonly naturalPersonLabel = $localize`:@@naturalPersonLabel:Persona natural`;
   readonly emptyValueLabel = $localize`:@@emptyValueLabel:Sin informar`;
+  readonly clientProgressLabel = $localize`:@@clientProgressLabel:Progreso del cliente`;
+  readonly wizardSteps = [
+    { id: "identity", label: $localize`:@@clientStepIdentity:Tipo e identificación` },
+    { id: "contact", label: $localize`:@@clientStepContact:Datos de contacto` },
+    { id: "address", label: $localize`:@@clientStepAddress:Dirección` },
+    { id: "review", label: $localize`:@@clientStepReview:Revisión` }
+  ] as const;
   readonly fieldLabels = {
     type: $localize`:@@typeLabel:Tipo`,
     status: $localize`:@@statusLabel:Estado`,
@@ -224,7 +229,7 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     email: new FormControl("", { nonNullable: true, validators: [emailValidator()] }),
     phone: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), internationalPhoneValidator({ country: () => this.phoneCountry() })] }),
     phonePrefix: new FormControl("+56", { nonNullable: true }),
-    whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), internationalPhoneValidator({ country: () => this.phoneCountry() })] }),
+    whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), internationalPhoneValidator({ country: () => this.phoneCountry(), requireCountryCode: true })] }),
     country: new FormControl("CL", { nonNullable: true, validators: [Validators.maxLength(80)] }),
     region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
@@ -233,16 +238,10 @@ export class ClientFormComponent implements OnInit, OnDestroy {
   });
   organizationId = "";
   clientId = "";
-  readonly regions = [
-    "Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso",
-    "Metropolitana de Santiago", "O'Higgins", "Maule", "Ñuble", "Biobío", "La Araucanía",
-    "Los Ríos", "Los Lagos", "Aysén", "Magallanes"
-  ];
-  private readonly citiesByRegion: Readonly<Record<string, readonly string[]>> = {
-    "Metropolitana de Santiago": ["Santiago", "Las Condes", "Providencia", "Ñuñoa", "Maipú", "Puente Alto"],
-    Valparaíso: ["Valparaíso", "Viña del Mar", "Quilpué", "Concón"],
-    Biobío: ["Concepción", "Talcahuano", "San Pedro de la Paz", "Los Ángeles"]
-  };
+  readonly regions = CHILE_REGIONS.map((region) => region.name);
+  private readonly citiesByRegion: Readonly<Record<string, readonly string[]>> = Object.fromEntries(
+    CHILE_REGIONS.map((region) => [region.name, region.communes])
+  );
   private initialClientCreated = false;
   private wizardCompleted = false;
 
@@ -264,6 +263,8 @@ export class ClientFormComponent implements OnInit, OnDestroy {
     this.clientForm.controls.type.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyTypeValidators());
     this.clientForm.controls.country.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.phoneCountry.set(this.clientForm.controls.country.value);
+      this.clientForm.controls.region.setValue("");
+      this.clientForm.controls.city.setValue("");
       this.clientForm.controls.taxId.updateValueAndValidity();
       this.clientForm.controls.phone.updateValueAndValidity();
       this.clientForm.controls.whatsapp.updateValueAndValidity();
@@ -414,17 +415,29 @@ export class ClientFormComponent implements OnInit, OnDestroy {
       legalName.setValidators([Validators.required, trimmedRequired(), Validators.maxLength(160)]);
     }
 
+    const policy = this.currentPolicy();
     const taxId = this.clientForm.controls.taxId;
     taxId.setValidators([
-      ...(this.clientForm.controls.type.value === "LEGAL_ENTITY" && this.clientForm.controls.country.value.toUpperCase() === "CL" ? [Validators.required] : []),
+      ...(policy.taxIdRequired ? [Validators.required] : []),
       Validators.maxLength(40),
-      chileanRutValidator()
+      ...(policy.country === "CL" ? [chileanRutValidator()] : [])
+    ]);
+    const whatsapp = this.clientForm.controls.whatsapp;
+    whatsapp.setValidators([
+      ...(policy.whatsappRequired ? [Validators.required] : []),
+      Validators.maxLength(40),
+      internationalPhoneValidator({
+        country: () => this.phoneCountry(),
+        required: policy.whatsappRequired,
+        requireCountryCode: true
+      })
     ]);
 
     firstName.updateValueAndValidity({ emitEvent: false });
     lastName.updateValueAndValidity({ emitEvent: false });
     legalName.updateValueAndValidity({ emitEvent: false });
     taxId.updateValueAndValidity({ emitEvent: false });
+    whatsapp.updateValueAndValidity({ emitEvent: false });
   }
 
   private validateStep(step: number): boolean {
@@ -471,6 +484,10 @@ export class ClientFormComponent implements OnInit, OnDestroy {
 
   availableCities(): readonly string[] {
     return this.citiesByRegion[this.clientForm.controls.region.value] ?? [];
+  }
+
+  currentPolicy() {
+    return countryBusinessPolicy(this.clientForm.controls.country.value);
   }
 
   private phoneValue(prefix: string, phone: string): string | undefined {

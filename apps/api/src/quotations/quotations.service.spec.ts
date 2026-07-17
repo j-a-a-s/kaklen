@@ -40,13 +40,16 @@ describe("QuotationsService", () => {
     expect(result.total.toFixed(2)).toBe("900.00");
   });
 
-  it("calculates fixed discounts without going below zero", () => {
-    const result = service.calculateQuotationItems([
+  it("rejects fixed discounts above the line subtotal", () => {
+    expect(() => service.calculateQuotationItems([
       item({ quantity: 1, unitPrice: 50, discountType: QuotationDiscountType.FIXED, discountValue: 80, taxPercent: 19 })
-    ]);
+    ])).toThrow(BadRequestException);
+  });
 
-    expect(result.discountTotal.toFixed(2)).toBe("50.00");
-    expect(result.total.toFixed(2)).toBe("0.00");
+  it("rejects NONE with a non-zero discount", () => {
+    expect(() => service.calculateQuotationItems([
+      item({ discountType: QuotationDiscountType.NONE, discountValue: 1 })
+    ])).toThrow(BadRequestException);
   });
 
   it("rounds monetary values to two decimals", () => {
@@ -389,7 +392,10 @@ describe("QuotationsService", () => {
 
   it("sends quotation email with a PDF before marking the quotation as sent", async () => {
     const prisma = makeQuotationsPrisma();
-    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const mailService = {
+      isCommercialEmailEnabled: () => true,
+      send: jest.fn(async (_message: unknown) => undefined)
+    };
     const realService = new QuotationsService(
       prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
       mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
@@ -425,7 +431,10 @@ describe("QuotationsService", () => {
 
   it("does not change state or write audit history when SMTP fails", async () => {
     const prisma = makeQuotationsPrisma();
-    const mailService = { send: jest.fn(async (_message: unknown) => { throw new Error("SMTP unavailable"); }) };
+    const mailService = {
+      isCommercialEmailEnabled: () => true,
+      send: jest.fn(async (_message: unknown) => { throw new Error("SMTP unavailable"); })
+    };
     const realService = new QuotationsService(
       prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
       mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
@@ -445,7 +454,10 @@ describe("QuotationsService", () => {
 
   it("rejects email from a final status before contacting SMTP", async () => {
     const prisma = makeQuotationsPrisma({ quotationStatus: QuotationStatus.APPROVED });
-    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const mailService = {
+      isCommercialEmailEnabled: () => true,
+      send: jest.fn(async (_message: unknown) => undefined)
+    };
     const realService = new QuotationsService(
       prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
       mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]
@@ -477,7 +489,10 @@ describe("QuotationsService", () => {
     const prisma = makeQuotationsPrisma({
       quotation: quotation({ status: QuotationStatus.SENT, organization: null })
     });
-    const mailService = { send: jest.fn(async (_message: unknown) => undefined) };
+    const mailService = {
+      isCommercialEmailEnabled: () => true,
+      send: jest.fn(async (_message: unknown) => undefined)
+    };
     const realService = new QuotationsService(
       prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
       mailService as unknown as ConstructorParameters<typeof QuotationsService>[1]

@@ -12,8 +12,19 @@ export function createRuntimeConfig() {
     environment: buildInfo.environment,
     version: buildInfo.version,
     commitSha: buildInfo.commitSha,
-    buildTime: buildInfo.buildTime
+    buildTime: buildInfo.buildTime,
+    sessionIdleSeconds: readPositiveInteger(process.env.SESSION_IDLE_SECONDS, 300),
+    sessionWarningSeconds: readPositiveInteger(process.env.SESSION_WARNING_SECONDS, 240),
+    commercialEmailEnabled: process.env.COMMERCIAL_EMAIL_ENABLED === "true"
   };
+}
+
+function readPositiveInteger(value, fallback) {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error("Runtime duration configuration must use positive integers");
+  }
+  return parsed;
 }
 
 export function writeRuntimeConfig(outputPath = "apps/web/public/runtime-config.js") {

@@ -57,9 +57,10 @@ export class CreateClientDto {
   )
   taxId?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ maxLength: 254 })
   @IsOptional()
   @IsEmail()
+  @MaxLength(254)
   email?: string;
 
   @ApiPropertyOptional({ maxLength: 40 })
@@ -146,9 +147,10 @@ export class UpdateClientDto {
   )
   taxId?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ maxLength: 254 })
   @IsOptional()
   @IsEmail()
+  @MaxLength(254)
   email?: string;
 
   @ApiPropertyOptional({ maxLength: 40 })

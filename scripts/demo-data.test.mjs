@@ -76,6 +76,7 @@ test("creates ten contextual clients and one to three prior interactions per org
     for (const client of bundle.clients) {
       assert.ok(client.email.endsWith("@demo.kaklen.local"));
       assert.match(client.phone, /^\+56 9 /);
+      assert.equal(client.whatsapp, client.phone);
       assert.ok(client.address);
       assert.ok(client.notes);
       assert.ok(client.interactions.length >= 1 && client.interactions.length <= 3);

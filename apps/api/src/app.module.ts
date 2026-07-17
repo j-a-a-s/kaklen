@@ -9,8 +9,13 @@ import { QuotationsModule } from "./quotations/quotations.module";
 import { EventsModule } from "./events/events.module";
 import { StorageModule } from "./storage/storage.module";
 import { AssistantModule } from "./assistant/assistant.module";
+import { InAppNotificationsModule } from "./in-app-notifications/in-app-notifications.module";
+import { QuotationPortalModule } from "./quotation-portal/quotation-portal.module";
+import { WhatsAppModule } from "./whatsapp/whatsapp.module";
+import { PaymentsModule } from "./payments/payments.module";
+import { ProviderProfilesModule } from "./provider-profiles/provider-profiles.module";
 
 @Module({
-  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule, StorageModule, AssistantModule]
+  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule, StorageModule, AssistantModule, InAppNotificationsModule, QuotationPortalModule, WhatsAppModule, PaymentsModule, ProviderProfilesModule]
 })
 export class AppModule {}

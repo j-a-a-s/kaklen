@@ -26,6 +26,10 @@
         <source>Enviada</source>
         <target>Sent</target>
       </trans-unit>
+      <trans-unit id="changesRequestedLabel" datatype="html">
+        <source>Cambios solicitados</source>
+        <target>Changes requested</target>
+      </trans-unit>
       <trans-unit id="approvedLabel" datatype="html">
         <source>Aprobada</source>
         <target>Approved</target>
@@ -185,6 +189,102 @@
       <trans-unit id="languageSelectorAriaLabel" datatype="html">
         <source>Seleccionar idioma</source>
         <target>Select language</target>
+      </trans-unit>
+      <trans-unit id="notificationCenterTitle" datatype="html">
+        <source>Notificaciones</source>
+        <target>Notifications</target>
+      </trans-unit>
+      <trans-unit id="markAllReadButton" datatype="html">
+        <source>Marcar todas</source>
+        <target>Mark all as read</target>
+      </trans-unit>
+      <trans-unit id="notificationEmptyState" datatype="html">
+        <source>No tienes notificaciones nuevas.</source>
+        <target>You have no new notifications.</target>
+      </trans-unit>
+      <trans-unit id="notificationCenterLabel" datatype="html">
+        <source>Abrir notificaciones</source>
+        <target>Open notifications</target>
+      </trans-unit>
+      <trans-unit id="notificationQuotationViewedTitle" datatype="html">
+        <source>Cotización visualizada</source>
+        <target>Quotation viewed</target>
+      </trans-unit>
+      <trans-unit id="notificationQuotationViewedBody" datatype="html">
+        <source>El cliente abrió la cotización.</source>
+        <target>The customer opened the quotation.</target>
+      </trans-unit>
+      <trans-unit id="notificationChangesTitle" datatype="html">
+        <source>Cambios solicitados</source>
+        <target>Changes requested</target>
+      </trans-unit>
+      <trans-unit id="notificationChangesBody" datatype="html">
+        <source>El cliente pidió cambios en una cotización.</source>
+        <target>The customer requested changes to a quotation.</target>
+      </trans-unit>
+      <trans-unit id="notificationApprovedTitle" datatype="html">
+        <source>Cotización aprobada</source>
+        <target>Quotation approved</target>
+      </trans-unit>
+      <trans-unit id="notificationApprovedBody" datatype="html">
+        <source>El cliente aprobó la cotización.</source>
+        <target>The customer approved the quotation.</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentStartedTitle" datatype="html">
+        <source>Pago iniciado</source>
+        <target>Payment started</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentStartedBody" datatype="html">
+        <source>El cliente inició un pago.</source>
+        <target>The customer started a payment.</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentConfirmedTitle" datatype="html">
+        <source>Pago confirmado</source>
+        <target>Payment confirmed</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentConfirmedBody" datatype="html">
+        <source>El pago fue confirmado.</source>
+        <target>The payment was confirmed.</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentFailedTitle" datatype="html">
+        <source>Pago fallido</source>
+        <target>Payment failed</target>
+      </trans-unit>
+      <trans-unit id="notificationPaymentFailedBody" datatype="html">
+        <source>El intento de pago no se completó.</source>
+        <target>The payment attempt was not completed.</target>
+      </trans-unit>
+      <trans-unit id="notificationLinkExpiredTitle" datatype="html">
+        <source>Enlace vencido</source>
+        <target>Link expired</target>
+      </trans-unit>
+      <trans-unit id="notificationLinkExpiredBody" datatype="html">
+        <source>Un enlace público venció.</source>
+        <target>A public link expired.</target>
+      </trans-unit>
+      <trans-unit id="notificationVersionTitle" datatype="html">
+        <source>Nueva versión</source>
+        <target>New version</target>
+      </trans-unit>
+      <trans-unit id="notificationVersionBody" datatype="html">
+        <source>Se creó una nueva versión de cotización.</source>
+        <target>A new quotation version was created.</target>
+      </trans-unit>
+      <trans-unit id="notificationEventUpcomingTitle" datatype="html">
+        <source>Evento próximo</source>
+        <target>Upcoming event</target>
+      </trans-unit>
+      <trans-unit id="notificationEventUpcomingBody" datatype="html">
+        <source>Hay un evento próximo.</source>
+        <target>An event is coming up.</target>
+      </trans-unit>
+      <trans-unit id="notificationGenericTitle" datatype="html">
+        <source>Actualización</source>
+        <target>Update</target>
+      </trans-unit>
+      <trans-unit id="notificationGenericBody" datatype="html">
+        <source>Hay una actualización disponible.</source>
+        <target>An update is available.</target>
       </trans-unit>
       <trans-unit id="invitationEyebrow" datatype="html">
         <source>Invitación</source>
@@ -734,30 +834,6 @@
         <source>No fue posible cargar el cliente.</source>
         <target>We could not load clients.</target>
       </trans-unit>
-      <trans-unit id="crmEyebrow" datatype="html">
-        <source>CRM</source>
-        <target>CRM</target>
-      </trans-unit>
-      <trans-unit id="clientProgressLabel" datatype="html">
-        <source>Progreso del cliente</source>
-        <target>Client progress</target>
-      </trans-unit>
-      <trans-unit id="clientStepIdentity" datatype="html">
-        <source>Tipo e identificación</source>
-        <target>Type and identification</target>
-      </trans-unit>
-      <trans-unit id="clientStepContact" datatype="html">
-        <source>Datos de contacto</source>
-        <target>Contact details</target>
-      </trans-unit>
-      <trans-unit id="clientStepAddress" datatype="html">
-        <source>Dirección</source>
-        <target>Address</target>
-      </trans-unit>
-      <trans-unit id="clientStepReview" datatype="html">
-        <source>Revisión</source>
-        <target>Review</target>
-      </trans-unit>
       <trans-unit id="mainInformationSection" datatype="html">
         <source>Información principal</source>
         <target>Main information</target>
@@ -771,7 +847,7 @@
         <target>Company</target>
       </trans-unit>
       <trans-unit id="leadOption" datatype="html">
-        <source>Lead</source>
+        <source>Prospecto</source>
         <target>Lead</target>
       </trans-unit>
       <trans-unit id="firstNameLabel" datatype="html">
@@ -854,6 +930,10 @@
         <source>Preferencias, contexto comercial o información relevante</source>
         <target>Preferences, commercial context, or relevant information</target>
       </trans-unit>
+      <trans-unit id="clientStepReview" datatype="html">
+        <source>Revisión</source>
+        <target>Review</target>
+      </trans-unit>
       <trans-unit id="clientReviewHelp" datatype="html">
         <source>Confirma la información principal. Podrás completar o editar los datos más adelante.</source>
         <target>Confirm the main information. You can complete or edit the details later.</target>
@@ -869,6 +949,22 @@
       <trans-unit id="saveBasicClientButton" datatype="html">
         <source>Guardar con datos básicos</source>
         <target>Save basic details</target>
+      </trans-unit>
+      <trans-unit id="clientProgressLabel" datatype="html">
+        <source>Progreso del cliente</source>
+        <target>Client progress</target>
+      </trans-unit>
+      <trans-unit id="clientStepIdentity" datatype="html">
+        <source>Tipo e identificación</source>
+        <target>Type and identification</target>
+      </trans-unit>
+      <trans-unit id="clientStepContact" datatype="html">
+        <source>Datos de contacto</source>
+        <target>Contact details</target>
+      </trans-unit>
+      <trans-unit id="clientStepAddress" datatype="html">
+        <source>Dirección</source>
+        <target>Address</target>
       </trans-unit>
       <trans-unit id="clientUpdatedSuccess" datatype="html">
         <source>Cliente actualizado correctamente.</source>
@@ -897,6 +993,10 @@
       <trans-unit id="clientStepValidationError" datatype="html">
         <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
         <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
+      </trans-unit>
+      <trans-unit id="clientsEyebrow" datatype="html">
+        <source>Relaciones</source>
+        <target>Relationships</target>
       </trans-unit>
       <trans-unit id="clientsTitle" datatype="html">
         <source>Clientes</source>
@@ -2094,9 +2194,225 @@
         <source>No pudimos cargar tus organizaciones.</source>
         <target>We could not load your organizations.</target>
       </trans-unit>
+      <trans-unit id="sandboxPaymentTitle" datatype="html">
+        <source>Pago seguro de prueba</source>
+        <target>Secure test payment</target>
+      </trans-unit>
+      <trans-unit id="quotationLabel" datatype="html">
+        <source>Cotización</source>
+        <target>Quotation</target>
+      </trans-unit>
+      <trans-unit id="amountToPayLabel" datatype="html">
+        <source>Monto a pagar</source>
+        <target>Amount due</target>
+      </trans-unit>
+      <trans-unit id="sandboxPaymentNotice" datatype="html">
+        <source>Entorno sandbox. No se realizará ningún cargo real.</source>
+        <target>Sandbox environment. No real charge will be made.</target>
+      </trans-unit>
+      <trans-unit id="paymentConfirmedTitle" datatype="html">
+        <source>Pago confirmado</source>
+        <target>Payment confirmed</target>
+      </trans-unit>
+      <trans-unit id="paymentConfirmedBody" datatype="html">
+        <source>El webhook sandbox confirmó el pago y generó el recibo.</source>
+        <target>The sandbox webhook confirmed the payment and generated the receipt.</target>
+      </trans-unit>
+      <trans-unit id="paymentFailedTitle" datatype="html">
+        <source>Pago no completado</source>
+        <target>Payment not completed</target>
+      </trans-unit>
+      <trans-unit id="paymentFailedBody" datatype="html">
+        <source>Puedes volver a intentarlo de forma segura.</source>
+        <target>You can try again safely.</target>
+      </trans-unit>
+      <trans-unit id="sandboxApprovePaymentButton" datatype="html">
+        <source>Confirmar pago sandbox</source>
+        <target>Confirm sandbox payment</target>
+      </trans-unit>
+      <trans-unit id="sandboxFailPaymentButton" datatype="html">
+        <source>Simular rechazo</source>
+        <target>Simulate rejection</target>
+      </trans-unit>
+      <trans-unit id="backToQuotationButton" datatype="html">
+        <source>Volver a la cotización</source>
+        <target>Back to quotation</target>
+      </trans-unit>
+      <trans-unit id="loadingPayment" datatype="html">
+        <source>Cargando pago...</source>
+        <target>Loading payment...</target>
+      </trans-unit>
+      <trans-unit id="paymentUnavailableError" datatype="html">
+        <source>Este pago no está disponible.</source>
+        <target>This payment is unavailable.</target>
+      </trans-unit>
+      <trans-unit id="paymentProcessingError" datatype="html">
+        <source>No fue posible procesar el pago sandbox.</source>
+        <target>We could not process the sandbox payment.</target>
+      </trans-unit>
+      <trans-unit id="publicQuotationTitle" datatype="html">
+        <source>Cotización</source>
+        <target>Quotation</target>
+      </trans-unit>
+      <trans-unit id="versionLabel" datatype="html">
+        <source>Versión</source>
+        <target>Version</target>
+      </trans-unit>
+      <trans-unit id="quotationObsoleteBanner" datatype="html">
+        <source>Esta versión es solo de lectura. Existe una versión más reciente.</source>
+        <target>This version is read-only. A newer version is available.</target>
+      </trans-unit>
+      <trans-unit id="loadingQuotationPortal" datatype="html">
+        <source>Cargando cotización...</source>
+        <target>Loading quotation...</target>
+      </trans-unit>
+      <trans-unit id="issueDateLabel" datatype="html">
+        <source>Fecha de emisión</source>
+        <target>Issue date</target>
+      </trans-unit>
+      <trans-unit id="validUntilLabel" datatype="html">
+        <source>Válida hasta</source>
+        <target>Valid until</target>
+      </trans-unit>
+      <trans-unit id="publicLinkExpiresLabel" datatype="html">
+        <source>Enlace disponible hasta</source>
+        <target>Link available until</target>
+      </trans-unit>
+      <trans-unit id="quotationItemsTitle" datatype="html">
+        <source>Productos y servicios</source>
+        <target>Products and services</target>
+      </trans-unit>
+      <trans-unit id="selectItemForChanges" datatype="html">
+        <source>Seleccionar para solicitar cambios</source>
+        <target>Select to request changes</target>
+      </trans-unit>
+      <trans-unit id="subtotalLabel" datatype="html">
+        <source>Subtotal</source>
+        <target>Subtotal</target>
+      </trans-unit>
+      <trans-unit id="discountsTotalLabel" datatype="html">
+        <source>Descuentos</source>
+        <target>Discounts</target>
+      </trans-unit>
+      <trans-unit id="taxesTotalLabel" datatype="html">
+        <source>Impuestos</source>
+        <target>Taxes</target>
+      </trans-unit>
+      <trans-unit id="termsLabel" datatype="html">
+        <source>Términos</source>
+        <target>Terms</target>
+      </trans-unit>
+      <trans-unit id="quotationDecisionTitle" datatype="html">
+        <source>Responde la cotización</source>
+        <target>Respond to the quotation</target>
+      </trans-unit>
+      <trans-unit id="quotationDecisionDescription" datatype="html">
+        <source>Puedes solicitar ajustes o continuar con la aprobación y el pago seguro.</source>
+        <target>You can request adjustments or continue with approval and secure payment.</target>
+      </trans-unit>
+      <trans-unit id="requestChangesButton" datatype="html">
+        <source>Solicitar cambios</source>
+        <target>Request changes</target>
+      </trans-unit>
+      <trans-unit id="approveAndPayButton" datatype="html">
+        <source>Aprobar y pagar</source>
+        <target>Approve and pay</target>
+      </trans-unit>
+      <trans-unit id="requestChangesTitle" datatype="html">
+        <source>Cuéntanos qué debemos ajustar</source>
+        <target>Tell us what needs to change</target>
+      </trans-unit>
+      <trans-unit id="changeRequestCommentLabel" datatype="html">
+        <source>Comentario</source>
+        <target>Comment</target>
+      </trans-unit>
+      <trans-unit id="sendRequestButton" datatype="html">
+        <source>Enviar solicitud</source>
+        <target>Send request</target>
+      </trans-unit>
+      <trans-unit id="providerRecommendationTitle" datatype="html">
+        <source>¿También prestas servicios?</source>
+        <target>Do you also provide services?</target>
+      </trans-unit>
+      <trans-unit id="providerRecommendationBody" datatype="html">
+        <source>Publica tu perfil profesional en Kaklen y permite que nuevos clientes encuentren tu trabajo.</source>
+        <target>Publish your professional profile on Kaklen so new customers can discover your work.</target>
+      </trans-unit>
+      <trans-unit id="createProviderProfileButton" datatype="html">
+        <source>Crear perfil profesional</source>
+        <target>Create professional profile</target>
+      </trans-unit>
+      <trans-unit id="providerProfileTitle" datatype="html">
+        <source>Perfil profesional</source>
+        <target>Professional profile</target>
+      </trans-unit>
+      <trans-unit id="providerCategoryLabel" datatype="html">
+        <source>Categoría</source>
+        <target>Category</target>
+      </trans-unit>
+      <trans-unit id="providerPriceLabel" datatype="html">
+        <source>Precio referencial</source>
+        <target>Reference price</target>
+      </trans-unit>
+      <trans-unit id="portfolioUrlLabel" datatype="html">
+        <source>Portfolio</source>
+        <target>Portfolio</target>
+      </trans-unit>
+      <trans-unit id="providerDescriptionLabel" datatype="html">
+        <source>Descripción</source>
+        <target>Description</target>
+      </trans-unit>
+      <trans-unit id="providerConsentLabel" datatype="html">
+        <source>Autorizo usar los datos confirmados de esta cotización para crear mi perfil.</source>
+        <target>I authorize the use of confirmed data from this quotation to create my profile.</target>
+      </trans-unit>
+      <trans-unit id="submitForReviewButton" datatype="html">
+        <source>Enviar a revisión</source>
+        <target>Submit for review</target>
+      </trans-unit>
+      <trans-unit id="providerProfileSubmittedTitle" datatype="html">
+        <source>Perfil enviado a revisión</source>
+        <target>Profile submitted for review</target>
+      </trans-unit>
+      <trans-unit id="providerProfileSubmittedBody" datatype="html">
+        <source>Recibimos tus datos. La publicación requiere una revisión antes de quedar visible.</source>
+        <target>We received your details. The profile must be reviewed before it can be published.</target>
+      </trans-unit>
+      <trans-unit id="statusHistoryTitle" datatype="html">
+        <source>Historial</source>
+        <target>History</target>
+      </trans-unit>
+      <trans-unit id="providerConsentShortLabel" datatype="html">
+        <source>Consentimiento</source>
+        <target>Consent</target>
+      </trans-unit>
+      <trans-unit id="changeRequestError" datatype="html">
+        <source>No fue posible enviar la solicitud de cambios.</source>
+        <target>We could not send the change request.</target>
+      </trans-unit>
+      <trans-unit id="paymentStartError" datatype="html">
+        <source>No fue posible iniciar el pago. Intenta nuevamente.</source>
+        <target>We could not start the payment. Try again.</target>
+      </trans-unit>
+      <trans-unit id="providerRecommendationError" datatype="html">
+        <source>No fue posible abrir el registro profesional.</source>
+        <target>We could not open professional registration.</target>
+      </trans-unit>
+      <trans-unit id="providerProfileError" datatype="html">
+        <source>No fue posible enviar el perfil a revisión.</source>
+        <target>We could not submit the profile for review.</target>
+      </trans-unit>
+      <trans-unit id="quotationLinkUnavailable" datatype="html">
+        <source>El enlace no es válido, venció o fue revocado.</source>
+        <target>The link is invalid, expired, or has been revoked.</target>
+      </trans-unit>
       <trans-unit id="quotationsEyebrow" datatype="html">
         <source>Cotizaciones</source>
         <target>Quotations</target>
+      </trans-unit>
+      <trans-unit id="shareSecurelyButton" datatype="html">
+        <source>Compartir de forma segura</source>
+        <target>Share securely</target>
       </trans-unit>
       <trans-unit id="sendQuotationEmailTitle" datatype="html">
         <source>Enviar por email</source>
@@ -2122,29 +2438,21 @@
         <source>Nueva versión</source>
         <target>New version</target>
       </trans-unit>
-      <trans-unit id="issueDateLabel" datatype="html">
-        <source>Fecha de emisión</source>
-        <target>Issue date</target>
+      <trans-unit id="secureLinkReadyTitle" datatype="html">
+        <source>Enlace seguro listo</source>
+        <target>Secure link ready</target>
       </trans-unit>
-      <trans-unit id="validUntilLabel" datatype="html">
-        <source>Válida hasta</source>
-        <target>Valid until</target>
+      <trans-unit id="secureLinkReadyBody" datatype="html">
+        <source>Comparte este enlace con el cliente. Vence en siete días y puedes reemplazarlo generando uno nuevo.</source>
+        <target>Share this link with the customer. It expires in seven days and can be replaced by generating a new one.</target>
       </trans-unit>
-      <trans-unit id="subtotalLabel" datatype="html">
-        <source>Subtotal</source>
-        <target>Subtotal</target>
+      <trans-unit id="copyLinkButton" datatype="html">
+        <source>Copiar enlace</source>
+        <target>Copy link</target>
       </trans-unit>
-      <trans-unit id="discountsTotalLabel" datatype="html">
-        <source>Descuentos</source>
-        <target>Discounts</target>
-      </trans-unit>
-      <trans-unit id="taxesTotalLabel" datatype="html">
-        <source>Impuestos</source>
-        <target>Taxes</target>
-      </trans-unit>
-      <trans-unit id="statusHistoryTitle" datatype="html">
-        <source>Historial</source>
-        <target>History</target>
+      <trans-unit id="openWhatsAppButton" datatype="html">
+        <source>Abrir WhatsApp</source>
+        <target>Open WhatsApp</target>
       </trans-unit>
       <trans-unit id="downloadPdfButton" datatype="html">
         <source>Descargar PDF</source>
@@ -2177,6 +2485,30 @@
       <trans-unit id="pdfDownloadError" datatype="html">
         <source>No pudimos generar el PDF. Intenta nuevamente.</source>
         <target>We could not generate the PDF. Try again.</target>
+      </trans-unit>
+      <trans-unit id="secureLinkCreatedSuccess" datatype="html">
+        <source>Enlace seguro creado.</source>
+        <target>Secure link created.</target>
+      </trans-unit>
+      <trans-unit id="secureLinkCreateError" datatype="html">
+        <source>No fue posible crear el enlace seguro.</source>
+        <target>We could not create the secure link.</target>
+      </trans-unit>
+      <trans-unit id="linkCopiedSuccess" datatype="html">
+        <source>Enlace copiado.</source>
+        <target>Link copied.</target>
+      </trans-unit>
+      <trans-unit id="linkCopyError" datatype="html">
+        <source>No fue posible copiar el enlace.</source>
+        <target>We could not copy the link.</target>
+      </trans-unit>
+      <trans-unit id="whatsappPreparedInfo" datatype="html">
+        <source>Mensaje preparado. Confirma el envío en WhatsApp.</source>
+        <target>Message prepared. Confirm sending in WhatsApp.</target>
+      </trans-unit>
+      <trans-unit id="whatsappPrepareError" datatype="html">
+        <source>No fue posible preparar el mensaje de WhatsApp.</source>
+        <target>We could not prepare the WhatsApp message.</target>
       </trans-unit>
       <trans-unit id="quotationEmailSentSuccess" datatype="html">
         <source>Cotización enviada por email.</source>
@@ -2226,6 +2558,10 @@
         <source>Cotización enviada</source>
         <target>Quotation sent</target>
       </trans-unit>
+      <trans-unit id="historyQuotationChangesRequested" datatype="html">
+        <source>Cambios solicitados por el cliente</source>
+        <target>Changes requested by the customer</target>
+      </trans-unit>
       <trans-unit id="historyQuotationApproved" datatype="html">
         <source>Cotización aprobada</source>
         <target>Quotation approved</target>
@@ -2270,25 +2606,9 @@
         <source>Kaklen calculará y verificará automáticamente los totales al guardar.</source>
         <target>Kaklen will automatically calculate and verify the totals when saving.</target>
       </trans-unit>
-      <trans-unit id="quotationProgressLabel" datatype="html">
-        <source>Progreso de la cotización</source>
-        <target>Quotation progress</target>
-      </trans-unit>
       <trans-unit id="quotationStepClient" datatype="html">
         <source>Elegir cliente</source>
         <target>Choose client</target>
-      </trans-unit>
-      <trans-unit id="quotationStepItems" datatype="html">
-        <source>Agregar productos y servicios</source>
-        <target>Add products and services</target>
-      </trans-unit>
-      <trans-unit id="quotationStepAdjustments" datatype="html">
-        <source>Ajustar descuentos e impuestos</source>
-        <target>Adjust discounts and taxes</target>
-      </trans-unit>
-      <trans-unit id="quotationStepReview" datatype="html">
-        <source>Revisar y guardar</source>
-        <target>Review and save</target>
       </trans-unit>
       <trans-unit id="quotationClientStepHelp" datatype="html">
         <source>Selecciona quién recibirá la propuesta y define su vigencia.</source>
@@ -2313,6 +2633,10 @@
       <trans-unit id="selectClientOption" datatype="html">
         <source>Selecciona cliente</source>
         <target>Select client</target>
+      </trans-unit>
+      <trans-unit id="quotationStepItems" datatype="html">
+        <source>Agregar productos y servicios</source>
+        <target>Add products and services</target>
       </trans-unit>
       <trans-unit id="quotationItemsStepHelp" datatype="html">
         <source>Usa el catálogo o agrega un concepto personalizado.</source>
@@ -2354,6 +2678,10 @@
         <source>Duplicar línea</source>
         <target>Duplicate line</target>
       </trans-unit>
+      <trans-unit id="quotationStepAdjustments" datatype="html">
+        <source>Ajustar descuentos e impuestos</source>
+        <target>Adjust discounts and taxes</target>
+      </trans-unit>
       <trans-unit id="quotationAdjustmentsStepHelp" datatype="html">
         <source>Revisa cada concepto y aplica solo los ajustes necesarios.</source>
         <target>Review each item and apply only the necessary adjustments.</target>
@@ -2386,10 +2714,6 @@
         <source>Descuento</source>
         <target>Discount</target>
       </trans-unit>
-      <trans-unit id="termsLabel" datatype="html">
-        <source>Términos</source>
-        <target>Terms</target>
-      </trans-unit>
       <trans-unit id="termsExample" datatype="html">
         <source>Forma de pago, plazos y condiciones</source>
         <target>Payment method, deadlines, and conditions</target>
@@ -2397,6 +2721,10 @@
       <trans-unit id="quotationNotesExample" datatype="html">
         <source>Información útil para el cliente</source>
         <target>Useful information for the client</target>
+      </trans-unit>
+      <trans-unit id="quotationStepReview" datatype="html">
+        <source>Revisar y guardar</source>
+        <target>Review and save</target>
       </trans-unit>
       <trans-unit id="quotationReviewStepHelp" datatype="html">
         <source>Confirma el cliente, los conceptos y el total antes de guardar.</source>
@@ -2450,6 +2778,10 @@
         <source>La fecha válida hasta debe ser posterior o igual a la fecha de emisión.</source>
         <target>The valid-until date must be on or after the issue date.</target>
       </trans-unit>
+      <trans-unit id="quotationProgressLabel" datatype="html">
+        <source>Progreso de la cotización</source>
+        <target>Quotation progress</target>
+      </trans-unit>
       <trans-unit id="itemsLabel" datatype="html">
         <source>Ítems</source>
         <target>Items</target>
@@ -2466,13 +2798,9 @@
         <source>No fue posible guardar la cotización.</source>
         <target>We could not save the quotation.</target>
       </trans-unit>
-      <trans-unit id="quotationStepSingleValidationError" datatype="html">
-        <source>Falta completar o corregir 1 campo de esta etapa.</source>
-        <target>Complete or correct 1 field in this step.</target>
-      </trans-unit>
       <trans-unit id="quotationStepValidationError" datatype="html">
-        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
-        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
+        <source>No puedes continuar. Corrige los campos marcados en esta etapa.</source>
+        <target>Complete or correct {$fieldCount} fields in this step.</target>
       </trans-unit>
       <trans-unit id="quotationsTitle" datatype="html">
         <source>Cotizaciones</source>
@@ -2822,9 +3150,113 @@
         <source>Adjuntamos nuestra propuesta comercial para tu revisión.</source>
         <target>Our commercial proposal is attached for your review.</target>
       </trans-unit>
+      <trans-unit id="sessionExpiringTitle" datatype="html">
+        <source>Tu sesión está por expirar</source>
+        <target>Your session is about to expire</target>
+      </trans-unit>
+      <trans-unit id="sessionExpiringDescription" datatype="html">
+        <source>Por seguridad cerraremos la sesión si no detectamos actividad.</source>
+        <target>For your security, we will sign you out if no activity is detected.</target>
+      </trans-unit>
+      <trans-unit id="continueWorkingButton" datatype="html">
+        <source>Continuar trabajando</source>
+        <target>Continue working</target>
+      </trans-unit>
+      <trans-unit id="logoutNowButton" datatype="html">
+        <source>Cerrar sesión ahora</source>
+        <target>Sign out now</target>
+      </trans-unit>
+      <trans-unit id="sessionEndedByInactivity" datatype="html">
+        <source>La sesión finalizó por inactividad.</source>
+        <target>Your session ended due to inactivity.</target>
+      </trans-unit>
       <trans-unit id="moreActionsLabel" datatype="html">
         <source>Más acciones</source>
         <target>More actions</target>
+      </trans-unit>
+      <trans-unit id="newClientHelp" datatype="html">
+        <source>Registra una persona o empresa</source>
+        <target>Add a person or company</target>
+      </trans-unit>
+      <trans-unit id="addCatalogItemHelp" datatype="html">
+        <source>Completa tu catálogo comercial</source>
+        <target>Build out your commercial catalog</target>
+      </trans-unit>
+      <trans-unit id="newQuotationHelp" datatype="html">
+        <source>Prepara una propuesta comercial</source>
+        <target>Prepare a commercial proposal</target>
+      </trans-unit>
+      <trans-unit id="newEventHelp" datatype="html">
+        <source>Coordina fechas, tareas y recursos</source>
+        <target>Coordinate dates, tasks, and resources</target>
+      </trans-unit>
+      <trans-unit id="inviteUserButton" datatype="html">
+        <source>Invitar miembro</source>
+        <target>Invite user</target>
+      </trans-unit>
+      <trans-unit id="inviteUserHelp" datatype="html">
+        <source>Suma a alguien de tu equipo</source>
+        <target>Add someone from your team</target>
+      </trans-unit>
+      <trans-unit id="organizationsCommandHelp" datatype="html">
+        <source>Cambiar espacio de trabajo</source>
+        <target>Switch workspace</target>
+      </trans-unit>
+      <trans-unit id="navHome" datatype="html">
+        <source>Inicio</source>
+        <target>Home</target>
+      </trans-unit>
+      <trans-unit id="navClients" datatype="html">
+        <source>Clientes</source>
+        <target>Clients</target>
+      </trans-unit>
+      <trans-unit id="clientsCommandHelp" datatype="html">
+        <source>Buscar personas y empresas</source>
+        <target>Find people and companies</target>
+      </trans-unit>
+      <trans-unit id="navCatalog" datatype="html">
+        <source>Productos y servicios</source>
+        <target>Products and services</target>
+      </trans-unit>
+      <trans-unit id="catalogCommandHelp" datatype="html">
+        <source>Revisar catálogo y precios</source>
+        <target>Review catalog and prices</target>
+      </trans-unit>
+      <trans-unit id="navQuotations" datatype="html">
+        <source>Cotizaciones</source>
+        <target>Quotations</target>
+      </trans-unit>
+      <trans-unit id="quotationsCommandHelp" datatype="html">
+        <source>Continuar propuestas comerciales</source>
+        <target>Continue commercial proposals</target>
+      </trans-unit>
+      <trans-unit id="navEvents" datatype="html">
+        <source>Eventos</source>
+        <target>Events</target>
+      </trans-unit>
+      <trans-unit id="eventsCommandHelp" datatype="html">
+        <source>Coordinar operaciones</source>
+        <target>Coordinate operations</target>
+      </trans-unit>
+      <trans-unit id="navMembers" datatype="html">
+        <source>Miembros</source>
+        <target>Members</target>
+      </trans-unit>
+      <trans-unit id="membersCommandHelp" datatype="html">
+        <source>Gestionar equipo y roles</source>
+        <target>Manage team and roles</target>
+      </trans-unit>
+      <trans-unit id="navSettings" datatype="html">
+        <source>Configuración</source>
+        <target>Settings</target>
+      </trans-unit>
+      <trans-unit id="settingsCommandHelp" datatype="html">
+        <source>Configurar tu organización</source>
+        <target>Configure your organization</target>
+      </trans-unit>
+      <trans-unit id="globalBusyLabel" datatype="html">
+        <source> Procesando </source>
+        <target>Processing</target>
       </trans-unit>
       <trans-unit id="quickSearchLabel" datatype="html">
         <source>Buscar o ir a...</source>
@@ -2886,90 +3318,6 @@
         <source>para cerrar</source>
         <target>to close</target>
       </trans-unit>
-      <trans-unit id="newClientHelp" datatype="html">
-        <source>Registra una persona o empresa</source>
-        <target>Add a person or company</target>
-      </trans-unit>
-      <trans-unit id="addCatalogItemHelp" datatype="html">
-        <source>Completa tu catálogo comercial</source>
-        <target>Build out your commercial catalog</target>
-      </trans-unit>
-      <trans-unit id="newQuotationHelp" datatype="html">
-        <source>Prepara una propuesta comercial</source>
-        <target>Prepare a commercial proposal</target>
-      </trans-unit>
-      <trans-unit id="newEventHelp" datatype="html">
-        <source>Coordina fechas, tareas y recursos</source>
-        <target>Coordinate dates, tasks, and resources</target>
-      </trans-unit>
-      <trans-unit id="inviteUserButton" datatype="html">
-        <source>Invitar miembro</source>
-        <target>Invite user</target>
-      </trans-unit>
-      <trans-unit id="inviteUserHelp" datatype="html">
-        <source>Suma a alguien de tu equipo</source>
-        <target>Add someone from your team</target>
-      </trans-unit>
-      <trans-unit id="organizationsCommandHelp" datatype="html">
-        <source>Cambiar espacio de trabajo</source>
-        <target>Switch workspace</target>
-      </trans-unit>
-      <trans-unit id="navOrganizations" datatype="html">
-        <source>Organizaciones</source>
-        <target>Organizations</target>
-      </trans-unit>
-      <trans-unit id="navHome" datatype="html">
-        <source>Inicio</source>
-        <target>Home</target>
-      </trans-unit>
-      <trans-unit id="navClients" datatype="html">
-        <source>Clientes</source>
-        <target>Clients</target>
-      </trans-unit>
-      <trans-unit id="clientsCommandHelp" datatype="html">
-        <source>Buscar personas y empresas</source>
-        <target>Find people and companies</target>
-      </trans-unit>
-      <trans-unit id="navCatalog" datatype="html">
-        <source>Productos y servicios</source>
-        <target>Products and services</target>
-      </trans-unit>
-      <trans-unit id="catalogCommandHelp" datatype="html">
-        <source>Revisar catálogo y precios</source>
-        <target>Review catalog and prices</target>
-      </trans-unit>
-      <trans-unit id="navQuotations" datatype="html">
-        <source>Cotizaciones</source>
-        <target>Quotations</target>
-      </trans-unit>
-      <trans-unit id="quotationsCommandHelp" datatype="html">
-        <source>Continuar propuestas comerciales</source>
-        <target>Continue commercial proposals</target>
-      </trans-unit>
-      <trans-unit id="navEvents" datatype="html">
-        <source>Eventos</source>
-        <target>Events</target>
-      </trans-unit>
-      <trans-unit id="eventsCommandHelp" datatype="html">
-        <source>Coordinar operaciones</source>
-        <target>Coordinate operations</target>
-      </trans-unit>
-      <trans-unit id="navMembers" datatype="html">
-        <source>Miembros</source>
-        <target>Members</target>
-      </trans-unit>
-      <trans-unit id="membersCommandHelp" datatype="html">
-        <source>Gestionar equipo y roles</source>
-        <target>Manage team and roles</target>
-      </trans-unit>
-      <trans-unit id="navSettings" datatype="html">
-        <source>Configuración</source>
-        <target>Settings</target>
-      </trans-unit>
-      <trans-unit id="settingsCommandHelp" datatype="html">
-        <source>Configurar tu organización</source>
-        <target>Configure your organization</target>
-      </trans-unit>
       <trans-unit id="globalSearchError" datatype="html">
         <source>No pudimos completar la búsqueda. Intenta nuevamente.</source>
         <target>We could not complete the search. Try again.</target>
@@ -2986,6 +3334,10 @@
         <source>Obligatorio</source>
         <target>Required</target>
       </trans-unit>
+      <trans-unit id="wizardProgressLabel" datatype="html">
+        <source>Progreso</source>
+        <target>Progress</target>
+      </trans-unit>
       <trans-unit id="fieldRequiredError" datatype="html">
         <source>Este campo es obligatorio.</source>
         <target>This field is required.</target>
@@ -2993,6 +3345,14 @@
       <trans-unit id="fieldInvalidError" datatype="html">
         <source>Revisa el valor ingresado.</source>
         <target>Review the value entered.</target>
+      </trans-unit>
+      <trans-unit id="formCannotContinueTitle" datatype="html">
+        <source>No puedes continuar. Corrige:</source>
+        <target>You cannot continue. Fix:</target>
+      </trans-unit>
+      <trans-unit id="formErrorSummaryHelp" datatype="html">
+        <source>Los mensajes bajo cada campo indican qué debes corregir.</source>
+        <target>The messages below each field explain what needs to be corrected.</target>
       </trans-unit>
       <trans-unit id="emailValidation" datatype="html">
         <source>Ingresa un correo válido, por ejemplo nombre@empresa.cl.</source>
@@ -3009,18 +3369,6 @@
       <trans-unit id="dateOrderValidation" datatype="html">
         <source>La fecha de término debe ser posterior o igual a la fecha de inicio.</source>
         <target>The end date must be on or after the start date.</target>
-      </trans-unit>
-      <trans-unit id="singleFieldMissingError" datatype="html">
-        <source>Falta completar o corregir 1 campo.</source>
-        <target>Complete or correct 1 field.</target>
-      </trans-unit>
-      <trans-unit id="multipleFieldsMissingError" datatype="html">
-        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalid.length"/> campos.</source>
-        <target>Complete or correct <x id="fieldCount" equiv-text="invalid.length"/> fields.</target>
-      </trans-unit>
-      <trans-unit id="formErrorSummaryHelp" datatype="html">
-        <source>Los mensajes bajo cada campo indican qué debes corregir.</source>
-        <target>The messages below each field explain what needs to be corrected.</target>
       </trans-unit>
       <trans-unit id="notificationsAriaLabel" datatype="html">
         <source>Notificaciones</source>
@@ -3126,10 +3474,6 @@
         <source>Información de versión de Kaklen</source>
         <target>Kaklen version information</target>
       </trans-unit>
-      <trans-unit id="versionLabel" datatype="html">
-        <source>Versión</source>
-        <target>Version</target>
-      </trans-unit>
       <trans-unit id="closeVersionInfoLabel" datatype="html">
         <source>Cerrar información de versión</source>
         <target>Close version information</target>
@@ -3181,6 +3525,10 @@
       <trans-unit id="navRegister" datatype="html">
         <source>Registro</source>
         <target>Register</target>
+      </trans-unit>
+      <trans-unit id="navOrganizations" datatype="html">
+        <source>Organizaciones</source>
+        <target>Organizations</target>
       </trans-unit>
       <trans-unit id="logoutButton" datatype="html">
         <source>Salir</source>

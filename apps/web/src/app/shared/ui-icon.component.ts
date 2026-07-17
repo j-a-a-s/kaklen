@@ -2,10 +2,12 @@ import { Component, Input } from "@angular/core";
 import {
   Archive,
   ArrowLeft,
+  Bell,
   Building2,
   Calendar,
   Check,
   CheckCircle2,
+  Clock3,
   CircleUserRound,
   Copy,
   Download,
@@ -35,10 +37,12 @@ import {
 export type UiIconName =
   | "archive"
   | "arrow-left"
+  | "bell"
   | "building"
   | "calendar"
   | "check"
   | "check-circle"
+  | "clock"
   | "copy"
   | "download"
   | "ellipsis"
@@ -66,10 +70,12 @@ export type UiIconName =
 const ICONS = {
   archive: Archive,
   "arrow-left": ArrowLeft,
+  bell: Bell,
   building: Building2,
   calendar: Calendar,
   check: Check,
   "check-circle": CheckCircle2,
+  clock: Clock3,
   copy: Copy,
   download: Download,
   ellipsis: Ellipsis,

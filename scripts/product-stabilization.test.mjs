@@ -22,7 +22,7 @@ test("all action-menu consumers use the shared accessible component", () => {
   assert.doesNotMatch(application, /<details[^>]+action-menu/);
 
   const menu = read("apps/web/src/app/shared/action-menu.component.ts");
-  for (const behavior of ["document:pointerdown", "NavigationStart", "contextKey", "ArrowDown", "ArrowUp", "Home", "End", "Escape", "positionPanel"]) {
+  for (const behavior of ["document:pointerdown", "NavigationStart", "contextKey", "ArrowDown", "ArrowUp", "Home", "End", "Escape", "updatePlacement", "overlays.open"]) {
     assert.ok(menu.includes(behavior), `missing action-menu behavior: ${behavior}`);
   }
 });
@@ -39,13 +39,15 @@ test("button variants, long labels, tooltips, and shared icons follow one design
 
 test("action center exposes every route, RBAC check, search group, and keyboard safeguard", () => {
   const palette = read("apps/web/src/app/shared/command-palette.component.ts");
+  const registry = read("apps/web/src/app/shared/action-registry.service.ts");
   for (const action of ["create-client", "create-catalog", "create-quotation", "create-event", "invite-member", "change-organization"]) {
-    assert.ok(palette.includes(action), `missing action center command: ${action}`);
+    assert.ok(registry.includes(action), `missing action center command: ${action}`);
   }
   for (const group of ["clients", "catalogItems", "quotations", "events"]) {
     assert.ok(palette.includes(group), `missing action center search group: ${group}`);
   }
-  assert.match(palette, /hasPermission/);
+  assert.match(registry, /permissions:/);
+  assert.match(palette, /organizationService\.hasPermission/);
   assert.match(palette, /event\.preventDefault\(\)/);
   assert.match(palette, /event\.stopPropagation\(\)/);
   assert.match(palette, /trapFocus/);
@@ -68,7 +70,9 @@ test("quotation totals use one scaled-integer algorithm on frontend and API", ()
   const money = read("packages/shared/src/quotation-money.ts");
   const form = read("apps/web/src/app/pages/quotation-form.component.ts");
   assert.match(money, /bigint/);
-  assert.match(money, /Global discounts[\s\S]*lines without a line-level discount/);
+  assert.match(money, /distributeGlobalDiscount/);
+  assert.match(money, /eligibleForGlobalDiscount:\s*discountType === "NONE"/);
+  assert.match(money, /remainder[\s\S]*residual/);
   assert.doesNotMatch(money, /parseFloat|toFixed\(/);
   assert.match(form, /calculateQuotationMoney/);
   assert.doesNotMatch(form, /currentStep\(\) === 3"[^>]*formArrayName="items"/);

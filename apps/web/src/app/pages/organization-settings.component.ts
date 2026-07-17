@@ -5,14 +5,14 @@ import { ActivatedRoute } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
 import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
 import { NotificationService } from "../shared/notifications/notification.service";
-import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { internationalPhoneValidator, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-organization-settings",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">
@@ -33,6 +33,20 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-optional /></span>
             <input formControlName="taxId" maxlength="40" (blur)="formatRut()" aria-describedby="settings-tax-id-error" />
             <kaklen-field-error id="settings-tax-id-error" [control]="form.controls.taxId" [submitted]="submitAttempted()" />
+          </label>
+          <label>
+            <span><span i18n="@@addressLabel">Dirección</span><kaklen-optional /></span>
+            <input formControlName="address" maxlength="500" />
+          </label>
+          <label>
+            <span><span i18n="@@phoneLabel">Teléfono</span><kaklen-optional /></span>
+            <input type="tel" inputmode="tel" formControlName="phone" maxlength="24" aria-describedby="settings-phone-error" />
+            <kaklen-field-error id="settings-phone-error" [control]="form.controls.phone" [submitted]="submitAttempted()" />
+          </label>
+          <label>
+            <span><span i18n="@@whatsappLabel">WhatsApp</span><kaklen-optional /></span>
+            <input type="tel" inputmode="tel" formControlName="whatsapp" maxlength="24" aria-describedby="settings-whatsapp-error" />
+            <kaklen-field-error id="settings-whatsapp-error" [control]="form.controls.whatsapp" [submitted]="submitAttempted()" />
           </label>
           <label>
             <span i18n="@@countryLabel">País</span>
@@ -103,6 +117,9 @@ export class OrganizationSettingsComponent implements OnInit {
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }),
     legalName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }),
     taxId: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(40), chileanRutValidator()] }),
+    address: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(500)] }),
+    phone: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(24), internationalPhoneValidator()] }),
+    whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(24), internationalPhoneValidator()] }),
     country: new FormControl("CL", { nonNullable: true, validators: [Validators.required] }),
     currency: new FormControl("CLP", { nonNullable: true, validators: [Validators.required] }),
     timezone: new FormControl("America/Santiago", { nonNullable: true, validators: [Validators.required] }),
@@ -125,6 +142,9 @@ export class OrganizationSettingsComponent implements OnInit {
       name: organization.name,
       legalName: organization.legalName ?? "",
       taxId: organization.taxId ?? "",
+      address: organization.address ?? "",
+      phone: organization.phone ?? "",
+      whatsapp: organization.whatsapp ?? "",
       country: organization.country,
       currency: organization.currency,
       timezone: organization.timezone,
@@ -150,7 +170,10 @@ export class OrganizationSettingsComponent implements OnInit {
         ...value,
         name: value.name.trim(),
         legalName: value.legalName.trim() || null,
-        taxId: normalizeChileanRut(value.taxId) || null
+        taxId: normalizeChileanRut(value.taxId) || null,
+        address: value.address.trim() || null,
+        phone: normalizePhone(value.phone) || null,
+        whatsapp: normalizePhone(value.whatsapp) || null
       });
       this.notifications.success($localize`:@@organizationUpdated:Organización actualizada.`);
       this.message.set($localize`:@@organizationUpdated:Organización actualizada.`);

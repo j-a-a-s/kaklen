@@ -5,10 +5,11 @@ import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
-import { QuotationsService } from "../quotations/quotations.service";
+import { QuotationPublicLink, QuotationsService } from "../quotations/quotations.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
+import { RUNTIME_CONFIG } from "../config/runtime-config";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
@@ -29,13 +30,14 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
         <div class="row-actions">
           <a class="ghost button-link" [routerLink]="['/organizations', organizationId, 'quotations']"><kaklen-icon name="arrow-left" /><span i18n="@@backLink">Volver</span></a>
           <a *ngIf="canUpdate() && currentQuotation.status === 'DRAFT'" class="secondary button-link" [routerLink]="['/organizations', organizationId, 'quotations', currentQuotation.id, 'edit']"><kaklen-icon name="pencil" /><span i18n="@@editLink">Editar</span></a>
-          <button type="button" *ngIf="canSend() && currentQuotation.status === 'DRAFT'" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@sendQuotationEmailTitle">Enviar por email</span></button>
+          <button type="button" *ngIf="canSend() && (currentQuotation.status === 'DRAFT' || currentQuotation.status === 'SENT')" (click)="createPublicLink()" [disabled]="sharing()"><kaklen-icon name="message-circle" /><span i18n="@@shareSecurelyButton">Compartir de forma segura</span></button>
+          <button type="button" *ngIf="commercialEmailEnabled && canSend() && currentQuotation.status === 'DRAFT'" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@sendQuotationEmailTitle">Enviar por email</span></button>
           <button type="button" class="success" *ngIf="canApprove() && currentQuotation.status === 'SENT'" (click)="requestStatusChange('approve')" [disabled]="processing()"><kaklen-icon name="check" /><span i18n="@@approveQuotationButton">Aprobar</span></button>
           <button type="button" class="danger" *ngIf="canReject() && currentQuotation.status === 'SENT'" (click)="requestStatusChange('reject')" [disabled]="processing()"><kaklen-icon name="x-circle" /><span i18n="@@rejectQuotationButton">Rechazar</span></button>
           <a *ngIf="currentQuotation.status === 'APPROVED'" class="button-link" [routerLink]="['/organizations', organizationId, 'events', 'new']" [queryParams]="{ quotationId: currentQuotation.id }"><kaklen-icon name="calendar" /><span i18n="@@createEventButton">Crear evento</span></a>
           <kaklen-action-menu [contextKey]="organizationId">
             <button kaklenMenuItem type="button" class="secondary" (click)="downloadPdf()" [disabled]="downloadingPdf()"><kaklen-icon name="download" /><span>{{ downloadingPdf() ? preparingPdfLabel : downloadPdfLabel }}</span></button>
-            <button *ngIf="canSend() && currentQuotation.status === 'SENT'" kaklenMenuItem type="button" class="secondary" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@resendQuotationEmailButton">Reenviar por email</span></button>
+            <button *ngIf="commercialEmailEnabled && canSend() && currentQuotation.status === 'SENT'" kaklenMenuItem type="button" class="secondary" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@resendQuotationEmailButton">Reenviar por email</span></button>
             <button *ngIf="canUpdate() && canCreateVersion(currentQuotation.status)" kaklenMenuItem type="button" class="secondary" (click)="newVersion()" [disabled]="processing()"><kaklen-icon name="copy" /><span i18n="@@newVersionButton">Nueva versión</span></button>
             <button *ngIf="canSend() && canCancel(currentQuotation.status)" kaklenMenuItem type="button" class="danger" (click)="requestStatusChange('cancel')" [disabled]="processing()"><kaklen-icon name="x-circle" /><span i18n="@@cancelDefinitelyButton">Cancelar definitivamente</span></button>
           </kaklen-action-menu>
@@ -43,6 +45,12 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
       </section>
 
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
+
+      <section class="dashboard-panel secure-share-panel" *ngIf="publicLink() as link">
+        <div><h2 i18n="@@secureLinkReadyTitle">Enlace seguro listo</h2><p i18n="@@secureLinkReadyBody">Comparte este enlace con el cliente. Vence en siete días y puedes reemplazarlo generando uno nuevo.</p></div>
+        <div class="secure-link-value"><code>{{ link.url }}</code><button type="button" class="secondary" (click)="copyPublicLink(link.url)"><kaklen-icon name="copy" /><span i18n="@@copyLinkButton">Copiar enlace</span></button></div>
+        <button type="button" class="success" [disabled]="sharing()" (click)="openWhatsApp(link)"><kaklen-icon name="message-circle" /><span i18n="@@openWhatsAppButton">Abrir WhatsApp</span></button>
+      </section>
 
       <section class="dashboard-panel" *ngIf="quotation() as currentQuotation">
         <h2 i18n="@@dataTitle">Datos</h2>
@@ -86,7 +94,7 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
         (confirm)="confirmStatusChange()"
         (cancel)="pendingStatusAction.set(null)"
       />
-      <kaklen-quotation-email-dialog
+      <kaklen-quotation-email-dialog *ngIf="commercialEmailEnabled"
         [open]="emailDialogOpen()"
         [busy]="emailSending()"
         [recipient]="quotation()?.client?.email || ''"
@@ -99,6 +107,7 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
   `
 })
 export class QuotationDetailComponent implements OnInit {
+  readonly commercialEmailEnabled = RUNTIME_CONFIG.commercialEmailEnabled;
   readonly quotation = signal<Quotation | null>(null);
   readonly history = signal<QuotationStatusHistory[]>([]);
   readonly error = signal("");
@@ -106,6 +115,8 @@ export class QuotationDetailComponent implements OnInit {
   readonly downloadingPdf = signal(false);
   readonly emailDialogOpen = signal(false);
   readonly emailSending = signal(false);
+  readonly sharing = signal(false);
+  readonly publicLink = signal<QuotationPublicLink | null>(null);
   readonly pendingStatusAction = signal<"approve" | "reject" | "cancel" | null>(null);
   readonly downloadPdfLabel = $localize`:@@downloadPdfButton:Descargar PDF`;
   readonly preparingPdfLabel = $localize`:@@preparingPdfMessage:Preparando PDF...`;
@@ -216,6 +227,58 @@ export class QuotationDetailComponent implements OnInit {
     }
   }
 
+  async createPublicLink(): Promise<void> {
+    if (this.sharing()) return;
+    this.sharing.set(true);
+    this.error.set("");
+    try {
+      const link = await this.quotationsService.createPublicLink(
+        this.organizationId,
+        this.quotationId,
+        this.currentLocale()
+      );
+      this.publicLink.set(link);
+      await this.load();
+      this.notifications.success($localize`:@@secureLinkCreatedSuccess:Enlace seguro creado.`);
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@secureLinkCreateError:No fue posible crear el enlace seguro.`);
+    } finally {
+      this.sharing.set(false);
+    }
+  }
+
+  async copyPublicLink(url: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(url);
+      this.notifications.success($localize`:@@linkCopiedSuccess:Enlace copiado.`);
+    } catch {
+      this.notifications.error($localize`:@@linkCopyError:No fue posible copiar el enlace.`);
+    }
+  }
+
+  async openWhatsApp(link: QuotationPublicLink): Promise<void> {
+    if (this.sharing()) return;
+    this.sharing.set(true);
+    try {
+      const prepared = await this.quotationsService.prepareWhatsApp(
+        this.organizationId,
+        this.quotationId,
+        link.publicToken,
+        this.currentLocale()
+      );
+      if (prepared.waUrl) {
+        window.open(prepared.waUrl, "_blank", "noopener,noreferrer");
+        this.notifications.info($localize`:@@whatsappPreparedInfo:Mensaje preparado. Confirma el envío en WhatsApp.`);
+      }
+    } catch (error) {
+      this.notifications.fromError(error);
+      this.error.set($localize`:@@whatsappPrepareError:No fue posible preparar el mensaje de WhatsApp.`);
+    } finally {
+      this.sharing.set(false);
+    }
+  }
+
   openEmailDialog(): void {
     this.emailDialogOpen.set(true);
   }
@@ -251,7 +314,7 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   canCreateVersion(status: QuotationStatus): boolean {
-    return status === "SENT" || status === "APPROVED" || status === "REJECTED" || status === "CANCELLED";
+    return status === "SENT" || status === "CHANGES_REQUESTED" || status === "APPROVED" || status === "REJECTED" || status === "CANCELLED";
   }
 
   requestStatusChange(action: "approve" | "reject" | "cancel"): void {
@@ -290,6 +353,7 @@ export class QuotationDetailComponent implements OnInit {
     if (item.previousStatus === null) return $localize`:@@historyQuotationCreated:Cotización creada`;
     const labels: Partial<Record<QuotationStatus, string>> = {
       SENT: $localize`:@@historyQuotationSent:Cotización enviada`,
+      CHANGES_REQUESTED: $localize`:@@historyQuotationChangesRequested:Cambios solicitados por el cliente`,
       APPROVED: $localize`:@@historyQuotationApproved:Cotización aprobada`,
       REJECTED: $localize`:@@historyQuotationRejected:Cotización rechazada`,
       CANCELLED: $localize`:@@historyQuotationCancelled:Cotización cancelada`
@@ -330,6 +394,7 @@ export class QuotationDetailComponent implements OnInit {
     const labels: Record<QuotationStatus, string> = {
       DRAFT: $localize`:@@draftLabel:Borrador`,
       SENT: $localize`:@@sentLabel:Enviada`,
+      CHANGES_REQUESTED: $localize`:@@changesRequestedLabel:Cambios solicitados`,
       APPROVED: $localize`:@@approvedLabel:Aprobada`,
       REJECTED: $localize`:@@rejectedLabel:Rechazada`,
       EXPIRED: $localize`:@@expiredLabel:Expirada`,

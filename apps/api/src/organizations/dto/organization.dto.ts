@@ -1,12 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OrganizationMembershipStatus, OrganizationRole, OrganizationStatus } from "@prisma/client";
-import { IsEmail, IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsEnum, IsIn, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import type { Permission } from "../permissions";
 import { IsChileanRutWhen } from "../../common/validation/chilean-rut";
 
 export const SUPPORTED_DATE_FORMATS = ["dd-MM-yyyy", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"] as const;
 export const SUPPORTED_NUMBER_FORMATS = ["es", "en-US", "pt-BR"] as const;
 export const SUPPORTED_ORGANIZATION_LOCALES = ["es", "en", "pt-BR"] as const;
+const INTERNATIONAL_PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
 
 export class CreateOrganizationDto {
   @ApiProperty({ example: "Kaklen Demo" })
@@ -60,6 +61,26 @@ export class CreateOrganizationDto {
   @IsOptional()
   @IsIn(SUPPORTED_NUMBER_FORMATS)
   numberFormat?: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  address?: string;
+
+  @ApiPropertyOptional({ example: "+56221234567", maxLength: 24 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  @Matches(INTERNATIONAL_PHONE_PATTERN)
+  phone?: string;
+
+  @ApiPropertyOptional({ example: "+56912345678", maxLength: 24 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  @Matches(INTERNATIONAL_PHONE_PATTERN)
+  whatsapp?: string;
 }
 
 export class UpdateOrganizationDto {
@@ -120,6 +141,26 @@ export class UpdateOrganizationDto {
   @IsOptional()
   @IsIn(SUPPORTED_ORGANIZATION_LOCALES)
   defaultLocale?: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  address?: string | null;
+
+  @ApiPropertyOptional({ example: "+56221234567", maxLength: 24 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  @Matches(INTERNATIONAL_PHONE_PATTERN)
+  phone?: string | null;
+
+  @ApiPropertyOptional({ example: "+56912345678", maxLength: 24 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  @Matches(INTERNATIONAL_PHONE_PATTERN)
+  whatsapp?: string | null;
 }
 
 export class InviteMemberDto {
@@ -187,6 +228,15 @@ export class OrganizationResponseDto {
 
   @ApiProperty({ enum: ["es", "en", "pt-BR"], example: "es" })
   defaultLocale!: string;
+
+  @ApiProperty({ nullable: true })
+  address!: string | null;
+
+  @ApiProperty({ nullable: true })
+  phone!: string | null;
+
+  @ApiProperty({ nullable: true })
+  whatsapp!: string | null;
 
   @ApiProperty({ enum: OrganizationStatus })
   status!: OrganizationStatus;

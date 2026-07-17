@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 const checks = [
   ["Architecture check", "pnpm", ["architecture:check"]],
   ["Quality scan", "pnpm", ["quality:scan"]],
+  ["Forms audit", "pnpm", ["forms:audit"]],
   ["Secret scan", "pnpm", ["security:scan"]],
   ["Mail SMTP verification", "pnpm", ["mail:verify"]],
   ["Product stabilization contracts", "node", ["--test", "scripts/product-stabilization.test.mjs"]],

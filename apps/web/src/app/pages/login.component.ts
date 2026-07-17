@@ -11,7 +11,7 @@ import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
 import { VersionService } from "../version/version.service";
 import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface LoginForm {
@@ -22,7 +22,7 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -49,7 +49,7 @@ interface LoginForm {
 
           <label>
             <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
-            <input type="password" formControlName="password" autocomplete="current-password" aria-describedby="login-password-error" />
+            <input type="password" formControlName="password" autocomplete="current-password" maxlength="128" aria-describedby="login-password-error" />
             <kaklen-field-error id="login-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
           </label>
 
@@ -97,7 +97,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }),
     password: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]
+      validators: [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH), Validators.maxLength(128)]
     })
   });
 

@@ -203,7 +203,9 @@ describe("ClientsService", () => {
       type: ClientType.NATURAL_PERSON,
       firstName: " Ada ",
       lastName: " Lovelace ",
-      email: " ADA@Example.COM "
+      email: " ADA@Example.COM ",
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
 
     expect(data.displayName).toBe("Ada Lovelace");
@@ -214,12 +216,16 @@ describe("ClientsService", () => {
     await service.create("org-a", "user-1", {
       type: ClientType.NATURAL_PERSON,
       firstName: "Ada",
-      lastName: "Lovelace"
+      lastName: "Lovelace",
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
     await service.create("org-b", "user-1", {
       type: ClientType.NATURAL_PERSON,
       firstName: "Grace",
-      lastName: "Hopper"
+      lastName: "Hopper",
+      taxId: "11.111.111-1",
+      whatsapp: "+56 9 8765 4321"
     });
 
     const page = await service.list("org-a", { page: 1, pageSize: 20 });
@@ -236,7 +242,8 @@ describe("ClientsService", () => {
       lastName: "Lovelace",
       email: "ada@example.com",
       city: "Santiago",
-      taxId: "12.345.678-5"
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
     await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
@@ -262,7 +269,8 @@ describe("ClientsService", () => {
     const client = await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
       legalName: "Kaklen SpA",
-      taxId: "76.000.000-1"
+      taxId: "11.111.111-1",
+      whatsapp: "+56 9 1234 5678"
     });
 
     await service.archive("org-a", client.id, "user-1");
@@ -284,7 +292,8 @@ describe("ClientsService", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       email: "ada@example.com",
-      taxId: "NAT-1"
+      taxId: "NAT-1",
+      country: "BR"
     });
 
     const updated = await service.update("org-a", client.id, "user-1", {
@@ -304,8 +313,9 @@ describe("ClientsService", () => {
       firstName: "Ada",
       lastName: "Lovelace",
       email: "ada@example.com",
-      phone: "111",
-      whatsapp: "222",
+      phone: "+56 2 2345 6789",
+      whatsapp: "+56 9 1234 5678",
+      taxId: "12.345.678-5",
       country: "CL",
       region: "RM",
       city: "Santiago",
@@ -321,8 +331,8 @@ describe("ClientsService", () => {
       legalName: "  Kaklen SpA ",
       taxId: "12.345.678-5",
       email: " CONTACT@KAKLEN.CL ",
-      phone: "333",
-      whatsapp: "444",
+      phone: "+55 11 91234 5678",
+      whatsapp: "+55 11 99876 5432",
       country: "BR",
       region: "SP",
       city: "Sao Paulo",
@@ -339,8 +349,8 @@ describe("ClientsService", () => {
       legalName: "Kaklen SpA",
       taxId: "123456785",
       email: "contact@kaklen.cl",
-      phone: "333",
-      whatsapp: "444",
+      phone: "+5511912345678",
+      whatsapp: "+5511998765432",
       country: "BR",
       region: "SP",
       city: "Sao Paulo",
@@ -354,23 +364,34 @@ describe("ClientsService", () => {
       type: ClientType.NATURAL_PERSON,
       firstName: "Ada",
       lastName: "Lovelace",
-      taxId: "12.345.678-5"
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
 
     await expect(
       service.create("org-a", "user-1", {
         type: ClientType.LEGAL_ENTITY,
         legalName: "Ada SpA",
-        taxId: "123456785"
+        taxId: "123456785",
+        whatsapp: "+56 9 8765 4321"
       })
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: "DUPLICATE_TAX_ID" })
     });
   });
 
-  it("requires a RUT for Chilean legal entities", () => {
-    expect(() => service.mapClientInput({ type: ClientType.LEGAL_ENTITY, legalName: "Empresa sin RUT", country: "CL" })).toThrow(
+  it("requires a RUT for every Chilean client", () => {
+    expect(() => service.mapClientInput({ type: ClientType.NATURAL_PERSON, firstName: "Ada", lastName: "Lovelace", country: "CL", whatsapp: "+56 9 1234 5678" })).toThrow(
       expect.objectContaining({ response: expect.objectContaining({ code: "RUT_REQUIRED" }) })
+    );
+  });
+
+  it("requires a valid WhatsApp number for every Chilean client", () => {
+    expect(() => service.mapClientInput({ type: ClientType.LEGAL_ENTITY, legalName: "Empresa", country: "CL", taxId: "12.345.678-5" })).toThrow(
+      expect.objectContaining({ response: expect.objectContaining({ code: "WHATSAPP_REQUIRED" }) })
+    );
+    expect(() => service.mapClientInput({ type: ClientType.LEGAL_ENTITY, legalName: "Empresa", country: "CL", taxId: "12.345.678-5", whatsapp: "123" })).toThrow(
+      expect.objectContaining({ response: expect.objectContaining({ code: "WHATSAPP_INVALID" }) })
     );
   });
 
@@ -379,7 +400,9 @@ describe("ClientsService", () => {
       type: ClientType.NATURAL_PERSON,
       status: ClientStatus.ACTIVE,
       firstName: "Ada",
-      lastName: "Lovelace"
+      lastName: "Lovelace",
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
     await service.create("org-a", "user-1", {
       type: ClientType.LEGAL_ENTITY,
@@ -411,7 +434,9 @@ describe("ClientsService", () => {
     const client = await service.create("org-a", "user-1", {
       type: ClientType.NATURAL_PERSON,
       firstName: "Ada",
-      lastName: "Lovelace"
+      lastName: "Lovelace",
+      taxId: "12.345.678-5",
+      whatsapp: "+56 9 1234 5678"
     });
 
     await expect(service.get("org-b", client.id)).rejects.toThrow("Client not found");

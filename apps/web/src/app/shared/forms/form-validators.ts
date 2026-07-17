@@ -1,5 +1,9 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
-import { VALIDATION_LIMITS } from "@kaklen/shared";
+import {
+  VALIDATION_LIMITS,
+  countryBusinessPolicy,
+  normalizeInternationalPhone
+} from "@kaklen/shared";
 
 export const FIELD_LIMITS = VALIDATION_LIMITS;
 
@@ -24,6 +28,7 @@ export function emailValidator(required = false): ValidatorFn {
 export interface PhoneValidatorOptions {
   required?: boolean;
   country?: () => string;
+  requireCountryCode?: boolean;
 }
 
 export function internationalPhoneValidator(options: PhoneValidatorOptions = {}): ValidatorFn {
@@ -31,10 +36,19 @@ export function internationalPhoneValidator(options: PhoneValidatorOptions = {})
     const value = typeof control.value === "string" ? control.value.trim() : "";
     if (!value) return options.required ? { required: true } : null;
     if (!PHONE_VISUAL_PATTERN.test(value)) return { phone: true };
+    const country = options.country?.().toUpperCase() ?? "CL";
+    if (options.requireCountryCode) {
+      return countryBusinessPolicy(country).phonePattern.test(normalizeInternationalPhone(value))
+        ? null
+        : { phone: true };
+    }
     const digits = value.replace(/\D/g, "");
-    const country = options.country?.().toUpperCase();
-    const validLength = country === "CL" ? digits.length === 9 || digits.length === 11 : digits.length >= 7 && digits.length <= 15;
-    return validLength ? null : { phone: true };
+    const normalized = value.startsWith("+")
+      ? normalizeInternationalPhone(value)
+      : country === "CL" && digits.length === 9
+        ? `+56${digits}`
+        : "";
+    return countryBusinessPolicy(country).phonePattern.test(normalized) ? null : { phone: true };
   };
 }
 
@@ -86,8 +100,5 @@ export function normalizeEmail(value: string): string {
 }
 
 export function normalizePhone(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const prefix = trimmed.startsWith("+") ? "+" : "";
-  return `${prefix}${trimmed.replace(/\D/g, "")}`;
+  return normalizeInternationalPhone(value);
 }

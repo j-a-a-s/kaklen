@@ -38,11 +38,11 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
       </section>
 
       <section class="dashboard-panel filters-panel">
-        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="load(1)">
+        <form class="filters-form" role="search" [formGroup]="filtersForm" (ngSubmit)="load(1)">
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" placeholder="Código, nombre o cliente" i18n-placeholder="@@eventSearchPlaceholder" />
+              <input type="search" formControlName="search" maxlength="200" placeholder="Código, nombre o cliente" i18n-placeholder="@@eventSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="event-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@filtersButton">Filtros</span>
@@ -64,7 +64,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
             </label>
             <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
-              <input formControlName="city" />
+              <input type="search" formControlName="city" maxlength="120" />
             </label>
           <div class="row-actions filter-actions">
             <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>

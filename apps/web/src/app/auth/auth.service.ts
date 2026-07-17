@@ -144,6 +144,10 @@ export class AuthService {
     }
   }
 
+  clearLocalSession(): void {
+    this.clearSessionState();
+  }
+
   me(): Promise<AuthUser> {
     return firstValueFrom(
       this.http

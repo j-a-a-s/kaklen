@@ -35,11 +35,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
       </section>
 
       <section class="dashboard-panel filters-panel">
-        <form class="filters-form" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+        <form class="filters-form" role="search" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" placeholder="Nombre, código o SKU" i18n-placeholder="@@catalogSearchPlaceholder" />
+              <input type="search" formControlName="search" maxlength="160" placeholder="Nombre, código o SKU" i18n-placeholder="@@catalogSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="catalog-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@moreFiltersButton">Más filtros</span>
@@ -50,11 +50,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div id="catalog-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label class="advanced-filter">
               <span i18n="@@skuLabel">SKU</span>
-              <input type="search" formControlName="sku" />
+              <input type="search" formControlName="sku" maxlength="80" />
             </label>
             <label class="advanced-filter">
               <span i18n="@@codeLabel">Código</span>
-              <input type="search" formControlName="code" />
+              <input type="search" formControlName="code" maxlength="80" />
             </label>
             <label>
               <span i18n="@@typeLabel">Tipo</span>
@@ -75,11 +75,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             </label>
             <label class="advanced-filter">
               <span i18n="@@minPriceLabel">Precio mínimo</span>
-              <input type="number" min="0" step="0.01" formControlName="minPrice" />
+              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="minPrice" />
             </label>
             <label class="advanced-filter">
               <span i18n="@@maxPriceLabel">Precio máximo</span>
-              <input type="number" min="0" step="0.01" formControlName="maxPrice" />
+              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="maxPrice" />
             </label>
             <label class="checkbox-row advanced-filter">
               <input type="checkbox" formControlName="includeArchived" />

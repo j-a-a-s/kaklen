@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { organizationRoleLabel } from "../i18n/display-labels";
 import { OrganizationInvitation, OrganizationMember, OrganizationRole } from "../organizations/organization.models";
@@ -10,13 +10,13 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
-import { FieldErrorComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-organization-members",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent, ActionMenuComponent, ActionMenuItemDirective, FieldErrorComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent, ActionMenuComponent, ActionMenuItemDirective, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -29,6 +29,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
       <section class="dashboard-panel" *ngIf="canInvite()">
         <h2 i18n="@@invitePersonTitle">Invitar persona</h2>
         <form [formGroup]="inviteForm" (ngSubmit)="invite()">
+          <kaklen-form-error-summary [form]="inviteForm" [submitted]="submitAttempted()" [labels]="inviteFieldLabels" />
           <label>
             <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
             <input id="member-invite-email" type="email" inputmode="email" maxlength="254" formControlName="email" aria-describedby="member-email-error" />
@@ -100,9 +101,13 @@ export class OrganizationMembersComponent implements OnInit {
   readonly removeLabel = $localize`:@@removeMemberAction:Quitar acceso`;
   readonly membersEmptyTitle = $localize`:@@membersEmptyTitle:Tu equipo comienza contigo`;
   readonly membersEmptyDescription = $localize`:@@membersEmptyDescription:Invita personas para repartir tareas y mantener permisos claros dentro de la organización.`;
+  readonly inviteFieldLabels = {
+    email: $localize`:@@emailLabel:Email`,
+    role: $localize`:@@roleLabel:Rol`
+  };
   readonly inviteForm = new FormGroup({
     email: new FormControl("", { nonNullable: true, validators: [emailValidator(true)] }),
-    role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true })
+    role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true, validators: [Validators.required] })
   });
   organizationId = "";
 

@@ -20,16 +20,9 @@ import { catalogStatusLabel, clientStatusLabel, eventStatusLabel, quotationStatu
 import { Permission } from "../organizations/organization.models";
 import { OrganizationService } from "../organizations/organization.service";
 import { UiIconComponent, UiIconName } from "./ui-icon.component";
+import { ActionRegistryService, ResolvedAction } from "./action-registry.service";
 
-interface CommandItem {
-  id: string;
-  label: string;
-  help: string;
-  route: string;
-  icon: UiIconName;
-  aliases: readonly string[];
-  permission?: Permission;
-}
+type CommandItem = ResolvedAction;
 
 @Component({
   selector: "kaklen-command-palette",
@@ -61,19 +54,19 @@ interface CommandItem {
           <section *ngIf="recentItems().length" class="command-group">
             <h3 i18n="@@recentActionsTitle">Recientes</h3>
             <button *ngFor="let item of recentItems(); trackBy: trackCommand" type="button" class="command-option" [attr.data-command-id]="item.id" [class.active]="isActive(item.id)" (click)="run(item)">
-              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.help }}</small></span>
+              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.description }}</small></span>
             </button>
           </section>
           <section *ngIf="filteredActionItems().length" class="command-group">
             <h3 i18n="@@commandActionsTitle">Crear y gestionar</h3>
             <button *ngFor="let item of filteredActionItems(); trackBy: trackCommand" type="button" class="command-option" [attr.data-command-id]="item.id" [class.active]="isActive(item.id)" (click)="run(item)">
-              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.help }}</small></span>
+              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.description }}</small></span>
             </button>
           </section>
           <section *ngIf="filteredNavigationItems().length" class="command-group">
             <h3 i18n="@@commandNavigationTitle">Navegación</h3>
             <button *ngFor="let item of filteredNavigationItems(); trackBy: trackCommand" type="button" class="command-option" [attr.data-command-id]="item.id" [class.active]="isActive(item.id)" (click)="run(item)">
-              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.help }}</small></span>
+              <kaklen-icon [name]="item.icon" /><span><strong>{{ item.label }}</strong><small>{{ item.description }}</small></span>
             </button>
           </section>
 
@@ -114,6 +107,7 @@ export class CommandPaletteComponent implements OnChanges, OnDestroy {
     private readonly organizationService: OrganizationService,
     private readonly assistantService: AssistantService,
     private readonly analytics: ProductAnalyticsService,
+    private readonly actionRegistry: ActionRegistryService,
     private readonly router: Router
   ) {
     this.routeSubscription = router.events.subscribe((event) => {
@@ -221,30 +215,11 @@ export class CommandPaletteComponent implements OnChanges, OnDestroy {
   }
 
   actionItems(): CommandItem[] {
-    const id = this.organizationId;
-    if (!id) return [];
-    return [
-      this.command("create-client", $localize`:@@newClientButton:Nuevo cliente`, $localize`:@@newClientHelp:Registra una persona o empresa`, `/organizations/${id}/clients/new`, "plus", ["persona", "empresa", "crm"], "clients.create"),
-      this.command("create-catalog", $localize`:@@addCatalogItemButton:Agregar producto o servicio`, $localize`:@@addCatalogItemHelp:Completa tu catálogo comercial`, `/organizations/${id}/catalog/new`, "plus", ["producto", "servicio", "sku", "catalogo"], "catalog.create"),
-      this.command("create-quotation", $localize`:@@newQuotationButton:Nueva cotización`, $localize`:@@newQuotationHelp:Prepara una propuesta comercial`, `/organizations/${id}/quotations/new`, "plus", ["presupuesto", "propuesta"], "quotations.create"),
-      this.command("create-event", $localize`:@@newEventButton:Nuevo evento`, $localize`:@@newEventHelp:Coordina fechas, tareas y recursos`, `/organizations/${id}/events/new`, "plus", ["calendario", "agenda"], "events.create"),
-      this.command("invite-member", $localize`:@@inviteUserButton:Invitar miembro`, $localize`:@@inviteUserHelp:Suma a alguien de tu equipo`, `/organizations/${id}/members`, "users", ["usuario", "equipo", "rol"], "organization.members.invite"),
-      this.command("change-organization", $localize`:@@changeOrganizationButton:Cambiar organización`, $localize`:@@organizationsCommandHelp:Cambiar espacio de trabajo`, "/organizations", "building", ["workspace", "empresa"])
-    ].filter((item) => !item.permission || this.can(item.permission));
+    return this.registryItems().filter((item) => item.group === "create");
   }
 
   navigationItems(): CommandItem[] {
-    const id = this.organizationId;
-    if (!id) return [this.command("organizations", $localize`:@@navOrganizations:Organizaciones`, $localize`:@@organizationsCommandHelp:Cambiar espacio de trabajo`, "/organizations", "building", ["workspace", "empresa"])];
-    return [
-      this.command("home", $localize`:@@navHome:Inicio`, $localize`:@@dashboardEyebrow:Resumen de hoy`, `/organizations/${id}`, "home", ["dashboard", "resumen"], "organization.read"),
-      this.command("clients", $localize`:@@navClients:Clientes`, $localize`:@@clientsCommandHelp:Buscar personas y empresas`, `/organizations/${id}/clients`, "users", ["crm", "personas", "empresas"], "clients.read"),
-      this.command("catalog", $localize`:@@navCatalog:Productos y servicios`, $localize`:@@catalogCommandHelp:Revisar catálogo y precios`, `/organizations/${id}/catalog`, "package", ["catalogo", "sku", "precios"], "catalog.read"),
-      this.command("quotations", $localize`:@@navQuotations:Cotizaciones`, $localize`:@@quotationsCommandHelp:Continuar propuestas comerciales`, `/organizations/${id}/quotations`, "file-text", ["presupuestos", "propuestas"], "quotations.read"),
-      this.command("events", $localize`:@@navEvents:Eventos`, $localize`:@@eventsCommandHelp:Coordinar operaciones`, `/organizations/${id}/events`, "calendar", ["agenda", "calendario"], "events.read"),
-      this.command("members", $localize`:@@navMembers:Miembros`, $localize`:@@membersCommandHelp:Gestionar equipo y roles`, `/organizations/${id}/members`, "users", ["usuarios", "equipo", "roles"], "organization.members.read"),
-      this.command("settings", $localize`:@@navSettings:Configuración`, $localize`:@@settingsCommandHelp:Configurar tu organización`, `/organizations/${id}/settings`, "settings", ["ajustes", "preferencias"], "organization.update")
-    ].filter((item) => !item.permission || this.can(item.permission));
+    return this.registryItems().filter((item) => item.group === "navigation");
   }
 
   recentItems(): CommandItem[] {
@@ -308,7 +283,11 @@ export class CommandPaletteComponent implements OnChanges, OnDestroy {
     this.remember(item.id);
     this.analytics.track("command_action_executed", { flow: "command_palette", action: item.id });
     this.close(false);
-    void this.router.navigateByUrl(item.route);
+    if (item.callback) {
+      void item.callback({ organizationId: this.organizationId });
+    } else if (item.route) {
+      void this.router.navigateByUrl(item.route);
+    }
   }
 
   openResult(result: GlobalSearchResult): void {
@@ -350,25 +329,20 @@ export class CommandPaletteComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private command(
-    id: string,
-    label: string,
-    help: string,
-    route: string,
-    icon: UiIconName,
-    aliases: readonly string[],
-    permission?: Permission
-  ): CommandItem {
-    return { id, label, help, route, icon, aliases, permission };
-  }
-
   private filterLocalItems(items: CommandItem[]): CommandItem[] {
     const query = this.normalize(this.query);
     if (!query) {
       const recent = new Set(this.recentItems().map((item) => item.id));
       return items.filter((item) => !recent.has(item.id));
     }
-    return items.filter((item) => this.normalize([item.label, item.help, item.id, ...item.aliases].join(" ")).includes(query));
+    return items.filter((item) => this.normalize([item.label, item.description, item.id, ...item.keywords].join(" ")).includes(query));
+  }
+
+  private registryItems(): CommandItem[] {
+    return this.actionRegistry.resolve(
+      { organizationId: this.organizationId },
+      (permission) => this.can(permission)
+    );
   }
 
   private normalize(value: string): string {

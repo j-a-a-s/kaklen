@@ -7,7 +7,7 @@ import { LocaleService } from "../i18n/locale.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 import { emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface RegisterForm {
@@ -20,7 +20,7 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -62,7 +62,7 @@ interface RegisterForm {
 
             <label>
               <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
-              <input type="password" formControlName="password" autocomplete="new-password" aria-describedby="register-password-error" />
+              <input type="password" formControlName="password" autocomplete="new-password" maxlength="128" aria-describedby="register-password-error" />
               <kaklen-field-error id="register-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
             </label>
 

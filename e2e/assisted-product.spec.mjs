@@ -130,15 +130,16 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await navigateSpa(page, `/organizations/${organizationId}/clients/new`);
     await page.getByLabel(/^Nombre/).fill("Cliente");
     await page.getByLabel(/^Apellido/).fill(`Guiado ${unique}`);
+    await page.getByLabel(/^RUT o identificación tributaria/).fill(buildUniqueChileanRut(unique));
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByLabel("Email").fill("invalid-email");
     await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 call-me");
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText("Ingresa un correo válido, por ejemplo nombre@empresa.cl.")).toBeVisible();
     await expect(page.getByText("Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.")).toBeVisible();
-    const recipientEmail = `guided-${unique}@demo.kaklen.local`;
-    await page.getByLabel("Email").fill(recipientEmail);
+    await page.getByLabel("Email").fill(`guided-${unique}@demo.kaklen.local`);
     await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 9 1234 5678");
+    await page.getByRole("textbox", { name: /^WhatsApp/ }).fill("+56 9 1234 5678");
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText(clientName, { exact: true })).toBeVisible();
@@ -198,22 +199,10 @@ test.describe.serial("Kaklen assisted product journey", () => {
     const pdf = await readFile(downloadPath);
     expect(pdf.subarray(0, 4).toString("ascii")).toBe("%PDF");
 
-    await clearMailpit(mailpit);
-    await page.getByRole("button", { name: "Enviar por email" }).click();
-    const emailDialog = page.getByRole("dialog", { name: "Enviar por email" });
-    await expect(emailDialog).toBeVisible();
-    await expect(emailDialog.getByLabel("Destinatario")).toHaveValue(recipientEmail);
-    await emailDialog.getByRole("button", { name: "Enviar email" }).click();
-    await expect(emailDialog).toBeHidden();
-    await expect(page.getByText("Cotización enviada por email.")).toBeVisible();
-    const deliveredEmail = await waitForQuotationEmail(mailpit, recipientEmail);
-    expect(deliveredEmail.attachments.some((attachment) => {
-      const filename = attachment.FileName ?? attachment.Filename ?? attachment.Name;
-      const contentType = attachment.ContentType ?? attachment.ContentTypeHeader;
-      return typeof filename === "string" && filename.endsWith(".pdf") && contentType === "application/pdf";
-    })).toBe(true);
-    await expect(page.getByText(`Enviada por correo a ${recipientEmail}`)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Enviar por email" })).toHaveCount(0);
 
+    const send = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/send`, { note: "Assisted E2E ready for review" });
+    expect(send.status()).toBe(200);
     const approve = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/approve`, { note: "Assisted E2E" });
     expect(approve.status()).toBe(200);
 
@@ -257,11 +246,20 @@ test.describe.serial("Kaklen assisted product journey", () => {
       `/organizations/${organizationId}/clients/new`,
       `/organizations/${organizationId}/quotations/new`
     ];
-    for (const viewport of [{ width: 390, height: 844 }, { width: 820, height: 1180 }, { width: 1366, height: 768 }, { width: 1440, height: 900 }]) {
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 390, height: 844 },
+      { width: 768, height: 1024 },
+      { width: 820, height: 1180 },
+      { width: 1366, height: 768 },
+      { width: 1440, height: 900 },
+      { width: 1920, height: 1080 }
+    ]) {
       await page.setViewportSize(viewport);
       for (const path of responsivePaths) {
         await navigateSpa(page, path);
         await expectNoHorizontalOverflow(page);
+        await expectWizardStepsReadable(page);
       }
     }
     await page.setViewportSize({ width: 390, height: 844 });
@@ -303,8 +301,54 @@ async function resumeDemoSession(page, cookies) {
 }
 
 async function expectNoHorizontalOverflow(page) {
-  const sizes = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
-  expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.clientWidth);
+  try {
+    await expect.poll(
+      () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      { message: `Horizontal layout did not settle at ${page.url()}`, timeout: 2_000 }
+    ).toBeLessThanOrEqual(0);
+  } catch (error) {
+    const diagnostics = await page.evaluate(() => {
+      const clientWidth = document.documentElement.clientWidth;
+      const overflowingElements = [...document.querySelectorAll("body *")]
+        .map((element) => {
+          const bounds = element.getBoundingClientRect();
+          return {
+            element: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${[...element.classList].map((name) => `.${name}`).join("")}`,
+            left: Math.round(bounds.left),
+            right: Math.round(bounds.right),
+            width: Math.round(bounds.width)
+          };
+        })
+        .filter((element) => element.right > clientWidth + 1)
+        .slice(0, 10);
+      return {
+        clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        overflowingElements
+      };
+    });
+    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${JSON.stringify(diagnostics, null, 2)}`);
+  }
+}
+
+async function expectWizardStepsReadable(page) {
+  const wizard = page.locator(".wizard-steps");
+  if ((await wizard.count()) === 0) {
+    return;
+  }
+
+  const metrics = await wizard.evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    labels: [...element.querySelectorAll("strong")].map((label) => ({
+      clientWidth: label.clientWidth,
+      scrollWidth: label.scrollWidth
+    }))
+  }));
+
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+  expect(metrics.labels.length).toBeGreaterThan(0);
+  expect(metrics.labels.every((label) => label.clientWidth > 0 && label.scrollWidth <= label.clientWidth + 1)).toBe(true);
 }
 
 async function navigateSpa(page, route) {
@@ -322,23 +366,15 @@ async function clearMailpit(mailpit) {
   expect([200, 204]).toContain(response.status());
 }
 
-async function waitForQuotationEmail(mailpit, recipient) {
-  let detail = null;
-  await expect.poll(async () => {
-    const response = await mailpit.get("/api/v1/messages");
-    if (!response.ok()) return false;
-    const body = await response.json();
-    const messages = Array.isArray(body.messages) ? body.messages : [];
-    const message = messages.find((entry) => {
-      const recipients = Array.isArray(entry.To) ? entry.To : [];
-      return recipients.some((item) => item?.Address === recipient);
-    });
-    const id = message?.ID ?? message?.Id;
-    if (typeof id !== "string") return false;
-    const detailResponse = await mailpit.get(`/api/v1/message/${encodeURIComponent(id)}`);
-    if (!detailResponse.ok()) return false;
-    detail = await detailResponse.json();
-    return Array.isArray(detail.Attachments) && detail.Attachments.length > 0;
-  }, { message: `quotation email with PDF for ${recipient}`, timeout: 15_000, intervals: [100, 250, 500] }).toBe(true);
-  return { attachments: detail.Attachments };
+function buildUniqueChileanRut(seed) {
+  const body = 10_000_000 + (Number(String(seed).slice(-7)) % 9_000_000);
+  let sum = 0;
+  let multiplier = 2;
+  for (const digit of String(body).split("").reverse()) {
+    sum += Number(digit) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+  const remainder = 11 - (sum % 11);
+  const verifier = remainder === 11 ? "0" : remainder === 10 ? "K" : String(remainder);
+  return `${body}-${verifier}`;
 }
