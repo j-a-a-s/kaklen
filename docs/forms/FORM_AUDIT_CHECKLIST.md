@@ -2,7 +2,7 @@
 
 Fecha de cierre: 2026-07-17
 
-El comando `pnpm forms:audit` inspecciona templates Angular y falla ante controles reactivos sin contrato HTML, campos obligatorios sin indicador, email/teléfono con tipo incorrecto, ausencia de `maxlength`, formularios de datos sin resumen o controles sin estado ARIA. El resultado esperado es `FORM STANDARDIZATION PASSED`.
+El comando `pnpm forms:audit` usa TypeScript Compiler API para descubrir componentes y el parser de templates de Angular para inspeccionar templates inline y externos. Falla ante controles reactivos o `ngModel` sin contrato compartido, campos obligatorios sin indicador, email/teléfono con tipo incorrecto, ausencia de `maxlength`, formularios de datos sin resumen o controles sin estado ARIA. El resultado esperado es `FORM STANDARDIZATION PASSED`.
 
 ## Superficies verificadas
 
@@ -36,9 +36,12 @@ El comando `pnpm forms:audit` inspecciona templates Angular y falla ante control
 
 ## Comportamiento común
 
+- `FormFieldComponent` recibe label, `controlId`, required/invalid y el contenido helper/error; no se permiten indicadores manuales.
 - `FormControlA11yDirective` deriva `aria-required` desde validators y `aria-invalid` desde estado/touch.
-- `FormErrorSummaryComponent` enumera campos concretos y enfoca el control seleccionado.
+- `FormErrorSummaryComponent` usa `attempted` y `scopePaths`, enumera solo los errores exactos del paso y enfoca el control seleccionado.
+- `WizardValidationState` comparte estado por paso, marcado touched, actualización inmediata, foco y scroll entre Cliente, Cotización y Evento.
 - `FieldErrorComponent` ocupa el espacio del helper para conservar la retícula.
 - `CountryBusinessPolicy` comparte reglas de RUT, WhatsApp, moneda e IVA entre API y web.
 - En móvil la retícula pasa a una columna y no crea overflow horizontal.
-- El auditor cubre 25 formularios y 101 controles reactivos.
+- El auditor cubre 25 formularios y 137 controles: 91 `input`, 36 `select` y 10 `textarea`.
+- Las 13 pruebas negativas cubren select, required/optional, ARIA, etiquetas manuales, controles fuera del contrato, tipos, ControlValueAccessor, templates y abuso de `role=search`.

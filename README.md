@@ -63,7 +63,17 @@ pnpm e2e
 pnpm quality:gate
 ```
 
-El Quality Gate se detiene ante el primer control no exitoso y termina con `QUALITY GATE PASSED` solo cuando todos devuelven 0. La arquitectura, señales, códigos de salida y troubleshooting están documentados en [docs/testing/E2E_PROCESS_LIFECYCLE.md](docs/testing/E2E_PROCESS_LIFECYCLE.md).
+El Quality Gate resuelve un grafo canónico, ejecuta cada tarea una sola vez, se detiene ante el primer control no exitoso y termina con `QUALITY GATE PASSED` solo cuando todos devuelven 0. CI usa el mismo grafo mediante `pnpm quality:gate:ci`; no mantiene una segunda lista manual. La arquitectura está documentada en [docs/testing/QUALITY_PIPELINE.md](docs/testing/QUALITY_PIPELINE.md) y el lifecycle E2E en [docs/testing/E2E_PROCESS_LIFECYCLE.md](docs/testing/E2E_PROCESS_LIFECYCLE.md).
+
+Controles especializados:
+
+```bash
+pnpm forms:audit
+pnpm pdf:verify-money
+pnpm scorecard:verify
+```
+
+El auditor usa AST de TypeScript y Angular para `input`, `select`, `textarea` y controles personalizados. El scorecard versionado se actualiza con `pnpm scorecard:update`; AWS staging, WhatsApp real y el gateway productivo se mantienen como evidencia externa y bloquean una calificación global 10/10 mientras no estén validados.
 
 Si sospechas cache del navegador o builds antiguos:
 
@@ -270,12 +280,14 @@ Antes de crear un tag estable ejecuta:
 pnpm release:check
 ```
 
-El comando termina con `RELEASE READY` solo si pasan secret scan, doctor, setup, validación de la base activa, reconstrucción limpia de migraciones, Prisma, API build, lint, tests, build, i18n, full local y E2E. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
+El comando selecciona el perfil pre-tag del mismo grafo canónico y termina con `RELEASE READY` solo si todos sus controles pasan. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
 
 Para evaluar el criterio estricto 10/10:
 
 ```bash
 pnpm release:check:strict
 ```
+
+El perfil estricto agrega mutación crítica y exige evidencia real de AWS staging, WhatsApp y gateway productivo.
 
 Este gate agrega arquitectura, quality scan, SAST local, SBOM, dependency audit, cobertura y accesibilidad. Debe bloquear con `RELEASE BLOCKED` mientras no se validen AWS staging real y los umbrales de cobertura descritos en `docs/release/TECHNICAL_SCORECARD.md`.

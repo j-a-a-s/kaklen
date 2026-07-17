@@ -72,4 +72,4 @@ Esta matriz alinea HTML, validators Angular, DTO, Prisma y reglas de dominio. `R
 | Proveedor | price | No | decimal | 14,2; >= 0 | decimal validator | Precio no negativo; provider tests |
 | Proveedor | portfolioUrl | No | URL http/https | 500 | URL validator | URL válida; provider tests |
 
-La verificación estructural se ejecuta con `pnpm forms:audit`; la coherencia de negocio se cubre en suites API, web y E2E.
+Todos los campos de datos de esta matriz se renderizan mediante `FormFieldComponent` y `FormControlA11yDirective`. El estado visual required/invalid y ARIA deriva del mismo `NgControl`; las reglas dinámicas se prueban en runtime. La verificación estructural AST se ejecuta con `pnpm forms:audit`; la coherencia de negocio se cubre en suites API, web y E2E.

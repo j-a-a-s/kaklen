@@ -88,6 +88,14 @@ Kaklen usa `@angular/localize` con builds separados. `pnpm dev` sirve el idioma 
 
 ## Validacion pre-tag
 
+Para ejecutar el gate local canónico:
+
+```bash
+pnpm quality:gate
+```
+
+Cada control se ejecuta una vez y la evidencia queda en `artifacts/quality-gate.json`. Los detalles de perfiles y reutilización están en `docs/testing/QUALITY_PIPELINE.md`.
+
 Para auditar el estado local antes de un primer tag:
 
 ```bash
@@ -100,7 +108,7 @@ Para auditar el criterio estricto 10/10:
 pnpm release:check:strict
 ```
 
-Este comando debe bloquear hasta que la cobertura cumpla los umbrales y AWS staging real este validado.
+Este comando debe bloquear hasta que AWS staging, WhatsApp real y el gateway productivo estén validados externamente. El scorecard se actualiza con `pnpm scorecard:update` y se comprueba con `pnpm scorecard:verify`.
 
 Para revisar solo base de datos:
 

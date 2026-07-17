@@ -3,13 +3,13 @@
 | Control | Unitario/integración | E2E o comando | Resultado requerido |
 | --- | --- | --- | --- |
 | Botones, tooltip y menú | specs shared UI/action menu | assisted journey | foco, lifecycle, una acción |
-| Formularios y ARIA | validators, feedback, directive | `pnpm forms:audit` | 25 forms/101 controls |
+| Formularios y ARIA | validators, feedback, directive, 13 negativas AST | `pnpm forms:audit` | 25 forms/137 controls |
 | Política Chile | shared + clients service | creación UI/API | RUT y WhatsApp obligatorios |
 | Centro de acciones | ActionRegistry y palette specs | assisted journey | rutas, permisos y teclado |
 | Busy global | service/interceptor specs | navegación/PDF/pago | contador sin bloqueo residual |
 | Idle cross-tab | fake timers/BroadcastChannel | logout E2E | warning 240 s, cierre 300 s |
 | Dinero | shared money + quotation API | cotización E2E | totales exactos |
-| PDF | ViewModel/renderer/controller | descarga real | `%PDF`, no vacío, paginado |
+| PDF | cálculo exacto/ViewModel/renderer/controller | `pnpm pdf:verify-money` y descarga real | paridad persistida, `%PDF`, paginado |
 | Email seguridad | mail/auth integration | Mailpit E2E y `mail:verify` | verificación/reset entregados |
 | Email comercial | feature flag/mail spec | assisted journey | UI oculta y servicio bloqueado |
 | Portal | token + service specs | MVP E2E | vista, cambios, versión obsoleta |
@@ -26,4 +26,4 @@
 
 ## Gate final
 
-`pnpm quality:gate` ejecuta arquitectura, quality scan, formularios, secretos, SMTP, contratos de producto, validación de la base activa, reconstrucción limpia de migraciones, auth, seed idempotente, lint, tests, cobertura, build, API, tres locales, servidor i18n, E2E, accesibilidad, release y restauración demo. El único cierre válido es `QUALITY GATE PASSED`.
+`pnpm quality:gate` resuelve un único grafo, ejecuta cada key una vez y falla al primer control requerido. Tests API generan cobertura en su única ejecución; i18n, E2E y accesibilidad reutilizan builds/evidencia ya validados. `quality:gate:ci`, `release:check` y `release:check:strict` seleccionan nodos del mismo grafo y nunca se llaman entre sí. El único cierre válido es `QUALITY GATE PASSED`.

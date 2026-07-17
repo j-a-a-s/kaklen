@@ -1,6 +1,8 @@
 # Documento profesional de cotización
 
-`QuotationDocumentService` construye un `QuotationDocumentViewModel` único y lo entrega al renderer PDF nativo. El modelo contiene organización, cliente, ejecutivo, cotización, líneas, totales, historial y locale.
+`QuotationDocumentService` construye un `QuotationDocumentViewModel` único y lo entrega al renderer PDF nativo. Todos los montos provienen exclusivamente de `calculateQuotationMoney()`; el ViewModel no usa `Number`, `parseFloat`, `toFixed` ni aritmética monetaria nativa.
+
+Antes de renderizar, el servicio compara en unidades menores los totales y cada línea contra los valores persistidos. Una diferencia de un centavo bloquea el documento con `QUOTATION_MONEY_MISMATCH`; nunca se corrigen datos silenciosamente ni se entrega un PDF contradictorio.
 
 ## Contenido y diseño
 
@@ -16,4 +18,4 @@ El renderer calcula páginas antes de escribirlas, soporta cero o muchas líneas
 
 ## Evidencia
 
-`quotation-document.service.spec.ts` verifica ViewModel, locale, paginación, texto largo, magic bytes y contenido. `quotations.controller.spec.ts` cubre headers y RBAC. `assisted-product.spec.mjs` descarga el archivo real y verifica `%PDF`.
+`quotation-document.service.spec.ts` cubre cantidades de tres decimales, residuos, descuentos 5%/100%/fijo/porcentaje, líneas no elegibles, IVA 19%, exentos, CLP, USD, montos grandes, 75 líneas, multipágina y mismatch de una unidad menor. `pnpm pdf:verify-money` realiza además una verificación estructural negativa y termina con `PDF MONEY PARITY PASSED`. `quotations.controller.spec.ts` cubre headers y RBAC; `assisted-product.spec.mjs` descarga el archivo real y verifica `%PDF`.
