@@ -95,6 +95,7 @@ export function messageForError(error: unknown): string {
     DUPLICATE_TAX_ID: $localize`:@@errorDuplicateTaxId:Ya existe un registro con ese RUT.`,
     QUOTATION_INVALID_STATUS: $localize`:@@errorQuotationInvalidStatus:La cotización no permite esa acción en su estado actual.`,
     QUOTATION_MONEY_MISMATCH: $localize`:@@errorQuotationMoneyMismatch:Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.`,
+    CLP_FRACTION_NOT_ALLOWED: $localize`:@@errorClpFractionNotAllowed:Los montos en pesos chilenos no pueden contener decimales.`,
     EVENT_INVALID_STATUS: $localize`:@@errorEventInvalidStatus:El evento no permite esa acción en su estado actual.`
   };
 

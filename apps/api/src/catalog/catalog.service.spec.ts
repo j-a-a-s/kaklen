@@ -216,6 +216,19 @@ describe("CatalogService", () => {
     expect(item.trackInventory).toBe(false);
   });
 
+  it("rejects fractional CLP catalog prices", async () => {
+    await expect(service.create("org-a", "user-1", {
+      type: CatalogItemType.PRODUCT,
+      code: "clp-fraction",
+      name: "Invalid CLP item",
+      unit: "unidad",
+      cost: 100,
+      price: 150.5,
+      taxPercent: 19,
+      currency: "CLP"
+    })).rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
+  });
+
   it("rejects duplicate code inside the same organization", async () => {
     const payload = {
       type: CatalogItemType.PRODUCT,

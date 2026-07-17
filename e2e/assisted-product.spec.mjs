@@ -183,8 +183,8 @@ test.describe.serial("Kaklen assisted product journey", () => {
     expect(await storedQuotation.json()).toMatchObject({
       subtotal: "25000",
       discountTotal: "1250",
-      taxTotal: "4512.5",
-      total: "28262.5",
+      taxTotal: "4513",
+      total: "28263",
       globalDiscountPercent: "5"
     });
 

@@ -31,7 +31,7 @@ export interface PaymentGateway {
   processWebhook(payload: PaymentWebhookPayload): PaymentWebhookPayload;
   verifyWebhookSignature(payload: PaymentWebhookPayload, signature: string): boolean;
   cancel(externalReference: string): Promise<PaymentStatus>;
-  refund(externalReference: string, amount: string): Promise<PaymentStatus>;
+  refund(externalReference: string, amount: string, currency: string): Promise<PaymentStatus>;
   createSignedWebhook(
     externalReference: string,
     status: PaymentWebhookPayload["status"],

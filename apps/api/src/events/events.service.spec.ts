@@ -148,6 +148,19 @@ describe("EventsService", () => {
     });
   });
 
+  it("rejects fractional CLP event budgets with a stable code", async () => {
+    const prisma = makeEventsPrisma();
+    const realService = new EventsService(prisma as unknown as ConstructorParameters<typeof EventsService>[0]);
+
+    await expect(realService.create("org-1", "user-1", {
+      name: "Gala anual",
+      startAt: "2026-08-01T10:00:00.000Z",
+      endAt: "2026-08-01T12:00:00.000Z",
+      currency: "CLP",
+      budget: 1500.5
+    })).rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
+  });
+
   it("rejects events for clients outside the organization", async () => {
     const prisma = makeEventsPrisma({ client: null });
     const realService = new EventsService(prisma as unknown as ConstructorParameters<typeof EventsService>[0]);
@@ -385,6 +398,13 @@ describe("EventsService", () => {
         unit: "unit"
       })
     ).rejects.toBeInstanceOf(NotFoundException);
+
+    await expect(realService.createResource("org-1", "event-1", {
+      name: "Transporte",
+      quantity: 1,
+      unit: "servicio",
+      unitCost: 100.5
+    })).rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
   });
 
   it("manages timeline entries and validates optional end dates", async () => {

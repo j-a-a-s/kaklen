@@ -458,18 +458,6 @@
         <source>Guardando...</source>
         <target>Guardando...</target>
       </trans-unit>
-      <trans-unit id="costValidation" datatype="html">
-        <source>El costo debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
-        <target>El costo debe ser mayor o igual a 0 y tener máximo 2 decimales.</target>
-      </trans-unit>
-      <trans-unit id="priceValidation" datatype="html">
-        <source>El precio debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
-        <target>El precio debe ser mayor o igual a 0 y tener máximo 2 decimales.</target>
-      </trans-unit>
-      <trans-unit id="taxValidation" datatype="html">
-        <source>El impuesto debe estar entre 0 y 100 y tener máximo 2 decimales.</source>
-        <target>El impuesto debe estar entre 0 y 100 y tener máximo 2 decimales.</target>
-      </trans-unit>
       <trans-unit id="productInventoryHint" datatype="html">
         <source>Los productos controlan inventario.</source>
         <target>Los productos controlan inventario.</target>
@@ -1770,14 +1758,6 @@
         <source>La fecha de término debe ser posterior a la fecha de inicio.</source>
         <target>La fecha de término debe ser posterior a la fecha de inicio.</target>
       </trans-unit>
-      <trans-unit id="quantityValidation" datatype="html">
-        <source>La cantidad debe ser mayor que 0 y tener máximo 3 decimales.</source>
-        <target>La cantidad debe ser mayor que 0 y tener máximo 3 decimales.</target>
-      </trans-unit>
-      <trans-unit id="budgetValidation" datatype="html">
-        <source>El presupuesto debe ser mayor o igual a 0 y tener máximo 2 decimales.</source>
-        <target>El presupuesto debe ser mayor o igual a 0 y tener máximo 2 decimales.</target>
-      </trans-unit>
       <trans-unit id="eventForQuotationPrefix" datatype="html">
         <source>Evento</source>
         <target>Evento</target>
@@ -2746,14 +2726,6 @@
         <source>Cliente registrado sin datos de contacto</source>
         <target>Cliente registrado sin datos de contacto</target>
       </trans-unit>
-      <trans-unit id="moneyValidation" datatype="html">
-        <source>Ingresa un monto mayor o igual a 0 con máximo 2 decimales.</source>
-        <target>Ingresa un monto mayor o igual a 0 con máximo 2 decimales.</target>
-      </trans-unit>
-      <trans-unit id="discountValidation" datatype="html">
-        <source>El descuento debe estar entre 0 y 100 cuando es porcentual.</source>
-        <target>El descuento debe estar entre 0 y 100 cuando es porcentual.</target>
-      </trans-unit>
       <trans-unit id="quotationDateValidation" datatype="html">
         <source>La fecha válida hasta debe ser posterior o igual a la fecha de emisión.</source>
         <target>La fecha válida hasta debe ser posterior o igual a la fecha de emisión.</target>
@@ -3318,10 +3290,6 @@
         <source>Este campo es obligatorio.</source>
         <target>Este campo es obligatorio.</target>
       </trans-unit>
-      <trans-unit id="fieldInvalidError" datatype="html">
-        <source>Revisa el valor ingresado.</source>
-        <target>Revisa el valor ingresado.</target>
-      </trans-unit>
       <trans-unit id="wizardProgressLabel" datatype="html">
         <source>Progreso</source>
         <target>Progreso</target>
@@ -3333,6 +3301,26 @@
       <trans-unit id="formErrorSummaryHelp" datatype="html">
         <source>Los mensajes bajo cada campo indican qué debes corregir.</source>
         <target>Los mensajes bajo cada campo indican qué debes corregir.</target>
+      </trans-unit>
+      <trans-unit id="validationCollectionItem" datatype="html">
+        <source>Ítem</source>
+        <target>Ítem</target>
+      </trans-unit>
+      <trans-unit id="validationCollectionParticipant" datatype="html">
+        <source>Participante</source>
+        <target>Participante</target>
+      </trans-unit>
+      <trans-unit id="validationCollectionTask" datatype="html">
+        <source>Tarea</source>
+        <target>Tarea</target>
+      </trans-unit>
+      <trans-unit id="validationCollectionResource" datatype="html">
+        <source>Recurso</source>
+        <target>Recurso</target>
+      </trans-unit>
+      <trans-unit id="fieldWhitespaceError" datatype="html">
+        <source>Ingresa un valor válido; no puede contener solo espacios.</source>
+        <target>Ingresa un valor válido; no puede contener solo espacios.</target>
       </trans-unit>
       <trans-unit id="emailValidation" datatype="html">
         <source>Ingresa un correo válido, por ejemplo nombre@empresa.cl.</source>
@@ -3346,9 +3334,97 @@
         <source>Ingresa un RUT válido.</source>
         <target>Ingresa un RUT válido.</target>
       </trans-unit>
+      <trans-unit id="decimalValidation" datatype="html">
+        <source>Ingresa un número válido.</source>
+        <target>Ingresa un número válido.</target>
+      </trans-unit>
+      <trans-unit id="precisionValidation" datatype="html">
+        <source>Este campo admite como máximo <x id="maximum" equiv-text="maximum"/> decimales.</source>
+        <target>Este campo admite como máximo <x id="maximum" equiv-text="maximum"/> decimales.</target>
+      </trans-unit>
+      <trans-unit id="minValidation" datatype="html">
+        <source>El valor mínimo permitido es <x id="minimum" equiv-text="minimum"/>.</source>
+        <target>El valor mínimo permitido es <x id="minimum" equiv-text="minimum"/>.</target>
+      </trans-unit>
+      <trans-unit id="maxValidation" datatype="html">
+        <source>El valor máximo permitido es <x id="maximum" equiv-text="maximum"/>.</source>
+        <target>El valor máximo permitido es <x id="maximum" equiv-text="maximum"/>.</target>
+      </trans-unit>
+      <trans-unit id="maxLengthValidation" datatype="html">
+        <source>Puedes ingresar como máximo <x id="maximum" equiv-text="maximum"/> caracteres.</source>
+        <target>Puedes ingresar como máximo <x id="maximum" equiv-text="maximum"/> caracteres.</target>
+      </trans-unit>
+      <trans-unit id="minLengthValidation" datatype="html">
+        <source>Debes ingresar al menos <x id="minimum" equiv-text="minimum"/> caracteres.</source>
+        <target>Debes ingresar al menos <x id="minimum" equiv-text="minimum"/> caracteres.</target>
+      </trans-unit>
       <trans-unit id="dateOrderValidation" datatype="html">
-        <source>La fecha de término debe ser posterior o igual a la fecha de inicio.</source>
-        <target>La fecha de término debe ser posterior o igual a la fecha de inicio.</target>
+        <source>La fecha de término debe ser igual o posterior a la fecha de inicio.</source>
+        <target>La fecha de término debe ser igual o posterior a la fecha de inicio.</target>
+      </trans-unit>
+      <trans-unit id="mismatchValidation" datatype="html">
+        <source>Los valores ingresados no coinciden.</source>
+        <target>Los valores ingresados no coinciden.</target>
+      </trans-unit>
+      <trans-unit id="patternValidation" datatype="html">
+        <source>Ingresa un valor con el formato solicitado.</source>
+        <target>Ingresa un valor con el formato solicitado.</target>
+      </trans-unit>
+      <trans-unit id="atLeastOneValidation" datatype="html">
+        <source>Completa al menos uno de los campos indicados.</source>
+        <target>Completa al menos uno de los campos indicados.</target>
+      </trans-unit>
+      <trans-unit id="fieldInvalidKnownError" datatype="html">
+        <source>El valor ingresado no cumple la regla del campo.</source>
+        <target>El valor ingresado no cumple la regla del campo.</target>
+      </trans-unit>
+      <trans-unit id="quantityValidation" datatype="html">
+        <source>La cantidad debe ser mayor que 0 y admitir como máximo 3 decimales.</source>
+        <target>La cantidad debe ser mayor que 0 y admitir como máximo 3 decimales.</target>
+      </trans-unit>
+      <trans-unit id="clpMoneyValidation" datatype="html">
+        <source>Ingresa un monto en pesos chilenos sin decimales.</source>
+        <target>Ingresa un monto en pesos chilenos sin decimales.</target>
+      </trans-unit>
+      <trans-unit id="moneyValidation" datatype="html">
+        <source>Ingresa un monto mayor o igual a 0 con máximo 2 decimales.</source>
+        <target>Ingresa un monto mayor o igual a 0 con máximo 2 decimales.</target>
+      </trans-unit>
+      <trans-unit id="percentageDiscountValidation" datatype="html">
+        <source>El descuento debe estar entre 0 % y 100 %.</source>
+        <target>El descuento debe estar entre 0 % y 100 %.</target>
+      </trans-unit>
+      <trans-unit id="clpFixedDiscountValidation" datatype="html">
+        <source>Ingresa un descuento en pesos chilenos sin decimales y no superior al subtotal de la línea.</source>
+        <target>Ingresa un descuento en pesos chilenos sin decimales y no superior al subtotal de la línea.</target>
+      </trans-unit>
+      <trans-unit id="fixedDiscountValidation" datatype="html">
+        <source>Ingresa un descuento no superior al subtotal de la línea y con máximo 2 decimales.</source>
+        <target>Ingresa un descuento no superior al subtotal de la línea y con máximo 2 decimales.</target>
+      </trans-unit>
+      <trans-unit id="taxValidation" datatype="html">
+        <source>El impuesto debe estar entre 0 % y 100 %.</source>
+        <target>El impuesto debe estar entre 0 % y 100 %.</target>
+      </trans-unit>
+      <trans-unit id="rutExampleValidation" datatype="html">
+        <source>Ingresa un RUT válido, por ejemplo 12.345.678-5.</source>
+        <target>Ingresa un RUT válido, por ejemplo 12.345.678-5.</target>
+      </trans-unit>
+      <trans-unit id="whatsappValidation" datatype="html">
+        <source>Ingresa un número de WhatsApp válido con código de país, por ejemplo +56 9 1234 5678.</source>
+        <target>Ingresa un número de WhatsApp válido con código de país, por ejemplo +56 9 1234 5678.</target>
+      </trans-unit>
+      <trans-unit id="validUntilValidation" datatype="html">
+        <source>La fecha de vigencia debe ser igual o posterior a la fecha de emisión.</source>
+        <target>La fecha de vigencia debe ser igual o posterior a la fecha de emisión.</target>
+      </trans-unit>
+      <trans-unit id="nestedValidationLabel" datatype="html">
+        <source><x id="collection" equiv-text="collectionLabel"/> <x id="index" equiv-text="index"/>: <x id="field" equiv-text="fieldLabel"/></source>
+        <target><x id="collection" equiv-text="collectionLabel"/> <x id="index" equiv-text="index"/>: <x id="field" equiv-text="fieldLabel"/></target>
+      </trans-unit>
+      <trans-unit id="fieldLabelFallback" datatype="html">
+        <source>Campo</source>
+        <target>Campo</target>
       </trans-unit>
       <trans-unit id="notificationsAriaLabel" datatype="html">
         <source>Notificaciones</source>
@@ -3393,6 +3469,10 @@
       <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
         <source>Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.</source>
         <target>Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.</target>
+      </trans-unit>
+      <trans-unit id="errorClpFractionNotAllowed" datatype="html">
+        <source>Los montos en pesos chilenos no pueden contener decimales.</source>
+        <target>Los montos en pesos chilenos no pueden contener decimales.</target>
       </trans-unit>
       <trans-unit id="errorEventInvalidStatus" datatype="html">
         <source>El evento no permite esa acción en su estado actual.</source>

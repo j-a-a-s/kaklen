@@ -50,14 +50,24 @@ test("an incomplete quality gate cannot claim canonical controls", () => {
 });
 
 test("the scorecard task may be running while it validates the completed gate", () => {
-  const root = createEvidenceFixture({ runningScorecard: true });
+  const root = createEvidenceFixture({ scorecardStatus: "running" });
   const scorecard = collectTechnicalScorecard({ root, env: {} });
 
   assert.equal(scorecard.metrics.pipeline.status, "validated");
   assert.equal(scorecard.metrics.pipeline.taskCount, scorecard.metrics.pipeline.expectedTaskCount);
 });
 
-function createEvidenceFixture({ omittedTask = null, runningScorecard = false } = {}) {
+test("a stale scorecard self-check does not change the generated scorecard", () => {
+  const runningRoot = createEvidenceFixture({ scorecardStatus: "running" });
+  const failedRoot = createEvidenceFixture({ scorecardStatus: "failed" });
+
+  const runningDocument = renderTechnicalScorecard(collectTechnicalScorecard({ root: runningRoot, env: {} }));
+  const failedDocument = renderTechnicalScorecard(collectTechnicalScorecard({ root: failedRoot, env: {} }));
+
+  assert.equal(failedDocument, runningDocument);
+});
+
+function createEvidenceFixture({ omittedTask = null, scorecardStatus = "passed" } = {}) {
   const root = mkdtempSync(join(tmpdir(), "kaklen-scorecard-"));
   const taskKeys = resolveProfile("quality:gate:ci").tasks.map((task) => task.key).filter((key) => key !== omittedTask);
   writeJson(root, "apps/api/coverage/coverage-summary.json", {
@@ -76,8 +86,8 @@ function createEvidenceFixture({ omittedTask = null, runningScorecard = false } 
   });
   writeJson(root, "artifacts/quality-gate.json", {
     profile: "quality:gate:ci",
-    status: runningScorecard ? "running" : "passed",
-    tasks: taskKeys.map((key) => ({ key, status: runningScorecard && key === "scorecard" ? "running" : "passed" }))
+    status: scorecardStatus === "running" ? "running" : scorecardStatus === "failed" ? "failed" : "passed",
+    tasks: taskKeys.map((key) => ({ key, status: key === "scorecard" ? scorecardStatus : "passed" }))
   });
   writeJson(root, "artifacts/e2e-result.json", { status: "passed", accessibilityIncluded: true });
   writeJson(root, "artifacts/i18n-server.json", { status: "passed", locales: ["es", "en", "pt-BR"] });

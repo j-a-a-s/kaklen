@@ -18,6 +18,7 @@ import {
 import { readPasswordRecoveryConfig } from "@kaklen/config";
 import { createHash, randomBytes } from "node:crypto";
 import { InAppNotificationsService } from "../in-app-notifications/in-app-notifications.service";
+import { serializeMoney } from "../common/money-validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuotationPortalService } from "../quotation-portal/quotation-portal.service";
 import { CompleteSandboxPaymentDto, CreatePublicPaymentDto, RefundPaymentDto } from "./dto/payment.dto";
@@ -78,7 +79,7 @@ export class PaymentsService {
     }
 
     const intent = await this.gateway.createPaymentIntent({
-      amount: quotation.total.toFixed(2),
+      amount: serializeMoney(quotation.total.toString(), quotation.currency),
       currency: quotation.currency,
       reference: `${quotation.number}-v${quotation.version}`
     });
@@ -154,7 +155,7 @@ export class PaymentsService {
     return {
       payment: {
         status: payment.status,
-        amount: payment.amount.toFixed(2),
+        amount: serializeMoney(payment.amount.toString(), payment.currency),
         currency: payment.currency,
         createdAt: payment.createdAt
       },
@@ -181,7 +182,7 @@ export class PaymentsService {
     const webhook = this.gateway.createSignedWebhook(
       payment.externalReference,
       dto.outcome,
-      payment.amount.toFixed(2),
+      serializeMoney(payment.amount.toString(), payment.currency),
       payment.currency
     );
     return this.processWebhook(webhook.payload, webhook.signature);
@@ -209,10 +210,9 @@ export class PaymentsService {
       const current = await this.prisma.payment.findUnique({ where: { id: payment.id } });
       return { status: current?.status ?? payment.status, duplicate: true };
     }
-    if (
-      !payment.amount.equals(new Prisma.Decimal(payload.amount)) ||
-      payment.currency !== payload.currency.toUpperCase()
-    ) {
+    const webhookCurrency = payload.currency.toUpperCase();
+    const webhookAmount = serializeMoney(payload.amount, webhookCurrency);
+    if (!payment.amount.equals(new Prisma.Decimal(webhookAmount)) || payment.currency !== webhookCurrency) {
       await this.recordWebhook(payment, payload, true, null);
       throw new BadRequestException({
         code: "PAYMENT_WEBHOOK_AMOUNT_MISMATCH",
@@ -252,7 +252,7 @@ export class PaymentsService {
             create: {
               paymentId: payment.id,
               receiptNumber: `KAK-${payment.externalReference}`,
-              metadata: { amount: payment.amount.toFixed(2), currency: payment.currency }
+              metadata: { amount: serializeMoney(payment.amount.toString(), payment.currency), currency: payment.currency }
             },
             update: {}
           });
@@ -298,11 +298,12 @@ export class PaymentsService {
   async refund(organizationId: string, paymentId: string, dto: RefundPaymentDto): Promise<Payment> {
     const payment = await this.get(organizationId, paymentId);
     const amount = new Prisma.Decimal(dto.amount);
+    const serializedAmount = serializeMoney(amount.toString(), payment.currency);
     if (payment.status !== PaymentStatus.PAID || amount.greaterThan(payment.amount)) {
       throw new BadRequestException({ code: "PAYMENT_CANNOT_REFUND", message: "Refund is not valid" });
     }
     const fullRefund = amount.equals(payment.amount);
-    await this.gateway.refund(payment.externalReference, amount.toFixed(2));
+    await this.gateway.refund(payment.externalReference, serializedAmount, payment.currency);
     return this.prisma.$transaction(async (tx) => {
       await tx.paymentRefund.create({
         data: {
@@ -333,7 +334,7 @@ export class PaymentsService {
       paymentId: payment.id,
       status: payment.status,
       checkoutUrl: `${this.appPublicUrl}/${locale}/p/payments/${checkoutToken}`,
-      amount: payment.amount.toFixed(2),
+      amount: serializeMoney(payment.amount.toString(), payment.currency),
       currency: payment.currency
     };
   }

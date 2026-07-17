@@ -52,13 +52,22 @@ describe("QuotationsService", () => {
     ])).toThrow(BadRequestException);
   });
 
-  it("rounds monetary values to two decimals", () => {
+  it("calculates valid two-decimal monetary values without drift", () => {
     const result = service.calculateQuotationItems([
-      item({ quantity: 3, unitPrice: 33.333, taxPercent: 19 })
+      item({ quantity: 3, unitPrice: 33.33, taxPercent: 19 })
     ]);
 
     expect(result.subtotal.toFixed(2)).toBe("99.99");
     expect(result.taxTotal.toFixed(2)).toBe("19.00");
+  });
+
+  it("rejects fractional CLP unit prices with a stable code", () => {
+    try {
+      service.calculateQuotationItems([item({ unitPrice: 1000.5 })], new Map(), 0, "CLP");
+      fail("Expected CLP precision validation to fail");
+    } catch (error) {
+      expect((error as BadRequestException).getResponse()).toMatchObject({ code: "CLP_FRACTION_NOT_ALLOWED" });
+    }
   });
 
   it("applies a global discount only to lines without a specific discount", () => {
@@ -239,7 +248,7 @@ describe("QuotationsService", () => {
       total: 2,
       draft: 1,
       approved: 1,
-      amountApproved: "1190.00"
+      amountApproved: "1190"
     });
   });
 

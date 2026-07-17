@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 import { isValidCountryPhone, normalizeInternationalPhone } from "@kaklen/shared";
 import { PrismaService } from "../prisma/prisma.service";
+import { assertMoneyPrecision } from "../common/money-validation";
 import { QuotationPortalService } from "../quotation-portal/quotation-portal.service";
 import { CreateProviderProfileDto, ReviewProviderProfileDto } from "./dto/provider-profile.dto";
 
@@ -41,6 +42,8 @@ export class ProviderProfilesService {
         message: "WhatsApp number is invalid for the selected country"
       });
     }
+    const currency = dto.currency.toUpperCase();
+    if (dto.price !== undefined) assertMoneyPrecision(dto.price, currency);
 
     return this.prisma.$transaction(async (tx) => {
       const profile = await tx.providerProfile.upsert({
@@ -60,7 +63,7 @@ export class ProviderProfilesService {
           city: clean(dto.city),
           whatsapp,
           price: dto.price === undefined ? null : new Prisma.Decimal(dto.price),
-          currency: dto.currency.toUpperCase(),
+          currency,
           portfolioUrl: clean(dto.portfolioUrl),
           status: ProviderProfileStatus.IN_REVIEW,
           consentAt: new Date()
@@ -73,7 +76,7 @@ export class ProviderProfilesService {
           city: clean(dto.city),
           whatsapp,
           price: dto.price === undefined ? null : new Prisma.Decimal(dto.price),
-          currency: dto.currency.toUpperCase(),
+          currency,
           portfolioUrl: clean(dto.portfolioUrl),
           status: ProviderProfileStatus.IN_REVIEW,
           consentAt: new Date(),

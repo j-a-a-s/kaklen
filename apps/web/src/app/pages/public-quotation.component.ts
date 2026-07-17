@@ -7,8 +7,9 @@ import { PublicQuotationStatus, PublicQuotationView } from "../portal/quotation-
 import { ProviderProfilePayload, QuotationPortalService } from "../portal/quotation-portal.service";
 import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
 } from "../shared/forms/form-feedback.components";
-import { normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
+import { moneyValidator, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
 import { UiIconComponent } from "../shared/ui-icon.component";
+import { currencyStep, formatMoney } from "@kaklen/shared";
 
 @Component({
   selector: "kaklen-public-quotation",
@@ -101,7 +102,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <label kaklen-form-field label="Región" i18n-label="@@regionLabel" controlId="public-quotation-region" required="auto" invalid="auto"><input kaklenControl formControlName="region" maxlength="120" /></label>
               <label kaklen-form-field label="Ciudad" i18n-label="@@cityLabel" controlId="public-quotation-city" required="auto" invalid="auto"><input kaklenControl formControlName="city" maxlength="120" /></label>
               <label kaklen-form-field label="WhatsApp" i18n-label="@@whatsappLabel" controlId="public-quotation-whatsapp" required="auto" invalid="auto"><input kaklenControl type="tel" inputmode="tel" formControlName="whatsapp" maxlength="24" /><kaklen-field-error [control]="providerForm.controls.whatsapp" [attempted]="providerSubmitted()" /></label>
-              <label kaklen-form-field label="Precio referencial" i18n-label="@@providerPriceLabel" controlId="public-quotation-price" required="auto" invalid="auto"><input kaklenControl type="number" inputmode="decimal" min="0" formControlName="price" /></label>
+              <label kaklen-form-field label="Precio referencial" i18n-label="@@providerPriceLabel" controlId="public-quotation-price" required="auto" invalid="auto" fieldType="money" [currency]="providerCurrency()"><input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="providerMoneyStep()" formControlName="price" /></label>
               <label kaklen-form-field label="Portfolio" i18n-label="@@portfolioUrlLabel" controlId="public-quotation-portfolioUrl" required="auto" invalid="auto"><input kaklenControl type="url" formControlName="portfolioUrl" maxlength="500" /></label>
             </div>
             <label kaklen-form-field label="Descripción" i18n-label="@@providerDescriptionLabel" controlId="public-quotation-description" required="auto" invalid="auto"><textarea kaklenControl formControlName="description" rows="5" minlength="20" maxlength="2000"></textarea><kaklen-field-error [control]="providerForm.controls.description" [attempted]="providerSubmitted()" /></label>
@@ -151,7 +152,9 @@ export class PublicQuotationComponent implements OnInit {
     region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.pattern(/^\+[1-9]\d{7,14}$/), Validators.maxLength(24)] }),
-    price: new FormControl<number | null>(null, { validators: [Validators.min(0)] }),
+    price: new FormControl<number | null>(null, {
+      validators: [moneyValidator(() => this.providerCurrency(), undefined, false)]
+    }),
     portfolioUrl: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(500), Validators.pattern(/^https?:\/\/.+/)] }),
     consent: new FormControl(false, { nonNullable: true, validators: [Validators.requiredTrue] })
   });
@@ -260,9 +263,15 @@ export class PublicQuotationComponent implements OnInit {
   }
 
   money(value: string, currency: string): string {
-    return new Intl.NumberFormat(this.locale.getLocale() === "es" ? "es-CL" : this.locale.getLocale(), {
-      style: "currency", currency, maximumFractionDigits: currency === "CLP" ? 0 : 2
-    }).format(Number(value));
+    return formatMoney(value, currency, this.locale.getLocale() === "es" ? "es-CL" : this.locale.getLocale());
+  }
+
+  providerCurrency(): string {
+    return this.view()?.quotation.currency ?? "CLP";
+  }
+
+  providerMoneyStep(): string {
+    return currencyStep(this.providerCurrency());
   }
 
   date(value: string): string {
@@ -284,6 +293,7 @@ export class PublicQuotationComponent implements OnInit {
     try {
       const data = await this.portal.view(this.publicToken);
       this.view.set(data);
+      this.providerForm.controls.price.updateValueAndValidity();
       this.providerForm.controls.country.setValue(supportedCountry(data.organization.country));
     } catch {
       this.error.set($localize`:@@quotationLinkUnavailable:El enlace no es válido, venció o fue revocado.`);

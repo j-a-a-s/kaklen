@@ -29,6 +29,6 @@ describe("SandboxPaymentGateway", () => {
   it("implements explicit cancel and refund sandbox outcomes", async () => {
     const gateway = new SandboxPaymentGateway();
     await expect(gateway.cancel("sandbox_1")).resolves.toBe(PaymentStatus.CANCELLED);
-    await expect(gateway.refund("sandbox_1", "1000.00")).resolves.toBe(PaymentStatus.REFUNDED);
+    await expect(gateway.refund("sandbox_1", "1000", "CLP")).resolves.toBe(PaymentStatus.REFUNDED);
   });
 });

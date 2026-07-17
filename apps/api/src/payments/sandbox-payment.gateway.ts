@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PaymentStatus } from "@prisma/client";
 import { readProductIntegrationsConfig } from "@kaklen/config";
+import { parseMoney } from "@kaklen/shared";
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import {
   PaymentGateway,
@@ -15,6 +16,7 @@ export class SandboxPaymentGateway implements PaymentGateway {
   private readonly secret = readProductIntegrationsConfig(process.env).paymentSandboxSecret;
 
   async createPaymentIntent(input: PaymentIntentInput): Promise<PaymentIntentResult> {
+    parseMoney(input.amount, input.currency);
     return {
       externalReference: `sandbox_${randomUUID()}`,
       checkoutToken: randomBytes(32).toString("base64url"),
@@ -41,7 +43,8 @@ export class SandboxPaymentGateway implements PaymentGateway {
     return PaymentStatus.CANCELLED;
   }
 
-  async refund(_externalReference: string, _amount: string): Promise<PaymentStatus> {
+  async refund(_externalReference: string, _amount: string, currency: string): Promise<PaymentStatus> {
+    parseMoney(_amount, currency);
     return PaymentStatus.REFUNDED;
   }
 
@@ -51,11 +54,12 @@ export class SandboxPaymentGateway implements PaymentGateway {
     amount: string,
     currency: string
   ): SignedPaymentWebhook {
+    const canonicalAmount = parseMoney(amount, currency);
     const payload: PaymentWebhookPayload = {
       eventId: `sandbox_event_${randomUUID()}`,
       externalReference,
       status,
-      amount,
+      amount: canonicalAmount,
       currency
     };
     return { payload, signature: this.signature(payload) };

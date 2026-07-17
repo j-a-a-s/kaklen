@@ -13,7 +13,8 @@ import { Quotation } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { NotificationService } from "../shared/notifications/notification.service";
-import { dateOrderValidator, decimalValidator, emailValidator, internationalPhoneValidator, normalizeEmail, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
+import { dateOrderValidator, decimalValidator, emailValidator, internationalPhoneValidator, moneyValidator, normalizeEmail, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
+import { currencyStep } from "@kaklen/shared";
 import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
 } from "../shared/forms/form-feedback.components";
 import { WizardValidationState } from "../shared/forms/wizard-validation-state";
@@ -68,9 +69,9 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <label kaklen-form-field label="Teléfono contacto" i18n-label="@@contactPhoneLabel" controlId="event-form-contactPhone" required="auto" invalid="auto"><input kaklenControl type="tel" inputmode="tel" maxlength="40" formControlName="contactPhone" aria-describedby="event-phone-error" /><kaklen-field-error id="event-phone-error" [control]="form.controls.contactPhone" [attempted]="submitAttempted()" /></label>
             <label kaklen-form-field label="Participante inicial" i18n-label="@@initialParticipantLabel" controlId="event-form-initialParticipant" required="auto" invalid="auto"><input kaklenControl formControlName="initialParticipant" maxlength="160" placeholder="Nombre del participante" i18n-placeholder="@@participantNameExample" /></label>
             <label kaklen-form-field label="Recurso inicial" i18n-label="@@initialResourceLabel" controlId="event-form-initialResource" required="auto" invalid="auto"><input kaklenControl formControlName="initialResource" maxlength="160" placeholder="Ej. Equipo de sonido" i18n-placeholder="@@resourceNameExample" /></label>
-            <label kaklen-form-field label="Cantidad del recurso" i18n-label="@@resourceQuantityLabel" controlId="event-form-resourceQuantity" required="auto" invalid="auto"><input kaklenControl type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="resourceQuantity" /><kaklen-field-error [control]="form.controls.resourceQuantity" [attempted]="submitAttempted()" [invalidMessage]="quantityErrorLabel" /></label>
-            <label kaklen-form-field label="Moneda" i18n-label="@@currencyLabel" controlId="event-form-currency" required="auto" invalid="auto"><select kaklenControl formControlName="currency"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
-            <label kaklen-form-field label="Presupuesto" i18n-label="@@budgetLabel" controlId="event-form-budget" required="auto" invalid="auto"><input kaklenControl type="number" inputmode="decimal" min="0" step="0.01" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [attempted]="submitAttempted()" [invalidMessage]="budgetErrorLabel" /></label>
+            <label kaklen-form-field label="Cantidad del recurso" i18n-label="@@resourceQuantityLabel" controlId="event-form-resourceQuantity" required="auto" invalid="auto" fieldType="quantity"><input kaklenControl type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="resourceQuantity" /><kaklen-field-error [control]="form.controls.resourceQuantity" [attempted]="submitAttempted()" /></label>
+            <label kaklen-form-field label="Moneda" i18n-label="@@currencyLabel" controlId="event-form-currency" required="auto" invalid="auto"><select kaklenControl formControlName="currency" (change)="onCurrencyChange()"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
+            <label kaklen-form-field label="Presupuesto" i18n-label="@@budgetLabel" controlId="event-form-budget" required="auto" invalid="auto" fieldType="money" [currency]="form.controls.currency.value"><input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [attempted]="submitAttempted()" /></label>
           </div>
         </section>
 
@@ -120,8 +121,6 @@ export class EventFormComponent implements OnInit, OnDestroy {
   readonly quotationConfirmDescription = $localize`:@@createFromQuotationConfirmDescription:Kaklen reutilizará el cliente, el presupuesto y el contexto de la cotización aprobada. Solo puede existir un evento vinculado a ella.`;
   readonly createEventLabel = $localize`:@@createEventConfirmButton:Crear evento`;
   readonly dateErrorLabel = $localize`:@@eventDateValidation:La fecha de término debe ser posterior a la fecha de inicio.`;
-  readonly quantityErrorLabel = $localize`:@@quantityValidation:La cantidad debe ser mayor que 0 y tener máximo 3 decimales.`;
-  readonly budgetErrorLabel = $localize`:@@budgetValidation:El presupuesto debe ser mayor o igual a 0 y tener máximo 2 decimales.`;
   readonly fieldLabels = {
     clientId: $localize`:@@clientLabel:Cliente`, quotationId: $localize`:@@approvedQuotationLabel:Cotización aprobada`,
     name: $localize`:@@nameLabel:Nombre`, description: $localize`:@@descriptionLabel:Descripción`,
@@ -157,12 +156,13 @@ export class EventFormComponent implements OnInit, OnDestroy {
   eventId = "";
   private initialEventCreated = false;
   private wizardCompleted = false;
+  private validationCurrency = "CLP";
   readonly form = new FormGroup({
     clientId: new FormControl("", { nonNullable: true }), quotationId: new FormControl("", { nonNullable: true }),
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }), description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] }),
     startAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), endAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), timezone: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     venueName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), address: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(240)] }), city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }), region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
-    currency: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] }), budget: new FormControl<number | null>(null, { validators: [decimalValidator(0, 999_999_999_999.99, 2, false)] }), contactName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), contactEmail: new FormControl("", { nonNullable: true, validators: [emailValidator()] }), contactPhone: new FormControl("", { nonNullable: true, validators: [internationalPhoneValidator()] }),
+    currency: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] }), budget: new FormControl<number | null>(null, { validators: [moneyValidator(() => this.validationCurrency, undefined, false)] }), contactName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), contactEmail: new FormControl("", { nonNullable: true, validators: [emailValidator()] }), contactPhone: new FormControl("", { nonNullable: true, validators: [internationalPhoneValidator()] }),
     initialParticipant: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialResource: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), resourceQuantity: new FormControl(1, { nonNullable: true, validators: [decimalValidator(0.001, 999_999_999.999, 3)] }),
     initialTask: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialTaskPriority: new FormControl<EventTaskPriority>("MEDIUM", { nonNullable: true }), notes: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] })
   }, { validators: [dateOrderValidator("startAt", "endAt", false)] });
@@ -192,6 +192,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     const start = new Date(Date.now() + 86400000); start.setHours(10, 0, 0, 0);
     const end = new Date(start.getTime() + 2 * 3600000);
     this.form.patchValue({ timezone: organization?.timezone ?? "America/Santiago", currency: organization?.currency ?? "CLP", startAt: this.toLocalInput(start.toISOString()), endAt: this.toLocalInput(end.toISOString()) });
+    this.onCurrencyChange();
     await this.loadOptions();
     const quotationId = this.route.snapshot.queryParamMap.get("quotationId");
     const clientId = this.route.snapshot.queryParamMap.get("clientId");
@@ -217,6 +218,16 @@ export class EventFormComponent implements OnInit, OnDestroy {
     const quotation = this.approvedQuotations().find((item) => item.id === this.form.controls.quotationId.value);
     if (!quotation) return;
     this.form.patchValue({ clientId: quotation.clientId, name: this.form.controls.name.value || `${$localize`:@@eventForQuotationPrefix:Evento`} ${quotation.number}`, budget: Number(quotation.total), currency: quotation.currency });
+    this.onCurrencyChange();
+  }
+
+  moneyStep(): string {
+    return currencyStep(this.form.controls.currency.value || "CLP");
+  }
+
+  onCurrencyChange(): void {
+    this.validationCurrency = this.form.controls.currency.value || "CLP";
+    this.form.controls.budget.updateValueAndValidity();
   }
 
   nextStep(): void {
@@ -261,6 +272,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     const event = await this.eventsService.get(this.organizationId, this.eventId);
     this.setCreationMode(event.quotationId ? "quotation" : "manual");
     this.form.patchValue({ clientId: event.clientId ?? "", quotationId: event.quotationId ?? "", name: event.name, description: event.description ?? "", startAt: this.toLocalInput(event.startAt), endAt: this.toLocalInput(event.endAt), timezone: event.timezone, venueName: event.venueName ?? "", address: event.address ?? "", city: event.city ?? "", region: event.region ?? "", currency: event.currency, budget: event.budget ? Number(event.budget) : null, contactName: event.contactName ?? "", contactEmail: event.contactEmail ?? "", contactPhone: event.contactPhone ?? "", notes: event.notes ?? "" });
+    this.onCurrencyChange();
   }
 
   private payload(): EventPayload {

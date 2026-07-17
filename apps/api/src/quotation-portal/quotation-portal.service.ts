@@ -12,6 +12,7 @@ import {
 } from "@prisma/client";
 import { readPasswordRecoveryConfig } from "@kaklen/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { serializeMoney } from "../common/money-validation";
 import { InAppNotificationsService } from "../in-app-notifications/in-app-notifications.service";
 import {
   CreateQuotationPublicLinkDto,
@@ -280,10 +281,10 @@ export class QuotationPortalService {
         issueDate: quotation.issueDate,
         validUntil: quotation.validUntil,
         currency: quotation.currency,
-        subtotal: quotation.subtotal.toFixed(2),
-        discountTotal: quotation.discountTotal.toFixed(2),
-        taxTotal: quotation.taxTotal.toFixed(2),
-        total: quotation.total.toFixed(2),
+        subtotal: serializeMoney(quotation.subtotal.toString(), quotation.currency),
+        discountTotal: serializeMoney(quotation.discountTotal.toString(), quotation.currency),
+        taxTotal: serializeMoney(quotation.taxTotal.toString(), quotation.currency),
+        total: serializeMoney(quotation.total.toString(), quotation.currency),
         notes: quotation.notes,
         terms: quotation.terms,
         items: quotation.items.map((item, index) => ({
@@ -293,11 +294,13 @@ export class QuotationPortalService {
           description: item.description,
           quantity: item.quantity.toString(),
           unit: item.unit,
-          unitPrice: item.unitPrice.toFixed(2),
+          unitPrice: serializeMoney(item.unitPrice.toString(), quotation.currency),
           discountType: item.discountType,
-          discountValue: item.discountValue.toFixed(2),
-          taxPercent: item.taxPercent.toFixed(2),
-          total: item.total.toFixed(2)
+          discountValue: item.discountType === "PERCENTAGE"
+            ? item.discountValue.toString()
+            : serializeMoney(item.discountValue.toString(), quotation.currency),
+          taxPercent: item.taxPercent.toString(),
+          total: serializeMoney(item.total.toString(), quotation.currency)
         })),
         history: quotation.history.map((history) => ({
           eventCode: history.note ?? `quotation.${history.newStatus.toLowerCase()}`,

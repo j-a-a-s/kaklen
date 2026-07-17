@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { CatalogItem, CatalogItemStatus, CatalogItemType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { assertMoneyPrecision } from "../common/money-validation";
 import { CreateCatalogItemDto, ListCatalogItemsQueryDto, UpdateCatalogItemDto } from "./dto/catalog.dto";
 
 interface CatalogInput {
@@ -166,6 +167,9 @@ export class CatalogService {
     const cost = this.toDecimal(dto.cost);
     const price = this.toDecimal(dto.price);
     const taxPercent = this.toDecimal(dto.taxPercent);
+
+    assertMoneyPrecision(cost.toString(), currency);
+    assertMoneyPrecision(price.toString(), currency);
 
     if (cost.isNegative() || price.isNegative() || taxPercent.isNegative()) {
       throw new BadRequestException("Catalog monetary values must be non-negative");

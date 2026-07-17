@@ -22,10 +22,10 @@ describe("QuotationDocumentService", () => {
   });
 
   it.each([
-    ["quantity 1.333", [line({ quantity: "1.333", unitPrice: "19.99" })], "0", "CLP"],
+    ["quantity 1.333", [line({ quantity: "1.333", unitPrice: "20" })], "0", "CLP"],
     ["price with cents", [line({ unitPrice: "10.25" })], "0", "USD"],
     ["three residual lines", [line({ quantity: "0.333", unitPrice: "10.01" }), line({ quantity: "0.333", unitPrice: "10.01" }), line({ quantity: "0.334", unitPrice: "10.01" })], "0", "USD"],
-    ["global discount 5 percent", [line(), line({ code: "SERV-2", unitPrice: "333.33" })], "5", "CLP"],
+    ["global discount 5 percent", [line(), line({ code: "SERV-2", unitPrice: "333" })], "5", "CLP"],
     ["global discount 100 percent", [line()], "100", "CLP"],
     ["fixed discount", [line({ discountType: QuotationDiscountType.FIXED, discountValue: "25.50" })], "0", "USD"],
     ["percentage discount", [line({ discountType: QuotationDiscountType.PERCENTAGE, discountValue: "12.5" })], "0", "USD"],
@@ -35,12 +35,12 @@ describe("QuotationDocumentService", () => {
     ["large values", [line({ quantity: "999.999", unitPrice: "999999.99" })], "0", "USD"]
   ])("keeps shared, persisted, ViewModel, and PDF text in parity for %s", (_name, lines, globalDiscount, currency) => {
     const source = documentSource(lines as TestLine[], globalDiscount as string, currency as string);
-    const expected = calculateQuotationMoney(lines as TestLine[], globalDiscount as string);
+    const expected = calculateQuotationMoney(lines as TestLine[], globalDiscount as string, { currency: currency as string });
     const view = service.buildViewModel(source, "en");
     const document = service.render(view);
     const text = document.toString("latin1");
 
-    expect(moneyToMinorUnits(source.total.toString())).toBe(moneyToMinorUnits(expected.total));
+    expect(moneyToMinorUnits(source.total.toString(), currency as string)).toBe(moneyToMinorUnits(expected.total, currency as string));
     expect(view.totals.total).not.toBe("");
     expect(text).toContain(view.totals.total);
     expect(text).toContain("%%EOF");
@@ -113,7 +113,7 @@ function documentSource(
   globalDiscountPercent = "0",
   currency = "CLP"
 ): QuotationDocumentSource {
-  const calculated = calculateQuotationMoney(lines, globalDiscountPercent);
+  const calculated = calculateQuotationMoney(lines, globalDiscountPercent, { currency });
   return {
     number: "QUO-000001",
     version: 2,

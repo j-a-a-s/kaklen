@@ -5,6 +5,7 @@ import { LocaleService } from "../i18n/locale.service";
 import { PublicPaymentCheckout } from "../portal/quotation-portal.models";
 import { QuotationPortalService } from "../portal/quotation-portal.service";
 import { UiIconComponent } from "../shared/ui-icon.component";
+import { formatMoney } from "@kaklen/shared";
 
 @Component({
   selector: "kaklen-payment-checkout",
@@ -77,8 +78,6 @@ export class PaymentCheckoutComponent implements OnInit {
   }
 
   money(value: string, currency: string): string {
-    return new Intl.NumberFormat(this.locale.getLocale() === "es" ? "es-CL" : this.locale.getLocale(), {
-      style: "currency", currency, maximumFractionDigits: currency === "CLP" ? 0 : 2
-    }).format(Number(value));
+    return formatMoney(value, currency, this.locale.getLocale() === "es" ? "es-CL" : this.locale.getLocale());
   }
 }

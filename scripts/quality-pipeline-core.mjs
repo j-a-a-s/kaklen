@@ -22,6 +22,7 @@ export const QUALITY_TASKS = Object.freeze([
   }),
   defineTask("demo-seed", "Deterministic demo seed", "pnpm", ["db:seed:demo"], ["db-migrate"], BOTH, 180_000),
   defineTask("demo-verify", "Deterministic demo verification", "pnpm", ["db:verify:demo"], ["demo-seed"], BOTH, 120_000),
+  defineTask("db-money", "CLP money precision", "pnpm", ["db:verify:money"], ["demo-seed"], BOTH, 120_000),
   defineTask("forms-audit", "Form standardization", "pnpm", ["forms:audit"], [], BOTH, 90_000, ["artifacts/forms-audit.json"]),
   defineTask("pdf-money-parity", "PDF money parity", "pnpm", ["pdf:verify-money"], [], BOTH, 60_000),
   defineTask("lint", "Workspace lint", "pnpm", ["lint"], ["forms-audit", "pdf-money-parity"], BOTH, 180_000),
@@ -61,7 +62,7 @@ export const QUALITY_TASKS = Object.freeze([
 
 const COMMON_PROFILE = [
   "architecture", "quality-scan", "secret-scan", "sast", "sbom", "dependency-audit",
-  "prisma-generate", "db-migrate", "db-validate", "migration-verification", "demo-seed", "demo-verify",
+  "prisma-generate", "db-migrate", "db-validate", "migration-verification", "demo-seed", "demo-verify", "db-money",
   "forms-audit", "pdf-money-parity", "lint", "test", "coverage", "build", "api-build-verification",
   "build-es", "build-en", "build-pt-BR", "i18n-server", "mail", "e2e", "accessibility", "docker-api", "scorecard"
 ];

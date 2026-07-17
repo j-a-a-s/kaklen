@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, Logger } from "@nestjs/common";
 import { QuotationDiscountType, QuotationStatus } from "@prisma/client";
-import { calculateQuotationMoney, moneyToMinorUnits, QuotationMoneyResult } from "@kaklen/shared";
+import { calculateQuotationMoney, formatMoney, moneyToMinorUnits } from "@kaklen/shared";
+import type { QuotationMoneyResult } from "@kaklen/shared";
 import { createPdfDocument, PdfCommand } from "./pdf";
 
 type Locale = "es" | "en" | "pt-BR";
@@ -131,7 +132,8 @@ export class QuotationDocumentService {
         discountValue: item.discountValue.toString(),
         taxPercent: item.taxPercent.toString()
       })),
-      source.globalDiscountPercent.toString()
+      source.globalDiscountPercent.toString(),
+      { currency: source.currency }
     );
     this.assertPersistenceParity(source, calculated);
     const money = (value: string): string => formatExactMoney(value, source.currency, language);
@@ -210,13 +212,13 @@ export class QuotationDocumentService {
       );
     });
     const mismatch = comparisons.find(([, expected, persisted]) =>
-      moneyToMinorUnits(expected) !== moneyToMinorUnits(persisted.toString())
+      moneyToMinorUnits(expected, source.currency) !== moneyToMinorUnits(persisted.toString(), source.currency)
     );
     if (!mismatch) return;
 
     const [field, expected, persisted] = mismatch;
     this.logger.error(
-      `Quotation money mismatch number=${source.number} field=${field} expectedMinor=${moneyToMinorUnits(expected)} persistedMinor=${moneyToMinorUnits(persisted.toString())}`
+      `Quotation money mismatch number=${source.number} field=${field} expectedMinor=${moneyToMinorUnits(expected, source.currency)} persistedMinor=${moneyToMinorUnits(persisted.toString(), source.currency)}`
     );
     throw new ConflictException({
       code: "QUOTATION_MONEY_MISMATCH",
@@ -230,22 +232,8 @@ export class QuotationDocumentService {
 }
 
 function formatExactMoney(value: string, currency: string, locale: Locale): string {
-  const minorUnits = moneyToMinorUnits(value);
-  if (minorUnits.startsWith("-")) throw new RangeError("Money values must be non-negative");
-  const digits = minorUnits.padStart(3, "0");
-  const whole = digits.slice(0, -2);
-  const fraction = digits.slice(-2);
-  const fractionDigits = fraction === "00" ? 0 : 2;
-  const formatter = new Intl.NumberFormat(numberLocale(locale), {
-    style: "currency",
-    currency,
-    currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits
-  });
-  return formatter.formatToParts(BigInt(whole)).map((part) =>
-    part.type === "fraction" ? fraction : part.value
-  ).join("");
+  if (moneyToMinorUnits(value, currency).startsWith("-")) throw new RangeError("Money values must be non-negative");
+  return formatMoney(value, currency, numberLocale(locale));
 }
 
 const PAGE_WIDTH = 595;

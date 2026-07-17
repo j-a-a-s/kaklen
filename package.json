@@ -41,6 +41,7 @@
     "db:seed:demo": "node scripts/seed-demo.mjs",
     "db:clear:demo": "node scripts/clear-demo.mjs",
     "db:verify:demo": "node scripts/verify-demo.mjs",
+    "db:verify:money": "node scripts/verify-db-money.mjs",
     "db:reset:dev": "node scripts/db-reset-dev.mjs",
     "db:validate": "node scripts/db-validate.mjs",
     "db:verify:migrations": "node scripts/verify-migrations.mjs",

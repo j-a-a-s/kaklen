@@ -1,7 +1,12 @@
 import { CommonModule } from "@angular/common";
 import { Component, ContentChild, Directive, HostBinding, InjectionToken, Input, forwardRef, inject } from "@angular/core";
-import { AbstractControl, FormArray, FormGroup, NgControl, Validators } from "@angular/forms";
+import { AbstractControl, FormArray, FormGroup, NgControl, ValidationErrors, Validators } from "@angular/forms";
 import { UiIconComponent } from "../ui-icon.component";
+import {
+  ValidationFieldType,
+  resolveValidationLabel,
+  validationMessageResolver
+} from "./validation-message-resolver";
 
 @Component({
   selector: "kaklen-required",
@@ -58,9 +63,13 @@ export class FormFieldComponent {
   @Input() required: boolean | "auto" = "auto";
   @Input() invalid: boolean | "auto" = "auto";
   @Input() requiredMessage = $localize`:@@fieldRequiredError:Este campo es obligatorio.`;
-  @Input() invalidMessage = $localize`:@@fieldInvalidError:Revisa el valor ingresado.`;
+  @Input() invalidMessage = "";
+  @Input() fieldType?: ValidationFieldType;
+  @Input() currency = "";
+  @Input() validationErrors: ValidationErrors | null = null;
 
   @ContentChild(forwardRef(() => FormControlA11yDirective)) private controlDirective?: FormControlA11yDirective;
+  @ContentChild(forwardRef(() => FieldErrorComponent)) private legacyErrorConfig?: FieldErrorComponent;
 
   @HostBinding("class.form-field") readonly formFieldClass = true;
 
@@ -81,11 +90,24 @@ export class FormFieldComponent {
   }
 
   get isInvalid(): boolean {
-    return this.invalid === "auto" ? this.controlDirective?.isInvalid ?? false : this.invalid;
+    if (this.validationErrors) return true;
+    if (this.invalid !== "auto") return this.invalid;
+    const control = this.controlDirective?.control;
+    return Boolean(control?.invalid && (control.touched || control.dirty || this.legacyErrorConfig?.attempted));
   }
 
   get errorMessage(): string {
-    return fieldErrorMessage(this.controlDirective?.control ?? null, this.requiredMessage, this.invalidMessage);
+    const control = this.controlDirective?.control ?? null;
+    return validationMessageResolver.resolve({
+      path: this.controlDirective?.path ?? "",
+      label: this.label,
+      errors: this.validationErrors ?? control?.errors ?? null,
+      control,
+      currency: this.currency || findCurrency(control),
+      fieldType: this.fieldType ?? this.legacyErrorConfig?.fieldType,
+      requiredMessage: this.requiredMessage,
+      fallbackMessage: this.invalidMessage || this.legacyErrorConfig?.invalidMessage || undefined
+    });
   }
 }
 
@@ -99,6 +121,10 @@ export class FormControlA11yDirective {
 
   get control(): AbstractControl<unknown> | null {
     return this.ngControl.control;
+  }
+
+  get path(): string {
+    return this.ngControl.path?.join(".") ?? "";
   }
 
   get isRequired(): boolean {
@@ -157,27 +183,31 @@ export class WizardStepIndicatorComponent {
 @Component({
   selector: "kaklen-field-error",
   standalone: true,
-  imports: [CommonModule, UiIconComponent],
-  template: `
-    <small *ngIf="visible" class="field-error" [id]="id" role="alert">
-      <kaklen-icon name="x-circle" [size]="15" />
-      <span>{{ message }}</span>
-    </small>
-  `
+  template: ""
 })
 export class FieldErrorComponent {
   @Input({ required: true }) control: AbstractControl<unknown> | null = null;
   @Input() id = "";
   @Input() attempted = false;
   @Input() requiredMessage = $localize`:@@fieldRequiredError:Este campo es obligatorio.`;
-  @Input() invalidMessage = $localize`:@@fieldInvalidError:Revisa el valor ingresado.`;
+  @Input() invalidMessage = "";
+  @Input() fieldType?: ValidationFieldType;
 
   get visible(): boolean {
     return Boolean(this.control?.invalid && (this.control.touched || this.control.dirty || this.attempted));
   }
 
   get message(): string {
-    return fieldErrorMessage(this.control, this.requiredMessage, this.invalidMessage);
+    return validationMessageResolver.resolve({
+      path: "",
+      label: "",
+      errors: this.control?.errors ?? null,
+      control: this.control,
+      currency: findCurrency(this.control),
+      fieldType: this.fieldType,
+      requiredMessage: this.requiredMessage,
+      fallbackMessage: this.invalidMessage || undefined
+    });
   }
 }
 
@@ -241,8 +271,8 @@ export class FormErrorSummaryComponent {
       }
       entries.push({
         path,
-        label: this.labels[path] ?? path,
-        message: this.messages[path] ?? groupErrorMessage(errorName),
+        label: resolveValidationLabel(path, this.labels),
+        message: this.messages[path] ?? groupErrorMessage(errorName, path, this.form),
         targetId: this.fieldIds[path] ?? ""
       });
     }
@@ -280,15 +310,17 @@ export class FormErrorSummaryComponent {
     const shortPath = path.split(".").filter((part) => !/^\d+$/.test(part)).at(-1) ?? path;
     return [{
       path,
-      label: this.labels[path] ?? this.labels[shortPath] ?? shortPath,
+      label: resolveValidationLabel(path, this.labels),
       message:
         this.messages[path] ??
         this.messages[shortPath] ??
-        fieldErrorMessage(
+        validationMessageResolver.resolve({
+          path,
+          label: resolveValidationLabel(path, this.labels),
+          errors: control.errors,
           control,
-          $localize`:@@fieldRequiredError:Este campo es obligatorio.`,
-          $localize`:@@fieldInvalidError:Revisa el valor ingresado.`
-        ),
+          currency: findCurrency(control)
+        }),
       targetId: this.fieldIds[path] ?? this.fieldIds[shortPath] ?? ""
     }];
   }
@@ -305,21 +337,35 @@ export function fieldErrorMessage(
   requiredMessage: string,
   invalidMessage: string
 ): string {
-  const errors = control?.errors;
-  if (!errors) return "";
-  if (errors["required"] || errors["whitespace"]) return requiredMessage;
-  if (errors["email"]) return $localize`:@@emailValidation:Ingresa un correo válido, por ejemplo nombre@empresa.cl.`;
-  if (errors["phone"]) return $localize`:@@phoneValidation:Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.`;
-  if (errors["chileanRut"]) return $localize`:@@rutValidation:Ingresa un RUT válido.`;
-  if (errors["dateOrder"]) return groupErrorMessage("dateOrder");
-  return invalidMessage;
+  return validationMessageResolver.resolve({
+    path: "",
+    label: "",
+    errors: control?.errors ?? null,
+    control,
+    currency: findCurrency(control),
+    requiredMessage,
+    fallbackMessage: invalidMessage
+  });
 }
 
-function groupErrorMessage(errorName: string): string {
-  if (errorName === "dateOrder") {
-    return $localize`:@@dateOrderValidation:La fecha de término debe ser posterior o igual a la fecha de inicio.`;
+function groupErrorMessage(errorName: string, path = "", control: AbstractControl<unknown> | null = null): string {
+  return validationMessageResolver.resolve({
+    path,
+    label: resolveValidationLabel(path),
+    errors: { [errorName]: true },
+    control,
+    currency: findCurrency(control)
+  });
+}
+
+function findCurrency(control: AbstractControl<unknown> | null): string | undefined {
+  let current = control;
+  while (current) {
+    const value = current.get("currency")?.value;
+    if (typeof value === "string" && value) return value;
+    current = current.parent;
   }
-  return $localize`:@@fieldInvalidError:Revisa el valor ingresado.`;
+  return undefined;
 }
 
 function escapeSelector(value: string): string {

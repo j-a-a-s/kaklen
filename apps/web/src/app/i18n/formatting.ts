@@ -1,4 +1,5 @@
 import { formatDate, formatNumber } from "@angular/common";
+import { currencyFractionDigits, formatMoney } from "@kaklen/shared";
 
 export interface RegionalFormatConfig {
   dateFormat: string;
@@ -23,16 +24,10 @@ export function formatRegionalCurrency(
   value: string | number,
   config: Pick<RegionalFormatConfig, "numberFormat" | "currency"> = DEFAULT_REGIONAL_FORMAT_CONFIG
 ): string {
-  const amount = Number(value);
-  const locale = config.currency === "CLP" && config.numberFormat.startsWith("es") ? "es-CL" : config.numberFormat;
-  const fractionDigits = Number.isInteger(amount) ? 0 : 2;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: config.currency,
-    currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: 2
-  }).format(amount);
+  const locale = currencyFractionDigits(config.currency) === 0 && config.numberFormat.startsWith("es")
+    ? "es-CL"
+    : config.numberFormat;
+  return formatMoney(value, config.currency, locale);
 }
 
 export function formatRegionalNumber(

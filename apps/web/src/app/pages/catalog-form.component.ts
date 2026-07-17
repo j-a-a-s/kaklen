@@ -8,7 +8,8 @@ import { OrganizationService } from "../organizations/organization.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
-import { decimalValidator, trimmedRequired } from "../shared/forms/form-validators";
+import { decimalValidator, moneyValidator, trimmedRequired } from "../shared/forms/form-validators";
+import { currencyStep } from "@kaklen/shared";
 import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
 } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
@@ -60,20 +61,20 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <input kaklenControl formControlName="unit" maxlength="40" placeholder="unidad, hora, kg" i18n-placeholder="@@unitPlaceholder" aria-describedby="catalog-unit-error" />
               <kaklen-field-error id="catalog-unit-error" [control]="catalogForm.controls.unit" [attempted]="submitAttempted()" />
             </label>
-            <label kaklen-form-field label="Costo" i18n-label="@@costLabel" controlId="catalog-form-cost" required="auto" invalid="auto">
-              <input kaklenControl type="number" inputmode="decimal" min="0" step="0.01" formControlName="cost" aria-describedby="catalog-cost-error" />
-              <kaklen-field-error id="catalog-cost-error" [control]="catalogForm.controls.cost" [attempted]="submitAttempted()" [invalidMessage]="costErrorLabel" />
+            <label kaklen-form-field label="Costo" i18n-label="@@costLabel" controlId="catalog-form-cost" required="auto" invalid="auto" fieldType="money" [currency]="catalogForm.controls.currency.value">
+              <input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="cost" aria-describedby="catalog-cost-error" />
+              <kaklen-field-error id="catalog-cost-error" [control]="catalogForm.controls.cost" [attempted]="submitAttempted()" />
             </label>
-            <label kaklen-form-field label="Precio" i18n-label="@@priceLabel" controlId="catalog-form-price" required="auto" invalid="auto">
-              <input kaklenControl type="number" inputmode="decimal" min="0" step="0.01" formControlName="price" aria-describedby="catalog-price-error" />
-              <kaklen-field-error id="catalog-price-error" [control]="catalogForm.controls.price" [attempted]="submitAttempted()" [invalidMessage]="priceErrorLabel" />
+            <label kaklen-form-field label="Precio" i18n-label="@@priceLabel" controlId="catalog-form-price" required="auto" invalid="auto" fieldType="money" [currency]="catalogForm.controls.currency.value">
+              <input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="price" aria-describedby="catalog-price-error" />
+              <kaklen-field-error id="catalog-price-error" [control]="catalogForm.controls.price" [attempted]="submitAttempted()" />
             </label>
             <label kaklen-form-field label="Impuesto %" i18n-label="@@taxPercentLabel" controlId="catalog-form-taxPercent" required="auto" invalid="auto">
               <input kaklenControl type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="taxPercent" aria-describedby="catalog-tax-error" />
-              <kaklen-field-error id="catalog-tax-error" [control]="catalogForm.controls.taxPercent" [attempted]="submitAttempted()" [invalidMessage]="taxErrorLabel" />
+              <kaklen-field-error id="catalog-tax-error" [control]="catalogForm.controls.taxPercent" [attempted]="submitAttempted()" />
             </label>
             <label kaklen-form-field label="Moneda" i18n-label="@@currencyLabel" controlId="catalog-form-currency" required="auto" invalid="auto">
-              <select kaklenControl formControlName="currency">
+              <select kaklenControl formControlName="currency" (change)="onCurrencyChange()">
                 <option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option>
                 <option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option>
                 <option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option>
@@ -106,15 +107,13 @@ export class CatalogFormComponent implements OnInit {
   readonly submitAttempted = signal(false);
   readonly saveLabel = $localize`:@@saveButton:Guardar`;
   readonly savingLabel = $localize`:@@savingButton:Guardando...`;
-  readonly costErrorLabel = $localize`:@@costValidation:El costo debe ser mayor o igual a 0 y tener máximo 2 decimales.`;
-  readonly priceErrorLabel = $localize`:@@priceValidation:El precio debe ser mayor o igual a 0 y tener máximo 2 decimales.`;
-  readonly taxErrorLabel = $localize`:@@taxValidation:El impuesto debe estar entre 0 y 100 y tener máximo 2 decimales.`;
   readonly fieldLabels = {
     type: $localize`:@@typeLabel:Tipo`, status: $localize`:@@statusLabel:Estado`, sku: $localize`:@@skuLabel:SKU`,
     code: $localize`:@@codeLabel:Código`, name: $localize`:@@nameLabel:Nombre`, description: $localize`:@@descriptionLabel:Descripción`,
     unit: $localize`:@@unitLabel:Unidad`, cost: $localize`:@@costLabel:Costo`, price: $localize`:@@priceLabel:Precio`,
     taxPercent: $localize`:@@taxPercentLabel:Impuesto %`, currency: $localize`:@@currencyLabel:Moneda`
   };
+  private validationCurrency = "CLP";
   readonly catalogForm = new FormGroup({
     type: new FormControl<CatalogItemType>("PRODUCT", { nonNullable: true }),
     status: new FormControl<CatalogItemStatus>("ACTIVE", { nonNullable: true }),
@@ -123,8 +122,8 @@ export class CatalogFormComponent implements OnInit {
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }),
     description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] }),
     unit: new FormControl("unidad", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(40)] }),
-    cost: new FormControl(0, { nonNullable: true, validators: [decimalValidator(0, 999_999_999_999.99, 2)] }),
-    price: new FormControl(0, { nonNullable: true, validators: [decimalValidator(0, 999_999_999_999.99, 2)] }),
+    cost: new FormControl(0, { nonNullable: true, validators: [moneyValidator(() => this.validationCurrency)] }),
+    price: new FormControl(0, { nonNullable: true, validators: [moneyValidator(() => this.validationCurrency)] }),
     taxPercent: new FormControl(19, {
       nonNullable: true,
       validators: [decimalValidator(0, 100, 2)]
@@ -152,6 +151,9 @@ export class CatalogFormComponent implements OnInit {
     if (this.itemId) {
       await this.loadItem();
     } else {
+      const organizationCurrency = this.organizationService.activeOrganization()?.currency ?? "CLP";
+      this.catalogForm.controls.currency.setValue(organizationCurrency);
+      this.onCurrencyChange();
       this.initialCatalogItemCreated = (await this.assistantService.activation(this.organizationId)).completedSteps.includes("first_catalog_item_created");
     }
   }
@@ -160,6 +162,16 @@ export class CatalogFormComponent implements OnInit {
     return this.catalogForm.controls.type.value === "PRODUCT"
       ? $localize`:@@productInventoryHint:Los productos controlan inventario.`
       : $localize`:@@serviceInventoryHint:Los servicios no controlan inventario.`;
+  }
+
+  moneyStep(): string {
+    return currencyStep(this.catalogForm.controls.currency.value);
+  }
+
+  onCurrencyChange(): void {
+    this.validationCurrency = this.catalogForm.controls.currency.value;
+    this.catalogForm.controls.cost.updateValueAndValidity();
+    this.catalogForm.controls.price.updateValueAndValidity();
   }
 
   showError(controlName: keyof typeof this.catalogForm.controls): boolean {
@@ -212,6 +224,7 @@ export class CatalogFormComponent implements OnInit {
         taxPercent: Number(item.taxPercent),
         currency: item.currency
       });
+      this.onCurrencyChange();
     } catch {
       this.error.set($localize`:@@catalogItemLoadError:No fue posible cargar el item.`);
     } finally {

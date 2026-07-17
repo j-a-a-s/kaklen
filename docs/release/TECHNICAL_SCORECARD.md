@@ -6,14 +6,14 @@ Este documento se genera con `pnpm scorecard:update`. No contiene fechas ni SHA 
 
 | Metric | Current value |
 | --- | ---: |
-| Statements coverage | 96.93% |
-| Branches coverage | 85.32% |
+| Statements coverage | 96.96% |
+| Branches coverage | 85.49% |
 | Functions coverage | 93.75% |
-| Lines coverage | 97.22% |
+| Lines coverage | 97.24% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
 | Prisma migrations | 18 |
-| Canonical pipeline tasks | 28 |
+| Canonical pipeline tasks | 29 |
 
 ## Local Quality
 
@@ -23,7 +23,7 @@ Este documento se genera con `pnpm scorecard:update`. No contiene fechas ni SHA 
 | AST form contract | PASS | `artifacts/forms-audit.json` |
 | Migration history | PASS | `18 migration directories` |
 | Unique quality tasks | PASS | `scripts/quality-pipeline-core.mjs` |
-| Canonical CI controls | PASS | `28 required tasks` |
+| Canonical CI controls | PASS | `29 required tasks` |
 | PDF monetary parity | PASS | `pdf-money-parity` |
 | Localized builds and routing | PASS | `es, en, pt-BR` |
 | End-to-end workflow | PASS | `artifacts/e2e-result.json` |

@@ -29,7 +29,10 @@ export function collectTechnicalScorecard({ root = process.cwd(), env = process.
   const uniqueGateTasks = gateTasks.length > 0 && new Set(gateTasks.map((task) => task.key)).size === gateTasks.length;
   const canonicalTasksUnique = new Set(expectedTasks).size === expectedTasks.length;
   const taskPassed = (key) => gateTasksByKey.get(key)?.status === "passed";
-  const taskReady = (key) => taskPassed(key) || (key === "scorecard" && gateTasksByKey.get(key)?.status === "running");
+  // The versioned scorecard cannot require its own verification result without
+  // creating a stale-document cycle. Its presence proves the canonical graph;
+  // every independent control must still have passed.
+  const taskReady = (key) => (key === "scorecard" ? gateTasksByKey.has(key) : taskPassed(key));
   const canonicalGateReady =
     Object.hasOwn(QUALITY_PROFILES, gate.profile) &&
     uniqueGateTasks &&

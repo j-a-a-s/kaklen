@@ -89,6 +89,13 @@ describe("PaymentsService", () => {
     }));
   });
 
+  it("rejects a signed webhook with fractional CLP pesos", async () => {
+    const service = makeService(makePrisma(), makeGateway(true));
+
+    await expect(service.processWebhook({ ...webhook(), amount: "1190.50" }, "valid-signature"))
+      .rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
+  });
+
   it("refuses to expose the sandbox payment lifecycle in production", async () => {
     const previousNodeEnv = process.env.NODE_ENV;
     try {
@@ -140,7 +147,7 @@ function makeGateway(signatureValid = true): jest.Mocked<PaymentGateway> {
     processWebhook: jest.fn((payload: PaymentWebhookPayload) => payload),
     verifyWebhookSignature: jest.fn((_payload: PaymentWebhookPayload, _signature: string) => signatureValid),
     cancel: jest.fn(async (_externalReference: string): Promise<PaymentStatus> => PaymentStatus.CANCELLED),
-    refund: jest.fn(async (_externalReference: string, _amount: string): Promise<PaymentStatus> => PaymentStatus.REFUNDED),
+    refund: jest.fn(async (_externalReference: string, _amount: string, _currency: string): Promise<PaymentStatus> => PaymentStatus.REFUNDED),
     createSignedWebhook: jest.fn((_externalReference: string, _status: PaymentWebhookPayload["status"], _amount: string, _currency: string) => ({ payload: webhook(), signature: "signature" }))
   };
 }

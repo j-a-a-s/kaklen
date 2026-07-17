@@ -11,6 +11,8 @@ export const ERROR_CODES = {
   validationError: "VALIDATION_ERROR",
   quotationInvalidStatus: "QUOTATION_INVALID_STATUS",
   quotationMoneyMismatch: "QUOTATION_MONEY_MISMATCH",
+  clpFractionNotAllowed: "CLP_FRACTION_NOT_ALLOWED",
+  moneyPrecisionNotAllowed: "MONEY_PRECISION_NOT_ALLOWED",
   eventInvalidStatus: "EVENT_INVALID_STATUS",
   passwordMismatch: "PASSWORD_MISMATCH",
   passwordPolicy: "PASSWORD_POLICY",

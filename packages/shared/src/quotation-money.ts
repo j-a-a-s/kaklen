@@ -1,4 +1,7 @@
-export type QuotationDecimalInput = string | number;
+import { MoneyPrecisionError, currencyFractionDigits, decimalSource, validateMoneyPrecision } from "./currency-money.js";
+import type { MoneyDecimalInput } from "./currency-money.js";
+
+export type QuotationDecimalInput = MoneyDecimalInput;
 export type SharedQuotationDiscountType = "NONE" | "PERCENTAGE" | "FIXED";
 
 export interface QuotationMoneyLineInput {
@@ -32,7 +35,6 @@ interface PreparedLine {
   eligibleForGlobalDiscount: boolean;
 }
 
-const MONEY_SCALE = 2;
 const QUANTITY_SCALE = 3;
 const PERCENT_SCALE = 2;
 const PERCENT_DENOMINATOR = 10_000n;
@@ -45,8 +47,10 @@ const PERCENT_DENOMINATOR = 10_000n;
  */
 export function calculateQuotationMoney(
   lines: readonly QuotationMoneyLineInput[],
-  globalDiscountPercent: QuotationDecimalInput = 0
+  globalDiscountPercent: QuotationDecimalInput = 0,
+  options: { readonly currency: string } = { currency: "USD" }
 ): QuotationMoneyResult {
+  const moneyScale = currencyFractionDigits(options.currency);
   const globalPercent = parseScaled(
     globalDiscountPercent,
     PERCENT_SCALE,
@@ -54,36 +58,41 @@ export function calculateQuotationMoney(
   );
   assertBetween(globalPercent, 0n, PERCENT_DENOMINATOR, "globalDiscountPercent");
 
-  const prepared = lines.map((line, index) => prepareLine(line, index));
+  const prepared = lines.map((line, index) => prepareLine(line, index, moneyScale, options.currency));
   distributeGlobalDiscount(prepared, globalPercent);
-  const calculated = prepared.map(finalizeLine);
+  const calculated = prepared.map((line) => finalizeLine(line, moneyScale));
 
   return {
     lines: calculated,
-    subtotal: sumAmount(calculated, "subtotal"),
-    lineDiscountTotal: sumAmount(calculated, "lineDiscountTotal"),
-    globalDiscountTotal: sumAmount(calculated, "globalDiscountTotal"),
-    discountTotal: sumAmount(calculated, "discountTotal"),
-    taxableBase: sumAmount(calculated, "taxableBase"),
-    taxTotal: sumAmount(calculated, "taxTotal"),
-    total: sumAmount(calculated, "total")
+    subtotal: sumAmount(calculated, "subtotal", moneyScale),
+    lineDiscountTotal: sumAmount(calculated, "lineDiscountTotal", moneyScale),
+    globalDiscountTotal: sumAmount(calculated, "globalDiscountTotal", moneyScale),
+    discountTotal: sumAmount(calculated, "discountTotal", moneyScale),
+    taxableBase: sumAmount(calculated, "taxableBase", moneyScale),
+    taxTotal: sumAmount(calculated, "taxTotal", moneyScale),
+    total: sumAmount(calculated, "total", moneyScale)
   };
 }
 
-export function moneyToMinorUnits(value: QuotationDecimalInput): string {
-  return parseScaled(value, MONEY_SCALE, "money").toString();
-}
-
-function prepareLine(line: QuotationMoneyLineInput, index: number): PreparedLine {
+function prepareLine(
+  line: QuotationMoneyLineInput,
+  index: number,
+  moneyScale: number,
+  currency: string
+): PreparedLine {
   const quantity = parseScaled(line.quantity, QUANTITY_SCALE, `lines[${index}].quantity`);
-  const unitPrice = parseScaled(line.unitPrice, MONEY_SCALE, `lines[${index}].unitPrice`);
+  assertMoneyPrecision(line.unitPrice, currency, `lines[${index}].unitPrice`);
+  const unitPrice = parseScaled(line.unitPrice, moneyScale, `lines[${index}].unitPrice`);
   const taxPercent = parseScaled(line.taxPercent, PERCENT_SCALE, `lines[${index}].taxPercent`);
   const discountType = line.discountType ?? "NONE";
   const discountValue = parseScaled(
     line.discountValue ?? 0,
-    discountType === "PERCENTAGE" ? PERCENT_SCALE : MONEY_SCALE,
+    discountType === "PERCENTAGE" ? PERCENT_SCALE : moneyScale,
     `lines[${index}].discountValue`
   );
+  if (discountType !== "PERCENTAGE") {
+    assertMoneyPrecision(line.discountValue ?? 0, currency, `lines[${index}].discountValue`);
+  }
 
   assertBetween(quantity, 1n, 999_999_999_999_999n, `lines[${index}].quantity`);
   assertBetween(unitPrice, 0n, 99_999_999_999_999n, `lines[${index}].unitPrice`);
@@ -149,30 +158,31 @@ function distributeGlobalDiscount(lines: PreparedLine[], globalPercent: bigint):
   });
 }
 
-function finalizeLine(line: PreparedLine): QuotationMoneyAmounts {
+function finalizeLine(line: PreparedLine, moneyScale: number): QuotationMoneyAmounts {
   const discountTotal = line.lineDiscount + line.globalDiscount;
   const taxableBase = line.subtotal - discountTotal;
   const taxTotal = roundDivide(taxableBase * line.taxPercent, PERCENT_DENOMINATOR);
   return {
-    subtotal: formatMoney(line.subtotal),
-    lineDiscountTotal: formatMoney(line.lineDiscount),
-    globalDiscountTotal: formatMoney(line.globalDiscount),
-    discountTotal: formatMoney(discountTotal),
-    taxableBase: formatMoney(taxableBase),
-    taxTotal: formatMoney(taxTotal),
-    total: formatMoney(taxableBase + taxTotal)
+    subtotal: formatScaledMoney(line.subtotal, moneyScale),
+    lineDiscountTotal: formatScaledMoney(line.lineDiscount, moneyScale),
+    globalDiscountTotal: formatScaledMoney(line.globalDiscount, moneyScale),
+    discountTotal: formatScaledMoney(discountTotal, moneyScale),
+    taxableBase: formatScaledMoney(taxableBase, moneyScale),
+    taxTotal: formatScaledMoney(taxTotal, moneyScale),
+    total: formatScaledMoney(taxableBase + taxTotal, moneyScale)
   };
 }
 
 function sumAmount(
   lines: readonly QuotationMoneyAmounts[],
-  field: keyof QuotationMoneyAmounts
+  field: keyof QuotationMoneyAmounts,
+  moneyScale: number
 ): string {
-  return formatMoney(sum(lines.map((line) => parseScaled(line[field], MONEY_SCALE, field))));
+  return formatScaledMoney(sum(lines.map((line) => parseScaled(line[field], moneyScale, field))), moneyScale);
 }
 
 function parseScaled(value: QuotationDecimalInput, scale: number, field: string): bigint {
-  const source = toPlainDecimal(value).trim();
+  const source = decimalSource(value);
   const match = /^([+-]?)(\d+)(?:\.(\d+))?$/.exec(source);
   if (!match) {
     throw new RangeError(`${field} must be a finite decimal value`);
@@ -190,44 +200,26 @@ function parseScaled(value: QuotationDecimalInput, scale: number, field: string)
   return scaled * sign;
 }
 
-function toPlainDecimal(value: QuotationDecimalInput): string {
-  if (typeof value === "string") {
-    return value;
-  }
-  if (!Number.isFinite(value)) {
-    return String(value);
-  }
-  const source = String(value);
-  if (!/[eE]/.test(source)) {
-    return source;
-  }
-
-  const [coefficient, exponentSource] = source.toLowerCase().split("e");
-  const exponent = Number(exponentSource);
-  const negative = coefficient.startsWith("-");
-  const unsigned = coefficient.replace(/^[+-]/, "");
-  const [integer, fraction = ""] = unsigned.split(".");
-  const digits = `${integer}${fraction}`;
-  const decimalIndex = integer.length + exponent;
-  const plain =
-    decimalIndex <= 0
-      ? `0.${"0".repeat(-decimalIndex)}${digits}`
-      : decimalIndex >= digits.length
-        ? `${digits}${"0".repeat(decimalIndex - digits.length)}`
-        : `${digits.slice(0, decimalIndex)}.${digits.slice(decimalIndex)}`;
-  return negative ? `-${plain}` : plain;
-}
-
 function roundDivide(numerator: bigint, denominator: bigint): bigint {
   return (numerator + denominator / 2n) / denominator;
 }
 
-function formatMoney(minorUnits: bigint): string {
+function formatScaledMoney(minorUnits: bigint, scale: number): string {
   const negative = minorUnits < 0n;
   const absolute = negative ? -minorUnits : minorUnits;
-  const whole = absolute / 100n;
-  const fraction = String(absolute % 100n).padStart(2, "0");
+  if (scale === 0) return `${negative ? "-" : ""}${absolute}`;
+  const factor = 10n ** BigInt(scale);
+  const whole = absolute / factor;
+  const fraction = String(absolute % factor).padStart(scale, "0");
   return `${negative ? "-" : ""}${whole}.${fraction}`;
+}
+
+function assertMoneyPrecision(value: QuotationDecimalInput, currency: string, field: string): void {
+  if (!validateMoneyPrecision(value, currency)) {
+    const error = new MoneyPrecisionError(currency, currencyFractionDigits(currency));
+    error.message = `${field} has invalid precision for ${currency.toUpperCase()}`;
+    throw error;
+  }
 }
 
 function sum(values: readonly bigint[]): bigint {

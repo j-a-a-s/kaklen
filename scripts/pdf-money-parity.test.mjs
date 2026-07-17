@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { verifyPdfMoneySource } from "./pdf-money-parity-core.mjs";
+import { containsFractionalClpDisplay, verifyPdfMoneySource } from "./pdf-money-parity-core.mjs";
 
 const file = "apps/api/src/quotations/quotation-document.service.ts";
 const source = readFileSync(file, "utf8");
@@ -31,4 +31,11 @@ test("PDF parity rejects manual monetary arithmetic", () => {
 test("PDF parity rejects missing persistence validation", () => {
   const changed = source.replace("this.assertPersistenceParity(source, calculated);", "");
   assert.match(verifyPdfMoneySource(file, changed).join("\n"), /persisted totals are not validated/);
+});
+
+test("PDF parity detects visible CLP decimal variants", () => {
+  assert.equal(containsFractionalClpDisplay("Total $ 10.000,00"), true);
+  assert.equal(containsFractionalClpDisplay("Total $10,000.00"), true);
+  assert.equal(containsFractionalClpDisplay("Total 10000.00 CLP"), true);
+  assert.equal(containsFractionalClpDisplay("Total $10.000"), false);
 });

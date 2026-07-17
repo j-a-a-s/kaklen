@@ -14,6 +14,7 @@ import {
   QuotationStatus
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { assertMoneyPrecision } from "../common/money-validation";
 import {
   CalendarEventsQueryDto,
   CreateEventDto,
@@ -78,6 +79,8 @@ export class EventsService {
 
     return this.prisma.$transaction(async (tx) => {
       const organization = await this.findOrganization(organizationId, tx);
+      const currency = this.clean(dto.currency)?.toUpperCase() ?? organization.currency;
+      if (dto.budget !== undefined) assertMoneyPrecision(dto.budget, currency);
       const code = await this.nextCode(organizationId, tx);
       const event = await tx.event.create({
         data: {
@@ -99,7 +102,7 @@ export class EventsService {
           contactEmail: this.clean(dto.contactEmail),
           contactPhone: this.clean(dto.contactPhone),
           budget: dto.budget === undefined ? undefined : new Prisma.Decimal(dto.budget),
-          currency: this.clean(dto.currency)?.toUpperCase() ?? organization.currency,
+          currency,
           notes: this.clean(dto.notes),
           createdByUserId: userId
         }
@@ -247,6 +250,9 @@ export class EventsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      const currency = dto.currency === undefined ? existing.currency : this.required(dto.currency).toUpperCase();
+      const budget = dto.budget === undefined ? existing.budget : dto.budget;
+      if (budget !== null) assertMoneyPrecision(budget.toString(), currency);
       await tx.event.update({
         where: { id: eventId },
         data: {
@@ -265,7 +271,7 @@ export class EventsService {
           contactEmail: dto.contactEmail === undefined ? undefined : this.clean(dto.contactEmail),
           contactPhone: dto.contactPhone === undefined ? undefined : this.clean(dto.contactPhone),
           budget: dto.budget === undefined ? undefined : dto.budget === null ? null : new Prisma.Decimal(dto.budget),
-          currency: dto.currency === undefined ? undefined : this.required(dto.currency).toUpperCase(),
+          currency: dto.currency === undefined ? undefined : currency,
           notes: dto.notes === undefined ? undefined : this.clean(dto.notes)
         }
       });
@@ -385,10 +391,10 @@ export class EventsService {
   }
 
   async createResource(organizationId: string, eventId: string, dto: EventResourceDto): Promise<EventResource> {
-    await this.findEvent(organizationId, eventId, this.prisma);
+    const event = await this.findEvent(organizationId, eventId, this.prisma);
     const catalogItem = dto.catalogItemId ? await this.ensureCatalogItem(organizationId, dto.catalogItemId) : null;
     return this.prisma.eventResource.create({
-      data: this.mapResource(organizationId, eventId, dto, catalogItem)
+      data: this.mapResource(organizationId, eventId, dto, catalogItem, event.currency)
     });
   }
 
@@ -398,9 +404,10 @@ export class EventsService {
   }
 
   async updateResource(organizationId: string, eventId: string, resourceId: string, dto: EventResourceDto): Promise<EventResource> {
+    const event = await this.findEvent(organizationId, eventId, this.prisma);
     await this.findResource(organizationId, eventId, resourceId);
     const catalogItem = dto.catalogItemId ? await this.ensureCatalogItem(organizationId, dto.catalogItemId) : null;
-    return this.prisma.eventResource.update({ where: { id: resourceId }, data: this.mapResource(organizationId, eventId, dto, catalogItem) });
+    return this.prisma.eventResource.update({ where: { id: resourceId }, data: this.mapResource(organizationId, eventId, dto, catalogItem, event.currency) });
   }
 
   async deleteResource(organizationId: string, eventId: string, resourceId: string): Promise<void> {
@@ -628,8 +635,11 @@ export class EventsService {
     organizationId: string,
     eventId: string,
     dto: EventResourceDto,
-    catalogItem: CatalogItem | null
+    catalogItem: CatalogItem | null,
+    currency: string
   ): Prisma.EventResourceUncheckedCreateInput {
+    const unitCost = dto.unitCost === undefined ? catalogItem?.cost ?? null : dto.unitCost === null ? null : new Prisma.Decimal(dto.unitCost);
+    if (unitCost !== null) assertMoneyPrecision(unitCost.toString(), currency);
     return {
       organizationId,
       eventId,
@@ -637,7 +647,7 @@ export class EventsService {
       name: this.required(catalogItem?.name ?? dto.name),
       quantity: new Prisma.Decimal(dto.quantity),
       unit: this.required(catalogItem?.unit ?? dto.unit),
-      unitCost: dto.unitCost === undefined ? catalogItem?.cost ?? null : dto.unitCost === null ? null : new Prisma.Decimal(dto.unitCost),
+      unitCost,
       notes: this.clean(dto.notes)
     };
   }

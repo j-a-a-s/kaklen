@@ -1236,11 +1236,11 @@ function addHours(date, hours) {
 }
 
 function money(value) {
-  return new Prisma.Decimal(value).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+  return new Prisma.Decimal(value).toDecimalPlaces(0, Prisma.Decimal.ROUND_HALF_UP);
 }
 
 function sum(values) {
-  return values.reduce((total, value) => total.add(value), new Prisma.Decimal(0)).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+  return values.reduce((total, value) => total.add(value), new Prisma.Decimal(0)).toDecimalPlaces(0, Prisma.Decimal.ROUND_HALF_UP);
 }
 
 async function verifiesPassword(passwordHash) {

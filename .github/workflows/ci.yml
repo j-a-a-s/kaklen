@@ -76,7 +76,7 @@ jobs:
       JWT_REFRESH_SECRET: ci-refresh-secret-that-is-at-least-32-characters
       COOKIE_SECURE: "false"
       AUTH_EMAIL_ENABLED: "true"
-      COMMERCIAL_EMAIL_ENABLED: "true"
+      COMMERCIAL_EMAIL_ENABLED: "false"
       AWS_REGION: us-east-1
       AWS_S3_BUCKET: kaklen-ci
       WHATSAPP_MODE: manual

@@ -76,6 +76,20 @@ describe("ProviderProfilesService", () => {
     }));
   });
 
+  it("rejects a fractional CLP provider price with a stable code", async () => {
+    const service = new ProviderProfilesService(makePrisma() as never, portal(QuotationStatus.APPROVED) as never);
+
+    await expect(service.create("token", {
+      consent: true,
+      category: "Producción",
+      description: "Coordinación profesional de eventos y proveedores.",
+      country: "CL",
+      whatsapp: "+56 9 1234 5678",
+      price: 75000.5,
+      currency: "CLP"
+    })).rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
+  });
+
   it("keeps admin review organization scoped", async () => {
     const prisma = makePrisma();
     prisma.providerProfile.findFirst.mockResolvedValueOnce(null as never);

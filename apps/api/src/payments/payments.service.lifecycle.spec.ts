@@ -29,12 +29,12 @@ describe("PaymentsService lifecycle", () => {
       paymentId: "payment-1",
       status: PaymentStatus.PENDING,
       checkoutUrl: "http://localhost:4200/es/p/payments/checkout-token",
-      amount: "1190.00",
+      amount: "1190",
       currency: "CLP"
     });
 
     expect(gateway.createPaymentIntent).toHaveBeenCalledWith({
-      amount: "1190.00",
+      amount: "1190",
       currency: "CLP",
       reference: "QUO-000001-v1"
     });
@@ -86,7 +86,7 @@ describe("PaymentsService lifecycle", () => {
     const service = makeService(prisma, gateway, makeNotifications());
 
     await expect(service.checkout(token)).resolves.toMatchObject({
-      payment: { status: PaymentStatus.PENDING, amount: "1190.00", currency: "CLP" },
+      payment: { status: PaymentStatus.PENDING, amount: "1190", currency: "CLP" },
       quotation: { number: "QUO-000001", version: 1, clientName: "Cliente" },
       organization: { name: "Kaklen" },
       sandbox: true
@@ -152,6 +152,9 @@ describe("PaymentsService lifecycle", () => {
     await expect(makeService(makePrisma({ status: PaymentStatus.PAID }), makeGateway(), makeNotifications())
       .refund("org-1", "payment-1", { amount: 2000 }))
       .rejects.toBeInstanceOf(BadRequestException);
+    await expect(makeService(makePrisma({ status: PaymentStatus.PAID }), makeGateway(), makeNotifications())
+      .refund("org-1", "payment-1", { amount: 500.5 }))
+      .rejects.toMatchObject({ response: { code: "CLP_FRACTION_NOT_ALLOWED" } });
   });
 
   it("records failed and processing webhooks without creating a receipt", async () => {
@@ -265,7 +268,7 @@ function makeGateway(): jest.Mocked<PaymentGateway> {
     processWebhook: jest.fn((payload: PaymentWebhookPayload) => payload),
     verifyWebhookSignature: jest.fn((_payload: PaymentWebhookPayload, _signature: string) => true),
     cancel: jest.fn(async (_externalReference: string): Promise<PaymentStatus> => PaymentStatus.CANCELLED),
-    refund: jest.fn(async (_externalReference: string, _amount: string): Promise<PaymentStatus> => PaymentStatus.REFUNDED),
+    refund: jest.fn(async (_externalReference: string, _amount: string, _currency: string): Promise<PaymentStatus> => PaymentStatus.REFUNDED),
     createSignedWebhook: jest.fn((_reference, status, amount, currency) => ({
       payload: webhook(status, amount, currency),
       signature: "sandbox-signature"

@@ -2,6 +2,8 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import {
   VALIDATION_LIMITS,
   countryBusinessPolicy,
+  currencyFractionDigits,
+  moneyToMinorUnits,
   normalizeInternationalPhone
 } from "@kaklen/shared";
 
@@ -69,6 +71,32 @@ export function decimalValidator(
     if (!Number.isFinite(parsed)) return { decimal: true };
     if (parsed < minimum) return { min: { min: minimum, actual: parsed } };
     if (parsed > maximum) return { max: { max: maximum, actual: parsed } };
+    return null;
+  };
+}
+
+export function moneyValidator(
+  currency: () => string,
+  maximum?: () => string,
+  required = true
+): ValidatorFn {
+  return (control: AbstractControl<unknown>): ValidationErrors | null => {
+    const value = control.value;
+    if (value === null || value === undefined || value === "") return required ? { required: true } : null;
+    const source = String(value).trim().replace(",", ".");
+    if (!/^[-+]?\d+(?:\.\d+)?$/.test(source)) return { decimal: true };
+    const normalizedCurrency = currency().toUpperCase();
+    const maxDecimalPlaces = currencyFractionDigits(normalizedCurrency);
+    const fraction = source.split(".")[1] ?? "";
+    if (fraction.length > maxDecimalPlaces) {
+      return { precision: { maxDecimalPlaces, currency: normalizedCurrency } };
+    }
+    const minorUnits = BigInt(moneyToMinorUnits(source, normalizedCurrency));
+    if (minorUnits < 0n) return { min: { min: 0, actual: source } };
+    const maximumValue = maximum?.();
+    if (maximumValue !== undefined && minorUnits > BigInt(moneyToMinorUnits(maximumValue, normalizedCurrency))) {
+      return { max: { max: maximumValue, actual: source } };
+    }
     return null;
   };
 }

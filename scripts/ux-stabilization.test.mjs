@@ -62,8 +62,13 @@ test("persisted technical values are mapped to localized labels", async () => {
 
 test("CLP formatting uses Intl and omits zero decimal places", async () => {
   const formatting = await source("apps/web/src/app/i18n/formatting.ts");
-  assert.match(formatting, /new Intl\.NumberFormat/);
-  assert.match(formatting, /Number\.isInteger\(amount\) \? 0 : 2/);
+  const sharedMoney = await source("packages/shared/src/currency-money.ts");
+  assert.match(formatting, /import \{[^}]*currencyFractionDigits[^}]*formatMoney[^}]*\} from "@kaklen\/shared"/);
+  assert.match(formatting, /return formatMoney\(value, config\.currency, locale\)/);
+  assert.match(sharedMoney, /CLP: 0/);
+  assert.match(sharedMoney, /new Intl\.NumberFormat/);
+  assert.match(sharedMoney, /minimumFractionDigits: fractionDigits/);
+  assert.match(sharedMoney, /maximumFractionDigits: fractionDigits/);
 
   const label = new Intl.NumberFormat("es-CL", {
     style: "currency",

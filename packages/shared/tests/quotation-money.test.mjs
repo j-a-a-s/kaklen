@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateQuotationMoney } from "../dist/quotation-money.js";
+import {
+  calculateQuotationMoney,
+  currencyFractionDigits,
+  currencyStep,
+  formatMoney,
+  moneyToMinorUnits,
+  parseMoney,
+  validateMoneyPrecision
+} from "../dist/index.js";
 
 test("calculates exact totals without floating point drift", () => {
   const result = calculateQuotationMoney([
-    { quantity: "3", unitPrice: "33.333", discountType: "NONE", discountValue: "0", taxPercent: "19" }
+    { quantity: "3", unitPrice: "33.33", discountType: "NONE", discountValue: "0", taxPercent: "19" }
   ]);
 
   assert.equal(result.subtotal, "99.99");
@@ -20,6 +28,48 @@ test("calculates exact totals without floating point drift", () => {
     taxTotal: "19.00",
     total: "118.99"
   });
+});
+
+test("applies zero-decimal CLP precision and deterministic peso residuals", () => {
+  const result = calculateQuotationMoney(
+    [
+      { quantity: "1", unitPrice: "1", discountType: "NONE", discountValue: "0", taxPercent: "0" },
+      { quantity: "1", unitPrice: "1", discountType: "NONE", discountValue: "0", taxPercent: "0" },
+      { quantity: "1", unitPrice: "1", discountType: "NONE", discountValue: "0", taxPercent: "0" }
+    ],
+    "50",
+    { currency: "CLP" }
+  );
+
+  assert.equal(result.subtotal, "3");
+  assert.equal(result.globalDiscountTotal, "2");
+  assert.deepEqual(result.lines.map((line) => line.globalDiscountTotal), ["1", "1", "0"]);
+  assert.equal(result.total, "1");
+});
+
+test("centralizes currency precision, parsing, formatting and minor units", () => {
+  assert.equal(currencyFractionDigits("CLP"), 0);
+  assert.equal(currencyFractionDigits("USD"), 2);
+  assert.equal(currencyStep("CLP"), "1");
+  assert.equal(currencyStep("BRL"), "0.01");
+  assert.equal(validateMoneyPrecision("1000.00", "CLP"), true);
+  assert.equal(validateMoneyPrecision("1000.50", "CLP"), false);
+  assert.equal(parseMoney("001000.00", "CLP"), "1000");
+  assert.equal(parseMoney("10.5", "USD"), "10.50");
+  assert.equal(moneyToMinorUnits("1000", "CLP"), "1000");
+  assert.equal(moneyToMinorUnits("10.50", "USD"), "1050");
+  assert.equal(formatMoney("59500", "CLP", "es-CL"), "$59.500");
+});
+
+test("rejects fractional CLP money instead of rounding silently", () => {
+  const fractional = [
+    { quantity: "1", unitPrice: "1000.50", discountType: "NONE", discountValue: "0", taxPercent: "19" }
+  ];
+  assert.throws(
+    () => calculateQuotationMoney(fractional, "0", { currency: "CLP" }),
+    /invalid precision for CLP/
+  );
+  assert.throws(() => parseMoney("1000.50", "CLP"), { code: "CLP_FRACTION_NOT_ALLOWED" });
 });
 
 test("applies global discounts only to eligible lines", () => {

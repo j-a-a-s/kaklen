@@ -12,7 +12,8 @@ import {
   QuotationStatusHistory
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { calculateQuotationMoney, QuotationDecimalInput, QuotationMoneyAmounts } from "@kaklen/shared";
+import { calculateQuotationMoney, MoneyPrecisionError, parseMoney } from "@kaklen/shared";
+import type { QuotationDecimalInput, QuotationMoneyAmounts } from "@kaklen/shared";
 import { MailService } from "../notifications/mail.service";
 import { normalizeNotificationLocale, renderQuotationEmail } from "../notifications/templates";
 import {
@@ -51,6 +52,16 @@ interface CalculatedItem {
   total: Prisma.Decimal;
   sortOrder: number;
 }
+
+type QuotationCalculationItem = Omit<
+  QuotationItemInputDto,
+  "quantity" | "unitPrice" | "discountValue" | "taxPercent"
+> & {
+  quantity: QuotationDecimalInput;
+  unitPrice: QuotationDecimalInput;
+  discountValue?: QuotationDecimalInput;
+  taxPercent: QuotationDecimalInput;
+};
 
 interface CalculatedTotals {
   items: CalculatedItem[];
@@ -103,7 +114,8 @@ export class QuotationsService {
 
     return this.prisma.$transaction(async (tx) => {
       const organization = await this.findOrganization(organizationId, tx);
-      const totals = await this.calculateItems(organizationId, dto.items, dto.globalDiscountPercent ?? 0, tx);
+      const currency = this.clean(dto.currency)?.toUpperCase() ?? organization.currency;
+      const totals = await this.calculateItems(organizationId, dto.items, dto.globalDiscountPercent ?? 0, currency, tx);
       const number = await this.nextNumber(organizationId, tx);
       const quotation = await tx.quotation.create({
         data: {
@@ -112,7 +124,7 @@ export class QuotationsService {
           number,
           issueDate: new Date(dto.issueDate),
           validUntil: new Date(dto.validUntil),
-          currency: this.clean(dto.currency)?.toUpperCase() ?? organization.currency,
+          currency,
           globalDiscountPercent: new Prisma.Decimal(dto.globalDiscountPercent ?? 0),
           subtotal: totals.subtotal,
           discountTotal: totals.discountTotal,
@@ -148,7 +160,7 @@ export class QuotationsService {
   }
 
   async summary(organizationId: string): Promise<QuotationSummary> {
-    const [grouped, approved] = await this.prisma.$transaction([
+    const [grouped, approved, organization] = await this.prisma.$transaction([
       this.prisma.quotation.groupBy({
         by: ["status"],
         where: { organizationId, archivedAt: null },
@@ -158,7 +170,8 @@ export class QuotationsService {
       this.prisma.quotation.aggregate({
         where: { organizationId, archivedAt: null, status: QuotationStatus.APPROVED },
         _sum: { total: true }
-      })
+      }),
+      this.prisma.organization.findFirst({ where: { id: organizationId }, select: { currency: true } })
     ]);
     const count = (status: QuotationStatus): number => {
       const item = grouped.find((group) => group.status === status);
@@ -173,7 +186,10 @@ export class QuotationsService {
       rejected: count(QuotationStatus.REJECTED),
       expired: count(QuotationStatus.EXPIRED),
       cancelled: count(QuotationStatus.CANCELLED),
-      amountApproved: (approved._sum.total ?? new Prisma.Decimal(0)).toFixed(2)
+      amountApproved: parseMoney(
+        (approved._sum.total ?? new Prisma.Decimal(0)).toString(),
+        organization?.currency ?? "CLP"
+      )
     };
   }
 
@@ -199,22 +215,25 @@ export class QuotationsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const shouldRecalculate = dto.items !== undefined || dto.globalDiscountPercent !== undefined;
+      const shouldRecalculate = dto.items !== undefined || dto.globalDiscountPercent !== undefined || dto.currency !== undefined;
+      const currency = dto.currency?.trim().toUpperCase() ?? existing.currency;
       const calculationItems = dto.items ?? existing.items.map((item) => ({
         catalogItemId: item.catalogItemId ?? undefined,
         type: item.type,
         code: item.code ?? undefined,
         name: item.name,
         description: item.description ?? undefined,
-        quantity: item.quantity.toNumber(),
+        quantity: item.quantity.toString(),
         unit: item.unit,
-        unitPrice: item.unitPrice.toNumber(),
+        unitPrice: item.unitPrice.toString(),
         discountType: item.discountType,
-        discountValue: item.discountValue.toNumber(),
-        taxPercent: item.taxPercent.toNumber()
+        discountValue: item.discountValue.toString(),
+        taxPercent: item.taxPercent.toString()
       }));
       const globalDiscountPercent = dto.globalDiscountPercent ?? existing.globalDiscountPercent.toNumber();
-      const totals = shouldRecalculate ? await this.calculateItems(organizationId, calculationItems, globalDiscountPercent, tx) : null;
+      const totals = shouldRecalculate
+        ? await this.calculateItems(organizationId, calculationItems, globalDiscountPercent, currency, tx)
+        : null;
       if (totals) {
         await tx.quotationItem.deleteMany({ where: { quotationId } });
       }
@@ -224,7 +243,7 @@ export class QuotationsService {
           clientId: dto.clientId,
           issueDate: dto.issueDate ? new Date(dto.issueDate) : undefined,
           validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
-          currency: dto.currency?.trim().toUpperCase(),
+          currency: dto.currency === undefined ? undefined : currency,
           globalDiscountPercent: dto.globalDiscountPercent === undefined ? undefined : new Prisma.Decimal(dto.globalDiscountPercent),
           notes: dto.notes === undefined ? undefined : this.clean(dto.notes),
           terms: dto.terms === undefined ? undefined : this.clean(dto.terms),
@@ -417,9 +436,22 @@ export class QuotationsService {
   }
 
   calculateQuotationItems(
+    items: readonly QuotationCalculationItem[],
+    catalogItems?: Map<string, CatalogItem>,
+    globalDiscountPercent?: QuotationDecimalInput,
+    currency?: string
+  ): CalculatedTotals;
+  calculateQuotationItems(
     items: QuotationItemInputDto[],
+    catalogItems?: Map<string, CatalogItem>,
+    globalDiscountPercent?: QuotationDecimalInput,
+    currency?: string
+  ): CalculatedTotals;
+  calculateQuotationItems(
+    items: readonly QuotationCalculationItem[],
     catalogItems = new Map<string, CatalogItem>(),
-    globalDiscountPercent: QuotationDecimalInput = 0
+    globalDiscountPercent: QuotationDecimalInput = 0,
+    currency = "USD"
   ): CalculatedTotals {
     const resolvedItems = items.map((item, index) => {
       const catalogItem = catalogItems.get(item.catalogItemId ?? "");
@@ -440,11 +472,14 @@ export class QuotationsService {
           discountValue: resolved.discountValue.toString(),
           taxPercent: resolved.taxPercent.toString()
         })),
-        globalDiscountPercent
+        globalDiscountPercent,
+        { currency }
       ).lines;
     } catch (error) {
       throw new BadRequestException({
-        code: "QUOTATION_AMOUNTS_INVALID",
+        code: error instanceof MoneyPrecisionError && error.code === "CLP_FRACTION_NOT_ALLOWED"
+          ? "CLP_FRACTION_NOT_ALLOWED"
+          : "QUOTATION_AMOUNTS_INVALID",
         message: error instanceof Error ? error.message : "Invalid quotation amounts"
       });
     }
@@ -462,8 +497,9 @@ export class QuotationsService {
 
   private async calculateItems(
     organizationId: string,
-    items: QuotationItemInputDto[],
+    items: readonly QuotationCalculationItem[],
     globalDiscountPercent: QuotationDecimalInput,
+    currency: string,
     tx: Prisma.TransactionClient
   ): Promise<CalculatedTotals> {
     const catalogIds = items.map((item) => item.catalogItemId).filter((item): item is string => Boolean(item));
@@ -473,12 +509,17 @@ export class QuotationsService {
     if (catalogItems.length !== new Set(catalogIds).size) {
       throw new BadRequestException("Catalog item does not belong to this organization");
     }
-    return this.calculateQuotationItems(items, new Map(catalogItems.map((item) => [item.id, item])), globalDiscountPercent);
+    return this.calculateQuotationItems(
+      items,
+      new Map(catalogItems.map((item) => [item.id, item])),
+      globalDiscountPercent,
+      currency
+    );
   }
 
   private mapCalculatedItem(
     resolved: {
-      item: QuotationItemInputDto;
+      item: QuotationCalculationItem;
       index: number;
       catalogItem: CatalogItem | undefined;
       quantity: Prisma.Decimal;
@@ -651,11 +692,7 @@ export class QuotationsService {
   }
 
   private sum(values: Prisma.Decimal[]): Prisma.Decimal {
-    return this.money(values.reduce((sum, value) => sum.plus(value), new Prisma.Decimal(0)));
-  }
-
-  private money(value: Prisma.Decimal): Prisma.Decimal {
-    return new Prisma.Decimal(value.toFixed(2));
+    return values.reduce((sum, value) => sum.plus(value), new Prisma.Decimal(0));
   }
 
   private clean(value: string | null | undefined): string | null {

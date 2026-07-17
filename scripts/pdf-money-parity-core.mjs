@@ -17,6 +17,7 @@ export function verifyPdfMoneySource(file, source) {
   if (!buildViewModel?.body) return [`${file}: buildViewModel was not found`];
   const methodText = buildViewModel.getText(sourceFile);
   if (!methodText.includes("calculateQuotationMoney(")) findings.push(`${file}: ViewModel does not use calculateQuotationMoney`);
+  if (!methodText.includes("{ currency: source.currency }")) findings.push(`${file}: ViewModel does not pass quotation currency to shared calculation`);
   if (!methodText.includes("this.assertPersistenceParity(source, calculated)")) findings.push(`${file}: persisted totals are not validated before rendering`);
 
   visit(buildViewModel.body, (node) => {
@@ -43,6 +44,14 @@ export function verifyPdfMoneySource(file, source) {
   });
 
   return [...new Set(findings)];
+}
+
+export function containsFractionalClpDisplay(text) {
+  return [
+    /\$\s*\d{1,3}(?:\.\d{3})*,\d{2}(?!\d)/,
+    /\$\s*\d{1,3}(?:,\d{3})*\.\d{2}(?!\d)/,
+    /\b\d+(?:[.,]\d{3})*[.,]\d{2}\s*CLP\b/i
+  ].some((pattern) => pattern.test(text));
 }
 
 function visit(node, callback) {
