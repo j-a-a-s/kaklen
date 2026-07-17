@@ -5,14 +5,15 @@ import { ActivatedRoute } from "@angular/router";
 import { LocaleService } from "../i18n/locale.service";
 import { PublicQuotationStatus, PublicQuotationView } from "../portal/quotation-portal.models";
 import { ProviderProfilePayload, QuotationPortalService } from "../portal/quotation-portal.service";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-public-quotation",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="portal-shell">
       <section class="portal-hero" *ngIf="view() as data">
@@ -76,11 +77,10 @@ import { UiIconComponent } from "../shared/ui-icon.component";
         <section class="portal-band" *ngIf="changesOpen() && data.actions.canRequestChanges">
           <form [formGroup]="changesForm" (ngSubmit)="submitChanges()">
             <h2 i18n="@@requestChangesTitle">Cuéntanos qué debemos ajustar</h2>
-            <kaklen-form-error-summary [form]="changesForm" [submitted]="changesSubmitted()" [labels]="changesLabels" />
-            <label>
-              <span><span i18n="@@changeRequestCommentLabel">Comentario</span><kaklen-required /></span>
-              <textarea formControlName="comment" rows="5" minlength="5" maxlength="2000" aria-describedby="change-comment-error"></textarea>
-              <kaklen-field-error id="change-comment-error" [control]="changesForm.controls.comment" [submitted]="changesSubmitted()" />
+            <kaklen-form-error-summary [form]="changesForm" [attempted]="changesSubmitted()" [labels]="changesLabels" />
+            <label kaklen-form-field label="Comentario" i18n-label="@@changeRequestCommentLabel" controlId="public-quotation-comment" required="auto" invalid="auto">
+              <textarea kaklenControl formControlName="comment" rows="5" minlength="5" maxlength="2000" aria-describedby="change-comment-error"></textarea>
+              <kaklen-field-error id="change-comment-error" [control]="changesForm.controls.comment" [attempted]="changesSubmitted()" />
             </label>
             <div class="row-actions"><button type="button" class="ghost" (click)="changesOpen.set(false)" i18n="@@cancelButton">Cancelar</button><button type="submit" [disabled]="processing()" i18n="@@sendRequestButton">Enviar solicitud</button></div>
           </form>
@@ -94,18 +94,18 @@ import { UiIconComponent } from "../shared/ui-icon.component";
         <section class="portal-band" *ngIf="providerOpen()">
           <form [formGroup]="providerForm" (ngSubmit)="submitProvider()">
             <h2 i18n="@@providerProfileTitle">Perfil profesional</h2>
-            <kaklen-form-error-summary [form]="providerForm" [submitted]="providerSubmitted()" [labels]="providerLabels" />
+            <kaklen-form-error-summary [form]="providerForm" [attempted]="providerSubmitted()" [labels]="providerLabels" />
             <div class="form-grid two-columns">
-              <label><span><span i18n="@@providerCategoryLabel">Categoría</span><kaklen-required /></span><input formControlName="category" maxlength="80" /><kaklen-field-error [control]="providerForm.controls.category" [submitted]="providerSubmitted()" /></label>
-              <label><span><span i18n="@@countryLabel">País</span><kaklen-required /></span><select formControlName="country"><option value="CL" i18n="@@countryChileLabel">Chile</option><option value="AR" i18n="@@countryArgentinaLabel">Argentina</option><option value="BR" i18n="@@countryBrazilLabel">Brasil</option><option value="MX" i18n="@@countryMexicoLabel">México</option><option value="US" i18n="@@countryUnitedStatesLabel">Estados Unidos</option></select></label>
-              <label><span><span i18n="@@regionLabel">Región</span><kaklen-optional /></span><input formControlName="region" maxlength="120" /></label>
-              <label><span><span i18n="@@cityLabel">Ciudad</span><kaklen-optional /></span><input formControlName="city" maxlength="120" /></label>
-              <label><span><span i18n="@@whatsappLabel">WhatsApp</span><kaklen-required /></span><input type="tel" inputmode="tel" formControlName="whatsapp" maxlength="24" /><kaklen-field-error [control]="providerForm.controls.whatsapp" [submitted]="providerSubmitted()" /></label>
-              <label><span><span i18n="@@providerPriceLabel">Precio referencial</span><kaklen-optional /></span><input type="number" inputmode="decimal" min="0" formControlName="price" /></label>
-              <label><span><span i18n="@@portfolioUrlLabel">Portfolio</span><kaklen-optional /></span><input type="url" formControlName="portfolioUrl" maxlength="500" /></label>
+              <label kaklen-form-field label="Categoría" i18n-label="@@providerCategoryLabel" controlId="public-quotation-category" required="auto" invalid="auto"><input kaklenControl formControlName="category" maxlength="80" /><kaklen-field-error [control]="providerForm.controls.category" [attempted]="providerSubmitted()" /></label>
+              <label kaklen-form-field label="País" i18n-label="@@countryLabel" controlId="public-quotation-country" required="auto" invalid="auto"><select kaklenControl formControlName="country"><option value="CL" i18n="@@countryChileLabel">Chile</option><option value="AR" i18n="@@countryArgentinaLabel">Argentina</option><option value="BR" i18n="@@countryBrazilLabel">Brasil</option><option value="MX" i18n="@@countryMexicoLabel">México</option><option value="US" i18n="@@countryUnitedStatesLabel">Estados Unidos</option></select></label>
+              <label kaklen-form-field label="Región" i18n-label="@@regionLabel" controlId="public-quotation-region" required="auto" invalid="auto"><input kaklenControl formControlName="region" maxlength="120" /></label>
+              <label kaklen-form-field label="Ciudad" i18n-label="@@cityLabel" controlId="public-quotation-city" required="auto" invalid="auto"><input kaklenControl formControlName="city" maxlength="120" /></label>
+              <label kaklen-form-field label="WhatsApp" i18n-label="@@whatsappLabel" controlId="public-quotation-whatsapp" required="auto" invalid="auto"><input kaklenControl type="tel" inputmode="tel" formControlName="whatsapp" maxlength="24" /><kaklen-field-error [control]="providerForm.controls.whatsapp" [attempted]="providerSubmitted()" /></label>
+              <label kaklen-form-field label="Precio referencial" i18n-label="@@providerPriceLabel" controlId="public-quotation-price" required="auto" invalid="auto"><input kaklenControl type="number" inputmode="decimal" min="0" formControlName="price" /></label>
+              <label kaklen-form-field label="Portfolio" i18n-label="@@portfolioUrlLabel" controlId="public-quotation-portfolioUrl" required="auto" invalid="auto"><input kaklenControl type="url" formControlName="portfolioUrl" maxlength="500" /></label>
             </div>
-            <label><span><span i18n="@@providerDescriptionLabel">Descripción</span><kaklen-required /></span><textarea formControlName="description" rows="5" minlength="20" maxlength="2000"></textarea><kaklen-field-error [control]="providerForm.controls.description" [submitted]="providerSubmitted()" /></label>
-            <label class="checkbox-row"><input type="checkbox" formControlName="consent" (change)="applyConsentPrefill()" /><span i18n="@@providerConsentLabel">Autorizo usar los datos confirmados de esta cotización para crear mi perfil.</span></label>
+            <label kaklen-form-field label="Descripción" i18n-label="@@providerDescriptionLabel" controlId="public-quotation-description" required="auto" invalid="auto"><textarea kaklenControl formControlName="description" rows="5" minlength="20" maxlength="2000"></textarea><kaklen-field-error [control]="providerForm.controls.description" [attempted]="providerSubmitted()" /></label>
+            <label kaklen-form-field class="checkbox-row" label="Autorizo usar los datos confirmados de esta cotización para crear mi perfil." i18n-label="@@providerConsentLabel" controlId="public-quotation-consent" required="auto" invalid="auto"><input kaklenControl type="checkbox" formControlName="consent" (change)="applyConsentPrefill()" /></label>
             <div class="row-actions"><button type="button" class="ghost" (click)="providerOpen.set(false)" i18n="@@cancelButton">Cancelar</button><button type="submit" [disabled]="processing()" i18n="@@submitForReviewButton">Enviar a revisión</button></div>
           </form>
         </section>

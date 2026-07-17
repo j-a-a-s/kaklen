@@ -1,39 +1,93 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { auditFormSource } from "./forms-audit-core.mjs";
+import { auditFormSource, auditTypeScriptSource } from "./forms-audit-core.mjs";
 
-test("forms audit accepts standardized data-entry and search forms", () => {
-  const source = `
-    import { FormControlA11yDirective } from "./forms";
-    @Component({ imports: [FormControlA11yDirective], template: \`
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <kaklen-form-error-summary />
-        <input type="email" inputmode="email" maxlength="254" formControlName="email" />
-        <input type="tel" inputmode="tel" maxlength="24" formControlName="whatsapp" />
-        <textarea maxlength="500" formControlName="notes"></textarea>
-      </form>
-      <form role="search"><input type="search" maxlength="80" formControlName="query" /></form>
-    \`}) class Host {}
+const validField = ({ name = "name", tag = "input", attributes = "maxlength=\"80\"", required = "true" } = {}) => `
+  <label kaklen-form-field label="Name" controlId="field-${name}" [required]="${required}" [invalid]="form.controls.${name}.invalid">
+    <${tag} kaklenControl ${attributes} formControlName="${name}"${tag === "input" ? " /" : `></${tag}`}>
+    <kaklen-field-error [control]="form.controls.${name}" />
+  </label>`;
+
+function component(template, controls = "name: new FormControl('', { validators: [Validators.required] })") {
+  return `
+    import { Component } from "@angular/core";
+    import { FormControl, FormGroup, Validators } from "@angular/forms";
+    @Component({ template: \`${template}\` })
+    class Host { readonly form = new FormGroup({ ${controls} }); }
   `;
-  assert.deepEqual(auditFormSource("host.ts", source).findings, []);
+}
+
+function findings(source) {
+  return auditTypeScriptSource("host.ts", source).findings.join("\n");
+}
+
+test("accepts a standardized data form", () => {
+  const source = component(`<form [formGroup]="form"><kaklen-form-error-summary />${validField()}</form>`);
+  assert.deepEqual(auditTypeScriptSource("host.ts", source).findings, []);
 });
 
-test("forms audit reports missing summaries, ARIA, formats, and lengths", () => {
-  const source = `
-    @Component({ template: \`
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <input formControlName="email" />
-        <input type="text" formControlName="phone" />
-        <input type="number" formControlName="amount" />
-        <textarea formControlName="notes"></textarea>
-      </form>
-    \`}) class Host {}
-  `;
-  const findings = auditFormSource("host.ts", source).findings.join("\n");
-  assert.match(findings, /no error summary/);
-  assert.match(findings, /shared ARIA directive/);
-  assert.match(findings, /email must use type="email"/);
-  assert.match(findings, /phone must use inputmode="tel"/);
-  assert.match(findings, /amount has no numeric inputmode/);
-  assert.match(findings, /notes has no maxlength/);
+test("detects a select outside the contract", () => {
+  const result = findings(component(`<form [formGroup]="form"><kaklen-form-error-summary /><select formControlName="name"></select></form>`));
+  assert.match(result, /outside the shared FormField/);
+});
+
+test("detects required validator without visual required state", () => {
+  assert.match(findings(component(`<form><kaklen-form-error-summary />${validField({ required: "false" })}</form>`)), /required by validators/);
+});
+
+test("detects visual required state on an optional control", () => {
+  const source = component(`<form><kaklen-form-error-summary />${validField()}</form>`, "name: new FormControl('')");
+  assert.match(findings(source), /optional by validators/);
+});
+
+test("detects missing shared ARIA state", () => {
+  const field = validField().replace(" kaklenControl", "");
+  assert.match(findings(component(`<form><kaklen-form-error-summary />${field}</form>`)), /kaklenControl ARIA contract/);
+});
+
+test("detects raw optional labels", () => {
+  const field = validField().replace("<kaklen-field-error", "<small>Opcional</small><kaklen-field-error");
+  assert.match(findings(component(`<form><kaklen-form-error-summary />${field}</form>`)), /raw required\/optional marker/);
+});
+
+test("detects a control outside FormField", () => {
+  assert.match(findings(component(`<form><kaklen-form-error-summary /><input maxlength="80" formControlName="name" /></form>`)), /outside the shared FormField/);
+});
+
+test("detects incorrect email type", () => {
+  const source = component(`<form><kaklen-form-error-summary />${validField({ name: "email", attributes: "type=\"text\" inputmode=\"email\" maxlength=\"254\"" })}</form>`, "email: new FormControl('', { validators: [Validators.required] })");
+  assert.match(findings(source), /type="email"/);
+});
+
+test("detects telephone without inputmode", () => {
+  const source = component(`<form><kaklen-form-error-summary />${validField({ name: "phone", attributes: "type=\"tel\" maxlength=\"24\"" })}</form>`, "phone: new FormControl('', { validators: [Validators.required] })");
+  assert.match(findings(source), /inputmode="tel"/);
+});
+
+test("detects a custom ControlValueAccessor without FormField", () => {
+  const source = component(`<form><kaklen-form-error-summary /><kaklen-date-picker formControlName="name" /></form>`);
+  assert.match(findings(source), /outside the shared FormField/);
+});
+
+test("audits inline templates", () => {
+  const source = component(`<form><input maxlength="80" formControlName="name" /></form>`);
+  assert.match(findings(source), /no error summary/);
+});
+
+test("audits external templates", () => {
+  const source = `@Component({ templateUrl: "./host.html" }) class Host {}`;
+  const result = auditTypeScriptSource("host.ts", source, {
+    readExternalTemplate: () => ({ file: "host.html", content: `<form><input maxlength="80" formControlName="name" /></form>` })
+  });
+  assert.match(result.findings.join("\n"), /host.html: form 1 has no error summary/);
+});
+
+test("accepts an accessible search form without an error summary", () => {
+  const template = `<form role="search"><label>Search<input id="search" type="search" maxlength="80" formControlName="query" /></label></form>`;
+  assert.deepEqual(auditFormSource("search.html", template).findings, []);
+});
+
+test("rejects a data form disguised as search", () => {
+  const template = `<form role="search" [formGroup]="form" (ngSubmit)="save()"><label>Email<input id="email" type="email" inputmode="email" maxlength="254" formControlName="email" /></label></form>`;
+  assert.match(auditFormSource("host.html", template).findings.join("\n"), /role="search" for data entry/);
 });

@@ -39,7 +39,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" maxlength="160" placeholder="Nombre, código o SKU" i18n-placeholder="@@catalogSearchPlaceholder" />
+              <input id="catalog-filter-search" type="search" formControlName="search" maxlength="160" placeholder="Nombre, código o SKU" i18n-placeholder="@@catalogSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="catalog-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@moreFiltersButton">Más filtros</span>
@@ -50,15 +50,15 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div id="catalog-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label class="advanced-filter">
               <span i18n="@@skuLabel">SKU</span>
-              <input type="search" formControlName="sku" maxlength="80" />
+              <input id="catalog-filter-sku" type="search" formControlName="sku" maxlength="80" />
             </label>
             <label class="advanced-filter">
               <span i18n="@@codeLabel">Código</span>
-              <input type="search" formControlName="code" maxlength="80" />
+              <input id="catalog-filter-code" type="search" formControlName="code" maxlength="80" />
             </label>
             <label>
               <span i18n="@@typeLabel">Tipo</span>
-              <select formControlName="type">
+              <select id="catalog-filter-type" formControlName="type">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="PRODUCT" i18n="@@productOption">Producto</option>
                 <option value="SERVICE" i18n="@@serviceOption">Servicio</option>
@@ -66,7 +66,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             </label>
             <label>
               <span i18n="@@statusLabel">Estado</span>
-              <select formControlName="status">
+              <select id="catalog-filter-status" formControlName="status">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="ACTIVE" i18n="@@activeOption">Activo</option>
                 <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
@@ -75,14 +75,14 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             </label>
             <label class="advanced-filter">
               <span i18n="@@minPriceLabel">Precio mínimo</span>
-              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="minPrice" />
+              <input id="catalog-filter-minPrice" type="number" inputmode="decimal" min="0" step="0.01" formControlName="minPrice" />
             </label>
             <label class="advanced-filter">
               <span i18n="@@maxPriceLabel">Precio máximo</span>
-              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="maxPrice" />
+              <input id="catalog-filter-maxPrice" type="number" inputmode="decimal" min="0" step="0.01" formControlName="maxPrice" />
             </label>
             <label class="checkbox-row advanced-filter">
-              <input type="checkbox" formControlName="includeArchived" />
+              <input id="catalog-filter-includeArchived" type="checkbox" formControlName="includeArchived" />
               <span i18n="@@includeArchivedLabel">Incluir archivados</span>
             </label>
             <div class="row-actions filter-actions">

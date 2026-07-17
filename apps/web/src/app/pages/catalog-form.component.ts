@@ -9,13 +9,14 @@ import { NotificationService } from "../shared/notifications/notification.servic
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { decimalValidator, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-catalog-form",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -28,73 +29,62 @@ import { UiIconComponent } from "../shared/ui-icon.component";
 
       <section class="dashboard-panel">
         <form [formGroup]="catalogForm" (ngSubmit)="save()">
-          <kaklen-form-error-summary [form]="catalogForm" [submitted]="submitAttempted()" [labels]="fieldLabels" />
+          <kaklen-form-error-summary [form]="catalogForm" [attempted]="submitAttempted()" [labels]="fieldLabels" />
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@typeLabel">Tipo</span><kaklen-required /></span>
-              <select formControlName="type">
+            <label kaklen-form-field label="Tipo" i18n-label="@@typeLabel" controlId="catalog-form-type" required="auto" invalid="auto">
+              <select kaklenControl formControlName="type">
                 <option value="PRODUCT" i18n="@@productOption">Producto</option>
                 <option value="SERVICE" i18n="@@serviceOption">Servicio</option>
               </select>
               <small>{{ inventoryLabel() }}</small>
             </label>
-            <label>
-              <span><span i18n="@@statusLabel">Estado</span><kaklen-required /></span>
-              <select formControlName="status">
+            <label kaklen-form-field label="Estado" i18n-label="@@statusLabel" controlId="catalog-form-status" required="auto" invalid="auto">
+              <select kaklenControl formControlName="status">
                 <option value="ACTIVE" i18n="@@activeOption">Activo</option>
                 <option value="INACTIVE" i18n="@@inactiveOption">Inactivo</option>
                 <option value="ARCHIVED" i18n="@@archivedOption">Archivado</option>
               </select>
             </label>
-            <label>
-              <span><span i18n="@@codeLabel">Código</span><kaklen-required /></span>
-              <input formControlName="code" maxlength="80" aria-describedby="catalog-code-error" />
-              <kaklen-field-error id="catalog-code-error" [control]="catalogForm.controls.code" [submitted]="submitAttempted()" />
+            <label kaklen-form-field label="Código" i18n-label="@@codeLabel" controlId="catalog-form-code" required="auto" invalid="auto">
+              <input kaklenControl formControlName="code" maxlength="80" aria-describedby="catalog-code-error" />
+              <kaklen-field-error id="catalog-code-error" [control]="catalogForm.controls.code" [attempted]="submitAttempted()" />
             </label>
-            <label>
-              <span><span i18n="@@skuLabel">SKU</span><kaklen-optional /></span>
-              <input formControlName="sku" maxlength="80" />
+            <label kaklen-form-field label="SKU" i18n-label="@@skuLabel" controlId="catalog-form-sku" required="auto" invalid="auto">
+              <input kaklenControl formControlName="sku" maxlength="80" />
             </label>
-            <label>
-              <span><span i18n="@@nameLabel">Nombre</span><kaklen-required /></span>
-              <input formControlName="name" maxlength="160" aria-describedby="catalog-name-error" />
-              <kaklen-field-error id="catalog-name-error" [control]="catalogForm.controls.name" [submitted]="submitAttempted()" />
+            <label kaklen-form-field label="Nombre" i18n-label="@@nameLabel" controlId="catalog-form-name" required="auto" invalid="auto">
+              <input kaklenControl formControlName="name" maxlength="160" aria-describedby="catalog-name-error" />
+              <kaklen-field-error id="catalog-name-error" [control]="catalogForm.controls.name" [attempted]="submitAttempted()" />
             </label>
-            <label>
-              <span><span i18n="@@unitLabel">Unidad</span><kaklen-required /></span>
-              <input formControlName="unit" maxlength="40" placeholder="unidad, hora, kg" i18n-placeholder="@@unitPlaceholder" aria-describedby="catalog-unit-error" />
-              <kaklen-field-error id="catalog-unit-error" [control]="catalogForm.controls.unit" [submitted]="submitAttempted()" />
+            <label kaklen-form-field label="Unidad" i18n-label="@@unitLabel" controlId="catalog-form-unit" required="auto" invalid="auto">
+              <input kaklenControl formControlName="unit" maxlength="40" placeholder="unidad, hora, kg" i18n-placeholder="@@unitPlaceholder" aria-describedby="catalog-unit-error" />
+              <kaklen-field-error id="catalog-unit-error" [control]="catalogForm.controls.unit" [attempted]="submitAttempted()" />
             </label>
-            <label>
-              <span><span i18n="@@costLabel">Costo</span><kaklen-required /></span>
-              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="cost" aria-describedby="catalog-cost-error" />
-              <kaklen-field-error id="catalog-cost-error" [control]="catalogForm.controls.cost" [submitted]="submitAttempted()" [invalidMessage]="costErrorLabel" />
+            <label kaklen-form-field label="Costo" i18n-label="@@costLabel" controlId="catalog-form-cost" required="auto" invalid="auto">
+              <input kaklenControl type="number" inputmode="decimal" min="0" step="0.01" formControlName="cost" aria-describedby="catalog-cost-error" />
+              <kaklen-field-error id="catalog-cost-error" [control]="catalogForm.controls.cost" [attempted]="submitAttempted()" [invalidMessage]="costErrorLabel" />
             </label>
-            <label>
-              <span><span i18n="@@priceLabel">Precio</span><kaklen-required /></span>
-              <input type="number" inputmode="decimal" min="0" step="0.01" formControlName="price" aria-describedby="catalog-price-error" />
-              <kaklen-field-error id="catalog-price-error" [control]="catalogForm.controls.price" [submitted]="submitAttempted()" [invalidMessage]="priceErrorLabel" />
+            <label kaklen-form-field label="Precio" i18n-label="@@priceLabel" controlId="catalog-form-price" required="auto" invalid="auto">
+              <input kaklenControl type="number" inputmode="decimal" min="0" step="0.01" formControlName="price" aria-describedby="catalog-price-error" />
+              <kaklen-field-error id="catalog-price-error" [control]="catalogForm.controls.price" [attempted]="submitAttempted()" [invalidMessage]="priceErrorLabel" />
             </label>
-            <label>
-              <span><span i18n="@@taxPercentLabel">Impuesto %</span><kaklen-required /></span>
-              <input type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="taxPercent" aria-describedby="catalog-tax-error" />
-              <kaklen-field-error id="catalog-tax-error" [control]="catalogForm.controls.taxPercent" [submitted]="submitAttempted()" [invalidMessage]="taxErrorLabel" />
+            <label kaklen-form-field label="Impuesto %" i18n-label="@@taxPercentLabel" controlId="catalog-form-taxPercent" required="auto" invalid="auto">
+              <input kaklenControl type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="taxPercent" aria-describedby="catalog-tax-error" />
+              <kaklen-field-error id="catalog-tax-error" [control]="catalogForm.controls.taxPercent" [attempted]="submitAttempted()" [invalidMessage]="taxErrorLabel" />
             </label>
-            <label>
-              <span><span i18n="@@currencyLabel">Moneda</span><kaklen-required /></span>
-              <select formControlName="currency">
+            <label kaklen-form-field label="Moneda" i18n-label="@@currencyLabel" controlId="catalog-form-currency" required="auto" invalid="auto">
+              <select kaklenControl formControlName="currency">
                 <option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option>
                 <option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option>
                 <option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option>
                 <option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option>
               </select>
-              <kaklen-field-error [control]="catalogForm.controls.currency" [submitted]="submitAttempted()" />
+              <kaklen-field-error [control]="catalogForm.controls.currency" [attempted]="submitAttempted()" />
             </label>
           </div>
 
-          <label>
-            <span><span i18n="@@descriptionLabel">Descripción</span><kaklen-optional /></span>
-            <textarea formControlName="description" maxlength="2000"></textarea>
+          <label kaklen-form-field label="Descripción" i18n-label="@@descriptionLabel" controlId="catalog-form-description" required="auto" invalid="auto">
+            <textarea kaklenControl formControlName="description" maxlength="2000"></textarea>
           </label>
 
           <p class="form-error" *ngIf="error()">{{ error() }}</p>

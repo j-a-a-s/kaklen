@@ -15,12 +15,13 @@ import { eventStatusLabel, quotationStatusLabel } from "../i18n/display-labels";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-client-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header" *ngIf="client() as currentClient">
@@ -88,11 +89,10 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
       <section id="client-interaction-form" class="dashboard-panel" *ngIf="canUpdate()">
         <h2 i18n="@@newInteractionTitle">Nueva interacción</h2>
         <form [formGroup]="interactionForm" (ngSubmit)="addInteraction()">
-          <kaklen-form-error-summary [form]="interactionForm" [submitted]="interactionSubmitted()" [labels]="interactionFieldLabels" />
+          <kaklen-form-error-summary [form]="interactionForm" [attempted]="interactionSubmitted()" [labels]="interactionFieldLabels" />
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@typeLabel">Tipo</span><kaklen-required /></span>
-              <select formControlName="type">
+            <label kaklen-form-field label="Tipo" i18n-label="@@typeLabel" controlId="client-detail-type" required="auto" invalid="auto">
+              <select kaklenControl formControlName="type">
                 <option value="NOTE" i18n="@@noteOption">Nota</option>
                 <option value="CALL" i18n="@@callOption">Llamada</option>
                 <option value="EMAIL" i18n="@@emailOption">Email</option>
@@ -100,15 +100,13 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
                 <option value="WHATSAPP" i18n="@@whatsappOption">WhatsApp</option>
               </select>
             </label>
-            <label>
-              <span><span i18n="@@subjectLabel">Asunto</span><kaklen-optional /></span>
-              <input formControlName="subject" maxlength="160" />
+            <label kaklen-form-field label="Asunto" i18n-label="@@subjectLabel" controlId="client-detail-subject" required="auto" invalid="auto">
+              <input kaklenControl formControlName="subject" maxlength="160" />
             </label>
           </div>
-          <label>
-            <span><span i18n="@@descriptionLabel">Descripción</span><kaklen-required /></span>
-            <textarea formControlName="description" maxlength="2000" aria-required="true" aria-describedby="interaction-description-error"></textarea>
-            <kaklen-field-error id="interaction-description-error" [control]="interactionForm.controls.description" [submitted]="interactionSubmitted()" />
+          <label kaklen-form-field label="Descripción" i18n-label="@@descriptionLabel" controlId="client-detail-description" required="auto" invalid="auto">
+            <textarea kaklenControl formControlName="description" maxlength="2000" aria-required="true" aria-describedby="interaction-description-error"></textarea>
+            <kaklen-field-error id="interaction-description-error" [control]="interactionForm.controls.description" [attempted]="interactionSubmitted()" />
           </label>
           <button type="submit" [disabled]="loading()"><kaklen-icon name="plus" /><span i18n="@@addButton">Agregar</span></button>
         </form>

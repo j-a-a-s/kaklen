@@ -42,7 +42,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" maxlength="200" placeholder="Código, nombre o cliente" i18n-placeholder="@@eventSearchPlaceholder" />
+              <input id="events-filter-search" type="search" formControlName="search" maxlength="200" placeholder="Código, nombre o cliente" i18n-placeholder="@@eventSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="event-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@filtersButton">Filtros</span>
@@ -53,7 +53,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <div id="event-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label>
               <span i18n="@@statusLabel">Estado</span>
-              <select formControlName="status">
+              <select id="events-filter-status" formControlName="status">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="DRAFT" i18n="@@draftLabel">Borrador</option>
                 <option value="CONFIRMED" i18n="@@confirmedLabel">Confirmado</option>
@@ -64,7 +64,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
             </label>
             <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
-              <input type="search" formControlName="city" maxlength="120" />
+              <input id="events-filter-city" type="search" formControlName="city" maxlength="120" />
             </label>
           <div class="row-actions filter-actions">
             <button type="submit" [disabled]="loading()" i18n="@@filterButton">Filtrar</button>

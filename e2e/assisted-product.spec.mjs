@@ -135,8 +135,12 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await page.getByLabel("Email").fill("invalid-email");
     await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 call-me");
     await page.getByRole("button", { name: "Continuar" }).click();
-    await expect(page.getByText("Ingresa un correo válido, por ejemplo nombre@empresa.cl.")).toBeVisible();
-    await expect(page.getByText("Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.")).toBeVisible();
+    await expect(
+      page.getByText("Ingresa un correo válido, por ejemplo nombre@empresa.cl.", { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByText("Ingresa un teléfono válido con código de país, por ejemplo +56 9 1234 5678.", { exact: true })
+    ).toBeVisible();
     await page.getByLabel("Email").fill(`guided-${unique}@demo.kaklen.local`);
     await page.getByRole("textbox", { name: /^Teléfono/ }).fill("+56 9 1234 5678");
     await page.getByRole("textbox", { name: /^WhatsApp/ }).fill("+56 9 1234 5678");

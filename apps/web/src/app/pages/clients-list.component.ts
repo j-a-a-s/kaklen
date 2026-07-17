@@ -57,7 +57,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" maxlength="200" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
+              <input id="clients-filter-search" type="search" formControlName="search" maxlength="200" placeholder="Nombre, email o RUT" i18n-placeholder="@@clientsSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="client-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@moreFiltersButton">Más filtros</span>
@@ -68,11 +68,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <div id="client-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label class="advanced-filter">
               <span i18n="@@cityLabel">Ciudad</span>
-              <input type="search" formControlName="city" maxlength="120" />
+              <input id="clients-filter-city" type="search" formControlName="city" maxlength="120" />
             </label>
             <label>
               <span i18n="@@typeLabel">Tipo</span>
-              <select formControlName="type">
+              <select id="clients-filter-type" formControlName="type">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="NATURAL_PERSON" i18n="@@naturalPersonOption">Persona natural</option>
                 <option value="LEGAL_ENTITY" i18n="@@companyOption">Empresa</option>
@@ -80,7 +80,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             </label>
             <label>
               <span i18n="@@statusLabel">Estado</span>
-              <select formControlName="status">
+              <select id="clients-filter-status" formControlName="status">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="LEAD" i18n="@@leadOption">Prospecto</option>
                 <option value="ACTIVE" i18n="@@activeOption">Activo</option>
@@ -89,7 +89,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               </select>
             </label>
             <label class="checkbox-row advanced-filter">
-              <input type="checkbox" formControlName="includeArchived" />
+              <input id="clients-filter-includeArchived" type="checkbox" formControlName="includeArchived" />
               <span i18n="@@includeArchivedLabel">Incluir archivados</span>
             </label>
             <div class="row-actions filter-actions">

@@ -17,12 +17,13 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent } from "../shared/ui-icon.component";
 import { atLeastOneValidator, decimalValidator, emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 
 @Component({
   selector: "kaklen-event-detail",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent],
   template: `
     <main class="dashboard-shell" *ngIf="event() as item">
       <section class="dashboard-header">
@@ -62,16 +63,14 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
       <section class="dashboard-panel">
         <h2 i18n="@@tasksTitle">Tareas</h2>
         <form [formGroup]="taskForm" (ngSubmit)="addTask()">
-          <kaklen-form-error-summary [form]="taskForm" [submitted]="taskSubmitted()" [labels]="taskFieldLabels" />
+          <kaklen-form-error-summary [form]="taskForm" [attempted]="taskSubmitted()" [labels]="taskFieldLabels" />
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@titleLabel">Título</span><kaklen-required /></span>
-              <input formControlName="title" maxlength="160" aria-required="true" aria-describedby="event-task-title-error" />
-              <kaklen-field-error id="event-task-title-error" [control]="taskForm.controls.title" [submitted]="taskSubmitted()" />
+            <label kaklen-form-field label="Título" i18n-label="@@titleLabel" controlId="event-detail-title" required="auto" invalid="auto">
+              <input kaklenControl formControlName="title" maxlength="160" aria-required="true" aria-describedby="event-task-title-error" />
+              <kaklen-field-error id="event-task-title-error" [control]="taskForm.controls.title" [attempted]="taskSubmitted()" />
             </label>
-            <label>
-              <span><span i18n="@@priorityLabel">Prioridad</span><kaklen-required /></span>
-              <select formControlName="priority">
+            <label kaklen-form-field label="Prioridad" i18n-label="@@priorityLabel" controlId="event-detail-priority" required="auto" invalid="auto">
+              <select kaklenControl formControlName="priority">
                 <option value="LOW" i18n="@@lowPriorityLabel">Baja</option>
                 <option value="MEDIUM" i18n="@@mediumPriorityLabel">Media</option>
                 <option value="HIGH" i18n="@@highPriorityLabel">Alta</option>
@@ -90,21 +89,18 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
       <section class="dashboard-panel">
         <h2 i18n="@@participantsTitle">Participantes</h2>
         <form [formGroup]="participantForm" (ngSubmit)="addParticipant()">
-          <kaklen-form-error-summary [form]="participantForm" [submitted]="participantSubmitted()" [labels]="participantFieldLabels" />
+          <kaklen-form-error-summary [form]="participantForm" [attempted]="participantSubmitted()" [labels]="participantFieldLabels" />
           <p class="field-error" *ngIf="participantSubmitted() && participantForm.hasError('atLeastOne')" role="alert" i18n="@@participantIdentityRequired">Ingresa el nombre o el email del participante.</p>
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@nameLabel">Nombre</span><kaklen-optional /></span>
-              <input formControlName="externalName" maxlength="160" />
+            <label kaklen-form-field label="Nombre" i18n-label="@@nameLabel" controlId="event-detail-externalName" required="auto" invalid="auto">
+              <input kaklenControl formControlName="externalName" maxlength="160" />
             </label>
-            <label>
-              <span><span i18n="@@emailLabel">Email</span><kaklen-optional /></span>
-              <input type="email" inputmode="email" formControlName="externalEmail" maxlength="160" aria-describedby="event-participant-email-error" />
-              <kaklen-field-error id="event-participant-email-error" [control]="participantForm.controls.externalEmail" [submitted]="participantSubmitted()" />
+            <label kaklen-form-field label="Email" i18n-label="@@emailLabel" controlId="event-detail-externalEmail" required="auto" invalid="auto">
+              <input kaklenControl type="email" inputmode="email" formControlName="externalEmail" maxlength="160" aria-describedby="event-participant-email-error" />
+              <kaklen-field-error id="event-participant-email-error" [control]="participantForm.controls.externalEmail" [attempted]="participantSubmitted()" />
             </label>
-            <label>
-              <span><span i18n="@@roleLabel">Rol</span><kaklen-required /></span>
-              <select formControlName="role">
+            <label kaklen-form-field label="Rol" i18n-label="@@roleLabel" controlId="event-detail-role" required="auto" invalid="auto">
+              <select kaklenControl formControlName="role">
                 <option value="CLIENT_CONTACT" i18n="@@clientContactRoleLabel">Contacto del cliente</option>
                 <option value="COORDINATOR" i18n="@@coordinatorRoleLabel">Coordinador</option>
                 <option value="STAFF" i18n="@@staffRoleLabel">Equipo</option>
@@ -123,22 +119,19 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
       <section class="dashboard-panel">
         <h2 i18n="@@resourcesTitle">Recursos</h2>
         <form [formGroup]="resourceForm" (ngSubmit)="addResource()">
-          <kaklen-form-error-summary [form]="resourceForm" [submitted]="resourceSubmitted()" [labels]="resourceFieldLabels" />
+          <kaklen-form-error-summary [form]="resourceForm" [attempted]="resourceSubmitted()" [labels]="resourceFieldLabels" />
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@nameLabel">Nombre</span><kaklen-required /></span>
-              <input formControlName="name" maxlength="160" aria-required="true" aria-describedby="event-resource-name-error" />
-              <kaklen-field-error id="event-resource-name-error" [control]="resourceForm.controls.name" [submitted]="resourceSubmitted()" />
+            <label kaklen-form-field label="Nombre" i18n-label="@@nameLabel" controlId="event-detail-name" required="auto" invalid="auto">
+              <input kaklenControl formControlName="name" maxlength="160" aria-required="true" aria-describedby="event-resource-name-error" />
+              <kaklen-field-error id="event-resource-name-error" [control]="resourceForm.controls.name" [attempted]="resourceSubmitted()" />
             </label>
-            <label>
-              <span><span i18n="@@quantityLabel">Cantidad</span><kaklen-required /></span>
-              <input type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="quantity" aria-required="true" aria-describedby="event-resource-quantity-error" />
-              <kaklen-field-error id="event-resource-quantity-error" [control]="resourceForm.controls.quantity" [submitted]="resourceSubmitted()" />
+            <label kaklen-form-field label="Cantidad" i18n-label="@@quantityLabel" controlId="event-detail-quantity" required="auto" invalid="auto">
+              <input kaklenControl type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="quantity" aria-required="true" aria-describedby="event-resource-quantity-error" />
+              <kaklen-field-error id="event-resource-quantity-error" [control]="resourceForm.controls.quantity" [attempted]="resourceSubmitted()" />
             </label>
-            <label>
-              <span><span i18n="@@unitLabel">Unidad</span><kaklen-required /></span>
-              <input formControlName="unit" maxlength="40" aria-required="true" aria-describedby="event-resource-unit-error" />
-              <kaklen-field-error id="event-resource-unit-error" [control]="resourceForm.controls.unit" [submitted]="resourceSubmitted()" />
+            <label kaklen-form-field label="Unidad" i18n-label="@@unitLabel" controlId="event-detail-unit" required="auto" invalid="auto">
+              <input kaklenControl formControlName="unit" maxlength="40" aria-required="true" aria-describedby="event-resource-unit-error" />
+              <kaklen-field-error id="event-resource-unit-error" [control]="resourceForm.controls.unit" [attempted]="resourceSubmitted()" />
             </label>
           </div>
           <button type="submit" [disabled]="formSaving() || !canUpdate()"><kaklen-icon name="plus" /><span i18n="@@addResourceButton">Agregar recurso</span></button>
@@ -151,17 +144,15 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
       <section class="dashboard-panel">
         <h2 i18n="@@timelineTitle">Cronograma</h2>
         <form [formGroup]="timelineForm" (ngSubmit)="addTimelineEntry()">
-          <kaklen-form-error-summary [form]="timelineForm" [submitted]="timelineSubmitted()" [labels]="timelineFieldLabels" />
+          <kaklen-form-error-summary [form]="timelineForm" [attempted]="timelineSubmitted()" [labels]="timelineFieldLabels" />
           <div class="field-grid">
-            <label>
-              <span><span i18n="@@titleLabel">Título</span><kaklen-required /></span>
-              <input formControlName="title" maxlength="160" aria-required="true" aria-describedby="event-timeline-title-error" />
-              <kaklen-field-error id="event-timeline-title-error" [control]="timelineForm.controls.title" [submitted]="timelineSubmitted()" />
+            <label kaklen-form-field label="Título" i18n-label="@@titleLabel" controlId="event-detail-title-2" required="auto" invalid="auto">
+              <input kaklenControl formControlName="title" maxlength="160" aria-required="true" aria-describedby="event-timeline-title-error" />
+              <kaklen-field-error id="event-timeline-title-error" [control]="timelineForm.controls.title" [attempted]="timelineSubmitted()" />
             </label>
-            <label>
-              <span><span i18n="@@startAtLabel">Inicio</span><kaklen-required /></span>
-              <input type="datetime-local" formControlName="startsAt" aria-required="true" aria-describedby="event-timeline-start-error" />
-              <kaklen-field-error id="event-timeline-start-error" [control]="timelineForm.controls.startsAt" [submitted]="timelineSubmitted()" />
+            <label kaklen-form-field label="Inicio" i18n-label="@@startAtLabel" controlId="event-detail-startsAt" required="auto" invalid="auto">
+              <input kaklenControl type="datetime-local" formControlName="startsAt" aria-required="true" aria-describedby="event-timeline-start-error" />
+              <kaklen-field-error id="event-timeline-start-error" [control]="timelineForm.controls.startsAt" [attempted]="timelineSubmitted()" />
             </label>
           </div>
           <button type="submit" [disabled]="formSaving() || !canUpdate()"><kaklen-icon name="plus" /><span i18n="@@addTimelineEntryButton">Agregar al cronograma</span></button>

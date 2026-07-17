@@ -5,13 +5,14 @@ import { RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-resend-verification",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -29,11 +30,10 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <p i18n="@@resendVerificationDescription">Ingresa tu correo. Si la cuenta sigue pendiente, enviaremos un nuevo enlace.</p>
           </header>
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-            <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-            <label>
-              <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-              <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="resend-email-error" />
-              <kaklen-field-error id="resend-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
+            <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
+            <label kaklen-form-field label="Email" i18n-label="@@emailLabel" controlId="resend-verification-email" required="auto" invalid="auto">
+              <input kaklenControl type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="resend-email-error" />
+              <kaklen-field-error id="resend-email-error" [control]="form.controls.email" [attempted]="submitAttempted()" />
             </label>
             <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>
             <button type="submit" [disabled]="loading()"><kaklen-icon name="mail" /><span>{{ submitLabel() }}</span></button>

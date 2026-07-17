@@ -6,7 +6,8 @@ import { OrganizationService } from "../organizations/organization.service";
 import { chileanRutValidator, formatChileanRut, normalizeChileanRut } from "../shared/validators/chilean-rut.validator";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface OrganizationForm {
@@ -18,27 +19,24 @@ interface OrganizationForm {
 @Component({
   selector: "kaklen-organization-new",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, OptionalFieldLabelComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">
         <p class="eyebrow" i18n="@@newOrganizationEyebrow">Nueva organización</p>
         <h1 i18n="@@newOrganizationTitle">Crear organización</h1>
         <form [formGroup]="form" (ngSubmit)="submit()">
-          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-          <label>
-            <span><span i18n="@@organizationNameLabel">Nombre</span><kaklen-required /></span>
-            <input formControlName="name" maxlength="160" aria-describedby="organization-name-error" />
-            <kaklen-field-error id="organization-name-error" [control]="form.controls.name" [submitted]="submitAttempted()" />
+          <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
+          <label kaklen-form-field label="Nombre" i18n-label="@@organizationNameLabel" controlId="organization-new-name" required="auto" invalid="auto">
+            <input kaklenControl formControlName="name" maxlength="160" aria-describedby="organization-name-error" />
+            <kaklen-field-error id="organization-name-error" [control]="form.controls.name" [attempted]="submitAttempted()" />
           </label>
-          <label>
-            <span><span i18n="@@legalNameLabel">Razón social</span><kaklen-optional /></span>
-            <input formControlName="legalName" maxlength="160" />
+          <label kaklen-form-field label="Razón social" i18n-label="@@legalNameLabel" controlId="organization-new-legalName" required="auto" invalid="auto">
+            <input kaklenControl formControlName="legalName" maxlength="160" />
           </label>
-          <label>
-            <span><span i18n="@@taxIdLabel">RUT o identificación tributaria</span><kaklen-optional /></span>
-            <input formControlName="taxId" maxlength="40" (blur)="formatRut()" aria-describedby="organization-tax-id-error" />
-            <kaklen-field-error id="organization-tax-id-error" [control]="form.controls.taxId" [submitted]="submitAttempted()" />
+          <label kaklen-form-field label="RUT o identificación tributaria" i18n-label="@@taxIdLabel" controlId="organization-new-taxId" required="auto" invalid="auto">
+            <input kaklenControl formControlName="taxId" maxlength="40" (blur)="formatRut()" aria-describedby="organization-tax-id-error" />
+            <kaklen-field-error id="organization-tax-id-error" [control]="form.controls.taxId" [attempted]="submitAttempted()" />
           </label>
           <p class="form-error" *ngIf="error()">{{ error() }}</p>
           <button type="submit" [disabled]="loading()">

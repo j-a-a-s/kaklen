@@ -883,7 +883,7 @@
         <target>Contact</target>
       </trans-unit>
       <trans-unit id="phonePrefixLabel" datatype="html">
-        <source>Prefijo telefónico</source>
+        <source>Prefijo</source>
         <target>Phone prefix</target>
       </trans-unit>
       <trans-unit id="addressSection" datatype="html">
@@ -897,10 +897,6 @@
       <trans-unit id="regionLabel" datatype="html">
         <source>Región</source>
         <target>Region</target>
-      </trans-unit>
-      <trans-unit id="optionalLabel" datatype="html">
-        <source>Opcional</source>
-        <target>Optional</target>
       </trans-unit>
       <trans-unit id="selectRegionOption" datatype="html">
         <source>Selecciona una región</source>
@@ -985,14 +981,6 @@
       <trans-unit id="newClientTitle" datatype="html">
         <source>Nuevo cliente</source>
         <target>New client</target>
-      </trans-unit>
-      <trans-unit id="clientStepSingleValidationError" datatype="html">
-        <source>Falta completar o corregir 1 campo de esta etapa.</source>
-        <target>Complete or correct 1 field in this step.</target>
-      </trans-unit>
-      <trans-unit id="clientStepValidationError" datatype="html">
-        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
-        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
       </trans-unit>
       <trans-unit id="clientsEyebrow" datatype="html">
         <source>Relaciones</source>
@@ -1809,14 +1797,6 @@
       <trans-unit id="eventSaveError" datatype="html">
         <source>No fue posible guardar el evento.</source>
         <target>The event could not be saved.</target>
-      </trans-unit>
-      <trans-unit id="eventStepSingleValidationError" datatype="html">
-        <source>Falta completar o corregir 1 campo de esta etapa.</source>
-        <target>Complete or correct 1 field in this step.</target>
-      </trans-unit>
-      <trans-unit id="eventStepValidationError" datatype="html">
-        <source>Falta completar o corregir <x id="fieldCount" equiv-text="invalidCount"/> campos de esta etapa.</source>
-        <target>Complete or correct <x id="fieldCount" equiv-text="invalidCount"/> fields in this step.</target>
       </trans-unit>
       <trans-unit id="eventsTitle" datatype="html">
         <source>Operaciones de eventos</source>
@@ -2798,10 +2778,6 @@
         <source>No fue posible guardar la cotización.</source>
         <target>We could not save the quotation.</target>
       </trans-unit>
-      <trans-unit id="quotationStepValidationError" datatype="html">
-        <source>No puedes continuar. Corrige los campos marcados en esta etapa.</source>
-        <target>Complete or correct {$fieldCount} fields in this step.</target>
-      </trans-unit>
       <trans-unit id="quotationsTitle" datatype="html">
         <source>Cotizaciones</source>
         <target>Quotations</target>
@@ -3334,9 +3310,9 @@
         <source>Obligatorio</source>
         <target>Required</target>
       </trans-unit>
-      <trans-unit id="wizardProgressLabel" datatype="html">
-        <source>Progreso</source>
-        <target>Progress</target>
+      <trans-unit id="optionalLabel" datatype="html">
+        <source>Opcional</source>
+        <target>Optional</target>
       </trans-unit>
       <trans-unit id="fieldRequiredError" datatype="html">
         <source>Este campo es obligatorio.</source>
@@ -3345,6 +3321,10 @@
       <trans-unit id="fieldInvalidError" datatype="html">
         <source>Revisa el valor ingresado.</source>
         <target>Review the value entered.</target>
+      </trans-unit>
+      <trans-unit id="wizardProgressLabel" datatype="html">
+        <source>Progreso</source>
+        <target>Progress</target>
       </trans-unit>
       <trans-unit id="formCannotContinueTitle" datatype="html">
         <source>No puedes continuar. Corrige:</source>
@@ -3409,6 +3389,10 @@
       <trans-unit id="errorQuotationInvalidStatus" datatype="html">
         <source>La cotización no permite esa acción en su estado actual.</source>
         <target>The quotation does not allow that action in its current status.</target>
+      </trans-unit>
+      <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
+        <source>Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.</source>
+        <target>The quotation totals do not match. Save it again before generating the document.</target>
       </trans-unit>
       <trans-unit id="errorEventInvalidStatus" datatype="html">
         <source>El evento no permite esa acción en su estado actual.</source>

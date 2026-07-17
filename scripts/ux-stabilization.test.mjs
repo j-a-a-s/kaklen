@@ -112,8 +112,11 @@ test("quotation creation is a four-stage validated wizard with responsive summar
   const wizardSteps = quotation.match(/readonly wizardSteps = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
   assert.equal((wizardSteps.match(/\{ id:/g) ?? []).length, 4);
   assert.match(quotation, /<kaklen-wizard-steps \[steps\]="wizardSteps"/);
-  assert.match(quotation, /nextStep\(\)[\s\S]*validateStep\(step\)/);
-  assert.match(quotation, /private validateStep\(step: number\)/);
+  assert.match(quotation, /new WizardValidationState\(this\.form/);
+  assert.match(quotation, /nextStep\(\)[\s\S]*wizardValidation\.attempt\(step\)/);
+  assert.match(quotation, /wizardValidation\.focusFirst\(step\)/);
+  assert.match(quotation, /\[attempted\]="wizardAttempted\(\)"/);
+  assert.match(quotation, /\[scopePaths\]="activeStepPaths\(\)"/);
   assert.match(quotation, /class="quotation-summary desktop-quotation-summary"/);
   assert.match(quotation, /class="mobile-quotation-summary"/);
   assert.match(quotation, /subtotal\(\)/);
@@ -143,7 +146,7 @@ test("destructive actions require an explicit dialog and prevent duplicate submi
 test("organization settings expose friendly validated options", async () => {
   const settings = await source("apps/web/src/app/pages/organization-settings.component.ts");
   for (const control of ["country", "currency", "timezone", "dateFormat", "numberFormat", "defaultLocale"]) {
-    assert.match(settings, new RegExp(`<select formControlName="${control}"`));
+    assert.match(settings, new RegExp(`<select kaklenControl formControlName="${control}"`));
   }
   assert.match(settings, /Peso chileno \(CLP\)/);
   assert.match(settings, /Santiago, Chile/);

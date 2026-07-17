@@ -11,7 +11,8 @@ import { KeyboardSequenceService } from "../shared/keyboard-sequence.service";
 import { VersionBadgeComponent } from "../version/version-badge.component";
 import { VersionService } from "../version/version.service";
 import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface LoginForm {
@@ -22,7 +23,7 @@ interface LoginForm {
 @Component({
   selector: "kaklen-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, VersionBadgeComponent, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -40,17 +41,15 @@ interface LoginForm {
         </header>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-          <label>
-            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-            <input id="login-email" type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="login-email-error" />
-            <kaklen-field-error id="login-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
+          <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
+          <label kaklen-form-field label="Email" i18n-label="@@emailLabel" controlId="login-email" required="auto" invalid="auto">
+            <input kaklenControl id="login-email" type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="login-email-error" />
+            <kaklen-field-error id="login-email-error" [control]="form.controls.email" [attempted]="submitAttempted()" />
           </label>
 
-          <label>
-            <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
-            <input type="password" formControlName="password" autocomplete="current-password" maxlength="128" aria-describedby="login-password-error" />
-            <kaklen-field-error id="login-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
+          <label kaklen-form-field label="Contraseña" i18n-label="@@passwordLabel" controlId="login-password" required="auto" invalid="auto">
+            <input kaklenControl type="password" formControlName="password" autocomplete="current-password" maxlength="128" aria-describedby="login-password-error" />
+            <kaklen-field-error id="login-password-error" [control]="form.controls.password" [attempted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
           </label>
 
           <div class="password-help-link">

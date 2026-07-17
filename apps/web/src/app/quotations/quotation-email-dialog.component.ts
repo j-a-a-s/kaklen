@@ -18,21 +18,20 @@ import {
   FieldErrorComponent,
   FormControlA11yDirective,
   FormErrorSummaryComponent,
-  RequiredFieldIndicatorComponent
+    FormFieldComponent
 } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-quotation-email-dialog",
   standalone: true,
-  imports: [
+  imports: [FormFieldComponent,
     CommonModule,
     ReactiveFormsModule,
     FieldErrorComponent,
     FormControlA11yDirective,
     FormErrorSummaryComponent,
-    RequiredFieldIndicatorComponent,
-    UiIconComponent
+        UiIconComponent
   ],
   template: `
     <div class="confirmation-backdrop" *ngIf="open" (mousedown)="requestClose()">
@@ -42,21 +41,18 @@ import { UiIconComponent } from "../shared/ui-icon.component";
           <button type="button" class="icon-button" (click)="requestClose()" [disabled]="busy" aria-label="Cerrar" i18n-aria-label="@@closeButton"><kaklen-icon name="x" /></button>
         </header>
         <form [formGroup]="form" (ngSubmit)="submit()">
-          <kaklen-form-error-summary [form]="form" [submitted]="submitted" [labels]="fieldLabels" />
-          <label>
-            <span><span i18n="@@recipientEmailLabel">Destinatario</span><kaklen-required /></span>
-            <input #recipientInput type="email" formControlName="to" maxlength="254" inputmode="email" autocomplete="email" aria-describedby="quotation-email-to-error" />
-            <kaklen-field-error id="quotation-email-to-error" [control]="form.controls.to" [submitted]="submitted" />
+          <kaklen-form-error-summary [form]="form" [attempted]="submitted" [labels]="fieldLabels" />
+          <label kaklen-form-field label="Destinatario" i18n-label="@@recipientEmailLabel" controlId="quotation-email-dialog-to" required="auto" invalid="auto">
+            <input kaklenControl #recipientInput type="email" formControlName="to" maxlength="254" inputmode="email" autocomplete="email" aria-describedby="quotation-email-to-error" />
+            <kaklen-field-error id="quotation-email-to-error" [control]="form.controls.to" [attempted]="submitted" />
           </label>
-          <label>
-            <span><span i18n="@@subjectLabel">Asunto</span><kaklen-required /></span>
-            <input formControlName="subject" maxlength="200" aria-describedby="quotation-email-subject-error" />
-            <kaklen-field-error id="quotation-email-subject-error" [control]="form.controls.subject" [submitted]="submitted" />
+          <label kaklen-form-field label="Asunto" i18n-label="@@subjectLabel" controlId="quotation-email-dialog-subject" required="auto" invalid="auto">
+            <input kaklenControl formControlName="subject" maxlength="200" aria-describedby="quotation-email-subject-error" />
+            <kaklen-field-error id="quotation-email-subject-error" [control]="form.controls.subject" [attempted]="submitted" />
           </label>
-          <label>
-            <span><span i18n="@@messageLabel">Mensaje</span><kaklen-required /></span>
-            <textarea formControlName="message" maxlength="5000" rows="6" aria-describedby="quotation-email-message-error"></textarea>
-            <kaklen-field-error id="quotation-email-message-error" [control]="form.controls.message" [submitted]="submitted" />
+          <label kaklen-form-field label="Mensaje" i18n-label="@@messageLabel" controlId="quotation-email-dialog-message" required="auto" invalid="auto">
+            <textarea kaklenControl formControlName="message" maxlength="5000" rows="6" aria-describedby="quotation-email-message-error"></textarea>
+            <kaklen-field-error id="quotation-email-message-error" [control]="form.controls.message" [attempted]="submitted" />
           </label>
           <p class="verification-note"><kaklen-icon name="file-text" /><span i18n="@@quotationPdfAttachmentHelp">Se adjuntará automáticamente el PDF actualizado de la cotización.</span></p>
           <div class="row-actions">

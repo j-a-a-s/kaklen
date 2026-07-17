@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Directive, HostBinding, Input, inject } from "@angular/core";
+import { Component, ContentChild, Directive, HostBinding, InjectionToken, Input, forwardRef, inject } from "@angular/core";
 import { AbstractControl, FormArray, FormGroup, NgControl, Validators } from "@angular/forms";
 import { UiIconComponent } from "../ui-icon.component";
 
@@ -24,49 +24,106 @@ export class OptionalFieldLabelComponent {}
 })
 export class FieldHelperComponent {}
 
-@Directive({
-  selector: "input[formControlName], textarea[formControlName], select[formControlName]",
-  standalone: true
-})
-export class FormControlA11yDirective {
-  private readonly ngControl = inject(NgControl, { self: true });
-
-  @HostBinding("attr.aria-required") get ariaRequired(): string | null {
-    const control = this.ngControl.control;
-    return control?.hasValidator(Validators.required) || control?.hasValidator(Validators.requiredTrue)
-      ? "true"
-      : null;
-  }
-
-  @HostBinding("attr.aria-invalid") get ariaInvalid(): string {
-    const control = this.ngControl.control;
-    return control?.invalid && (control.touched || control.dirty) ? "true" : "false";
-  }
+interface FormFieldContext {
+  readonly controlId: string;
+  readonly supportId: string;
 }
 
+const FORM_FIELD_CONTEXT = new InjectionToken<FormFieldContext>("KAKLEN_FORM_FIELD_CONTEXT");
+
 @Component({
-  selector: "kaklen-form-field",
+  selector: "label[kaklen-form-field]",
   standalone: true,
-  imports: [CommonModule, RequiredFieldIndicatorComponent, OptionalFieldLabelComponent],
+  imports: [CommonModule, RequiredFieldIndicatorComponent, OptionalFieldLabelComponent, UiIconComponent],
+  providers: [{ provide: FORM_FIELD_CONTEXT, useExisting: forwardRef(() => FormFieldComponent) }],
   template: `
-    <div class="form-field" [class.form-field-invalid]="invalid">
-      <label [for]="controlId">
-        <span class="form-field-label">
-          <span>{{ label }}</span>
-          <kaklen-required *ngIf="required" />
-          <kaklen-optional *ngIf="!required" />
-        </span>
-      </label>
-      <ng-content select="[kaklenControl]" />
-      <div class="form-field-support"><ng-content /></div>
-    </div>
+    <span class="form-field-label">
+      <span>{{ label }}</span>
+      <kaklen-required *ngIf="isRequired" />
+      <kaklen-optional *ngIf="!isRequired" />
+    </span>
+    <ng-content select="[kaklenControl]" />
+    <span class="form-field-support" [id]="supportId">
+      <small *ngIf="isInvalid" class="field-error" role="alert">
+        <kaklen-icon name="x-circle" [size]="15" />
+        <span>{{ errorMessage }}</span>
+      </small>
+      <ng-container *ngIf="!isInvalid"><ng-content /></ng-container>
+    </span>
   `
 })
 export class FormFieldComponent {
   @Input({ required: true }) label = "";
   @Input({ required: true }) controlId = "";
-  @Input() required = false;
-  @Input() invalid = false;
+  @Input() required: boolean | "auto" = "auto";
+  @Input() invalid: boolean | "auto" = "auto";
+  @Input() requiredMessage = $localize`:@@fieldRequiredError:Este campo es obligatorio.`;
+  @Input() invalidMessage = $localize`:@@fieldInvalidError:Revisa el valor ingresado.`;
+
+  @ContentChild(forwardRef(() => FormControlA11yDirective)) private controlDirective?: FormControlA11yDirective;
+
+  @HostBinding("class.form-field") readonly formFieldClass = true;
+
+  @HostBinding("class.form-field-invalid") get invalidClass(): boolean {
+    return this.isInvalid;
+  }
+
+  @HostBinding("attr.for") get associatedControlId(): string {
+    return this.controlId;
+  }
+
+  get supportId(): string {
+    return `${this.controlId}-support`;
+  }
+
+  get isRequired(): boolean {
+    return this.required === "auto" ? this.controlDirective?.isRequired ?? false : this.required;
+  }
+
+  get isInvalid(): boolean {
+    return this.invalid === "auto" ? this.controlDirective?.isInvalid ?? false : this.invalid;
+  }
+
+  get errorMessage(): string {
+    return fieldErrorMessage(this.controlDirective?.control ?? null, this.requiredMessage, this.invalidMessage);
+  }
+}
+
+@Directive({
+  selector: "[kaklenControl][formControlName], [kaklenControl][formControl], [kaklenControl][ngModel]",
+  standalone: true
+})
+export class FormControlA11yDirective {
+  private readonly ngControl = inject(NgControl, { self: true });
+  private readonly formField = inject(FORM_FIELD_CONTEXT, { optional: true });
+
+  get control(): AbstractControl<unknown> | null {
+    return this.ngControl.control;
+  }
+
+  get isRequired(): boolean {
+    return Boolean(this.control?.hasValidator(Validators.required) || this.control?.hasValidator(Validators.requiredTrue));
+  }
+
+  get isInvalid(): boolean {
+    return Boolean(this.control?.invalid && (this.control.touched || this.control.dirty));
+  }
+
+  @HostBinding("attr.id") get controlId(): string | null {
+    return this.formField?.controlId || null;
+  }
+
+  @HostBinding("attr.aria-describedby") get describedBy(): string | null {
+    return this.formField?.supportId || null;
+  }
+
+  @HostBinding("attr.aria-required") get ariaRequired(): string {
+    return this.isRequired ? "true" : "false";
+  }
+
+  @HostBinding("attr.aria-invalid") get ariaInvalid(): string {
+    return this.isInvalid ? "true" : "false";
+  }
 }
 
 export interface WizardStep {
@@ -111,12 +168,12 @@ export class WizardStepIndicatorComponent {
 export class FieldErrorComponent {
   @Input({ required: true }) control: AbstractControl<unknown> | null = null;
   @Input() id = "";
-  @Input() submitted = false;
+  @Input() attempted = false;
   @Input() requiredMessage = $localize`:@@fieldRequiredError:Este campo es obligatorio.`;
   @Input() invalidMessage = $localize`:@@fieldInvalidError:Revisa el valor ingresado.`;
 
   get visible(): boolean {
-    return Boolean(this.control?.invalid && (this.control.touched || this.control.dirty || this.submitted));
+    return Boolean(this.control?.invalid && (this.control.touched || this.control.dirty || this.attempted));
   }
 
   get message(): string {
@@ -153,14 +210,15 @@ export interface FormErrorEntry {
 })
 export class FormErrorSummaryComponent {
   @Input({ required: true }) form!: FormGroup;
-  @Input() submitted = false;
+  @Input() attempted = false;
+  @Input() scopePaths: readonly string[] = [];
   @Input() labels: Readonly<Record<string, string>> = {};
   @Input() fieldIds: Readonly<Record<string, string>> = {};
   @Input() messages: Readonly<Record<string, string>> = {};
   @Input() groupErrorFields: Readonly<Record<string, string>> = {};
 
   get visible(): boolean {
-    return this.submitted && this.form.invalid;
+    return this.attempted && this.entries.length > 0;
   }
 
   get title(): string {
@@ -175,10 +233,10 @@ export class FormErrorSummaryComponent {
   }
 
   get entries(): FormErrorEntry[] {
-    const entries = this.collectInvalid(this.form);
+    const entries = this.collectInvalid(this.form).filter((entry) => this.isInScope(entry.path));
     for (const errorName of Object.keys(this.form.errors ?? {})) {
       const path = this.groupErrorFields[errorName];
-      if (!path || entries.some((entry) => entry.path === path)) {
+      if (!path || !this.isInScope(path) || entries.some((entry) => entry.path === path)) {
         continue;
       }
       entries.push({
@@ -189,6 +247,11 @@ export class FormErrorSummaryComponent {
       });
     }
     return entries;
+  }
+
+  focusFirst(): void {
+    const first = this.entries[0];
+    if (first) this.focus(first);
   }
 
   focus(entry: FormErrorEntry): void {
@@ -228,6 +291,12 @@ export class FormErrorSummaryComponent {
         ),
       targetId: this.fieldIds[path] ?? this.fieldIds[shortPath] ?? ""
     }];
+  }
+
+  private isInScope(path: string): boolean {
+    return this.scopePaths.length === 0 || this.scopePaths.some((scope) =>
+      path === scope || path.startsWith(`${scope}.`)
+    );
   }
 }
 

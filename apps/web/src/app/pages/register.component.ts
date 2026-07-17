@@ -7,7 +7,8 @@ import { LocaleService } from "../i18n/locale.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
 import { PASSWORD_MIN_LENGTH } from "@kaklen/shared";
 import { emailValidator, normalizeEmail, trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface RegisterForm {
@@ -20,7 +21,7 @@ interface RegisterForm {
 @Component({
   selector: "kaklen-register",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -39,31 +40,27 @@ interface RegisterForm {
           </header>
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-            <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
+            <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
             <div class="field-grid">
-              <label>
-                <span><span i18n="@@firstNameLabel">Nombre</span><kaklen-required /></span>
-                <input type="text" formControlName="firstName" autocomplete="given-name" maxlength="80" aria-describedby="register-first-name-error" />
-                <kaklen-field-error id="register-first-name-error" [control]="form.controls.firstName" [submitted]="submitAttempted()" />
+              <label kaklen-form-field label="Nombre" i18n-label="@@firstNameLabel" controlId="register-firstName" required="auto" invalid="auto">
+                <input kaklenControl type="text" formControlName="firstName" autocomplete="given-name" maxlength="80" aria-describedby="register-first-name-error" />
+                <kaklen-field-error id="register-first-name-error" [control]="form.controls.firstName" [attempted]="submitAttempted()" />
               </label>
 
-              <label>
-                <span><span i18n="@@lastNameLabel">Apellido</span><kaklen-required /></span>
-                <input type="text" formControlName="lastName" autocomplete="family-name" maxlength="80" aria-describedby="register-last-name-error" />
-                <kaklen-field-error id="register-last-name-error" [control]="form.controls.lastName" [submitted]="submitAttempted()" />
+              <label kaklen-form-field label="Apellido" i18n-label="@@lastNameLabel" controlId="register-lastName" required="auto" invalid="auto">
+                <input kaklenControl type="text" formControlName="lastName" autocomplete="family-name" maxlength="80" aria-describedby="register-last-name-error" />
+                <kaklen-field-error id="register-last-name-error" [control]="form.controls.lastName" [attempted]="submitAttempted()" />
               </label>
             </div>
 
-            <label>
-              <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-              <input type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="register-email-error" />
-              <kaklen-field-error id="register-email-error" [control]="form.controls.email" [submitted]="submitAttempted()" />
+            <label kaklen-form-field label="Email" i18n-label="@@emailLabel" controlId="register-email" required="auto" invalid="auto">
+              <input kaklenControl type="email" formControlName="email" autocomplete="email" maxlength="254" inputmode="email" aria-describedby="register-email-error" />
+              <kaklen-field-error id="register-email-error" [control]="form.controls.email" [attempted]="submitAttempted()" />
             </label>
 
-            <label>
-              <span><span i18n="@@passwordLabel">Contraseña</span><kaklen-required /></span>
-              <input type="password" formControlName="password" autocomplete="new-password" maxlength="128" aria-describedby="register-password-error" />
-              <kaklen-field-error id="register-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
+            <label kaklen-form-field label="Contraseña" i18n-label="@@passwordLabel" controlId="register-password" required="auto" invalid="auto">
+              <input kaklenControl type="password" formControlName="password" autocomplete="new-password" maxlength="128" aria-describedby="register-password-error" />
+              <kaklen-field-error id="register-password-error" [control]="form.controls.password" [attempted]="submitAttempted()" [invalidMessage]="passwordErrorLabel" />
             </label>
 
             <p class="form-error" *ngIf="error()" role="alert">{{ error() }}</p>

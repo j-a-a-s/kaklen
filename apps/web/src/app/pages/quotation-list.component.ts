@@ -39,7 +39,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <div class="filter-toolbar">
             <label class="filter-search">
               <span i18n="@@searchLabel">Buscar</span>
-              <input type="search" formControlName="search" maxlength="200" placeholder="Número o cliente" i18n-placeholder="@@quotationSearchPlaceholder" />
+              <input id="quotations-filter-search" type="search" formControlName="search" maxlength="200" placeholder="Número o cliente" i18n-placeholder="@@quotationSearchPlaceholder" />
             </label>
             <button type="button" class="secondary filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="quotation-filter-controls">
               <span *ngIf="!filtersOpen()" i18n="@@filtersButton">Filtros</span>
@@ -50,7 +50,7 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <div id="quotation-filter-controls" class="filter-controls" [class.open]="filtersOpen()">
             <label>
               <span i18n="@@statusLabel">Estado</span>
-              <select formControlName="status">
+              <select id="quotations-filter-status" formControlName="status">
                 <option value="" i18n="@@allOption">Todos</option>
                 <option value="DRAFT" i18n="@@draftLabel">Borrador</option>
                 <option value="SENT" i18n="@@sentLabel">Enviada</option>

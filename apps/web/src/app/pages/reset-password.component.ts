@@ -7,7 +7,8 @@ import { PASSWORD_MIN_LENGTH, passwordStrength, type PasswordStrength } from "@k
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 interface ResetPasswordForm {
@@ -20,7 +21,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
 @Component({
   selector: "kaklen-reset-password",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="auth-shell">
       <aside class="auth-brand-panel" aria-label="Kaklen">
@@ -40,11 +41,10 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
             </header>
 
             <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-              <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-              <label>
-                <span><span i18n="@@newPasswordLabel">Nueva contraseña</span><kaklen-required /></span>
+              <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
+              <label kaklen-form-field label="Nueva contraseña" i18n-label="@@newPasswordLabel" controlId="reset-password-password" required="auto" invalid="auto">
                 <span class="password-input-wrap">
-                  <input
+                  <input kaklenControl
                     [type]="passwordVisible() ? 'text' : 'password'"
                     formControlName="password"
                     autocomplete="new-password"
@@ -59,7 +59,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
                     [attr.aria-pressed]="passwordVisible()"
                   >{{ visibilityLabel() }}</button>
                 </span>
-                <kaklen-field-error id="reset-password-error" [control]="form.controls.password" [submitted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
+                <kaklen-field-error id="reset-password-error" [control]="form.controls.password" [attempted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
               </label>
 
               <div class="password-strength" [attr.data-strength]="strength()" aria-live="polite">
@@ -71,9 +71,8 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
                 Usa al menos 10 caracteres y evita tu nombre, correo o contraseña anterior.
               </p>
 
-              <label>
-                <span><span i18n="@@confirmNewPasswordLabel">Confirmar contraseña</span><kaklen-required /></span>
-                <input
+              <label kaklen-form-field label="Confirmar contraseña" i18n-label="@@confirmNewPasswordLabel" controlId="reset-password-confirmPassword" required="auto" invalid="auto">
+                <input kaklenControl
                   [type]="passwordVisible() ? 'text' : 'password'"
                   formControlName="confirmPassword"
                   autocomplete="new-password"
@@ -81,7 +80,7 @@ type ResetPasswordState = "form" | "missing" | "invalid" | "expired" | "used" | 
                   aria-required="true"
                   aria-describedby="reset-confirm-password-error"
                 />
-                <kaklen-field-error id="reset-confirm-password-error" [control]="form.controls.confirmPassword" [submitted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
+                <kaklen-field-error id="reset-confirm-password-error" [control]="form.controls.confirmPassword" [attempted]="submitAttempted()" [invalidMessage]="passwordValidationLabel" />
                 <small class="field-error"
                   *ngIf="form.controls.confirmPassword.touched && !passwordsMatch()"
                   i18n="@@passwordConfirmationValidation"

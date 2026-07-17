@@ -4,24 +4,24 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { Router } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
 import { trimmedRequired } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-accept-invitation",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell form-shell">
       <section class="dashboard-panel form-panel">
         <p class="eyebrow" i18n="@@invitationEyebrow">Invitación</p>
         <h1 i18n="@@acceptInvitationTitle">Aceptar invitación</h1>
         <form [formGroup]="form" (ngSubmit)="accept()">
-          <kaklen-form-error-summary [form]="form" [submitted]="submitAttempted()" [labels]="fieldLabels" />
-          <label>
-            <span><span i18n="@@tokenLabel">Token</span><kaklen-required /></span>
-            <input formControlName="token" maxlength="512" aria-required="true" aria-describedby="invitation-token-error" />
-            <kaklen-field-error id="invitation-token-error" [control]="form.controls.token" [submitted]="submitAttempted()" />
+          <kaklen-form-error-summary [form]="form" [attempted]="submitAttempted()" [labels]="fieldLabels" />
+          <label kaklen-form-field label="Token" i18n-label="@@tokenLabel" controlId="accept-invitation-token" required="auto" invalid="auto">
+            <input kaklenControl formControlName="token" maxlength="512" aria-required="true" aria-describedby="invitation-token-error" />
+            <kaklen-field-error id="invitation-token-error" [control]="form.controls.token" [attempted]="submitAttempted()" />
           </label>
           <p class="form-error" *ngIf="message()">{{ message() }}</p>
           <button type="submit" [disabled]="loading()"><kaklen-icon name="check" /><span i18n="@@acceptButton">Aceptar</span></button>

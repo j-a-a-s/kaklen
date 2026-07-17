@@ -10,13 +10,14 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { emailValidator, normalizeEmail } from "../shared/forms/form-validators";
-import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent } from "../shared/forms/form-feedback.components";
+import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
+} from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-organization-members",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent, ActionMenuComponent, ActionMenuItemDirective, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, RequiredFieldIndicatorComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, EmptyStateComponent, ActionMenuComponent, ActionMenuItemDirective, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -29,15 +30,13 @@ import { UiIconComponent } from "../shared/ui-icon.component";
       <section class="dashboard-panel" *ngIf="canInvite()">
         <h2 i18n="@@invitePersonTitle">Invitar persona</h2>
         <form [formGroup]="inviteForm" (ngSubmit)="invite()">
-          <kaklen-form-error-summary [form]="inviteForm" [submitted]="submitAttempted()" [labels]="inviteFieldLabels" />
-          <label>
-            <span><span i18n="@@emailLabel">Email</span><kaklen-required /></span>
-            <input id="member-invite-email" type="email" inputmode="email" maxlength="254" formControlName="email" aria-describedby="member-email-error" />
-            <kaklen-field-error id="member-email-error" [control]="inviteForm.controls.email" [submitted]="submitAttempted()" />
+          <kaklen-form-error-summary [form]="inviteForm" [attempted]="submitAttempted()" [labels]="inviteFieldLabels" />
+          <label kaklen-form-field label="Email" i18n-label="@@emailLabel" controlId="organization-members-email" required="auto" invalid="auto">
+            <input kaklenControl id="member-invite-email" type="email" inputmode="email" maxlength="254" formControlName="email" aria-describedby="member-email-error" />
+            <kaklen-field-error id="member-email-error" [control]="inviteForm.controls.email" [attempted]="submitAttempted()" />
           </label>
-          <label>
-            <span><span i18n="@@roleLabel">Rol</span><kaklen-required /></span>
-            <select formControlName="role">
+          <label kaklen-form-field label="Rol" i18n-label="@@roleLabel" controlId="organization-members-role" required="auto" invalid="auto">
+            <select kaklenControl formControlName="role">
               <option value="VIEWER">{{ roleLabel('VIEWER') }}</option>
               <option value="MEMBER">{{ roleLabel('MEMBER') }}</option>
               <option value="MANAGER">{{ roleLabel('MANAGER') }}</option>

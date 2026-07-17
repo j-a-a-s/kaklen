@@ -74,13 +74,13 @@ describe("shared form validation", () => {
       email: new FormControl("invalid", emailValidator())
     });
     summary.labels = { name: "Nombre", email: "Email" };
-    summary.submitted = true;
+    summary.attempted = true;
+    summary.scopePaths = ["email"];
 
     expect(summary.visible).toBeTrue();
     expect(summary.title).toContain("Corrige");
-    expect(summary.description).toBe("Nombre, Email");
+    expect(summary.description).toBe("Email");
     expect(summary.entries.map((entry) => entry.message)).toEqual([
-      "Este campo es obligatorio.",
       "Ingresa un correo válido, por ejemplo nombre@empresa.cl."
     ]);
   });
