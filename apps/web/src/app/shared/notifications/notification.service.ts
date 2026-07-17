@@ -94,6 +94,7 @@ export function messageForError(error: unknown): string {
     CONFLICT: $localize`:@@errorConflict:La operación entra en conflicto con información existente.`,
     DUPLICATE_TAX_ID: $localize`:@@errorDuplicateTaxId:Ya existe un registro con ese RUT.`,
     QUOTATION_INVALID_STATUS: $localize`:@@errorQuotationInvalidStatus:La cotización no permite esa acción en su estado actual.`,
+    QUOTATION_MONEY_MISMATCH: $localize`:@@errorQuotationMoneyMismatch:Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.`,
     EVENT_INVALID_STATUS: $localize`:@@errorEventInvalidStatus:El evento no permite esa acción en su estado actual.`
   };
 

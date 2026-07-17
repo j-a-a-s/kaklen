@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, Logger } from "@nestjs/common";
 import { QuotationDiscountType, QuotationStatus } from "@prisma/client";
+import { calculateQuotationMoney, moneyToMinorUnits, QuotationMoneyResult } from "@kaklen/shared";
 import { createPdfDocument, PdfCommand } from "./pdf";
 
 type Locale = "es" | "en" | "pt-BR";
 
 interface DecimalValue {
-  toFixed(decimalPlaces: number): string;
   toString(): string;
 }
 
@@ -16,6 +16,7 @@ export interface QuotationDocumentSource {
   issueDate: Date;
   validUntil: Date;
   currency: string;
+  globalDiscountPercent: DecimalValue;
   subtotal: DecimalValue;
   discountTotal: DecimalValue;
   taxTotal: DecimalValue;
@@ -48,8 +49,10 @@ export interface QuotationDocumentSource {
     unitPrice: DecimalValue;
     discountType: QuotationDiscountType;
     discountValue: DecimalValue;
+    subtotal: DecimalValue;
     discountTotal: DecimalValue;
     taxPercent: DecimalValue;
+    taxTotal: DecimalValue;
     total: DecimalValue;
   }>;
   history?: Array<{
@@ -115,27 +118,25 @@ export interface QuotationDocumentViewModel {
 
 @Injectable()
 export class QuotationDocumentService {
+  private readonly logger = new Logger(QuotationDocumentService.name);
+
   buildViewModel(source: QuotationDocumentSource, locale: string): QuotationDocumentViewModel {
     const language = normalizeLocale(locale);
     const labels = documentLabels(language);
-    const money = (value: string): string =>
-      new Intl.NumberFormat(numberLocale(language), {
-        style: "currency",
-        currency: source.currency,
-        maximumFractionDigits: source.currency === "CLP" ? 0 : 2
-      }).format(Number(value));
+    const calculated = calculateQuotationMoney(
+      source.items.map((item) => ({
+        quantity: item.quantity.toString(),
+        unitPrice: item.unitPrice.toString(),
+        discountType: item.discountType,
+        discountValue: item.discountValue.toString(),
+        taxPercent: item.taxPercent.toString()
+      })),
+      source.globalDiscountPercent.toString()
+    );
+    this.assertPersistenceParity(source, calculated);
+    const money = (value: string): string => formatExactMoney(value, source.currency, language);
     const date = (value: Date): string =>
       new Intl.DateTimeFormat(numberLocale(language), { dateStyle: "medium" }).format(value);
-    const specificDiscount = source.items.reduce((sum, item) => {
-      if (item.discountType === QuotationDiscountType.NONE) return sum;
-      const gross = Number(item.quantity.toString()) * Number(item.unitPrice.toString());
-      const discount = item.discountType === QuotationDiscountType.PERCENTAGE
-        ? gross * Number(item.discountValue.toString()) / 100
-        : Number(item.discountValue.toString());
-      return sum + discount;
-    }, 0);
-    const discountTotal = Number(source.discountTotal.toString());
-    const taxableBase = Number(source.subtotal.toString()) - discountTotal;
     const organization = source.organization;
     return {
       locale: language,
@@ -166,23 +167,23 @@ export class QuotationDocumentService {
         executive: source.createdBy ? `${source.createdBy.firstName} ${source.createdBy.lastName}`.trim() : "Kaklen",
         currency: source.currency
       },
-      items: source.items.map((item) => ({
+      items: source.items.map((item, index) => ({
         code: item.code ?? "-",
         name: item.name,
         description: item.description ?? "",
         quantityAndUnit: `${item.quantity.toString()} ${item.unit}`,
         unitPrice: money(item.unitPrice.toString()),
-        lineDiscount: money(item.discountTotal.toString()),
+        lineDiscount: money(calculated.lines[index].lineDiscountTotal),
         tax: `${item.taxPercent.toString()}%`,
-        total: money(item.total.toString())
+        total: money(calculated.lines[index].total)
       })),
       totals: {
-        subtotal: money(source.subtotal.toString()),
-        lineDiscount: money(specificDiscount.toFixed(2)),
-        globalDiscount: money(Math.max(0, discountTotal - specificDiscount).toFixed(2)),
-        taxableBase: money(taxableBase.toFixed(2)),
-        tax: money(source.taxTotal.toString()),
-        total: money(source.total.toString())
+        subtotal: money(calculated.subtotal),
+        lineDiscount: money(calculated.lineDiscountTotal),
+        globalDiscount: money(calculated.globalDiscountTotal),
+        taxableBase: money(calculated.taxableBase),
+        tax: money(calculated.taxTotal),
+        total: money(calculated.total)
       },
       notes: source.notes ?? "",
       terms: source.terms ?? "",
@@ -192,9 +193,59 @@ export class QuotationDocumentService {
     };
   }
 
+  private assertPersistenceParity(source: QuotationDocumentSource, calculated: QuotationMoneyResult): void {
+    const comparisons: Array<[string, string, DecimalValue]> = [
+      ["subtotal", calculated.subtotal, source.subtotal],
+      ["discountTotal", calculated.discountTotal, source.discountTotal],
+      ["taxTotal", calculated.taxTotal, source.taxTotal],
+      ["total", calculated.total, source.total]
+    ];
+    source.items.forEach((item, index) => {
+      const line = calculated.lines[index];
+      comparisons.push(
+        [`items.${index}.subtotal`, line.subtotal, item.subtotal],
+        [`items.${index}.discountTotal`, line.discountTotal, item.discountTotal],
+        [`items.${index}.taxTotal`, line.taxTotal, item.taxTotal],
+        [`items.${index}.total`, line.total, item.total]
+      );
+    });
+    const mismatch = comparisons.find(([, expected, persisted]) =>
+      moneyToMinorUnits(expected) !== moneyToMinorUnits(persisted.toString())
+    );
+    if (!mismatch) return;
+
+    const [field, expected, persisted] = mismatch;
+    this.logger.error(
+      `Quotation money mismatch number=${source.number} field=${field} expectedMinor=${moneyToMinorUnits(expected)} persistedMinor=${moneyToMinorUnits(persisted.toString())}`
+    );
+    throw new ConflictException({
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent. Recalculate and save before generating the document."
+    });
+  }
+
   render(viewModel: QuotationDocumentViewModel): Buffer {
     return renderQuotationDocument(viewModel);
   }
+}
+
+function formatExactMoney(value: string, currency: string, locale: Locale): string {
+  const minorUnits = moneyToMinorUnits(value);
+  if (minorUnits.startsWith("-")) throw new RangeError("Money values must be non-negative");
+  const digits = minorUnits.padStart(3, "0");
+  const whole = digits.slice(0, -2);
+  const fraction = digits.slice(-2);
+  const fractionDigits = fraction === "00" ? 0 : 2;
+  const formatter = new Intl.NumberFormat(numberLocale(locale), {
+    style: "currency",
+    currency,
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  });
+  return formatter.formatToParts(BigInt(whole)).map((part) =>
+    part.type === "fraction" ? fraction : part.value
+  ).join("");
 }
 
 const PAGE_WIDTH = 595;

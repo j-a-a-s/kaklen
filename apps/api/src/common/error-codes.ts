@@ -10,6 +10,7 @@ export const ERROR_CODES = {
   resourceNotFound: "RESOURCE_NOT_FOUND",
   validationError: "VALIDATION_ERROR",
   quotationInvalidStatus: "QUOTATION_INVALID_STATUS",
+  quotationMoneyMismatch: "QUOTATION_MONEY_MISMATCH",
   eventInvalidStatus: "EVENT_INVALID_STATUS",
   passwordMismatch: "PASSWORD_MISMATCH",
   passwordPolicy: "PASSWORD_POLICY",
