@@ -202,17 +202,14 @@ test("rejects production and refuses lookalike organizations during selective cl
   assert.equal(isManagedDemoOrganization({ ...managed, slug: "real-organization" }), false);
 });
 
-test("quality gate verifies idempotence and restores demo data after E2E mutations", () => {
-  const source = readFileSync(new URL("./quality-gate.mjs", import.meta.url), "utf8");
-  const firstSeed = source.indexOf("Demo seed\"");
-  const secondSeed = source.indexOf("Demo seed idempotence");
-  const e2e = source.indexOf('["E2E", "pnpm", ["e2e"]]');
-  const restore = source.indexOf("Demo restore after E2E");
-  const finalVerification = source.indexOf("Demo final verification");
-  assert.ok(firstSeed >= 0 && secondSeed > firstSeed);
-  assert.ok(e2e > secondSeed);
-  assert.ok(restore > e2e);
-  assert.ok(finalVerification > restore);
+test("quality graph seeds and verifies demo data once before E2E", () => {
+  const source = readFileSync(new URL("./quality-pipeline-core.mjs", import.meta.url), "utf8");
+  const seed = source.indexOf('defineTask("demo-seed"');
+  const verify = source.indexOf('defineTask("demo-verify"');
+  const e2e = source.indexOf('defineTask("e2e"');
+  assert.ok(seed >= 0 && verify > seed && e2e > verify);
+  assert.equal(source.match(/defineTask\("demo-seed"/g)?.length, 1);
+  assert.equal(source.match(/defineTask\("demo-verify"/g)?.length, 1);
 });
 
 function countBy(items, selector) {

@@ -13,8 +13,12 @@ try {
   }
   console.log(`✓ PostgreSQL ${check.parsed.database}`);
 
-  await run("pnpm", ["prisma:generate"], { env, timeoutMs: 60000 });
-  console.log("✓ Prisma Client");
+  if (process.env.DB_SKIP_PRISMA_GENERATE === "true") {
+    console.log("✓ Prisma Client reutilizado");
+  } else {
+    await run("pnpm", ["prisma:generate"], { env, timeoutMs: 60000 });
+    console.log("✓ Prisma Client");
+  }
 
   await run("pnpm", ["exec", "prisma", "validate"], { env, timeoutMs: 60000 });
   console.log("✓ Prisma schema");

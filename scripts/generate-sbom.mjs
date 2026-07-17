@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
-const outputPath = resolve(process.argv[2] ?? "artifacts/sbom.kaklen.json");
+const outputPath = resolve(process.argv[2] ?? "artifacts/sbom.cdx.json");
 const packages = gitFiles().filter((file) => file.endsWith("package.json")).map(readPackage);
 const components = [];
 

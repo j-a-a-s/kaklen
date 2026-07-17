@@ -34,7 +34,11 @@ try {
   const isolatedEnv = { ...env, DATABASE_URL: isolatedDatabaseUrl, NODE_ENV: "development" };
 
   await runStep("Prisma schema", "pnpm", ["exec", "prisma", "validate"], isolatedEnv);
-  await runStep("Prisma Client", "pnpm", ["prisma:generate"], isolatedEnv, 120000);
+  if (process.env.MIGRATION_REUSE_PRISMA_CLIENT === "true") {
+    console.log("✓ Prisma Client reutilizado");
+  } else {
+    await runStep("Prisma Client", "pnpm", ["prisma:generate"], isolatedEnv, 120000);
+  }
   await runStep("Migraciones desde cero", "pnpm", ["exec", "prisma", "migrate", "deploy"], isolatedEnv, 180000);
   await runStep("Estado de migraciones", "pnpm", ["exec", "prisma", "migrate", "status"], isolatedEnv, 120000);
 
@@ -51,8 +55,12 @@ try {
   await verifyPrismaDrift(isolatedDatabaseUrl, isolatedEnv);
   console.log("✓ Historial y schema.prisma sincronizados");
 
-  await runStep("Seed demo aislado", "pnpm", ["db:seed:demo"], isolatedEnv, 180000);
-  await runStep("Dataset demo aislado", "pnpm", ["db:verify:demo"], isolatedEnv, 120000);
+  if (process.env.MIGRATION_REUSE_DEMO_VERIFICATION === "true") {
+    console.log("✓ Dataset demo delegado a las tareas canónicas del pipeline");
+  } else {
+    await runStep("Seed demo aislado", "pnpm", ["db:seed:demo"], isolatedEnv, 180000);
+    await runStep("Dataset demo aislado", "pnpm", ["db:verify:demo"], isolatedEnv, 120000);
+  }
 
   console.log("\nMIGRATION VERIFICATION PASSED");
 } catch (error) {

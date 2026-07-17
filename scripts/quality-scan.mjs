@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { extname } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -34,7 +34,10 @@ if (findings.length > 0) {
 console.log("✓ Quality scan sin marcadores de deuda tecnica ni tipos amplios explicitos");
 
 function gitFiles() {
-  return execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  return execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" })
+    .trim()
+    .split("\n")
+    .filter((file) => file && existsSync(file));
 }
 
 function hasExplicitAny(line) {

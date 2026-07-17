@@ -23,6 +23,7 @@ FROM deps AS builder
 COPY apps apps
 COPY packages packages
 COPY prisma prisma
+COPY scripts scripts
 RUN pnpm prisma:generate
 RUN pnpm build
 RUN CI=true pnpm prune --prod

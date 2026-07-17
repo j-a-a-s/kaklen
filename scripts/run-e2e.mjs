@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createConnection } from "node:net";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { cleanDev } from "./clean-dev.mjs";
@@ -11,7 +12,7 @@ import {
   normalizePlaywrightArguments,
   printE2EResult
 } from "./e2e-runner-core.mjs";
-import { supportedLocales } from "./i18n-server.mjs";
+import { isFile, resolveLocaleRoot, supportedLocales } from "./i18n-server.mjs";
 import { checkDatabase, loadLocalEnv, parseDatabaseUrl, readDatabaseUrl } from "./local-db-utils.mjs";
 import { writeRuntimeConfig } from "./write-runtime-config.mjs";
 
@@ -27,6 +28,7 @@ const forceTimeoutMs = positiveInteger(process.env.E2E_FORCE_TIMEOUT_MS, 2_000, 
 const apiBaseUrl = `http://localhost:${apiPort}/api`;
 const webBaseUrl = `http://localhost:${webPort}`;
 const playwrightArguments = normalizePlaywrightArguments(process.argv.slice(2));
+const reuseArtifacts = process.env.E2E_REUSE_ARTIFACTS === "true";
 const localEnv = loadLocalEnv();
 const startedDockerServices = [];
 
@@ -52,26 +54,33 @@ export async function runE2E() {
       await assertPortFree(webPort, "web", "frontend localizado");
       await ensureLocalServices(supervisor);
 
-      console.log("[e2e:health] Limpiando artefactos regenerables.");
-      cleanDev();
       process.env.PUBLIC_API_BASE_URL = apiBaseUrl;
+      if (!reuseArtifacts) {
+        console.log("[e2e:health] Limpiando artefactos regenerables.");
+        cleanDev();
+      }
       const runtime = writeRuntimeConfig();
       runtimeEnv = createRuntimeEnv(runtime.config);
 
-      await runFinite(supervisor, "prisma-generate", "pnpm", ["prisma:generate"], runtimeEnv, 60_000);
-      await runFinite(supervisor, "prisma-migrate", "pnpm", ["prisma:migrate"], runtimeEnv, 120_000);
-      await runFinite(supervisor, "packages-build", "turbo", ["run", "build", "--filter=./packages/*"], runtimeEnv, 120_000);
-      for (const locale of supportedLocales) {
-        await runFinite(
-          supervisor,
-          `web-build-${locale}`,
-          "pnpm",
-          ["--filter", "@kaklen/web", `build:${locale}`],
-          runtimeEnv,
-          180_000
-        );
+      if (reuseArtifacts) {
+        verifyReusableArtifacts();
+        console.log("[e2e:health] Prisma, packages y builds localizados reutilizados.");
+      } else {
+        await runFinite(supervisor, "prisma-generate", "pnpm", ["prisma:generate"], runtimeEnv, 60_000);
+        await runFinite(supervisor, "prisma-migrate", "pnpm", ["prisma:migrate"], runtimeEnv, 120_000);
+        await runFinite(supervisor, "packages-build", "turbo", ["run", "build", "--filter=./packages/*"], runtimeEnv, 120_000);
+        for (const locale of supportedLocales) {
+          await runFinite(
+            supervisor,
+            `web-build-${locale}`,
+            "pnpm",
+            ["--filter", "@kaklen/web", `build:${locale}`],
+            runtimeEnv,
+            180_000
+          );
+        }
+        await runFinite(supervisor, "api-clean", "pnpm", ["--filter", "@kaklen/api", "clean"], runtimeEnv, 30_000);
       }
-      await runFinite(supervisor, "api-clean", "pnpm", ["--filter", "@kaklen/api", "clean"], runtimeEnv, 30_000);
     },
     startApi: async () => {
       console.log(`[e2e:api] Iniciando Nest en puerto ${apiPort}.`);
@@ -144,7 +153,58 @@ export async function runE2E() {
   process.removeListener("SIGINT", onSigint);
   process.removeListener("SIGTERM", onSigterm);
   printE2EResult(result);
+  writeE2EArtifact(result);
   return result;
+}
+
+function verifyReusableArtifacts() {
+  const distRoot = resolve("apps/web/dist/web");
+  for (const locale of supportedLocales) {
+    const localeRoot = resolveLocaleRoot(distRoot, locale);
+    for (const requiredFile of ["index.html", "runtime-config.json", "runtime-config.js"]) {
+      if (!isFile(resolve(localeRoot, requiredFile))) {
+        throw new E2EInfrastructureError({
+          processName: `web-build-${locale}`,
+          phase: "prepare",
+          cause: `Falta ${requiredFile} en ${localeRoot}; no se pueden reutilizar artefactos E2E.`
+        });
+      }
+    }
+  }
+  for (const requiredFile of ["packages/config/dist/index.js", "packages/shared/dist/index.js"]) {
+    if (!isFile(resolve(requiredFile))) {
+      throw new E2EInfrastructureError({
+        processName: "packages-build",
+        phase: "prepare",
+        cause: `Falta ${requiredFile}; ejecute pnpm build antes de reutilizar artefactos E2E.`
+      });
+    }
+  }
+}
+
+function writeE2EArtifact(result) {
+  const fullSuite = playwrightArguments.length === 0;
+  const explicitlyAccessibility = playwrightArguments.some((argument) => argument.endsWith("accessibility.spec.mjs"));
+  const artifact = {
+    status: result.kind,
+    exitCode: result.exitCode,
+    fullSuite,
+    accessibilityIncluded: result.kind === "passed" && (fullSuite || explicitlyAccessibility),
+    processName: result.processName,
+    phase: result.phase,
+    signal: result.signal,
+    warnings: result.warnings,
+    cause: sanitizeArtifactValue(result.cause)
+  };
+  mkdirSync(resolve("artifacts"), { recursive: true });
+  writeFileSync(resolve("artifacts/e2e-result.json"), `${JSON.stringify(artifact, null, 2)}\n`);
+}
+
+function sanitizeArtifactValue(value) {
+  return String(value)
+    .replace(/(?:postgres(?:ql)?|redis):\/\/[^\s]+/gi, "[REDACTED_URL]")
+    .replace(/((?:password|secret|token)=)[^\s]+/gi, "$1[REDACTED]")
+    .slice(0, 500);
 }
 
 async function ensureLocalServices(supervisor) {

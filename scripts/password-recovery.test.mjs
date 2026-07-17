@@ -53,10 +53,10 @@ test("rate limits, localized templates, and Mailpit E2E are wired", () => {
   assert.match(mail, /accepted\.includes\(recipient\)/);
   assert.match(mail, /verifyConnection/);
   assert.doesNotMatch(mail, /resetUrl.*logger|logger.*resetUrl/);
-  assert.equal(
-    packageJson.scripts["mail:verify"],
-    "pnpm --filter @kaklen/config build && pnpm --filter @kaklen/api exec ts-node --transpile-only scripts/mail-verify.ts"
-  );
+  assert.equal(packageJson.scripts["mail:verify"], "node scripts/run-mail-verify.mjs");
+  const mailRunner = read("scripts/run-mail-verify.mjs");
+  assert.match(mailRunner, /MAIL_REUSE_CONFIG_BUILD/);
+  assert.match(mailRunner, /scripts\/mail-verify\.ts/);
 });
 
 test("all localized catalogs include password recovery messages", () => {

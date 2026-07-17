@@ -44,6 +44,15 @@ test("api clean removes the complete dist directory", () => {
   assert.match(script, /rmSync\(apiDist, \{ recursive: true, force: true \}\)/);
 });
 
+test("API Docker builder includes the scripts required by workspace builds", () => {
+  const dockerfile = readText("apps/api/Dockerfile");
+  const scriptsCopyIndex = dockerfile.indexOf("COPY scripts scripts");
+  const buildIndex = dockerfile.indexOf("RUN pnpm build");
+
+  assert.ok(scriptsCopyIndex > 0);
+  assert.ok(buildIndex > scriptsCopyIndex);
+});
+
 test("dev:full:i18n cleans API dist before starting watch mode", () => {
   const script = readText("scripts/dev-full-i18n.mjs");
   const cleanIndex = script.indexOf('["--filter", "@kaklen/api", "clean"]');

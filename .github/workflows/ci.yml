@@ -1,4 +1,4 @@
-name: CI
+name: Kaklen Quality Gate
 
 on:
   pull_request:
@@ -7,21 +7,19 @@ on:
   push:
     branches:
       - main
-      - feature/foundation
-      - feature/aws-runtime-foundation
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: kaklen-quality-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Validate
+  quality-gate:
+    name: Kaklen Quality Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -37,122 +35,93 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.23
+        ports:
+          - 1025:1025
+          - 8025:8025
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:8025/"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     env:
       DATABASE_URL: postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public
       DATABASE_SSL: "false"
-      API_PORT: 3000
-      PORT: 3000
-      WEB_PORT: 4200
       NODE_ENV: test
+      PORT: 3000
+      API_PORT: 3000
+      WEB_PORT: 4200
+      REDIS_PORT: 6379
+      MAILPIT_SMTP_PORT: 1025
+      MAILPIT_WEB_PORT: 8025
+      MAIL_HOST: localhost
+      MAIL_PORT: 1025
+      MAIL_SECURE: "false"
+      MAIL_FROM: Kaklen <no-reply@kaklen.local>
+      APP_PUBLIC_URL: http://localhost:4200
       CORS_ALLOWED_ORIGINS: http://localhost:4200
+      AUTH_ALLOWED_ORIGINS: http://localhost:4200
+      JWT_ACCESS_SECRET: ci-access-secret-that-is-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-that-is-at-least-32-characters
+      COOKIE_SECURE: "false"
+      AUTH_EMAIL_ENABLED: "true"
+      COMMERCIAL_EMAIL_ENABLED: "true"
       AWS_REGION: us-east-1
       AWS_S3_BUCKET: kaklen-ci
+      WHATSAPP_MODE: manual
+      WHATSAPP_HASH_SECRET: ci-whatsapp-secret-that-is-at-least-32-characters
+      PAYMENT_GATEWAY: sandbox
+      PAYMENT_SANDBOX_SECRET: ci-payment-secret-that-is-at-least-32-characters
       COMMIT_SHA: ${{ github.sha }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9.15.4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Secret scan
-        run: pnpm security:scan
-
-      - name: Quality scan
-        run: pnpm quality:scan
-
-      - name: Architecture check
-        run: pnpm architecture:check
-
-      - name: Static security scan
-        run: pnpm security:sast
-
-      - name: Generate SBOM
-        run: pnpm security:sbom
-
-      - name: Dependency audit
-        run: pnpm dependency:audit
-
-      - name: Generate Prisma client
-        run: pnpm prisma:generate
-
-      - name: Validate database
-        run: pnpm db:validate
-
-      - name: Prepare deterministic demo dataset
-        run: |
-          pnpm db:clear:demo
-          pnpm db:seed:demo
-          pnpm db:seed:demo
-          pnpm db:verify:demo
-
-      - name: Prepare build metadata
-        run: |
-          echo "APP_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
-          echo "BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")" >> "$GITHUB_ENV"
-
-      - name: Generate runtime config
-        run: pnpm web:runtime-config
-
-      - name: Run lint
-        run: pnpm lint
-
-      - name: Run tests
-        run: pnpm test
-
-      - name: Run build
-        run: pnpm build
-
-      - name: Verify API build
-        run: pnpm verify:api-build
-
-      - name: Build localized web bundles
-        run: |
-          pnpm --filter @kaklen/web build:es
-          pnpm --filter @kaklen/web build:en
-          pnpm --filter @kaklen/web build:pt-BR
-
-      - name: Verify localized web server
-        run: pnpm verify:i18n-server
-
-      - name: Install Playwright browsers
+      - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run accessibility smoke
-        run: pnpm accessibility:test
+      - name: Kaklen Quality Gate
+        run: pnpm quality:gate:ci
 
-      - name: Run E2E
-        run: pnpm e2e
-
-      - name: Build API Docker image
-        run: docker build --platform linux/amd64 -f apps/api/Dockerfile -t kaklen-api:ci .
-
-      - name: Build metadata summary
-        run: |
-          echo "### Kaklen build" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Version: $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Commit: ${COMMIT_SHA:0:7}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Build time: $BUILD_TIME" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload CI artifacts
+      - name: Upload quality evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kaklen-ci-artifacts
+          name: kaklen-quality-evidence
+          if-no-files-found: warn
           path: |
-            artifacts
+            artifacts/quality-gate.json
+            artifacts/quality-gate.log
+            artifacts/technical-scorecard.json
+            artifacts/forms-audit.json
+            artifacts/e2e-result.json
+            artifacts/i18n-server.json
+            artifacts/sbom.cdx.json
+            apps/api/coverage
             playwright-report
             test-results

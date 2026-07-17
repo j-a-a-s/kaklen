@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createI18nServer, isFile, readText, resolveLocaleRoot, supportedLocales } from "./i18n-server.mjs";
 
@@ -13,8 +14,12 @@ const expectedBaseHref = {
 
 console.log("KAKLEN I18N SERVER VERIFY");
 
-for (const locale of supportedLocales) {
-  await run("pnpm", ["--filter", "@kaklen/web", `build:${locale}`]);
+if (process.env.I18N_SKIP_BUILD === "true") {
+  console.log("✓ Localized builds reutilizados");
+} else {
+  for (const locale of supportedLocales) {
+    await run("pnpm", ["--filter", "@kaklen/web", `build:${locale}`]);
+  }
 }
 
 const localeChecks = supportedLocales.map((locale) => verifyLocaleFiles(locale));
@@ -23,6 +28,11 @@ const server = createI18nServer({ distRoot, port: 0, logRequests: false });
 try {
   const origin = await listen(server);
   await verifyHttp(origin, localeChecks);
+  mkdirSync(resolve("artifacts"), { recursive: true });
+  writeFileSync(
+    resolve("artifacts/i18n-server.json"),
+    `${JSON.stringify({ status: "passed", locales: [...supportedLocales], runtimeConfig: true, isolatedBuilds: true }, null, 2)}\n`
+  );
   console.log("✓ i18n server listo");
 } finally {
   await close(server);

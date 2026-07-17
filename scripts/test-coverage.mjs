@@ -21,18 +21,16 @@ const criticalModules = [
   { name: "Events", prefix: "apps/api/src/events/" }
 ];
 
-const result = await run("pnpm", [
-  "--filter",
-  "@kaklen/api",
-  "test",
-  "--",
-  "--coverage",
-  "--coverageReporters=json-summary",
-  "--coverageReporters=text-summary"
-]);
-
-if (!result.ok) {
-  process.exit(result.code ?? 1);
+if (process.env.COVERAGE_REUSE === "true") {
+  console.log("✓ Cobertura reutilizada desde la ejecución canónica de tests");
+} else {
+  const result = await run("pnpm", ["--filter", "@kaklen/api", "test"], {
+    ...process.env,
+    API_TEST_WITH_COVERAGE: "true"
+  });
+  if (!result.ok) {
+    process.exit(result.code ?? 1);
+  }
 }
 
 if (!existsSync(summaryPath)) {
@@ -69,9 +67,9 @@ if (failures.length > 0) {
 
 console.log("✓ Cobertura cumple umbrales estrictos");
 
-function run(command, args) {
+function run(command, args, env) {
   return new Promise((resolveRun) => {
-    const child = spawn(command, args, { stdio: "inherit", shell: false, env: process.env });
+    const child = spawn(command, args, { stdio: "inherit", shell: false, env });
     child.on("exit", (code, signal) => {
       resolveRun({ ok: code === 0 && !signal, code: code ?? 1 });
     });

@@ -14,8 +14,10 @@ test("release scripts and database safety commands are wired", () => {
   assert.equal(packageJson.scripts["dependency:audit"], "node scripts/dependency-audit.mjs");
   assert.equal(packageJson.scripts["architecture:check"], "node scripts/check-architecture.mjs");
   assert.equal(packageJson.scripts["quality:scan"], "node scripts/quality-scan.mjs");
-  assert.equal(packageJson.scripts["release:check"], "node scripts/release-check.mjs");
-  assert.equal(packageJson.scripts["release:check:strict"], "node scripts/release-check-strict.mjs");
+  assert.equal(packageJson.scripts["quality:gate"], "node scripts/quality-pipeline.mjs quality:gate");
+  assert.equal(packageJson.scripts["quality:gate:ci"], "node scripts/quality-pipeline.mjs quality:gate:ci");
+  assert.equal(packageJson.scripts["release:check"], "node scripts/quality-pipeline.mjs release:check");
+  assert.equal(packageJson.scripts["release:check:strict"], "node scripts/quality-pipeline.mjs release:check:strict");
   assert.deepEqual(packageJson.engines, { node: ">=22 <25", pnpm: ">=9.15.4 <10" });
 });
 
@@ -29,45 +31,41 @@ test("runtime config is generated and ignored instead of versioned", () => {
 });
 
 test("release check prints explicit ready or blocked state", () => {
-  const script = readText("scripts/release-check.mjs");
+  const script = readText("scripts/quality-pipeline.mjs");
+  const graph = readText("scripts/quality-pipeline-core.mjs");
 
   assert.match(script, /RELEASE READY/);
-  assert.match(script, /RELEASE BLOCKED/);
-  assert.match(script, /pnpm", \["e2e"\]/);
-  assert.match(script, /pnpm", \["verify:full-local"\]/);
-  assert.match(script, /pnpm", \["verify:api-start"\]/);
-  assert.match(script, /pnpm", \["mail:verify"\]/);
-  assert.match(script, /pnpm", \["db:verify:migrations"\]/);
+  assert.match(script, /QUALITY GATE FAILED/);
+  assert.match(graph, /defineTask\("e2e"/);
+  assert.match(graph, /\["mail:verify"\]/);
+  assert.match(graph, /\["db:verify:migrations"\]/);
 });
 
-test("strict release check blocks until coverage and AWS staging are validated", () => {
-  const script = readText("scripts/release-check-strict.mjs");
-  const scorecard = readText("docs/release/TECHNICAL_SCORECARD.md");
+test("strict release profile blocks until all external criteria are validated", () => {
+  const graph = readText("scripts/quality-pipeline-core.mjs");
+  const external = readText("scripts/verify-external-readiness.mjs");
+  const scorecardCore = readText("scripts/technical-scorecard-core.mjs");
 
-  assert.match(script, /RELEASE READY 10\/10/);
-  assert.match(script, /RELEASE BLOCKED/);
-  assert.match(script, /AWS_STAGING_VALIDATED/);
-  assert.match(script, /Coverage thresholds/);
-  assert.match(scorecard, /AWS staging real no fue desplegado/);
+  assert.match(graph, /"release:check:strict"/);
+  assert.match(graph, /"external-readiness"/);
+  assert.match(external, /AWS_STAGING_VALIDATED/);
+  assert.match(external, /REAL_WHATSAPP_VALIDATED/);
+  assert.match(external, /PRODUCTION_PAYMENT_GATEWAY_VALIDATED/);
+  assert.match(scorecardCore, /COVERAGE_THRESHOLDS/);
 });
 
-test("CI includes release gate essentials", () => {
+test("CI exposes one canonical quality check without repeating graph tasks", () => {
   const ci = readText(".github/workflows/ci.yml");
-  const strictCi = readText(".github/workflows/strict-release.yml");
 
+  assert.match(ci, /name: Kaklen Quality Gate/);
   assert.match(ci, /node-version: 22/);
-  assert.match(ci, /pnpm security:scan/);
-  assert.match(ci, /pnpm quality:scan/);
-  assert.match(ci, /pnpm architecture:check/);
-  assert.match(ci, /pnpm security:sast/);
-  assert.match(ci, /pnpm security:sbom/);
-  assert.match(ci, /pnpm dependency:audit/);
-  assert.match(ci, /pnpm db:validate/);
-  assert.match(ci, /pnpm verify:api-build/);
-  assert.match(ci, /pnpm verify:i18n-server/);
-  assert.match(ci, /pnpm accessibility:test/);
-  assert.match(ci, /pnpm e2e/);
-  assert.match(strictCi, /pnpm release:check:strict/);
+  assert.match(ci, /postgres:16-alpine/);
+  assert.match(ci, /redis:7-alpine/);
+  assert.match(ci, /axllent\/mailpit:v1\.23/);
+  assert.match(ci, /pnpm quality:gate:ci/);
+  for (const repeated of ["pnpm security:scan", "pnpm lint", "pnpm test", "pnpm build", "pnpm e2e"]) {
+    assert.doesNotMatch(ci, new RegExp(repeated));
+  }
 });
 
 function readText(path) {

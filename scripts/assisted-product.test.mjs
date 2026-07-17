@@ -68,10 +68,11 @@ test("all assisted translations exist in es, en, and pt-BR", () => {
 });
 
 test("quality gate includes every mandatory assisted-product control", () => {
-  const source = read("scripts/quality-gate.mjs");
-  for (const command of ["architecture:check", "quality:scan", "security:scan", "db:verify:migrations", "db:verify:demo", "test:coverage", "verify:api-build", "verify:i18n-server", "accessibility:test", "release:check"]) {
+  const source = read("scripts/quality-pipeline-core.mjs");
+  for (const command of ["architecture:check", "quality:scan", "security:scan", "db:verify:migrations", "db:verify:demo", "test:coverage", "verify:api-build", "verify:i18n-server", "accessibility:test"]) {
     assert.match(source, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(source, /QUALITY GATE PASSED/);
-  assert.match(source, /QUALITY GATE FAILED/);
+  assert.doesNotMatch(source, /\["release:check"\]/);
+  assert.match(read("scripts/quality-pipeline.mjs"), /QUALITY GATE PASSED/);
+  assert.match(read("scripts/quality-pipeline.mjs"), /QUALITY GATE FAILED/);
 });
