@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { AuthService } from "../auth/auth.service";
 import { BrandLogoComponent } from "../shared/brand-logo.component";
@@ -60,7 +60,7 @@ export class ResendVerificationComponent {
   readonly submitAttempted = signal(false);
   readonly fieldLabels = { email: $localize`:@@emailLabel:Email` };
   readonly form = new FormGroup({
-    email: new FormControl("", { nonNullable: true, validators: [emailValidator(true)] })
+    email: new FormControl("", { nonNullable: true, validators: [Validators.required, emailValidator()] })
   });
 
   constructor(private readonly authService: AuthService) {}

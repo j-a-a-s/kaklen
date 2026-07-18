@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, signal } from "@angular/core";
-import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { TimeoutError } from "rxjs";
 import { AuthService } from "../auth/auth.service";
@@ -79,7 +79,7 @@ export class ForgotPasswordComponent {
   readonly form = new FormGroup<ForgotPasswordForm>({
     email: new FormControl("", {
       nonNullable: true,
-      validators: [emailValidator(true)]
+      validators: [Validators.required, emailValidator()]
     })
   });
 

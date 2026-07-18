@@ -118,7 +118,7 @@ export class RegisterComponent {
     }),
     email: new FormControl("", {
       nonNullable: true,
-      validators: [emailValidator(true)]
+      validators: [Validators.required, emailValidator()]
     }),
     password: new FormControl("", {
       nonNullable: true,

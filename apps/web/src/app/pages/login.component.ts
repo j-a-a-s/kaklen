@@ -92,7 +92,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   readonly form = new FormGroup<LoginForm>({
     email: new FormControl("", {
       nonNullable: true,
-      validators: [emailValidator(true)]
+      validators: [Validators.required, emailValidator()]
     }),
     password: new FormControl("", {
       nonNullable: true,

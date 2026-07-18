@@ -35,6 +35,22 @@ test("detects required validator without visual required state", () => {
   assert.match(findings(component(`<form><kaklen-form-error-summary />${validField({ required: "false" })}</form>`)), /required by validators/);
 });
 
+test("detects a required custom validator without explicit required metadata", () => {
+  const source = component(
+    `<form><kaklen-form-error-summary />${validField({ name: "email", attributes: "type=\"email\" inputmode=\"email\" maxlength=\"254\"", required: "'auto'" })}</form>`,
+    "email: new FormControl('', { validators: [emailValidator(true)] })"
+  );
+  assert.match(findings(source), /required custom validator without explicit Validators\.required metadata/);
+});
+
+test("accepts explicit required metadata with a custom validator", () => {
+  const source = component(
+    `<form><kaklen-form-error-summary />${validField({ name: "email", attributes: "type=\"email\" inputmode=\"email\" maxlength=\"254\"", required: "'auto'" })}</form>`,
+    "email: new FormControl('', { validators: [Validators.required, emailValidator()] })"
+  );
+  assert.deepEqual(auditTypeScriptSource("host.ts", source).findings, []);
+});
+
 test("detects visual required state on an optional control", () => {
   const source = component(`<form><kaklen-form-error-summary />${validField()}</form>`, "name: new FormControl('')");
   assert.match(findings(source), /optional by validators/);

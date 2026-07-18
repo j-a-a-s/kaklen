@@ -102,6 +102,9 @@ function auditDataControl(findings, file, element, ancestors, name, context) {
   }
   const requiredBinding = attributeExpression(field, "required");
   const validator = context.validators?.get(name) ?? "unknown";
+  if (validator === "implicit-required") {
+    findings.push(`${file}: ${name} uses a required custom validator without explicit Validators.required metadata`);
+  }
   if (validator === "required" && !isRequiredExpression(requiredBinding) && !isAutoExpression(requiredBinding)) {
     findings.push(`${file}: ${name} is required by validators but FormField is not required`);
   }
@@ -190,7 +193,75 @@ function isFormControlCreation(node) {
 }
 
 function validatorKind(text) {
-  return /Validators\.(?:required|requiredTrue)\b/.test(text) ? "required" : "optional";
+  if (/Validators\.(?:required|requiredTrue)\b/.test(text)) return "required";
+  if (customValidatorRequiresValue(text)) return "implicit-required";
+  return "optional";
+}
+
+function customValidatorRequiresValue(text) {
+  return validatorCalls(text, "emailValidator").some(([required]) => required?.trim() === "true") ||
+    validatorCalls(text, "internationalPhoneValidator").some(([options]) => /\brequired\s*:\s*true\b/.test(options ?? "")) ||
+    validatorCalls(text, "decimalValidator").some((args) => args[3]?.trim() !== "false") ||
+    validatorCalls(text, "moneyValidator").some((args) => args[2]?.trim() !== "false");
+}
+
+function validatorCalls(source, functionName) {
+  const calls = [];
+  const marker = `${functionName}(`;
+  let cursor = 0;
+  while ((cursor = source.indexOf(marker, cursor)) >= 0) {
+    const start = cursor + marker.length;
+    let depth = 1;
+    let quote = "";
+    let escaped = false;
+    let end = start;
+    for (; end < source.length && depth > 0; end += 1) {
+      const character = source[end];
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (character === "\\") escaped = true;
+        else if (character === quote) quote = "";
+      } else if (character === '"' || character === "'" || character === "`") {
+        quote = character;
+      } else if (character === "(") {
+        depth += 1;
+      } else if (character === ")") {
+        depth -= 1;
+      }
+    }
+    if (depth === 0) calls.push(splitTopLevelArguments(source.slice(start, end - 1)));
+    cursor = Math.max(end, cursor + marker.length);
+  }
+  return calls;
+}
+
+function splitTopLevelArguments(source) {
+  const argumentsList = [];
+  let start = 0;
+  let depth = 0;
+  let quote = "";
+  let escaped = false;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = "";
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") {
+      quote = character;
+    } else if ("([{".includes(character)) {
+      depth += 1;
+    } else if (")]}".includes(character)) {
+      depth -= 1;
+    } else if (character === "," && depth === 0) {
+      argumentsList.push(source.slice(start, index));
+      start = index + 1;
+    }
+  }
+  if (source.trim() || argumentsList.length) argumentsList.push(source.slice(start));
+  return argumentsList;
 }
 
 function propertyName(node, sourceFile) {

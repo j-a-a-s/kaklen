@@ -83,7 +83,7 @@ export class QuotationEmailDialogComponent implements OnChanges, OnDestroy {
     message: $localize`:@@messageLabel:Mensaje`
   };
   readonly form = new FormGroup({
-    to: new FormControl("", { nonNullable: true, validators: [emailValidator(true)] }),
+    to: new FormControl("", { nonNullable: true, validators: [Validators.required, emailValidator()] }),
     subject: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(200)] }),
     message: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(5000)] })
   });

@@ -105,7 +105,7 @@ export class OrganizationMembersComponent implements OnInit {
     role: $localize`:@@roleLabel:Rol`
   };
   readonly inviteForm = new FormGroup({
-    email: new FormControl("", { nonNullable: true, validators: [emailValidator(true)] }),
+    email: new FormControl("", { nonNullable: true, validators: [Validators.required, emailValidator()] }),
     role: new FormControl<OrganizationRole>("MEMBER", { nonNullable: true, validators: [Validators.required] })
   });
   organizationId = "";
