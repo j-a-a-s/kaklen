@@ -7,9 +7,9 @@ Este documento se genera con `pnpm scorecard:update`. No contiene fechas ni SHA 
 | Metric | Current value |
 | --- | ---: |
 | Statements coverage | 96.96% |
-| Branches coverage | 85.49% |
-| Functions coverage | 93.75% |
-| Lines coverage | 97.24% |
+| Branches coverage | 85.75% |
+| Functions coverage | 94.12% |
+| Lines coverage | 97.30% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
 | Prisma migrations | 18 |

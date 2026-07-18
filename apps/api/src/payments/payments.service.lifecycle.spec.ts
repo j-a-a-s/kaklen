@@ -194,8 +194,23 @@ function makeService(
           number: "QUO-000001",
           version: 1,
           status: quotationStatus,
+          globalDiscountPercent: new Prisma.Decimal(0),
+          subtotal: new Prisma.Decimal(1000),
+          discountTotal: new Prisma.Decimal(0),
+          taxTotal: new Prisma.Decimal(190),
           total: new Prisma.Decimal(1190),
-          currency: "CLP"
+          currency: "CLP",
+          items: [{
+            quantity: new Prisma.Decimal(1),
+            unitPrice: new Prisma.Decimal(1000),
+            discountType: "NONE",
+            discountValue: new Prisma.Decimal(0),
+            taxPercent: new Prisma.Decimal(19),
+            subtotal: new Prisma.Decimal(1000),
+            discountTotal: new Prisma.Decimal(0),
+            taxTotal: new Prisma.Decimal(190),
+            total: new Prisma.Decimal(1190)
+          }]
         }
       }))
     } as never,

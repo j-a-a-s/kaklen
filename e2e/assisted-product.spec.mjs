@@ -227,10 +227,10 @@ test.describe.serial("Kaklen assisted product journey", () => {
     const eventId = page.url().split("/").at(-1);
 
     await navigateSpa(page, `/organizations/${organizationId}/events/calendar`);
-    const weeklyEvent = page.locator(".weekly-event-link", { hasText: eventName });
-    await expect(weeklyEvent).toBeVisible();
-    await weeklyEvent.focus();
-    await page.keyboard.press("Space");
+    const calendarEvent = page.locator(".calendar-grid a", { hasText: eventName });
+    await expect(calendarEvent).toBeVisible();
+    await expect(calendarEvent).toHaveAttribute("href", new RegExp(`/organizations/${organizationId}/events/${eventId}$`));
+    await calendarEvent.click();
     await expect(page).toHaveURL(new RegExp(`/organizations/${organizationId}/events/${eventId}$`));
 
     await page.keyboard.press("Control+K");
@@ -263,8 +263,28 @@ test.describe.serial("Kaklen assisted product journey", () => {
       for (const path of responsivePaths) {
         await navigateSpa(page, path);
         await expectNoHorizontalOverflow(page);
+        await expectNoFormControlCollisions(page);
         await expectWizardStepsReadable(page);
       }
+      await navigateSpa(page, `/organizations/${organizationId}/quotations/new?clientId=${clientId}`);
+      await expect(page.locator('select[formControlName="clientId"]')).toHaveValue(clientId);
+      await page.getByRole("button", { name: "Continuar" }).click();
+      await expect(page.locator(".quotation-item-editor")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      await expectNoFormControlCollisions(page);
+    }
+    for (const scale of [1.25, 1.5, 2]) {
+      await page.setViewportSize({
+        width: Math.floor(1440 / scale),
+        height: Math.floor(900 / scale)
+      });
+      await navigateSpa(page, `/organizations/${organizationId}`);
+      await navigateSpa(page, `/organizations/${organizationId}/quotations/new?clientId=${clientId}`);
+      await expect(page.locator('select[formControlName="clientId"]')).toHaveValue(clientId);
+      await page.getByRole("button", { name: "Continuar" }).click();
+      await expect(page.locator(".quotation-item-editor")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      await expectNoFormControlCollisions(page);
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await navigateSpa(page, `/organizations/${organizationId}`);
@@ -353,6 +373,39 @@ async function expectWizardStepsReadable(page) {
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
   expect(metrics.labels.length).toBeGreaterThan(0);
   expect(metrics.labels.every((label) => label.clientWidth > 0 && label.scrollWidth <= label.clientWidth + 1)).toBe(true);
+}
+
+async function expectNoFormControlCollisions(page) {
+  const issues = await page.evaluate(() => {
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && bounds.width > 0 && bounds.height > 0;
+    };
+    const controls = [...document.querySelectorAll(".field-grid input, .field-grid select, .field-grid textarea")]
+      .filter(visible)
+      .map((element) => ({ element, bounds: element.getBoundingClientRect() }));
+    const failures = [];
+    for (const { element, bounds } of controls) {
+      const field = element.closest(".form-field");
+      if (!field) continue;
+      const container = field.getBoundingClientRect();
+      if (bounds.left < container.left - 1 || bounds.right > container.right + 1) {
+        failures.push(`${element.tagName.toLowerCase()} escapes its form field`);
+      }
+    }
+    for (let leftIndex = 0; leftIndex < controls.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < controls.length; rightIndex += 1) {
+        const left = controls[leftIndex].bounds;
+        const right = controls[rightIndex].bounds;
+        const horizontal = Math.min(left.right, right.right) - Math.max(left.left, right.left);
+        const vertical = Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top);
+        if (horizontal > 1 && vertical > 1) failures.push(`controls ${leftIndex} and ${rightIndex} overlap`);
+      }
+    }
+    return failures;
+  });
+  expect(issues).toEqual([]);
 }
 
 async function navigateSpa(page, route) {

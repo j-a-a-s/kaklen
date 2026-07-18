@@ -1,7 +1,14 @@
 import { ConflictException, Logger } from "@nestjs/common";
 import { Prisma, QuotationDiscountType, QuotationStatus } from "@prisma/client";
 import { calculateQuotationMoney, moneyToMinorUnits, QuotationMoneyLineInput } from "@kaklen/shared";
-import { QuotationDocumentService, QuotationDocumentSource } from "./quotation-document.service";
+import {
+  buildQuotationDocumentLayout,
+  QuotationDocumentService,
+  QuotationDocumentSource,
+  resolveQuotationLogoPath,
+  wrapTextToWidth
+} from "./quotation-document.service";
+import { measurePdfText } from "./pdf";
 
 describe("QuotationDocumentService", () => {
   const service = new QuotationDocumentService();
@@ -17,8 +24,10 @@ describe("QuotationDocumentService", () => {
     expect(view.organization.taxId).toBe("76123456-7");
     expect(view.client.whatsapp).toBe("+56912345678");
     expect(view.totals.lineDiscount).toContain("10.000");
-    expect(view.totals.globalDiscount).toContain("5.000");
-    expect(view.totals.taxableBase).toContain("185.000");
+    expect(view.totals.globalDiscount).toContain("9.500");
+    expect(view.totals.discountTotal).toContain("19.500");
+    expect(view.totals.taxableBase).toContain("180.500");
+    expect(view.items[0].tax).toContain("16.245");
   });
 
   it.each([
@@ -29,7 +38,7 @@ describe("QuotationDocumentService", () => {
     ["global discount 100 percent", [line()], "100", "CLP"],
     ["fixed discount", [line({ discountType: QuotationDiscountType.FIXED, discountValue: "25.50" })], "0", "USD"],
     ["percentage discount", [line({ discountType: QuotationDiscountType.PERCENTAGE, discountValue: "12.5" })], "0", "USD"],
-    ["line ineligible for global discount", [line({ discountType: QuotationDiscountType.FIXED, discountValue: "10" }), line({ code: "SERV-2" })], "5", "CLP"],
+    ["global discount after a line discount", [line({ discountType: QuotationDiscountType.FIXED, discountValue: "10" }), line({ code: "SERV-2" })], "5", "CLP"],
     ["VAT 19 percent", [line({ taxPercent: "19" })], "0", "CLP"],
     ["tax exempt line", [line({ taxPercent: "0" })], "0", "CLP"],
     ["large values", [line({ quantity: "999.999", unitPrice: "999999.99" })], "0", "USD"]
@@ -61,6 +70,93 @@ describe("QuotationDocumentService", () => {
     expect(text).toContain("Kaklen QuotationDocumentService");
     expect(text).toContain("Page 1 of");
     expect(text).toContain("Servicio profesional 1");
+  });
+
+  it("embeds the official portable logo on every page", () => {
+    const view = service.buildViewModel(documentSource(Array.from({ length: 20 }, (_, index) =>
+      line({ code: `LOGO-${index + 1}` })
+    ), "0", "CLP"), "es");
+    const layout = buildQuotationDocumentLayout(view);
+    const document = service.render(view).toString("latin1");
+
+    expect(resolveQuotationLogoPath()).not.toBeNull();
+    expect(layout.logo?.name).toBe("KaklenLogo");
+    expect(layout.pages.every((page) => page.some((command) => command.kind === "image" && command.name === "KaklenLogo"))).toBe(true);
+    expect(document).toContain("/Subtype /Image");
+    expect(document).toContain("/KaklenLogo");
+  });
+
+  it.each([1, 20, 75])("keeps all of %i rows intact and repeats the table header", (count) => {
+    const lines = Array.from({ length: count }, (_, index) => line({
+      code: `ROW-${String(index + 1).padStart(3, "0")}`,
+      name: `Name ${index + 1}`,
+      description: `Description ${index + 1} with enough content to exercise measured wrapping.`
+    }));
+    const layout = buildQuotationDocumentLayout(service.buildViewModel(documentSource(lines, "1", "USD"), "en"));
+
+    lines.forEach((item) => {
+      const codePages = layout.pages.flatMap((page, index) =>
+        page.some((command) => command.kind === "text" && command.text === item.code) ? [index] : []
+      );
+      const namePage = layout.pages.findIndex((page) =>
+        page.some((command) => command.kind === "text" && command.text === item.name)
+      );
+      const descriptionPage = layout.pages.findIndex((page) =>
+        page.some((command) => command.kind === "text" && command.text.startsWith(`Description ${item.code.slice(4).replace(/^0+/, "")}`))
+      );
+      expect(codePages).toHaveLength(1);
+      expect(namePage).toBe(codePages[0]);
+      expect(descriptionPage).toBe(codePages[0]);
+    });
+    layout.pages.filter((page) => page.some((command) =>
+      command.kind === "text" && command.text.startsWith("ROW-")
+    )).forEach((page) => {
+      expect(page.some((command) => command.kind === "text" && command.text === "Product or service")).toBe(true);
+    });
+  });
+
+  it("wraps long content by font metrics without ellipsis or page-bound collisions", () => {
+    const source = documentSource([line({
+      code: "LONG-1",
+      name: `Service ${"WIDE-NAME ".repeat(12)}END_NAME`,
+      description: `${"Detailed scope and deliverable ".repeat(35)}END_DESCRIPTION`
+    })], "0", "EUR");
+    source.organization = {
+      ...source.organization!,
+      legalName: `${"Very Long Organization Name ".repeat(8)}END_ORGANIZATION`,
+      address: `${"Long business address ".repeat(12)}END_ADDRESS`
+    };
+    source.client = {
+      ...source.client,
+      legalName: `${"Very Long Client Name ".repeat(8)}END_CLIENT`,
+      address: `${"Long client address ".repeat(12)}END_CLIENT_ADDRESS`
+    };
+    source.notes = `${"Long note content ".repeat(80)}END_NOTES`;
+    source.terms = `${"Long terms content ".repeat(80)}END_TERMS`;
+    const layout = buildQuotationDocumentLayout(service.buildViewModel(source, "pt-BR"));
+    const textCommands = layout.pages.flat().filter((command) => command.kind === "text");
+    const joined = textCommands.map((command) => command.text).join(" ");
+
+    expect(joined).toContain("END_NAME");
+    expect(joined).toContain("END_DESCRIPTION");
+    expect(joined).toContain("END_ORGANIZATION");
+    expect(joined).toContain("END_CLIENT_ADDRESS");
+    expect(joined).toContain("END_NOTES");
+    expect(joined).toContain("END_TERMS");
+    expect(joined).not.toContain("...");
+    textCommands.forEach((command) => {
+      expect(command.x).toBeGreaterThanOrEqual(0);
+      expect(command.y).toBeGreaterThanOrEqual(0);
+      expect(command.y).toBeLessThanOrEqual(842);
+      expect(command.x + measurePdfText(command.text, command.size, command.bold)).toBeLessThanOrEqual(595.5);
+    });
+  });
+
+  it("wraps using glyph widths rather than character count", () => {
+    const lines = wrapTextToWidth("WWWW iiiii WWWW", 32, 10);
+
+    expect(lines.length).toBeGreaterThan(1);
+    lines.forEach((line) => expect(measurePdfText(line, 10)).toBeLessThanOrEqual(32));
   });
 
   it("supports zero lines and long notes without producing an empty PDF", () => {

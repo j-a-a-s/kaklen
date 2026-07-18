@@ -25,10 +25,10 @@ describe("QuotationsService", () => {
       item({ quantity: 2, unitPrice: 100, taxPercent: 19 })
     ]);
 
-    expect(result.subtotal.toFixed(2)).toBe("200.00");
-    expect(result.discountTotal.toFixed(2)).toBe("0.00");
-    expect(result.taxTotal.toFixed(2)).toBe("38.00");
-    expect(result.total.toFixed(2)).toBe("238.00");
+    expect(result.subtotal.equals("200")).toBe(true);
+    expect(result.discountTotal.equals("0")).toBe(true);
+    expect(result.taxTotal.equals("38")).toBe(true);
+    expect(result.total.equals("238")).toBe(true);
   });
 
   it("calculates percentage discounts", () => {
@@ -36,8 +36,8 @@ describe("QuotationsService", () => {
       item({ quantity: 1, unitPrice: 1000, discountType: QuotationDiscountType.PERCENTAGE, discountValue: 10, taxPercent: 0 })
     ]);
 
-    expect(result.discountTotal.toFixed(2)).toBe("100.00");
-    expect(result.total.toFixed(2)).toBe("900.00");
+    expect(result.discountTotal.equals("100")).toBe(true);
+    expect(result.total.equals("900")).toBe(true);
   });
 
   it("rejects fixed discounts above the line subtotal", () => {
@@ -57,8 +57,8 @@ describe("QuotationsService", () => {
       item({ quantity: 3, unitPrice: 33.33, taxPercent: 19 })
     ]);
 
-    expect(result.subtotal.toFixed(2)).toBe("99.99");
-    expect(result.taxTotal.toFixed(2)).toBe("19.00");
+    expect(result.subtotal.equals("99.99")).toBe(true);
+    expect(result.taxTotal.equals("19")).toBe(true);
   });
 
   it("rejects fractional CLP unit prices with a stable code", () => {
@@ -70,17 +70,26 @@ describe("QuotationsService", () => {
     }
   });
 
-  it("applies a global discount only to lines without a specific discount", () => {
+  it("rejects over-precision amounts in fractional currencies with a stable code", () => {
+    try {
+      service.calculateQuotationItems([item({ unitPrice: 1000.555 })], new Map(), 0, "USD");
+      fail("Expected money precision validation to fail");
+    } catch (error) {
+      expect((error as BadRequestException).getResponse()).toMatchObject({ code: "MONEY_PRECISION_NOT_ALLOWED" });
+    }
+  });
+
+  it("applies a global discount to every line net after its line discount", () => {
     const result = service.calculateQuotationItems([
       item({ unitPrice: 1000, taxPercent: 19 }),
       item({ unitPrice: 1000, discountType: QuotationDiscountType.PERCENTAGE, discountValue: 10, taxPercent: 19 }),
       item({ unitPrice: 1000, discountType: QuotationDiscountType.FIXED, discountValue: 50, taxPercent: 0 })
     ], new Map(), 5);
 
-    expect(result.subtotal.toFixed(2)).toBe("3000.00");
-    expect(result.discountTotal.toFixed(2)).toBe("200.00");
-    expect(result.taxTotal.toFixed(2)).toBe("351.50");
-    expect(result.total.toFixed(2)).toBe("3151.50");
+    expect(result.subtotal.equals("3000")).toBe(true);
+    expect(result.discountTotal.equals("292.50")).toBe(true);
+    expect(result.taxTotal.equals("342.95")).toBe(true);
+    expect(result.total.equals("3050.45")).toBe(true);
   });
 
   it("rejects invalid global discounts", () => {
@@ -139,7 +148,7 @@ describe("QuotationsService", () => {
     );
 
     expect(result.items[0]?.name).toBe("Consulting");
-    expect(result.items[0]?.unitPrice.toFixed(2)).toBe("120.00");
+    expect(result.items[0]?.unitPrice.equals("120")).toBe(true);
   });
 
   it("creates a quotation with catalog-backed totals and audit history", async () => {
@@ -248,7 +257,49 @@ describe("QuotationsService", () => {
       total: 2,
       draft: 1,
       approved: 1,
-      amountApproved: "1190"
+      baseCurrency: "CLP",
+      baseCurrencyAmountApproved: "1190",
+      amountApprovedByCurrency: [
+        { currency: "BRL", amount: "50.25" },
+        { currency: "CLP", amount: "1190" },
+        { currency: "EUR", amount: "75.50" },
+        { currency: "USD", amount: "100.10" }
+      ]
+    });
+  });
+
+  it("returns newest tenant change requests with version item snapshots", async () => {
+    const prisma = makeQuotationsPrisma();
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.changeRequests("org-1", "quotation-1")).resolves.toEqual([
+      {
+        id: "change-1",
+        quotationId: "quotation-1",
+        quotationVersion: 2,
+        comment: "Cambiar el alcance",
+        itemIndexes: [0],
+        items: [{ index: 0, name: "Historical consulting", code: "HISTORICAL" }],
+        createdAt: new Date("2026-07-16T00:00:00.000Z")
+      }
+    ]);
+    expect(prisma.quotationChangeRequest.findMany).toHaveBeenCalledWith({
+      where: {
+        organizationId: "org-1",
+        quotation: { number: "QUO-000001" }
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        quotation: {
+          select: {
+            version: true,
+            items: {
+              orderBy: { sortOrder: "asc" },
+              select: { name: true, code: true }
+            }
+          }
+        }
+      }
     });
   });
 
@@ -657,11 +708,17 @@ function makeQuotationsPrisma(options: {
       }),
       findMany: jest.fn(async () => [quotation()]),
       count: jest.fn(async () => 1),
-      groupBy: jest.fn(async () => [
-        { status: QuotationStatus.DRAFT, _count: { _all: 1 } },
-        { status: QuotationStatus.APPROVED, _count: { _all: 1 } }
-      ]),
-      aggregate: jest.fn(async () => ({ _sum: { total: new Prisma.Decimal(1190) } })),
+      groupBy: jest.fn(async ({ by }: { by: string[] }) => by.includes("currency")
+        ? [
+            { currency: "BRL", _sum: { total: new Prisma.Decimal("50.25") } },
+            { currency: "CLP", _sum: { total: new Prisma.Decimal(1190) } },
+            { currency: "EUR", _sum: { total: new Prisma.Decimal("75.50") } },
+            { currency: "USD", _sum: { total: new Prisma.Decimal("100.10") } }
+          ]
+        : [
+            { status: QuotationStatus.DRAFT, _count: { _all: 1 } },
+            { status: QuotationStatus.APPROVED, _count: { _all: 1 } }
+          ]),
       create: jest.fn(async () => quotation()),
       update: jest.fn(async () => quotation())
     },
@@ -691,6 +748,21 @@ function makeQuotationsPrisma(options: {
           createdAt: new Date("2026-07-15T00:00:00.000Z")
         }
       ])
+    },
+    quotationChangeRequest: {
+      findMany: jest.fn(async () => [{
+        id: "change-1",
+        organizationId: "org-1",
+        quotationId: "quotation-1",
+        publicLinkId: "link-1",
+        comment: "Cambiar el alcance",
+        itemIndexes: [0, 99],
+        createdAt: new Date("2026-07-16T00:00:00.000Z"),
+        quotation: {
+          version: 2,
+          items: [{ name: "Historical consulting", code: "HISTORICAL" }]
+        }
+      }])
     },
     organizationAuditLog: {
       create: jest.fn(async () => ({ id: "audit-1" }))

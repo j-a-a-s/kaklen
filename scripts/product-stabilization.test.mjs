@@ -71,7 +71,9 @@ test("quotation totals use one scaled-integer algorithm on frontend and API", ()
   const form = read("apps/web/src/app/pages/quotation-form.component.ts");
   assert.match(money, /bigint/);
   assert.match(money, /distributeGlobalDiscount/);
-  assert.match(money, /eligibleForGlobalDiscount:\s*discountType === "NONE"/);
+  assert.match(money, /net:\s*line\.subtotal - line\.lineDiscount/);
+  assert.match(money, /filter\(\(\{ net \}\) => net > 0n\)/);
+  assert.doesNotMatch(money, /eligibleForGlobalDiscount/);
   assert.match(money, /remainder[\s\S]*residual/);
   assert.doesNotMatch(money, /parseFloat|toFixed\(/);
   assert.match(form, /calculateQuotationMoney/);

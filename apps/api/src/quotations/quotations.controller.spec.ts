@@ -1,4 +1,5 @@
 import { QuotationItemType } from "@prisma/client";
+import { REQUIRED_PERMISSIONS_KEY } from "../organizations/require-permissions.decorator";
 import { QuotationsController } from "./quotations.controller";
 
 describe("QuotationsController", () => {
@@ -16,6 +17,7 @@ describe("QuotationsController", () => {
     await controller.create("org-1", request as never, createDto);
     await controller.list("org-1", { page: 1, pageSize: 20 });
     await controller.summary("org-1");
+    await controller.changeRequests("org-1", "quotation-1");
     await controller.get("org-1", "quotation-1");
     await controller.update("org-1", "quotation-1", request as never, { notes: "Updated" });
     await controller.archive("org-1", "quotation-1", request as never);
@@ -32,6 +34,7 @@ describe("QuotationsController", () => {
     expect(service.update).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { notes: "Updated" });
     expect(service.approve).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { note: "Approved" });
     expect(service.newVersion).toHaveBeenCalledWith("org-1", "quotation-1", "user-1");
+    expect(service.changeRequests).toHaveBeenCalledWith("org-1", "quotation-1");
     expect(service.sendEmail).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", emailDto);
   });
 
@@ -50,6 +53,12 @@ describe("QuotationsController", () => {
     expect(response.setHeader).toHaveBeenCalledWith("Content-Disposition", 'attachment; filename="cotizacion-quo-000001-v1.pdf"');
     expect(response.send).toHaveBeenCalledWith(Buffer.from("pdf"));
   });
+
+  it("requires quotation read permission for customer change requests", () => {
+    expect(
+      Reflect.getMetadata(REQUIRED_PERMISSIONS_KEY, QuotationsController.prototype.changeRequests)
+    ).toEqual(["quotations.read"]);
+  });
 });
 
 function makeQuotationsService() {
@@ -58,6 +67,7 @@ function makeQuotationsService() {
     create: jest.fn(ok),
     list: jest.fn(ok),
     summary: jest.fn(ok),
+    changeRequests: jest.fn(ok),
     get: jest.fn(ok),
     update: jest.fn(ok),
     archive: jest.fn(async () => undefined),

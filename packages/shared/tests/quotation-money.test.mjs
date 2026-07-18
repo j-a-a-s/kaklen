@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   calculateQuotationMoney,
+  assertQuotationMoneyInvariants,
   currencyFractionDigits,
   currencyStep,
   formatMoney,
@@ -72,22 +73,110 @@ test("rejects fractional CLP money instead of rounding silently", () => {
   assert.throws(() => parseMoney("1000.50", "CLP"), { code: "CLP_FRACTION_NOT_ALLOWED" });
 });
 
-test("applies global discounts only to eligible lines", () => {
+const clpFixture = [
+  { quantity: "2", unitPrice: "210000", discountType: "NONE", discountValue: "0", taxPercent: "19" },
+  { quantity: "1", unitPrice: "520000", discountType: "NONE", discountValue: "0", taxPercent: "19" },
+  { quantity: "19", unitPrice: "24900", discountType: "NONE", discountValue: "0", taxPercent: "19" }
+];
+
+test("reconciles the exact CLP fixture without discounts", () => {
+  const result = calculateQuotationMoney(clpFixture, "0", { currency: "CLP" });
+
+  assert.deepEqual(
+    {
+      subtotal: result.subtotal,
+      lineDiscountTotal: result.lineDiscountTotal,
+      globalDiscountTotal: result.globalDiscountTotal,
+      taxTotal: result.taxTotal,
+      total: result.total,
+      lineTotals: result.lines.map((line) => line.total)
+    },
+    {
+      subtotal: "1413100",
+      lineDiscountTotal: "0",
+      globalDiscountTotal: "0",
+      taxTotal: "268489",
+      total: "1681589",
+      lineTotals: ["499800", "618800", "562989"]
+    }
+  );
+});
+
+test("distributes a one percent global discount across every CLP line", () => {
+  const result = calculateQuotationMoney(clpFixture, "1", { currency: "CLP" });
+
+  assert.deepEqual(
+    {
+      globalDiscountTotal: result.globalDiscountTotal,
+      taxableBase: result.taxableBase,
+      taxTotal: result.taxTotal,
+      total: result.total,
+      lineTaxes: result.lines.map((line) => line.taxTotal),
+      lineTotals: result.lines.map((line) => line.total)
+    },
+    {
+      globalDiscountTotal: "14131",
+      taxableBase: "1398969",
+      taxTotal: "265804",
+      total: "1664773",
+      lineTaxes: ["79002", "97812", "88990"],
+      lineTotals: ["494802", "612612", "557359"]
+    }
+  );
+});
+
+test("applies global discount after a line discount and preserves exact CLP identities", () => {
+  const lines = clpFixture.map((line, index) => index === 1
+    ? { ...line, discountType: "PERCENTAGE", discountValue: "5" }
+    : line);
+  const result = calculateQuotationMoney(lines, "1", { currency: "CLP" });
+
+  assert.deepEqual(
+    {
+      lineDiscountTotal: result.lineDiscountTotal,
+      globalDiscountTotal: result.globalDiscountTotal,
+      discountTotal: result.discountTotal,
+      taxableBase: result.taxableBase,
+      taxTotal: result.taxTotal,
+      total: result.total,
+      lineTaxes: result.lines.map((line) => line.taxTotal),
+      lineTotals: result.lines.map((line) => line.total)
+    },
+    {
+      lineDiscountTotal: "26000",
+      globalDiscountTotal: "13871",
+      discountTotal: "39871",
+      taxableBase: "1373229",
+      taxTotal: "260913",
+      total: "1634142",
+      lineTaxes: ["79002", "92921", "88990"],
+      lineTotals: ["494802", "581981", "557359"]
+    }
+  );
+});
+
+test("keeps zero-value line discounts eligible for the global discount", () => {
   const result = calculateQuotationMoney(
     [
-      { quantity: "1", unitPrice: "1000", discountType: "NONE", discountValue: "0", taxPercent: "19" },
-      { quantity: "1", unitPrice: "1000", discountType: "PERCENTAGE", discountValue: "10", taxPercent: "19" },
-      { quantity: "1", unitPrice: "1000", discountType: "FIXED", discountValue: "50", taxPercent: "0" }
+      { quantity: "1", unitPrice: "1000", discountType: "PERCENTAGE", discountValue: "0", taxPercent: "0" },
+      { quantity: "1", unitPrice: "1000", discountType: "FIXED", discountValue: "0", taxPercent: "0" }
     ],
-    "5"
+    "10",
+    { currency: "CLP" }
   );
 
-  assert.equal(result.subtotal, "3000.00");
-  assert.equal(result.lineDiscountTotal, "150.00");
-  assert.equal(result.globalDiscountTotal, "50.00");
-  assert.equal(result.discountTotal, "200.00");
-  assert.equal(result.taxTotal, "351.50");
-  assert.equal(result.total, "3151.50");
+  assert.equal(result.globalDiscountTotal, "200");
+  assert.deepEqual(result.lines.map((line) => line.globalDiscountTotal), ["100", "100"]);
+});
+
+test("rejects a quotation result that violates a money identity", () => {
+  const result = calculateQuotationMoney(clpFixture, "1", { currency: "CLP" });
+  const invalid = { ...result, total: "1664774" };
+
+  assert.throws(
+    () => assertQuotationMoneyInvariants(invalid, { currency: "CLP" }),
+    /invariant failed for total/
+  );
 });
 
 test("distributes residual minor units deterministically", () => {
@@ -139,7 +228,9 @@ test("handles fixed, percentage, taxable and exempt lines", () => {
     "5"
   );
 
-  assert.equal(result.discountTotal, "35.00");
-  assert.equal(result.taxTotal, "15.20");
-  assert.equal(result.total, "230.20");
+  assert.equal(result.lineDiscountTotal, "35.00");
+  assert.equal(result.globalDiscountTotal, "10.75");
+  assert.equal(result.discountTotal, "45.75");
+  assert.equal(result.taxTotal, "14.44");
+  assert.equal(result.total, "218.69");
 });

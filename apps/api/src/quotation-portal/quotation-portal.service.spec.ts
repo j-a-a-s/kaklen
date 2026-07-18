@@ -128,6 +128,27 @@ describe("QuotationPortalService", () => {
       })
     });
     expect(notify.notifyOrganization).toHaveBeenCalled();
+    expect(notify.notifyOrganization).toHaveBeenCalledWith("org-1", expect.objectContaining({
+      body: "Cambiar la segunda línea",
+      route: "/organizations/org-1/quotations/quotation-1#change-requests"
+    }));
+  });
+
+  it("sanitizes and limits change request notification excerpts", async () => {
+    const prisma = makePrisma();
+    const notify = notifications();
+    const comment = `  <b>${"Cambio solicitado ".repeat(12)}</b>\u0000  `;
+
+    await new QuotationPortalService(prisma as never, notify as never)
+      .requestChanges(createPublicToken(), { comment });
+
+    const input = notify.notifyOrganization.mock.calls[0]?.[1];
+    expect(input).toBeDefined();
+    if (!input) throw new Error("Expected a change request notification");
+    expect(input.body.length).toBeLessThanOrEqual(120);
+    expect(input.body).not.toContain("\u0000");
+    expect(input.body).not.toContain("<b>");
+    expect(input.body).toContain("Cambio solicitado");
   });
 
   it("rejects malformed tokens, invalid item references, and non-actionable states", async () => {
@@ -248,13 +269,18 @@ function quotationFixture(status: QuotationStatus) {
     organization: { name: "Kaklen", legalName: null, taxId: null, address: null, phone: null, whatsapp: null, country: "CL" },
     client: { displayName: "Cliente", legalName: null, taxId: "11111111-1", email: null, whatsapp: "+56912345678", address: null },
     items: [
-      { code: "A", name: "Uno", description: null, quantity: new Prisma.Decimal(1), unit: "unidad", unitPrice: new Prisma.Decimal(500), discountType: "NONE", discountValue: new Prisma.Decimal(0), taxPercent: new Prisma.Decimal(19), total: new Prisma.Decimal(595), sortOrder: 1 },
-      { code: "B", name: "Dos", description: null, quantity: new Prisma.Decimal(1), unit: "unidad", unitPrice: new Prisma.Decimal(500), discountType: "NONE", discountValue: new Prisma.Decimal(0), taxPercent: new Prisma.Decimal(19), total: new Prisma.Decimal(595), sortOrder: 2 }
+      { code: "A", name: "Uno", description: null, quantity: new Prisma.Decimal(1), unit: "unidad", unitPrice: new Prisma.Decimal(500), discountType: "NONE", discountValue: new Prisma.Decimal(0), taxPercent: new Prisma.Decimal(19), subtotal: new Prisma.Decimal(500), discountTotal: new Prisma.Decimal(0), taxTotal: new Prisma.Decimal(95), total: new Prisma.Decimal(595), sortOrder: 1 },
+      { code: "B", name: "Dos", description: null, quantity: new Prisma.Decimal(1), unit: "unidad", unitPrice: new Prisma.Decimal(500), discountType: "NONE", discountValue: new Prisma.Decimal(0), taxPercent: new Prisma.Decimal(19), subtotal: new Prisma.Decimal(500), discountTotal: new Prisma.Decimal(0), taxTotal: new Prisma.Decimal(95), total: new Prisma.Decimal(595), sortOrder: 2 }
     ],
     history: [{ newStatus: status, note: null, createdAt: new Date() }]
   };
 }
 
 function notifications() {
-  return { notifyOrganization: jest.fn(async () => 1) };
+  return {
+    notifyOrganization: jest.fn(async (
+      _organizationId: string,
+      _input: { type: string; body: string; route?: string }
+    ) => 1)
+  };
 }

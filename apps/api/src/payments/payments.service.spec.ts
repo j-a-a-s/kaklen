@@ -1,4 +1,10 @@
-import { BadRequestException, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+  ServiceUnavailableException,
+  UnauthorizedException
+} from "@nestjs/common";
 import { PaymentProvider, PaymentStatus, Prisma, QuotationStatus } from "@prisma/client";
 import { PaymentsService } from "./payments.service";
 import { PaymentGateway, PaymentIntentInput, PaymentWebhookPayload } from "./payment-gateway";
@@ -28,6 +34,27 @@ describe("PaymentsService", () => {
     });
   });
 
+  it("rejects a quotation that is not payable", async () => {
+    const prisma = makePrisma();
+    const service = makeService(prisma, makeGateway(), { quotationStatus: QuotationStatus.DRAFT });
+
+    await expect(service.createPublicIntent("public-token", {
+      idempotencyKey: "11111111-1111-4111-8111-111111111111",
+      locale: "es"
+    })).rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.payment.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects an idempotency key that belongs to another quotation", async () => {
+    const payment = { ...paymentFixture(), quotationId: "quotation-other" };
+    const service = makeService(makePrisma({ existingPayment: payment }), makeGateway());
+
+    await expect(service.createPublicIntent("public-token", {
+      idempotencyKey: payment.idempotencyKey,
+      locale: "es"
+    })).rejects.toBeInstanceOf(ConflictException);
+  });
+
   it("rejects invalid webhook signatures and records no processed success", async () => {
     const prisma = makePrisma();
     const gateway = makeGateway(false);
@@ -41,6 +68,13 @@ describe("PaymentsService", () => {
     expect(prisma.payment.update).not.toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ status: PaymentStatus.PAID })
     }));
+  });
+
+  it("rejects a webhook for an unknown payment", async () => {
+    const service = makeService(makePrisma({ missingPayment: true }), makeGateway());
+
+    await expect(service.processWebhook(webhook(), "valid-signature"))
+      .rejects.toBeInstanceOf(NotFoundException);
   });
 
   it("uses a verified webhook as the source of truth and creates one receipt", async () => {
@@ -118,7 +152,11 @@ describe("PaymentsService", () => {
   });
 });
 
-function makeService(prisma: ReturnType<typeof makePrisma>, gateway: jest.Mocked<PaymentGateway>): PaymentsService {
+function makeService(
+  prisma: ReturnType<typeof makePrisma>,
+  gateway: jest.Mocked<PaymentGateway>,
+  options: { quotationStatus?: QuotationStatus } = {}
+): PaymentsService {
   return new PaymentsService(
     prisma as never,
     {
@@ -129,9 +167,24 @@ function makeService(prisma: ReturnType<typeof makePrisma>, gateway: jest.Mocked
           organizationId: "org-1",
           number: "QUO-000001",
           version: 1,
-          status: QuotationStatus.APPROVED,
+          status: options.quotationStatus ?? QuotationStatus.APPROVED,
+          globalDiscountPercent: new Prisma.Decimal(0),
+          subtotal: new Prisma.Decimal(1000),
+          discountTotal: new Prisma.Decimal(0),
+          taxTotal: new Prisma.Decimal(190),
           total: new Prisma.Decimal(1190),
-          currency: "CLP"
+          currency: "CLP",
+          items: [{
+            quantity: new Prisma.Decimal(1),
+            unitPrice: new Prisma.Decimal(1000),
+            discountType: "NONE",
+            discountValue: new Prisma.Decimal(0),
+            taxPercent: new Prisma.Decimal(19),
+            subtotal: new Prisma.Decimal(1000),
+            discountTotal: new Prisma.Decimal(0),
+            taxTotal: new Prisma.Decimal(190),
+            total: new Prisma.Decimal(1190)
+          }]
         }
       }))
     } as never,
@@ -156,6 +209,7 @@ function makePrisma(options: {
   existingPayment?: ReturnType<typeof paymentFixture>;
   duplicate?: boolean;
   concurrentWebhook?: boolean;
+  missingPayment?: boolean;
 } = {}) {
   const payment = options.existingPayment ?? paymentFixture();
   const tx = {
@@ -175,6 +229,7 @@ function makePrisma(options: {
       ...tx.payment,
       findUnique: jest.fn(async (args: { where: { organizationId_idempotencyKey?: unknown; externalReference?: string; id?: string } }) => {
         if (args.where.organizationId_idempotencyKey) return options.existingPayment ?? null;
+        if (args.where.externalReference && options.missingPayment) return null;
         return payment;
       })
     },

@@ -13,6 +13,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   let mailpit;
   let accessToken = "";
   let organizationId = "";
+  let otherOrganizationId = "";
   let clientId = "";
   let productId = "";
   let quotationId = "";
@@ -57,6 +58,28 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       expect(response.status()).toBe(200);
       expect(response.headers()["content-type"]).toContain("text/html");
       await expectRuntimeConfig(request, locale);
+    }
+  });
+
+  test("shows login email as required in es en and pt-BR", async ({ page }) => {
+    for (const locale of ["es", "en", "pt-BR"]) {
+      await page.goto(`${webBase}/${locale}/login`);
+      const email = page.locator("#login-email");
+      const field = email.locator("..");
+
+      await expect(email).toHaveAttribute("aria-required", "true");
+      await expect(field.locator(".required-indicator")).toBeVisible();
+      await expect(field.locator(".optional-label")).toHaveCount(0);
+
+      await page.locator('form button[type="submit"]').click();
+      await expect(email).toHaveAttribute("aria-invalid", "true");
+      await expect(field.locator(".field-error")).toBeVisible();
+
+      await email.fill("invalid-email");
+      await expect(email).toHaveAttribute("aria-invalid", "true");
+      await email.fill("valid@example.com");
+      await email.blur();
+      await expect(email).toHaveAttribute("aria-invalid", "false");
     }
   });
 
@@ -141,6 +164,17 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       numberFormat: "es"
     });
     expect(validUpdate.status()).toBe(200);
+
+    const isolationOrganization = await authorizedPost("/organizations", {
+      name: `MVP Isolation ${unique}`,
+      country: "CL",
+      currency: "CLP",
+      timezone: "America/Santiago",
+      dateFormat: "dd-MM-yyyy",
+      numberFormat: "es"
+    });
+    expect(isolationOrganization.status()).toBe(201);
+    otherOrganizationId = (await isolationOrganization.json()).id;
   });
 
   test("validates RUT and manages clients", async () => {
@@ -196,6 +230,81 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(update.status()).toBe(200);
   });
 
+  test("persists and exposes the exact CLP discount fixtures", async () => {
+    const issueDate = "2026-07-17";
+    const validUntil = "2026-08-31";
+    const baseItems = [
+      { type: "PRODUCT", code: "LED-P3", name: "Pantalla LED P3", quantity: "2", unit: "unidad", unitPrice: "210000.00", discountType: "NONE", discountValue: "0", taxPercent: "19" },
+      { type: "SERVICE", code: "PROD-INTEGRAL", name: "Producción integral de eventos", quantity: "1", unit: "servicio", unitPrice: "520000", discountType: "NONE", discountValue: "0", taxPercent: "19" },
+      { type: "SERVICE", code: "CATERING", name: "Catering para invitados", quantity: "19", unit: "persona", unitPrice: "24900", discountType: "NONE", discountValue: "0", taxPercent: "19" }
+    ];
+    const invalidFraction = await authorizedPost(`/organizations/${organizationId}/quotations`, {
+      clientId,
+      issueDate,
+      validUntil,
+      currency: "CLP",
+      items: [{ ...baseItems[0], quantity: "1", unitPrice: "1000.50" }]
+    });
+    expect(invalidFraction.status()).toBe(400);
+    expect(await invalidFraction.json()).toMatchObject({ code: "CLP_FRACTION_NOT_ALLOWED" });
+
+    let payableQuotationId = "";
+    for (const fixture of exactClpFixtures(baseItems)) {
+      const response = await authorizedPost(`/organizations/${organizationId}/quotations`, {
+        clientId,
+        issueDate,
+        validUntil,
+        currency: "CLP",
+        globalDiscountPercent: fixture.globalDiscountPercent,
+        items: fixture.items
+      });
+      expect(response.status(), fixture.name).toBe(201);
+      const created = await response.json();
+      expect(created).toMatchObject({
+        subtotal: fixture.expected.subtotal,
+        discountTotal: fixture.expected.discountTotal,
+        taxTotal: fixture.expected.taxTotal,
+        total: fixture.expected.total
+      });
+      expect(created.items.map((item) => item.total)).toEqual(fixture.expected.lineTotals);
+
+      const persisted = await authorizedGet(`/organizations/${organizationId}/quotations/${created.id}`);
+      expect(persisted.status()).toBe(200);
+      expect(await persisted.json()).toMatchObject({ total: fixture.expected.total });
+      if (fixture.name === "line and overall discounts") payableQuotationId = created.id;
+    }
+
+    const link = await authorizedPost(`/organizations/${organizationId}/quotations/${payableQuotationId}/public-link`, {
+      locale: "es"
+    });
+    expect(link.status()).toBe(201);
+    const token = (await link.json()).publicToken;
+    const portal = await api.get(`/api/portal/quotations/${token}`);
+    expect(portal.status()).toBe(200);
+    expect(await portal.json()).toMatchObject({
+      quotation: {
+        subtotal: "1413100",
+        lineDiscountTotal: "26000",
+        globalDiscountTotal: "13871",
+        discountTotal: "39871",
+        taxableBase: "1373229",
+        taxTotal: "260913",
+        total: "1634142"
+      }
+    });
+
+    const payment = await api.post(`/api/portal/quotations/${token}/payments`, {
+      data: { idempotencyKey: crypto.randomUUID(), locale: "es" }
+    });
+    expect(payment.status()).toBe(201);
+    expect(await payment.json()).toMatchObject({ amount: "1634142", currency: "CLP" });
+
+    const pdf = await authorizedGet(`/organizations/${organizationId}/quotations/${payableQuotationId}/pdf?locale=es`);
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toContain("application/pdf");
+    expect((await pdf.body()).subarray(0, 4).toString("ascii")).toBe("%PDF");
+  });
+
   test("manages catalog products and services", async () => {
     const product = await authorizedPost(`/organizations/${organizationId}/catalog`, {
       type: "PRODUCT",
@@ -243,7 +352,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect((await filtered.json()).total).toBeGreaterThanOrEqual(1);
   });
 
-  test("completes the secure quotation, WhatsApp, payment, notification, and provider flow", async () => {
+  test("completes the secure quotation, customer feedback, payment, notification, and provider flow", async ({ page }) => {
     const create = await authorizedPost(`/organizations/${organizationId}/quotations`, {
       clientId,
       issueDate: "2026-07-15",
@@ -295,11 +404,61 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(whatsappBody.message).not.toContain("Ángela Pérez");
     expect(whatsappBody.message).not.toContain(quotation.total);
 
-    const changes = await api.post(`/api/portal/quotations/${publicToken}/change-requests`, {
-      data: { comment: "Necesito ajustar la cantidad del producto.", itemIndexes: [0] }
-    });
+    const changeComment = "Solicito descuentos para los servicios seleccionados.";
+    await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
+    await page.getByRole("button", { name: "Solicitar cambios" }).click();
+    await page.getByRole("checkbox", { name: "Seleccionar para solicitar cambios" }).first().check();
+    await page.getByLabel("Comentario").fill(changeComment);
+    const changesPromise = page.waitForResponse((response) =>
+      response.url().endsWith(`/api/portal/quotations/${publicToken}/change-requests`) &&
+      response.request().method() === "POST"
+    );
+    await page.getByRole("button", { name: "Enviar solicitud" }).click();
+    const changes = await changesPromise;
     expect(changes.status()).toBe(201);
     expect((await changes.json()).status).toBe("CHANGES_REQUESTED");
+
+    const internalRequests = await authorizedGet(
+      `/organizations/${organizationId}/quotations/${quotationId}/change-requests`
+    );
+    expect(internalRequests.status()).toBe(200);
+    expect(await internalRequests.json()).toEqual([
+      expect.objectContaining({
+        quotationId,
+        quotationVersion: 1,
+        comment: changeComment,
+        itemIndexes: [0],
+        items: [expect.objectContaining({ index: 0, name: "Producto MVP", code: "MVP-PRODUCT" })]
+      })
+    ]);
+    const crossedRequests = await authorizedGet(
+      `/organizations/${otherOrganizationId}/quotations/${quotationId}/change-requests`
+    );
+    expect(crossedRequests.status()).toBe(404);
+
+    const feedbackNotifications = await authorizedGet(`/organizations/${organizationId}/notifications`);
+    expect(feedbackNotifications.status()).toBe(200);
+    const feedbackNotification = (await feedbackNotifications.json()).find((notification) =>
+      notification.type === "QUOTATION_CHANGES_REQUESTED" && notification.resourceId === quotationId
+    );
+    expect(feedbackNotification).toMatchObject({
+      body: changeComment,
+      route: `/organizations/${organizationId}/quotations/${quotationId}#change-requests`
+    });
+
+    await page.context().addCookies((await api.storageState()).cookies);
+    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
+    await expect(page.locator("#change-requests")).toContainText(changeComment);
+    await expect(page.locator("#change-requests")).toContainText("Versión 1");
+    await expect(page.locator("#change-requests")).toContainText("Producto MVP");
+    await expect(page.locator("#change-requests small")).toContainText(/Enviada .*\d/);
+    await expect(page.locator("#change-requests").getByRole("button", { name: "Nueva versión" })).toBeVisible();
+    await expect(page.getByText("El cliente solicitó cambios", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Abrir notificaciones" }).click();
+    const notificationItem = page.locator(".notification-item").filter({ hasText: changeComment });
+    await expect(notificationItem).toBeVisible();
+    await notificationItem.click();
+    await expect(page).toHaveURL(new RegExp(`/quotations/${quotationId}#change-requests$`));
 
     const version = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/new-version`, {});
     expect(version.status()).toBe(200);
@@ -487,19 +646,18 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 });
 
 async function waitForReady(api) {
-  const deadline = Date.now() + 120_000;
-  let lastStatus = 0;
-  while (Date.now() < deadline) {
+  await expect.poll(async () => {
     try {
       const response = await api.get("/api/health/ready");
-      lastStatus = response.status();
-      if (response.ok()) return;
+      return response.status();
     } catch {
-      lastStatus = 0;
+      return 0;
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(`API did not become ready. Last status: ${lastStatus}`);
+  }, {
+    message: "API did not become ready",
+    timeout: 120_000,
+    intervals: [100, 250, 500, 1_000]
+  }).toBe(200);
 }
 
 async function expectRuntimeConfig(request, locale) {
@@ -519,4 +677,38 @@ async function expectNoHorizontalOverflow(page) {
     scrollWidth: document.documentElement.scrollWidth
   }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+}
+
+function exactClpFixtures(baseItems) {
+  return [
+    {
+      name: "no discounts",
+      globalDiscountPercent: "0",
+      items: baseItems,
+      expected: {
+        subtotal: "1413100", discountTotal: "0", taxTotal: "268489", total: "1681589",
+        lineTotals: ["499800", "618800", "562989"]
+      }
+    },
+    {
+      name: "overall discount",
+      globalDiscountPercent: "1",
+      items: baseItems,
+      expected: {
+        subtotal: "1413100", discountTotal: "14131", taxTotal: "265804", total: "1664773",
+        lineTotals: ["494802", "612612", "557359"]
+      }
+    },
+    {
+      name: "line and overall discounts",
+      globalDiscountPercent: "1",
+      items: baseItems.map((item, index) => index === 1
+        ? { ...item, discountType: "PERCENTAGE", discountValue: "5" }
+        : item),
+      expected: {
+        subtotal: "1413100", discountTotal: "39871", taxTotal: "260913", total: "1634142",
+        lineTotals: ["494802", "581981", "557359"]
+      }
+    }
+  ];
 }
