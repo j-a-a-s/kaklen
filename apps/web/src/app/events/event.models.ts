@@ -1,3 +1,4 @@
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { Client } from "../clients/client.models";
 
 export type EventStatus = "DRAFT" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "ARCHIVED";
@@ -95,7 +96,7 @@ export interface EventPayload {
   contactName?: string | null;
   contactEmail?: string | null;
   contactPhone?: string | null;
-  budget?: number | null;
+  budget?: MoneyDecimalInput | null;
   currency?: string;
   notes?: string | null;
 }

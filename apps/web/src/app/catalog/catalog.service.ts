@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { firstValueFrom } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import { CatalogItem, CatalogItemStatus, CatalogItemType, PaginatedCatalogItems } from "./catalog.models";
@@ -14,9 +15,9 @@ export interface CatalogItemPayload {
   name?: string;
   description?: string;
   unit?: string;
-  cost?: number;
-  price?: number;
-  taxPercent?: number;
+  cost?: MoneyDecimalInput;
+  price?: MoneyDecimalInput;
+  taxPercent?: MoneyDecimalInput;
   currency?: string;
 }
 

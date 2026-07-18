@@ -204,7 +204,7 @@ export class EventDetailComponent implements OnInit {
   }, atLeastOneValidator(["externalName", "externalEmail"]));
   readonly resourceForm = new FormGroup({
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }),
-    quantity: new FormControl(1, { nonNullable: true, validators: [decimalValidator(0.001, 999_999_999.999, 3)] }),
+    quantity: new FormControl(1, { nonNullable: true, validators: [Validators.required, decimalValidator(0.001, 999_999_999.999, 3)] }),
     unit: new FormControl("unidad", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(40)] })
   });
   readonly timelineForm = new FormGroup({

@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnDestroy, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { Client } from "../clients/client.models";
@@ -14,16 +15,16 @@ import { QuotationsService } from "../quotations/quotations.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { dateOrderValidator, decimalValidator, emailValidator, internationalPhoneValidator, moneyValidator, normalizeEmail, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
-import { currencyStep } from "@kaklen/shared";
 import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
 } from "../shared/forms/form-feedback.components";
 import { WizardValidationState } from "../shared/forms/wizard-validation-state";
 import { UiIconComponent } from "../shared/ui-icon.component";
+import { MoneyInputDirective } from "../shared/forms/money-input.directive";
 
 @Component({
   selector: "kaklen-event-form",
   standalone: true,
-  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, ConfirmationDialogComponent, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent, MoneyInputDirective],
   template: `
     <main class="dashboard-shell form-shell guided-event-shell">
       <section class="dashboard-header"><div><p class="eyebrow" i18n="@@eventsEyebrow">Eventos</p><h1>{{ eventId ? editTitle : createTitle }}</h1><p i18n="@@eventFormDescription">Define lo esencial ahora y completa la operación después.</p></div></section>
@@ -71,7 +72,7 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             <label kaklen-form-field label="Recurso inicial" i18n-label="@@initialResourceLabel" controlId="event-form-initialResource" required="auto" invalid="auto"><input kaklenControl formControlName="initialResource" maxlength="160" placeholder="Ej. Equipo de sonido" i18n-placeholder="@@resourceNameExample" /></label>
             <label kaklen-form-field label="Cantidad del recurso" i18n-label="@@resourceQuantityLabel" controlId="event-form-resourceQuantity" required="auto" invalid="auto" fieldType="quantity"><input kaklenControl type="number" inputmode="decimal" min="0.001" step="0.001" formControlName="resourceQuantity" /><kaklen-field-error [control]="form.controls.resourceQuantity" [attempted]="submitAttempted()" /></label>
             <label kaklen-form-field label="Moneda" i18n-label="@@currencyLabel" controlId="event-form-currency" required="auto" invalid="auto"><select kaklenControl formControlName="currency" (change)="onCurrencyChange()"><option value="CLP" i18n="@@currencyClpLabel">Peso chileno (CLP)</option><option value="USD" i18n="@@currencyUsdLabel">Dólar estadounidense (USD)</option><option value="BRL" i18n="@@currencyBrlLabel">Real brasileño (BRL)</option><option value="EUR" i18n="@@currencyEurLabel">Euro (EUR)</option></select></label>
-            <label kaklen-form-field label="Presupuesto" i18n-label="@@budgetLabel" controlId="event-form-budget" required="auto" invalid="auto" fieldType="money" [currency]="form.controls.currency.value"><input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [attempted]="submitAttempted()" /></label>
+            <label kaklen-form-field label="Presupuesto" i18n-label="@@budgetLabel" controlId="event-form-budget" required="auto" invalid="auto" fieldType="money" [currency]="form.controls.currency.value"><input kaklenControl kaklenMoneyInput [currency]="form.controls.currency.value" type="number" inputmode="decimal" min="0" formControlName="budget" /><kaklen-field-error [control]="form.controls.budget" [attempted]="submitAttempted()" /></label>
           </div>
         </section>
 
@@ -162,8 +163,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }), description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] }),
     startAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), endAt: new FormControl("", { nonNullable: true, validators: [Validators.required] }), timezone: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
     venueName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), address: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(240)] }), city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }), region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
-    currency: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] }), budget: new FormControl<number | null>(null, { validators: [moneyValidator(() => this.validationCurrency, undefined, false)] }), contactName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), contactEmail: new FormControl("", { nonNullable: true, validators: [emailValidator()] }), contactPhone: new FormControl("", { nonNullable: true, validators: [internationalPhoneValidator()] }),
-    initialParticipant: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialResource: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), resourceQuantity: new FormControl(1, { nonNullable: true, validators: [decimalValidator(0.001, 999_999_999.999, 3)] }),
+    currency: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] }), budget: new FormControl<MoneyDecimalInput | null>(null, { validators: [moneyValidator(() => this.validationCurrency, undefined, false)] }), contactName: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), contactEmail: new FormControl("", { nonNullable: true, validators: [emailValidator()] }), contactPhone: new FormControl("", { nonNullable: true, validators: [internationalPhoneValidator()] }),
+    initialParticipant: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialResource: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), resourceQuantity: new FormControl(1, { nonNullable: true, validators: [Validators.required, decimalValidator(0.001, 999_999_999.999, 3)] }),
     initialTask: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(160)] }), initialTaskPriority: new FormControl<EventTaskPriority>("MEDIUM", { nonNullable: true }), notes: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] })
   }, { validators: [dateOrderValidator("startAt", "endAt", false)] });
   readonly wizardValidation = new WizardValidationState(this.form, {
@@ -217,12 +218,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
   applyQuotation(): void {
     const quotation = this.approvedQuotations().find((item) => item.id === this.form.controls.quotationId.value);
     if (!quotation) return;
-    this.form.patchValue({ clientId: quotation.clientId, name: this.form.controls.name.value || `${$localize`:@@eventForQuotationPrefix:Evento`} ${quotation.number}`, budget: Number(quotation.total), currency: quotation.currency });
+    this.form.patchValue({ clientId: quotation.clientId, name: this.form.controls.name.value || `${$localize`:@@eventForQuotationPrefix:Evento`} ${quotation.number}`, budget: quotation.total, currency: quotation.currency });
     this.onCurrencyChange();
-  }
-
-  moneyStep(): string {
-    return currencyStep(this.form.controls.currency.value || "CLP");
   }
 
   onCurrencyChange(): void {
@@ -271,7 +268,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
   private async loadEvent(): Promise<void> {
     const event = await this.eventsService.get(this.organizationId, this.eventId);
     this.setCreationMode(event.quotationId ? "quotation" : "manual");
-    this.form.patchValue({ clientId: event.clientId ?? "", quotationId: event.quotationId ?? "", name: event.name, description: event.description ?? "", startAt: this.toLocalInput(event.startAt), endAt: this.toLocalInput(event.endAt), timezone: event.timezone, venueName: event.venueName ?? "", address: event.address ?? "", city: event.city ?? "", region: event.region ?? "", currency: event.currency, budget: event.budget ? Number(event.budget) : null, contactName: event.contactName ?? "", contactEmail: event.contactEmail ?? "", contactPhone: event.contactPhone ?? "", notes: event.notes ?? "" });
+    this.form.patchValue({ clientId: event.clientId ?? "", quotationId: event.quotationId ?? "", name: event.name, description: event.description ?? "", startAt: this.toLocalInput(event.startAt), endAt: this.toLocalInput(event.endAt), timezone: event.timezone, venueName: event.venueName ?? "", address: event.address ?? "", city: event.city ?? "", region: event.region ?? "", currency: event.currency, budget: event.budget, contactName: event.contactName ?? "", contactEmail: event.contactEmail ?? "", contactPhone: event.contactPhone ?? "", notes: event.notes ?? "" });
     this.onCurrencyChange();
   }
 

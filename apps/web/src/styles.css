@@ -391,7 +391,13 @@ small,
 
 .field-grid {
   display: grid;
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-4, 18px);
+}
+
+.field-grid > * {
+  min-width: 0;
 }
 
 .dashboard-header,
@@ -561,11 +567,7 @@ dd {
   overflow-wrap: anywhere;
 }
 
-@media (min-width: 700px) {
-  .field-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
+@media (min-width: 769px) {
   .summary-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -578,6 +580,12 @@ dd {
   .item-row {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

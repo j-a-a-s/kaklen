@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { CatalogItemStatus, CatalogItemType } from "../catalog/catalog.models";
 import { CatalogItemPayload, CatalogService } from "../catalog/catalog.service";
 import { OrganizationService } from "../organizations/organization.service";
@@ -9,15 +10,15 @@ import { NotificationService } from "../shared/notifications/notification.servic
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { decimalValidator, moneyValidator, trimmedRequired } from "../shared/forms/form-validators";
-import { currencyStep } from "@kaklen/shared";
 import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent,   FormFieldComponent
 } from "../shared/forms/form-feedback.components";
 import { UiIconComponent } from "../shared/ui-icon.component";
+import { MoneyInputDirective } from "../shared/forms/money-input.directive";
 
 @Component({
   selector: "kaklen-catalog-form",
   standalone: true,
-  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent, MoneyInputDirective],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -62,11 +63,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
               <kaklen-field-error id="catalog-unit-error" [control]="catalogForm.controls.unit" [attempted]="submitAttempted()" />
             </label>
             <label kaklen-form-field label="Costo" i18n-label="@@costLabel" controlId="catalog-form-cost" required="auto" invalid="auto" fieldType="money" [currency]="catalogForm.controls.currency.value">
-              <input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="cost" aria-describedby="catalog-cost-error" />
+              <input kaklenControl kaklenMoneyInput [currency]="catalogForm.controls.currency.value" type="number" inputmode="decimal" min="0" formControlName="cost" aria-describedby="catalog-cost-error" />
               <kaklen-field-error id="catalog-cost-error" [control]="catalogForm.controls.cost" [attempted]="submitAttempted()" />
             </label>
             <label kaklen-form-field label="Precio" i18n-label="@@priceLabel" controlId="catalog-form-price" required="auto" invalid="auto" fieldType="money" [currency]="catalogForm.controls.currency.value">
-              <input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="moneyStep()" formControlName="price" aria-describedby="catalog-price-error" />
+              <input kaklenControl kaklenMoneyInput [currency]="catalogForm.controls.currency.value" type="number" inputmode="decimal" min="0" formControlName="price" aria-describedby="catalog-price-error" />
               <kaklen-field-error id="catalog-price-error" [control]="catalogForm.controls.price" [attempted]="submitAttempted()" />
             </label>
             <label kaklen-form-field label="Impuesto %" i18n-label="@@taxPercentLabel" controlId="catalog-form-taxPercent" required="auto" invalid="auto">
@@ -122,11 +123,11 @@ export class CatalogFormComponent implements OnInit {
     name: new FormControl("", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(160)] }),
     description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(2000)] }),
     unit: new FormControl("unidad", { nonNullable: true, validators: [Validators.required, trimmedRequired(), Validators.maxLength(40)] }),
-    cost: new FormControl(0, { nonNullable: true, validators: [moneyValidator(() => this.validationCurrency)] }),
-    price: new FormControl(0, { nonNullable: true, validators: [moneyValidator(() => this.validationCurrency)] }),
-    taxPercent: new FormControl(19, {
+    cost: new FormControl<MoneyDecimalInput>(0, { nonNullable: true, validators: [Validators.required, moneyValidator(() => this.validationCurrency)] }),
+    price: new FormControl<MoneyDecimalInput>(0, { nonNullable: true, validators: [Validators.required, moneyValidator(() => this.validationCurrency)] }),
+    taxPercent: new FormControl<MoneyDecimalInput>(19, {
       nonNullable: true,
-      validators: [decimalValidator(0, 100, 2)]
+      validators: [Validators.required, decimalValidator(0, 100, 2)]
     }),
     currency: new FormControl("CLP", { nonNullable: true, validators: [Validators.required, Validators.maxLength(3)] })
   });
@@ -162,10 +163,6 @@ export class CatalogFormComponent implements OnInit {
     return this.catalogForm.controls.type.value === "PRODUCT"
       ? $localize`:@@productInventoryHint:Los productos controlan inventario.`
       : $localize`:@@serviceInventoryHint:Los servicios no controlan inventario.`;
-  }
-
-  moneyStep(): string {
-    return currencyStep(this.catalogForm.controls.currency.value);
   }
 
   onCurrencyChange(): void {
@@ -219,9 +216,9 @@ export class CatalogFormComponent implements OnInit {
         name: item.name,
         description: item.description ?? "",
         unit: item.unit,
-        cost: Number(item.cost),
-        price: Number(item.price),
-        taxPercent: Number(item.taxPercent),
+        cost: item.cost,
+        price: item.price,
+        taxPercent: item.taxPercent,
         currency: item.currency
       });
       this.onCurrencyChange();

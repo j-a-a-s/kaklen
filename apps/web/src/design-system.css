@@ -705,9 +705,58 @@ textarea.ng-valid.ng-touched:not(:focus) {
 
 .portal-item-money {
   display: grid;
-  min-width: 120px;
+  min-width: 320px;
   gap: 4px;
   text-align: right;
+}
+
+.quotation-line-financial {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-4);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: var(--space-3);
+}
+
+.quotation-line-financial div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.quotation-line-financial dt,
+.quotation-line-financial dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.quotation-line-financial dt {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.quotation-line-financial dd {
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+
+.quotation-line-financial .line-total {
+  border-left: 3px solid var(--color-brand);
+  padding-left: var(--space-3);
+}
+
+.quotation-line-financial .line-total dt,
+.quotation-line-financial .line-total dd {
+  color: var(--color-brand-strong);
+  font-weight: 850;
 }
 
 .portal-totals {
@@ -871,6 +920,10 @@ textarea.ng-valid.ng-touched:not(:focus) {
     grid-column: 1;
     min-width: 0;
     text-align: left;
+  }
+
+  .quotation-line-financial {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .portal-item-with-select .portal-item-money {
@@ -1882,6 +1935,16 @@ label {
   display: inline-flex;
   min-width: 0;
   align-items: baseline;
+  overflow-wrap: anywhere;
+}
+
+.form-field :where(input, select, textarea),
+.compound-form-field :where(input, select, textarea),
+.field-grid :where(input, select, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .form-field-support,
@@ -2170,11 +2233,45 @@ kaklen-wizard-steps {
 }
 
 .quotation-review-list article {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
   gap: var(--space-3);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-3) 0;
+}
+
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+  padding: var(--space-4);
+  color: var(--color-text);
+}
+
+.change-request {
+  display: grid;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-4) 0;
+}
+
+.change-request p,
+.change-request ul {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.approved-currency-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
 }
 
 .quotation-review-list strong,
@@ -2188,6 +2285,10 @@ kaklen-wizard-steps {
 
 .field-grid {
   gap: var(--space-4);
+}
+
+.field-grid > * {
+  min-width: 0;
 }
 
 .row-actions {
@@ -2942,6 +3043,10 @@ dd {
 }
 
 @media (max-width: 480px) {
+  .quotation-line-financial {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .public-navigation a:first-child {
     display: none;
   }

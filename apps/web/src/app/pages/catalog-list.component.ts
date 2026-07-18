@@ -11,12 +11,13 @@ import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
+import { MoneyInputDirective } from "../shared/forms/money-input.directive";
 import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-catalog-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, UiIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent, ActionMenuComponent, ActionMenuItemDirective, MoneyInputDirective, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -75,11 +76,11 @@ import { UiIconComponent } from "../shared/ui-icon.component";
             </label>
             <label class="advanced-filter">
               <span i18n="@@minPriceLabel">Precio mínimo</span>
-              <input id="catalog-filter-minPrice" type="number" inputmode="decimal" min="0" step="0.01" formControlName="minPrice" />
+              <input id="catalog-filter-minPrice" kaklenMoneyInput [currency]="filterCurrency()" type="number" inputmode="decimal" min="0" formControlName="minPrice" />
             </label>
             <label class="advanced-filter">
               <span i18n="@@maxPriceLabel">Precio máximo</span>
-              <input id="catalog-filter-maxPrice" type="number" inputmode="decimal" min="0" step="0.01" formControlName="maxPrice" />
+              <input id="catalog-filter-maxPrice" kaklenMoneyInput [currency]="filterCurrency()" type="number" inputmode="decimal" min="0" formControlName="maxPrice" />
             </label>
             <label class="checkbox-row advanced-filter">
               <input id="catalog-filter-includeArchived" type="checkbox" formControlName="includeArchived" />
@@ -237,6 +238,10 @@ export class CatalogListComponent implements OnInit {
       currency,
       numberFormat: organization?.numberFormat ?? "es"
     });
+  }
+
+  filterCurrency(): string {
+    return this.organizationService.activeOrganization()?.currency ?? "CLP";
   }
 
   async applyFilters(): Promise<void> {
