@@ -30,7 +30,11 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <span><strong>{{ currentSummary.draft }}</strong><small i18n="@@quotationDraftPluralLabel">Borradores</small></span>
           <span><strong>{{ currentSummary.sent }}</strong><small i18n="@@quotationSentPluralLabel">Enviadas</small></span>
           <span><strong>{{ currentSummary.approved }}</strong><small i18n="@@quotationApprovedPluralLabel">Aprobadas</small></span>
-          <span><strong>{{ moneyLabel(currentSummary.amountApproved) }}</strong><small i18n="@@approvedAmountLabel">Monto aprobado</small></span>
+          <span><strong>{{ moneyLabel(currentSummary.baseCurrencyAmountApproved, currentSummary.baseCurrency) }}</strong><small i18n="@@approvedAmountLabel">Monto aprobado</small></span>
+        </div>
+        <div class="approved-currency-breakdown" *ngIf="otherApprovedAmounts(currentSummary).length">
+          <span i18n="@@approvedOtherCurrenciesLabel">Otras monedas aprobadas</span>
+          <strong *ngFor="let item of otherApprovedAmounts(currentSummary)">{{ moneyLabel(item.amount, item.currency) }}</strong>
         </div>
       </section>
 
@@ -183,6 +187,10 @@ export class QuotationListComponent implements OnInit {
       currency: currency ?? organization?.currency ?? "CLP",
       numberFormat: organization?.numberFormat ?? "es"
     });
+  }
+
+  otherApprovedAmounts(summary: QuotationSummary): Array<{ currency: string; amount: string }> {
+    return summary.amountApprovedByCurrency.filter((item) => item.currency !== summary.baseCurrency);
   }
 
   dateLabel(value: string): string {

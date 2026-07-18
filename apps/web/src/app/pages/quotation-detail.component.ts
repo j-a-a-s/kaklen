@@ -1,10 +1,10 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, OnInit, computed, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
-import { Quotation, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
+import { Quotation, QuotationChangeRequest, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationPublicLink, QuotationsService } from "../quotations/quotations.service";
 import { NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
@@ -14,6 +14,8 @@ import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.compo
 import { ActionMenuComponent, ActionMenuItemDirective } from "../shared/action-menu.component";
 import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
 import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dialog.component";
+import { calculateQuotationMoney } from "@kaklen/shared";
+import type { QuotationMoneyAmounts } from "@kaklen/shared";
 
 @Component({
   selector: "kaklen-quotation-detail",
@@ -46,6 +48,11 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
 
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
+      <section class="status-banner warning" *ngIf="quotation()?.status === 'CHANGES_REQUESTED'" role="status">
+        <strong i18n="@@quotationChangesRequestedBannerTitle">El cliente solicitó cambios</strong>
+        <span i18n="@@quotationChangesRequestedBannerBody">Revisa sus comentarios antes de crear una nueva versión.</span>
+      </section>
+
       <section class="dashboard-panel secure-share-panel" *ngIf="publicLink() as link">
         <div><h2 i18n="@@secureLinkReadyTitle">Enlace seguro listo</h2><p i18n="@@secureLinkReadyBody">Comparte este enlace con el cliente. Vence en siete días y puedes reemplazarlo generando uno nuevo.</p></div>
         <div class="secure-link-value"><code>{{ link.url }}</code><button type="button" class="secondary" (click)="copyPublicLink(link.url)"><kaklen-icon name="copy" /><span i18n="@@copyLinkButton">Copiar enlace</span></button></div>
@@ -57,20 +64,54 @@ import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dia
         <dl class="detail-grid">
           <div><dt i18n="@@issueDateLabel">Fecha de emisión</dt><dd>{{ dateLabel(currentQuotation.issueDate) }}</dd></div>
           <div><dt i18n="@@validUntilLabel">Válida hasta</dt><dd>{{ dateLabel(currentQuotation.validUntil) }}</dd></div>
-          <div><dt i18n="@@subtotalLabel">Subtotal</dt><dd>{{ moneyLabel(currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
-          <div><dt i18n="@@discountsTotalLabel">Descuentos</dt><dd>{{ moneyLabel(currentQuotation.discountTotal, currentQuotation.currency) }}</dd></div>
-          <div><dt i18n="@@taxesTotalLabel">Impuestos</dt><dd>{{ moneyLabel(currentQuotation.taxTotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ moneyLabel(calculatedAmounts()?.subtotal ?? currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@lineDiscountTotalLabel">Descuento por líneas</dt><dd>{{ moneyLabel(calculatedAmounts()?.lineDiscountTotal ?? '0', currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@globalDiscountTotalLabel">Descuento global</dt><dd>{{ moneyLabel(calculatedAmounts()?.globalDiscountTotal ?? '0', currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ moneyLabel(calculatedAmounts()?.discountTotal ?? currentQuotation.discountTotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ moneyLabel(calculatedAmounts()?.taxableBase ?? currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@taxTotalLabel">IVA</dt><dd>{{ moneyLabel(calculatedAmounts()?.taxTotal ?? currentQuotation.taxTotal, currentQuotation.currency) }}</dd></div>
           <div><dt i18n="@@totalLabel">Total</dt><dd>{{ moneyLabel(currentQuotation.total, currentQuotation.currency) }}</dd></div>
         </dl>
       </section>
 
       <section class="list-panel" *ngIf="quotation() as currentQuotation">
-        <article class="item-row" *ngFor="let item of currentQuotation.items">
+        <article class="item-row quotation-detail-item" *ngFor="let item of currentQuotation.items; let index = index">
           <div>
             <strong>{{ item.name }}</strong>
-            <small>{{ item.quantity }} {{ item.unit }} · {{ moneyLabel(item.unitPrice, currentQuotation.currency) }} · {{ moneyLabel(item.total, currentQuotation.currency) }}</small>
+            <small>{{ item.code || '' }} · {{ item.unit }}</small>
             <p *ngIf="item.description">{{ item.description }}</p>
           </div>
+          <dl class="quotation-line-financial" *ngIf="lineAmounts(index) as amounts">
+            <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio</dt><dd>{{ item.quantity }} × {{ moneyLabel(item.unitPrice, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineNetLabel">Neto</dt><dd>{{ moneyLabel(amounts.subtotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineDiscountLabel">Descuento de línea</dt><dd>{{ moneyLabel(amounts.lineDiscountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global prorrateado</dt><dd>{{ moneyLabel(amounts.globalDiscountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineTaxLabel">IVA</dt><dd>{{ moneyLabel(amounts.taxTotal, currentQuotation.currency) }}</dd></div>
+            <div class="line-total"><dt i18n="@@lineTotalVatIncludedLabel">Total línea, IVA incluido</dt><dd>{{ moneyLabel(amounts.total, currentQuotation.currency) }}</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <section id="change-requests" class="dashboard-panel" *ngIf="changeRequests().length">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" i18n="@@customerFeedbackEyebrow">Respuesta del cliente</p>
+            <h2 i18n="@@changeRequestsTitle">Solicitudes de cambios del cliente</h2>
+          </div>
+          <button type="button" *ngIf="canUpdate()" class="secondary" (click)="newVersion()" [disabled]="processing()">
+            <kaklen-icon name="copy" /><span i18n="@@newVersionButton">Nueva versión</span>
+          </button>
+        </div>
+        <article class="change-request" *ngFor="let request of changeRequests()">
+          <strong i18n="@@changeRequestCardTitle">Solicitud de cambios</strong>
+          <p>{{ request.comment }}</p>
+          <ul *ngIf="request.items.length">
+            <li *ngFor="let item of request.items">
+              <strong>{{ item.name }}</strong><span *ngIf="item.code"> · {{ item.code }}</span>
+            </li>
+          </ul>
+          <p *ngIf="!request.items.length" i18n="@@changeRequestNoItems">No se indicaron ítems específicos.</p>
+          <small i18n="@@changeRequestMetadata">Versión {{ request.quotationVersion }} · Enviada {{ historyDateLabel(request.createdAt) }}</small>
         </article>
       </section>
 
@@ -110,6 +151,22 @@ export class QuotationDetailComponent implements OnInit {
   readonly commercialEmailEnabled = RUNTIME_CONFIG.commercialEmailEnabled;
   readonly quotation = signal<Quotation | null>(null);
   readonly history = signal<QuotationStatusHistory[]>([]);
+  readonly changeRequests = signal<QuotationChangeRequest[]>([]);
+  readonly calculatedAmounts = computed(() => {
+    const quotation = this.quotation();
+    if (!quotation) return null;
+    return calculateQuotationMoney(
+      quotation.items.map((item) => ({
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        discountType: item.discountType,
+        discountValue: item.discountValue,
+        taxPercent: item.taxPercent
+      })),
+      quotation.globalDiscountPercent,
+      { currency: quotation.currency }
+    );
+  });
   readonly error = signal("");
   readonly processing = signal(false);
   readonly downloadingPdf = signal(false);
@@ -170,7 +227,7 @@ export class QuotationDetailComponent implements OnInit {
     this.processing.set(true);
     try {
       this.quotation.set(await this.quotationsService.changeStatus(this.organizationId, this.quotationId, action));
-      this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
+      await this.loadRelatedContext();
       this.notifications.success(this.statusSuccessMessage(action));
       if (action === "approve" && !this.initialQuotationApproved) {
         this.analytics.track("first_quotation_approved", { flow: "quotation", source: "detail" });
@@ -289,7 +346,7 @@ export class QuotationDetailComponent implements OnInit {
     this.error.set("");
     try {
       this.quotation.set(await this.quotationsService.sendEmail(this.organizationId, this.quotationId, payload));
-      this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
+      await this.loadRelatedContext();
       this.emailDialogOpen.set(false);
       this.notifications.success($localize`:@@quotationEmailSentSuccess:Cotización enviada por email.`);
     } catch (error) {
@@ -408,6 +465,10 @@ export class QuotationDetailComponent implements OnInit {
     return formatRegionalCurrency(value, { currency, numberFormat: organization?.numberFormat ?? "es" });
   }
 
+  lineAmounts(index: number): QuotationMoneyAmounts | null {
+    return this.calculatedAmounts()?.lines[index] ?? null;
+  }
+
   dateLabel(value: string): string {
     const organization = this.organizationService.activeOrganization();
     return formatRegionalDate(value, {
@@ -419,10 +480,19 @@ export class QuotationDetailComponent implements OnInit {
   private async load(): Promise<void> {
     try {
       this.quotation.set(await this.quotationsService.get(this.organizationId, this.quotationId));
-      this.history.set(await this.quotationsService.history(this.organizationId, this.quotationId));
+      await this.loadRelatedContext();
     } catch {
       this.error.set($localize`:@@quotationLoadError:No fue posible cargar la cotización.`);
     }
+  }
+
+  private async loadRelatedContext(): Promise<void> {
+    const [history, changeRequests] = await Promise.all([
+      this.quotationsService.history(this.organizationId, this.quotationId),
+      this.quotationsService.changeRequests(this.organizationId, this.quotationId)
+    ]);
+    this.history.set(history);
+    this.changeRequests.set(changeRequests);
   }
 
   private statusSuccessMessage(action: "approve" | "reject" | "cancel"): string {

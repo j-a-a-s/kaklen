@@ -72,7 +72,10 @@ export class NotificationCenterComponent implements OnChanges, OnDestroy {
   }
 
   body(item: InAppNotification): string {
-    return notificationCopy(item.type).body;
+    const fallback = notificationCopy(item.type).body;
+    return item.type === "QUOTATION_CHANGES_REQUESTED" && item.body.trim()
+      ? `${fallback} “${item.body.trim()}”`
+      : fallback;
   }
 
   date(value: string): string {

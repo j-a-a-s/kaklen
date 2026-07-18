@@ -35,7 +35,10 @@ export interface PublicQuotationView {
     validUntil: string;
     currency: string;
     subtotal: string;
+    lineDiscountTotal: string;
+    globalDiscountTotal: string;
     discountTotal: string;
+    taxableBase: string;
     taxTotal: string;
     total: string;
     notes: string | null;
@@ -51,6 +54,12 @@ export interface PublicQuotationView {
       discountType: "NONE" | "PERCENTAGE" | "FIXED";
       discountValue: string;
       taxPercent: string;
+      subtotal: string;
+      lineDiscountTotal: string;
+      globalDiscountTotal: string;
+      discountTotal: string;
+      taxableBase: string;
+      taxTotal: string;
       total: string;
     }>;
     history: Array<{

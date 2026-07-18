@@ -2,6 +2,8 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
+import { formatMoney } from "@kaklen/shared";
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { LocaleService } from "../i18n/locale.service";
 import { PublicQuotationStatus, PublicQuotationView } from "../portal/quotation-portal.models";
 import { ProviderProfilePayload, QuotationPortalService } from "../portal/quotation-portal.service";
@@ -9,12 +11,12 @@ import { FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponen
 } from "../shared/forms/form-feedback.components";
 import { moneyValidator, normalizePhone, trimmedRequired } from "../shared/forms/form-validators";
 import { UiIconComponent } from "../shared/ui-icon.component";
-import { currencyStep, formatMoney } from "@kaklen/shared";
+import { MoneyInputDirective } from "../shared/forms/money-input.directive";
 
 @Component({
   selector: "kaklen-public-quotation",
   standalone: true,
-  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, UiIconComponent, MoneyInputDirective],
   template: `
     <main class="portal-shell">
       <section class="portal-hero" *ngIf="view() as data">
@@ -50,13 +52,23 @@ import { currencyStep, formatMoney } from "@kaklen/shared";
                 <span class="sr-only" i18n="@@selectItemForChanges">Seleccionar para solicitar cambios</span>
               </label>
               <div><strong>{{ item.name }}</strong><small>{{ item.code || '' }} · {{ item.quantity }} {{ item.unit }}</small><p *ngIf="item.description">{{ item.description }}</p></div>
-              <div class="portal-item-money"><small>{{ money(item.unitPrice, data.quotation.currency) }}</small><strong>{{ money(item.total, data.quotation.currency) }}</strong></div>
+              <dl class="quotation-line-financial portal-item-money">
+                <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio</dt><dd>{{ item.quantity }} × {{ money(item.unitPrice, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@lineNetLabel">Neto</dt><dd>{{ money(item.subtotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@lineDiscountLabel">Descuento de línea</dt><dd>{{ money(item.lineDiscountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global prorrateado</dt><dd>{{ money(item.globalDiscountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@lineTaxLabel">IVA</dt><dd>{{ money(item.taxTotal, data.quotation.currency) }}</dd></div>
+                <div class="line-total"><dt i18n="@@lineTotalVatIncludedLabel">Total línea, IVA incluido</dt><dd>{{ money(item.total, data.quotation.currency) }}</dd></div>
+              </dl>
             </article>
           </div>
           <dl class="portal-totals">
-            <div><dt i18n="@@subtotalLabel">Subtotal</dt><dd>{{ money(data.quotation.subtotal, data.quotation.currency) }}</dd></div>
-            <div><dt i18n="@@discountsTotalLabel">Descuentos</dt><dd>{{ money(data.quotation.discountTotal, data.quotation.currency) }}</dd></div>
-            <div><dt i18n="@@taxesTotalLabel">Impuestos</dt><dd>{{ money(data.quotation.taxTotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ money(data.quotation.subtotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineDiscountTotalLabel">Descuento por líneas</dt><dd>{{ money(data.quotation.lineDiscountTotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@globalDiscountTotalLabel">Descuento global</dt><dd>{{ money(data.quotation.globalDiscountTotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ money(data.quotation.discountTotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ money(data.quotation.taxableBase, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@taxTotalLabel">IVA</dt><dd>{{ money(data.quotation.taxTotal, data.quotation.currency) }}</dd></div>
             <div class="total"><dt i18n="@@totalLabel">Total</dt><dd>{{ money(data.quotation.total, data.quotation.currency) }}</dd></div>
           </dl>
         </section>
@@ -102,7 +114,7 @@ import { currencyStep, formatMoney } from "@kaklen/shared";
               <label kaklen-form-field label="Región" i18n-label="@@regionLabel" controlId="public-quotation-region" required="auto" invalid="auto"><input kaklenControl formControlName="region" maxlength="120" /></label>
               <label kaklen-form-field label="Ciudad" i18n-label="@@cityLabel" controlId="public-quotation-city" required="auto" invalid="auto"><input kaklenControl formControlName="city" maxlength="120" /></label>
               <label kaklen-form-field label="WhatsApp" i18n-label="@@whatsappLabel" controlId="public-quotation-whatsapp" required="auto" invalid="auto"><input kaklenControl type="tel" inputmode="tel" formControlName="whatsapp" maxlength="24" /><kaklen-field-error [control]="providerForm.controls.whatsapp" [attempted]="providerSubmitted()" /></label>
-              <label kaklen-form-field label="Precio referencial" i18n-label="@@providerPriceLabel" controlId="public-quotation-price" required="auto" invalid="auto" fieldType="money" [currency]="providerCurrency()"><input kaklenControl type="number" inputmode="decimal" min="0" [attr.step]="providerMoneyStep()" formControlName="price" /></label>
+              <label kaklen-form-field label="Precio referencial" i18n-label="@@providerPriceLabel" controlId="public-quotation-price" required="auto" invalid="auto" fieldType="money" [currency]="providerCurrency()"><input kaklenControl kaklenMoneyInput [currency]="providerCurrency()" type="number" inputmode="decimal" min="0" formControlName="price" /></label>
               <label kaklen-form-field label="Portfolio" i18n-label="@@portfolioUrlLabel" controlId="public-quotation-portfolioUrl" required="auto" invalid="auto"><input kaklenControl type="url" formControlName="portfolioUrl" maxlength="500" /></label>
             </div>
             <label kaklen-form-field label="Descripción" i18n-label="@@providerDescriptionLabel" controlId="public-quotation-description" required="auto" invalid="auto"><textarea kaklenControl formControlName="description" rows="5" minlength="20" maxlength="2000"></textarea><kaklen-field-error [control]="providerForm.controls.description" [attempted]="providerSubmitted()" /></label>
@@ -152,7 +164,7 @@ export class PublicQuotationComponent implements OnInit {
     region: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     city: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(120)] }),
     whatsapp: new FormControl("", { nonNullable: true, validators: [Validators.required, Validators.pattern(/^\+[1-9]\d{7,14}$/), Validators.maxLength(24)] }),
-    price: new FormControl<number | null>(null, {
+    price: new FormControl<MoneyDecimalInput | null>(null, {
       validators: [moneyValidator(() => this.providerCurrency(), undefined, false)]
     }),
     portfolioUrl: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(500), Validators.pattern(/^https?:\/\/.+/)] }),
@@ -268,10 +280,6 @@ export class PublicQuotationComponent implements OnInit {
 
   providerCurrency(): string {
     return this.view()?.quotation.currency ?? "CLP";
-  }
-
-  providerMoneyStep(): string {
-    return currencyStep(this.providerCurrency());
   }
 
   date(value: string): string {

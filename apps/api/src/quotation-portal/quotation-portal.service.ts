@@ -14,6 +14,7 @@ import { readPasswordRecoveryConfig } from "@kaklen/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { serializeMoney } from "../common/money-validation";
 import { InAppNotificationsService } from "../in-app-notifications/in-app-notifications.service";
+import { calculateConsistentQuotationMoney } from "../quotations/quotation-money-consistency";
 import {
   CreateQuotationPublicLinkDto,
   RequestQuotationChangesDto
@@ -174,7 +175,8 @@ export class QuotationPortalService {
     });
     await this.notify(
       resolved.quotation,
-      InAppNotificationType.QUOTATION_CHANGES_REQUESTED
+      InAppNotificationType.QUOTATION_CHANGES_REQUESTED,
+      comment
     );
     return { id: changeRequest.id, status: QuotationStatus.CHANGES_REQUESTED };
   }
@@ -213,6 +215,7 @@ export class QuotationPortalService {
     if (!link || link.revokedAt || link.expiresAt.getTime() <= Date.now()) {
       throw this.unavailable();
     }
+    calculateConsistentQuotationMoney(link.quotation);
     const latest = await this.prisma.quotation.findFirst({
       where: {
         organizationId: link.organizationId,
@@ -254,6 +257,7 @@ export class QuotationPortalService {
 
   private toPublicView(resolved: ResolvedPublicQuotation) {
     const { quotation, link } = resolved;
+    const calculated = calculateConsistentQuotationMoney(quotation);
     return {
       organization: {
         name: quotation.organization.name,
@@ -281,10 +285,13 @@ export class QuotationPortalService {
         issueDate: quotation.issueDate,
         validUntil: quotation.validUntil,
         currency: quotation.currency,
-        subtotal: serializeMoney(quotation.subtotal.toString(), quotation.currency),
-        discountTotal: serializeMoney(quotation.discountTotal.toString(), quotation.currency),
-        taxTotal: serializeMoney(quotation.taxTotal.toString(), quotation.currency),
-        total: serializeMoney(quotation.total.toString(), quotation.currency),
+        subtotal: calculated.subtotal,
+        lineDiscountTotal: calculated.lineDiscountTotal,
+        globalDiscountTotal: calculated.globalDiscountTotal,
+        discountTotal: calculated.discountTotal,
+        taxableBase: calculated.taxableBase,
+        taxTotal: calculated.taxTotal,
+        total: calculated.total,
         notes: quotation.notes,
         terms: quotation.terms,
         items: quotation.items.map((item, index) => ({
@@ -300,7 +307,13 @@ export class QuotationPortalService {
             ? item.discountValue.toString()
             : serializeMoney(item.discountValue.toString(), quotation.currency),
           taxPercent: item.taxPercent.toString(),
-          total: serializeMoney(item.total.toString(), quotation.currency)
+          subtotal: calculated.lines[index].subtotal,
+          lineDiscountTotal: calculated.lines[index].lineDiscountTotal,
+          globalDiscountTotal: calculated.lines[index].globalDiscountTotal,
+          discountTotal: calculated.lines[index].discountTotal,
+          taxableBase: calculated.lines[index].taxableBase,
+          taxTotal: calculated.lines[index].taxTotal,
+          total: calculated.lines[index].total
         })),
         history: quotation.history.map((history) => ({
           eventCode: history.note ?? `quotation.${history.newStatus.toLowerCase()}`,
@@ -320,15 +333,18 @@ export class QuotationPortalService {
 
   private async notify(
     quotation: PublicQuotation,
-    type: InAppNotificationType
+    type: InAppNotificationType,
+    changeComment?: string
   ): Promise<void> {
-    const content = notificationContent(type, quotation.number, quotation.client.displayName);
+    const content = notificationContent(type, quotation.number, quotation.client.displayName, changeComment);
     await this.notifications.notifyOrganization(quotation.organizationId, {
       type,
       ...content,
       resourceType: "quotation",
       resourceId: quotation.id,
-      route: `/organizations/${quotation.organizationId}/quotations/${quotation.id}`
+      route: `/organizations/${quotation.organizationId}/quotations/${quotation.id}${
+        type === InAppNotificationType.QUOTATION_CHANGES_REQUESTED ? "#change-requests" : ""
+      }`
     });
   }
 
@@ -343,12 +359,25 @@ export class QuotationPortalService {
 function notificationContent(
   type: InAppNotificationType,
   number: string,
-  client: string
+  client: string,
+  changeComment?: string
 ): { title: string; body: string } {
   const values: Partial<Record<InAppNotificationType, { title: string; body: string }>> = {
     QUOTATION_VIEWED: { title: "Quotation viewed", body: `${client} viewed ${number}.` },
-    QUOTATION_CHANGES_REQUESTED: { title: "Changes requested", body: `${client} requested changes to ${number}.` },
+    QUOTATION_CHANGES_REQUESTED: {
+      title: `Changes requested for ${number}`,
+      body: safeNotificationExcerpt(changeComment ?? `${client} requested changes.`)
+    },
     QUOTATION_APPROVED: { title: "Quotation approved", body: `${client} approved ${number}.` }
   };
   return values[type] ?? { title: "Quotation updated", body: `${number} was updated.` };
+}
+
+function safeNotificationExcerpt(value: string): string {
+  const normalized = value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return normalized.length <= 120 ? normalized : `${normalized.slice(0, 117).trimEnd()}...`;
 }

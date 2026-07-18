@@ -87,7 +87,7 @@ export function messageForError(error: unknown): string {
   const messages: Record<string, string> = {
     VALIDATION_ERROR: $localize`:@@errorValidation:Revisa los datos ingresados.`,
     RUT_INVALID: $localize`:@@errorRutInvalid:Ingresa un RUT válido.`,
-    RUT_REQUIRED: $localize`:@@errorRutRequired:El RUT es obligatorio para empresas chilenas.`,
+    RUT_REQUIRED: $localize`:@@errorRutRequired:El RUT es obligatorio para clientes chilenos.`,
     RESOURCE_NOT_FOUND: $localize`:@@errorResourceNotFound:No encontramos el recurso solicitado.`,
     NOT_FOUND: $localize`:@@errorResourceNotFound:No encontramos el recurso solicitado.`,
     FORBIDDEN: $localize`:@@errorForbidden:No tienes permiso para realizar esta acción.`,
@@ -96,6 +96,7 @@ export function messageForError(error: unknown): string {
     QUOTATION_INVALID_STATUS: $localize`:@@errorQuotationInvalidStatus:La cotización no permite esa acción en su estado actual.`,
     QUOTATION_MONEY_MISMATCH: $localize`:@@errorQuotationMoneyMismatch:Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.`,
     CLP_FRACTION_NOT_ALLOWED: $localize`:@@errorClpFractionNotAllowed:Los montos en pesos chilenos no pueden contener decimales.`,
+    MONEY_PRECISION_NOT_ALLOWED: $localize`:@@errorMoneyPrecisionNotAllowed:El monto tiene más decimales de los permitidos para la moneda seleccionada.`,
     EVENT_INVALID_STATUS: $localize`:@@errorEventInvalidStatus:El evento no permite esa acción en su estado actual.`
   };
 

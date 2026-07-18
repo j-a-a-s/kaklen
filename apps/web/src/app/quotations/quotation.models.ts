@@ -1,4 +1,5 @@
 import { Client } from "../clients/client.models";
+import type { QuotationDecimalInput } from "@kaklen/shared";
 
 export type QuotationStatus = "DRAFT" | "SENT" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "EXPIRED" | "CANCELLED";
 export type QuotationItemType = "PRODUCT" | "SERVICE" | "CUSTOM";
@@ -35,6 +36,16 @@ export interface QuotationStatusHistory {
     firstName: string;
     lastName: string;
   } | null;
+}
+
+export interface QuotationChangeRequest {
+  id: string;
+  quotationId: string;
+  quotationVersion: number;
+  comment: string;
+  itemIndexes: number[];
+  items: Array<{ index: number; name: string; code: string | null }>;
+  createdAt: string;
 }
 
 export interface QuotationEmailPayload {
@@ -79,12 +90,12 @@ export interface QuotationItemPayload {
   code?: string;
   name: string;
   description?: string;
-  quantity: number;
+  quantity: QuotationDecimalInput;
   unit: string;
-  unitPrice: number;
+  unitPrice: QuotationDecimalInput;
   discountType?: QuotationDiscountType;
-  discountValue?: number;
-  taxPercent: number;
+  discountValue?: QuotationDecimalInput;
+  taxPercent: QuotationDecimalInput;
 }
 
 export interface QuotationPayload {
@@ -92,7 +103,7 @@ export interface QuotationPayload {
   issueDate: string;
   validUntil: string;
   currency?: string;
-  globalDiscountPercent?: number;
+  globalDiscountPercent?: QuotationDecimalInput;
   notes?: string;
   terms?: string;
   items: QuotationItemPayload[];
@@ -115,5 +126,7 @@ export interface QuotationSummary {
   rejected: number;
   expired: number;
   cancelled: number;
-  amountApproved: string;
+  baseCurrency: string;
+  baseCurrencyAmountApproved: string;
+  amountApprovedByCurrency: Array<{ currency: string; amount: string }>;
 }

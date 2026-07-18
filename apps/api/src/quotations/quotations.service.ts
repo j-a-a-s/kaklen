@@ -88,7 +88,9 @@ export interface QuotationSummary {
   rejected: number;
   expired: number;
   cancelled: number;
-  amountApproved: string;
+  baseCurrency: string;
+  baseCurrencyAmountApproved: string;
+  amountApprovedByCurrency: Array<{ currency: string; amount: string }>;
 }
 
 export interface QuotationPdfDocument {
@@ -99,6 +101,16 @@ export interface QuotationPdfDocument {
 export type QuotationHistoryView = QuotationStatusHistory & {
   changedBy: Pick<Prisma.UserGetPayload<object>, "firstName" | "lastName"> | null;
 };
+
+export interface QuotationChangeRequestView {
+  id: string;
+  quotationId: string;
+  quotationVersion: number;
+  comment: string;
+  itemIndexes: number[];
+  items: Array<{ index: number; name: string; code: string | null }>;
+  createdAt: Date;
+}
 
 @Injectable()
 export class QuotationsService {
@@ -160,16 +172,18 @@ export class QuotationsService {
   }
 
   async summary(organizationId: string): Promise<QuotationSummary> {
-    const [grouped, approved, organization] = await this.prisma.$transaction([
+    const [grouped, approvedByCurrency, organization] = await this.prisma.$transaction([
       this.prisma.quotation.groupBy({
         by: ["status"],
         where: { organizationId, archivedAt: null },
         _count: { _all: true },
         orderBy: { status: "asc" }
       }),
-      this.prisma.quotation.aggregate({
+      this.prisma.quotation.groupBy({
+        by: ["currency"],
         where: { organizationId, archivedAt: null, status: QuotationStatus.APPROVED },
-        _sum: { total: true }
+        _sum: { total: true },
+        orderBy: { currency: "asc" }
       }),
       this.prisma.organization.findFirst({ where: { id: organizationId }, select: { currency: true } })
     ]);
@@ -177,6 +191,11 @@ export class QuotationsService {
       const item = grouped.find((group) => group.status === status);
       return typeof item?._count === "object" ? item._count._all ?? 0 : 0;
     };
+    const baseCurrency = organization?.currency ?? "CLP";
+    const amountApprovedByCurrency = approvedByCurrency.map((group) => ({
+      currency: group.currency,
+      amount: parseMoney((group._sum?.total ?? new Prisma.Decimal(0)).toString(), group.currency)
+    }));
     return {
       total: grouped.reduce((sum, item) => sum + (typeof item._count === "object" ? item._count._all ?? 0 : 0), 0),
       draft: count(QuotationStatus.DRAFT),
@@ -186,10 +205,10 @@ export class QuotationsService {
       rejected: count(QuotationStatus.REJECTED),
       expired: count(QuotationStatus.EXPIRED),
       cancelled: count(QuotationStatus.CANCELLED),
-      amountApproved: parseMoney(
-        (approved._sum.total ?? new Prisma.Decimal(0)).toString(),
-        organization?.currency ?? "CLP"
-      )
+      baseCurrency,
+      baseCurrencyAmountApproved: amountApprovedByCurrency.find((item) => item.currency === baseCurrency)?.amount ??
+        parseMoney("0", baseCurrency),
+      amountApprovedByCurrency
     };
   }
 
@@ -230,7 +249,7 @@ export class QuotationsService {
         discountValue: item.discountValue.toString(),
         taxPercent: item.taxPercent.toString()
       }));
-      const globalDiscountPercent = dto.globalDiscountPercent ?? existing.globalDiscountPercent.toNumber();
+      const globalDiscountPercent = dto.globalDiscountPercent ?? existing.globalDiscountPercent.toString();
       const totals = shouldRecalculate
         ? await this.calculateItems(organizationId, calculationItems, globalDiscountPercent, currency, tx)
         : null;
@@ -359,6 +378,49 @@ export class QuotationsService {
     });
   }
 
+  async changeRequests(
+    organizationId: string,
+    quotationId: string
+  ): Promise<QuotationChangeRequestView[]> {
+    const quotation = await this.findQuotation(organizationId, quotationId, this.prisma);
+    const requests = await this.prisma.quotationChangeRequest.findMany({
+      where: {
+        organizationId,
+        quotation: { number: quotation.number }
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        quotation: {
+          select: {
+            version: true,
+            items: {
+              orderBy: { sortOrder: "asc" },
+              select: { name: true, code: true }
+            }
+          }
+        }
+      }
+    });
+    return requests.map((request) => {
+      const itemIndexes = this.changeRequestItemIndexes(
+        request.itemIndexes,
+        request.quotation.items.length
+      );
+      return {
+        id: request.id,
+        quotationId: request.quotationId,
+        quotationVersion: request.quotation.version,
+        comment: request.comment,
+        itemIndexes,
+        items: itemIndexes.flatMap((index) => {
+          const item = request.quotation.items[index];
+          return item ? [{ index, name: item.name, code: item.code }] : [];
+        }),
+        createdAt: request.createdAt
+      };
+    });
+  }
+
   async pdf(organizationId: string, quotationId: string, locale: string): Promise<Buffer> {
     return (await this.pdfDocument(organizationId, quotationId, locale)).buffer;
   }
@@ -477,9 +539,7 @@ export class QuotationsService {
       ).lines;
     } catch (error) {
       throw new BadRequestException({
-        code: error instanceof MoneyPrecisionError && error.code === "CLP_FRACTION_NOT_ALLOWED"
-          ? "CLP_FRACTION_NOT_ALLOWED"
-          : "QUOTATION_AMOUNTS_INVALID",
+        code: error instanceof MoneyPrecisionError ? error.code : "QUOTATION_AMOUNTS_INVALID",
         message: error instanceof Error ? error.message : "Invalid quotation amounts"
       });
     }
@@ -698,5 +758,12 @@ export class QuotationsService {
   private clean(value: string | null | undefined): string | null {
     const cleaned = value?.trim();
     return cleaned ? cleaned : null;
+  }
+
+  private changeRequestItemIndexes(value: Prisma.JsonValue, itemCount: number): number[] {
+    if (!Array.isArray(value)) return [];
+    return value.filter((index): index is number =>
+      typeof index === "number" && Number.isInteger(index) && index >= 0 && index < itemCount
+    );
   }
 }

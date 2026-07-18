@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../config/runtime-config";
 import {
   PaginatedQuotations,
   Quotation,
+  QuotationChangeRequest,
   QuotationEmailPayload,
   QuotationPayload,
   QuotationStatusHistory,
@@ -114,6 +115,15 @@ export class QuotationsService {
     return firstValueFrom(
       this.http.get<QuotationStatusHistory[]>(
         `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/history`,
+        { withCredentials: true }
+      )
+    );
+  }
+
+  changeRequests(organizationId: string, quotationId: string): Promise<QuotationChangeRequest[]> {
+    return firstValueFrom(
+      this.http.get<QuotationChangeRequest[]>(
+        `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/change-requests`,
         { withCredentials: true }
       )
     );

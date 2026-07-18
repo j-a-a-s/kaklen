@@ -37,7 +37,7 @@ import {
   SendQuotationEmailDto,
   UpdateQuotationDto
 } from "./dto/quotation.dto";
-import { PaginatedQuotations, QuotationSummary, QuotationsService } from "./quotations.service";
+import { PaginatedQuotations, QuotationChangeRequestView, QuotationSummary, QuotationsService } from "./quotations.service";
 
 @ApiTags("quotations")
 @ApiBearerAuth()
@@ -76,6 +76,17 @@ export class QuotationsController {
   @ApiOkResponse()
   summary(@Param("organizationId", new ParseUUIDPipe()) organizationId: string): Promise<QuotationSummary> {
     return this.quotationsService.summary(organizationId);
+  }
+
+  @Get(":quotationId/change-requests")
+  @RequirePermissions("quotations.read")
+  @ApiOperation({ summary: "List quotation change requests", description: "Requires quotations.read." })
+  @ApiOkResponse()
+  changeRequests(
+    @Param("organizationId", new ParseUUIDPipe()) organizationId: string,
+    @Param("quotationId", new ParseUUIDPipe()) quotationId: string
+  ): Promise<QuotationChangeRequestView[]> {
+    return this.quotationsService.changeRequests(organizationId, quotationId);
   }
 
   @Get(":quotationId")

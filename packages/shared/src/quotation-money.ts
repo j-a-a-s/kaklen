@@ -32,7 +32,6 @@ interface PreparedLine {
   lineDiscount: bigint;
   globalDiscount: bigint;
   taxPercent: bigint;
-  eligibleForGlobalDiscount: boolean;
 }
 
 const QUANTITY_SCALE = 3;
@@ -41,9 +40,9 @@ const PERCENT_DENOMINATOR = 10_000n;
 
 /**
  * Calculates quotation amounts with scaled integers. A global discount is
- * distributed only among lines without a specific discount. Largest
- * remainders receive residual minor units in source order for deterministic
- * totals across runtimes.
+ * distributed proportionally across every positive line net after its line
+ * discount. Largest remainders receive residual minor units in source order
+ * for deterministic totals across runtimes.
  */
 export function calculateQuotationMoney(
   lines: readonly QuotationMoneyLineInput[],
@@ -62,7 +61,7 @@ export function calculateQuotationMoney(
   distributeGlobalDiscount(prepared, globalPercent);
   const calculated = prepared.map((line) => finalizeLine(line, moneyScale));
 
-  return {
+  const result = {
     lines: calculated,
     subtotal: sumAmount(calculated, "subtotal", moneyScale),
     lineDiscountTotal: sumAmount(calculated, "lineDiscountTotal", moneyScale),
@@ -72,6 +71,70 @@ export function calculateQuotationMoney(
     taxTotal: sumAmount(calculated, "taxTotal", moneyScale),
     total: sumAmount(calculated, "total", moneyScale)
   };
+  assertQuotationMoneyInvariants(result, options);
+  return result;
+}
+
+export function assertQuotationMoneyInvariants(
+  result: QuotationMoneyResult,
+  options: { readonly currency: string } = { currency: "USD" }
+): void {
+  const moneyScale = currencyFractionDigits(options.currency);
+  for (const [index, line] of result.lines.entries()) {
+    assertAmountIdentity(
+      parseAmount(line.discountTotal, moneyScale, `lines[${index}].discountTotal`),
+      parseAmount(line.lineDiscountTotal, moneyScale, `lines[${index}].lineDiscountTotal`) +
+        parseAmount(line.globalDiscountTotal, moneyScale, `lines[${index}].globalDiscountTotal`),
+      `lines[${index}].discountTotal`
+    );
+    assertAmountIdentity(
+      parseAmount(line.taxableBase, moneyScale, `lines[${index}].taxableBase`),
+      parseAmount(line.subtotal, moneyScale, `lines[${index}].subtotal`) -
+        parseAmount(line.discountTotal, moneyScale, `lines[${index}].discountTotal`),
+      `lines[${index}].taxableBase`
+    );
+    assertAmountIdentity(
+      parseAmount(line.total, moneyScale, `lines[${index}].total`),
+      parseAmount(line.taxableBase, moneyScale, `lines[${index}].taxableBase`) +
+        parseAmount(line.taxTotal, moneyScale, `lines[${index}].taxTotal`),
+      `lines[${index}].total`
+    );
+  }
+
+  const aggregateFields: readonly (keyof QuotationMoneyAmounts)[] = [
+    "subtotal",
+    "lineDiscountTotal",
+    "globalDiscountTotal",
+    "discountTotal",
+    "taxableBase",
+    "taxTotal",
+    "total"
+  ];
+  for (const field of aggregateFields) {
+    assertAmountIdentity(
+      parseAmount(result[field], moneyScale, field),
+      sum(result.lines.map((line) => parseAmount(line[field], moneyScale, field))),
+      field
+    );
+  }
+  assertAmountIdentity(
+    parseAmount(result.discountTotal, moneyScale, "discountTotal"),
+    parseAmount(result.lineDiscountTotal, moneyScale, "lineDiscountTotal") +
+      parseAmount(result.globalDiscountTotal, moneyScale, "globalDiscountTotal"),
+    "discountTotal"
+  );
+  assertAmountIdentity(
+    parseAmount(result.taxableBase, moneyScale, "taxableBase"),
+    parseAmount(result.subtotal, moneyScale, "subtotal") -
+      parseAmount(result.discountTotal, moneyScale, "discountTotal"),
+    "taxableBase"
+  );
+  assertAmountIdentity(
+    parseAmount(result.total, moneyScale, "total"),
+    parseAmount(result.taxableBase, moneyScale, "taxableBase") +
+      parseAmount(result.taxTotal, moneyScale, "taxTotal"),
+    "total"
+  );
 }
 
 function prepareLine(
@@ -120,25 +183,26 @@ function prepareLine(
     subtotal,
     lineDiscount,
     globalDiscount: 0n,
-    taxPercent,
-    eligibleForGlobalDiscount: discountType === "NONE"
+    taxPercent
   };
 }
 
 function distributeGlobalDiscount(lines: PreparedLine[], globalPercent: bigint): void {
-  const eligible = lines.filter((line) => line.eligibleForGlobalDiscount && line.subtotal > 0n);
-  const eligibleSubtotal = sum(eligible.map((line) => line.subtotal));
-  if (eligibleSubtotal === 0n || globalPercent === 0n) {
+  const eligible = lines
+    .map((line) => ({ line, net: line.subtotal - line.lineDiscount }))
+    .filter(({ net }) => net > 0n);
+  const eligibleNet = sum(eligible.map(({ net }) => net));
+  if (eligibleNet === 0n || globalPercent === 0n) {
     return;
   }
 
-  const target = roundDivide(eligibleSubtotal * globalPercent, PERCENT_DENOMINATOR);
-  const allocations = eligible.map((line) => {
-    const numerator = line.subtotal * target;
+  const target = roundDivide(eligibleNet * globalPercent, PERCENT_DENOMINATOR);
+  const allocations = eligible.map(({ line, net }) => {
+    const numerator = net * target;
     return {
       line,
-      amount: numerator / eligibleSubtotal,
-      remainder: numerator % eligibleSubtotal
+      amount: numerator / eligibleNet,
+      remainder: numerator % eligibleNet
     };
   });
   let residual = target - sum(allocations.map((allocation) => allocation.amount));
@@ -198,6 +262,21 @@ function parseScaled(value: QuotationDecimalInput, scale: number, field: string)
     scaled += 1n;
   }
   return scaled * sign;
+}
+
+function parseAmount(value: string, scale: number, field: string): bigint {
+  const source = decimalSource(value);
+  const fraction = source.split(".")[1] ?? "";
+  if (fraction.length > scale) {
+    throw new RangeError(`${field} has more fractional digits than the currency supports`);
+  }
+  return parseScaled(source, scale, field);
+}
+
+function assertAmountIdentity(actual: bigint, expected: bigint, field: string): void {
+  if (actual !== expected) {
+    throw new RangeError(`Quotation money invariant failed for ${field}`);
+  }
 }
 
 function roundDivide(numerator: bigint, denominator: bigint): bigint {

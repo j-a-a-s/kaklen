@@ -2246,17 +2246,53 @@
         <source>Seleccionar para solicitar cambios</source>
         <target>Seleccionar para solicitar cambios</target>
       </trans-unit>
-      <trans-unit id="subtotalLabel" datatype="html">
-        <source>Subtotal</source>
-        <target>Subtotal</target>
+      <trans-unit id="quantityTimesPriceLabel" datatype="html">
+        <source>Cantidad × precio</source>
+        <target>Cantidad × precio</target>
       </trans-unit>
-      <trans-unit id="discountsTotalLabel" datatype="html">
-        <source>Descuentos</source>
-        <target>Descuentos</target>
+      <trans-unit id="lineNetLabel" datatype="html">
+        <source>Neto</source>
+        <target>Neto</target>
       </trans-unit>
-      <trans-unit id="taxesTotalLabel" datatype="html">
-        <source>Impuestos</source>
-        <target>Impuestos</target>
+      <trans-unit id="lineDiscountLabel" datatype="html">
+        <source>Descuento de línea</source>
+        <target>Descuento de línea</target>
+      </trans-unit>
+      <trans-unit id="allocatedGlobalDiscountLabel" datatype="html">
+        <source>Descuento global prorrateado</source>
+        <target>Descuento global prorrateado</target>
+      </trans-unit>
+      <trans-unit id="lineTaxLabel" datatype="html">
+        <source>IVA</source>
+        <target>IVA</target>
+      </trans-unit>
+      <trans-unit id="lineTotalVatIncludedLabel" datatype="html">
+        <source>Total línea, IVA incluido</source>
+        <target>Total línea, IVA incluido</target>
+      </trans-unit>
+      <trans-unit id="netSubtotalLabel" datatype="html">
+        <source>Subtotal neto</source>
+        <target>Subtotal neto</target>
+      </trans-unit>
+      <trans-unit id="lineDiscountTotalLabel" datatype="html">
+        <source>Descuento por líneas</source>
+        <target>Descuento por líneas</target>
+      </trans-unit>
+      <trans-unit id="globalDiscountTotalLabel" datatype="html">
+        <source>Descuento global</source>
+        <target>Descuento global</target>
+      </trans-unit>
+      <trans-unit id="totalDiscountLabel" datatype="html">
+        <source>Descuento total</source>
+        <target>Descuento total</target>
+      </trans-unit>
+      <trans-unit id="taxableBaseLabel" datatype="html">
+        <source>Base imponible</source>
+        <target>Base imponible</target>
+      </trans-unit>
+      <trans-unit id="taxTotalLabel" datatype="html">
+        <source>IVA</source>
+        <target>IVA</target>
       </trans-unit>
       <trans-unit id="termsLabel" datatype="html">
         <source>Términos</source>
@@ -2398,6 +2434,14 @@
         <source>Nueva versión</source>
         <target>Nueva versión</target>
       </trans-unit>
+      <trans-unit id="quotationChangesRequestedBannerTitle" datatype="html">
+        <source>El cliente solicitó cambios</source>
+        <target>El cliente solicitó cambios</target>
+      </trans-unit>
+      <trans-unit id="quotationChangesRequestedBannerBody" datatype="html">
+        <source>Revisa sus comentarios antes de crear una nueva versión.</source>
+        <target>Revisa sus comentarios antes de crear una nueva versión.</target>
+      </trans-unit>
       <trans-unit id="secureLinkReadyTitle" datatype="html">
         <source>Enlace seguro listo</source>
         <target>Enlace seguro listo</target>
@@ -2413,6 +2457,26 @@
       <trans-unit id="openWhatsAppButton" datatype="html">
         <source>Abrir WhatsApp</source>
         <target>Abrir WhatsApp</target>
+      </trans-unit>
+      <trans-unit id="customerFeedbackEyebrow" datatype="html">
+        <source>Respuesta del cliente</source>
+        <target>Respuesta del cliente</target>
+      </trans-unit>
+      <trans-unit id="changeRequestsTitle" datatype="html">
+        <source>Solicitudes de cambios del cliente</source>
+        <target>Solicitudes de cambios del cliente</target>
+      </trans-unit>
+      <trans-unit id="changeRequestCardTitle" datatype="html">
+        <source>Solicitud de cambios</source>
+        <target>Solicitud de cambios</target>
+      </trans-unit>
+      <trans-unit id="changeRequestNoItems" datatype="html">
+        <source>No se indicaron ítems específicos.</source>
+        <target>No se indicaron ítems específicos.</target>
+      </trans-unit>
+      <trans-unit id="changeRequestMetadata" datatype="html">
+        <source>Versión <x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></source>
+        <target>Versión <x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></target>
       </trans-unit>
       <trans-unit id="downloadPdfButton" datatype="html">
         <source>Descargar PDF</source>
@@ -2651,8 +2715,8 @@
         <target>Descuento global (%)</target>
       </trans-unit>
       <trans-unit id="globalDiscountHelp" datatype="html">
-        <source>Se aplica a las líneas que no tienen un descuento específico.</source>
-        <target>Se aplica a las líneas que no tienen un descuento específico.</target>
+        <source>El descuento global se aplica al subtotal después de los descuentos por línea.</source>
+        <target>El descuento global se aplica al subtotal después de los descuentos por línea.</target>
       </trans-unit>
       <trans-unit id="discountTypeLabel" datatype="html">
         <source>Tipo de descuento</source>
@@ -2701,14 +2765,6 @@
       <trans-unit id="summaryTitle" datatype="html">
         <source>Resumen</source>
         <target>Resumen</target>
-      </trans-unit>
-      <trans-unit id="discountTotalLabel" datatype="html">
-        <source>Descuento</source>
-        <target>Descuento</target>
-      </trans-unit>
-      <trans-unit id="taxTotalLabel" datatype="html">
-        <source>IVA</source>
-        <target>IVA</target>
       </trans-unit>
       <trans-unit id="newQuotationTitle" datatype="html">
         <source>Nueva cotización</source>
@@ -2773,6 +2829,10 @@
       <trans-unit id="approvedAmountLabel" datatype="html">
         <source>Monto aprobado</source>
         <target>Monto aprobado</target>
+      </trans-unit>
+      <trans-unit id="approvedOtherCurrenciesLabel" datatype="html">
+        <source>Otras monedas aprobadas</source>
+        <target>Otras monedas aprobadas</target>
       </trans-unit>
       <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>
@@ -3443,8 +3503,8 @@
         <target>Ingresa un RUT válido.</target>
       </trans-unit>
       <trans-unit id="errorRutRequired" datatype="html">
-        <source>El RUT es obligatorio para empresas chilenas.</source>
-        <target>El RUT es obligatorio para empresas chilenas.</target>
+        <source>El RUT es obligatorio para clientes chilenos.</source>
+        <target>El RUT es obligatorio para clientes chilenos.</target>
       </trans-unit>
       <trans-unit id="errorResourceNotFound" datatype="html">
         <source>No encontramos el recurso solicitado.</source>
@@ -3473,6 +3533,10 @@
       <trans-unit id="errorClpFractionNotAllowed" datatype="html">
         <source>Los montos en pesos chilenos no pueden contener decimales.</source>
         <target>Los montos en pesos chilenos no pueden contener decimales.</target>
+      </trans-unit>
+      <trans-unit id="errorMoneyPrecisionNotAllowed" datatype="html">
+        <source>El monto tiene más decimales de los permitidos para la moneda seleccionada.</source>
+        <target>El monto tiene más decimales de los permitidos para la moneda seleccionada.</target>
       </trans-unit>
       <trans-unit id="errorEventInvalidStatus" datatype="html">
         <source>El evento no permite esa acción en su estado actual.</source>

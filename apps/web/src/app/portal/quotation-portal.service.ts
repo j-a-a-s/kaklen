@@ -1,5 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import type { MoneyDecimalInput } from "@kaklen/shared";
 import { firstValueFrom } from "rxjs";
 import { API_BASE_URL } from "../config/runtime-config";
 import {
@@ -82,7 +83,7 @@ export interface ProviderProfilePayload {
   region?: string;
   city?: string;
   whatsapp: string;
-  price?: number;
+  price?: MoneyDecimalInput;
   currency: string;
   portfolioUrl?: string;
 }

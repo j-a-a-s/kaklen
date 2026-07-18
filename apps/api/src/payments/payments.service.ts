@@ -21,6 +21,7 @@ import { InAppNotificationsService } from "../in-app-notifications/in-app-notifi
 import { serializeMoney } from "../common/money-validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuotationPortalService } from "../quotation-portal/quotation-portal.service";
+import { calculateConsistentQuotationMoney } from "../quotations/quotation-money-consistency";
 import { CompleteSandboxPaymentDto, CreatePublicPaymentDto, RefundPaymentDto } from "./dto/payment.dto";
 import { PAYMENT_GATEWAY, PaymentGateway, PaymentWebhookPayload } from "./payment-gateway";
 
@@ -50,6 +51,7 @@ export class PaymentsService {
     this.assertSandboxAvailable();
     const resolved = await this.portal.resolve(publicToken, true);
     const quotation = resolved.quotation;
+    calculateConsistentQuotationMoney(quotation);
     if (
       quotation.status !== QuotationStatus.SENT &&
       quotation.status !== QuotationStatus.APPROVED
