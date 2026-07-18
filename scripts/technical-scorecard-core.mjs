@@ -118,6 +118,7 @@ export function renderTechnicalScorecard(scorecard) {
     "# Technical Scorecard",
     "",
     "Este documento se genera con `pnpm scorecard:update`. No contiene fechas ni SHA para evitar ciclos de actualización.",
+    "Los porcentajes versionados se redondean a una decimal para mantener el documento estable entre instrumentaciones de cobertura; el artefacto JSON conserva la precisión completa.",
     "",
     "## Current Metrics",
     "",
@@ -196,7 +197,7 @@ function emptyCoverage() {
 }
 
 function formatPercent(value) {
-  return `${Number(value).toFixed(2)}%`;
+  return `${Number(value).toFixed(1)}%`;
 }
 
 function externalPendingText(id) {

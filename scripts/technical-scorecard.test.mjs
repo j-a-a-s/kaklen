@@ -67,6 +67,15 @@ test("a stale scorecard self-check does not change the generated scorecard", () 
   assert.equal(failedDocument, runningDocument);
 });
 
+test("sub-tenth coverage differences produce the same versioned scorecard", () => {
+  const localScorecard = collectTechnicalScorecard({ root: createEvidenceFixture(), env: {} });
+  const ciScorecard = collectTechnicalScorecard({ root: createEvidenceFixture(), env: {} });
+  localScorecard.metrics.coverage.branches = 85.75;
+  ciScorecard.metrics.coverage.branches = 85.81;
+
+  assert.equal(renderTechnicalScorecard(localScorecard), renderTechnicalScorecard(ciScorecard));
+});
+
 function createEvidenceFixture({ omittedTask = null, scorecardStatus = "passed" } = {}) {
   const root = mkdtempSync(join(tmpdir(), "kaklen-scorecard-"));
   const taskKeys = resolveProfile("quality:gate:ci").tasks.map((task) => task.key).filter((key) => key !== omittedTask);

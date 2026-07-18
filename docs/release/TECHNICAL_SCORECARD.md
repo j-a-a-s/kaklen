@@ -1,15 +1,16 @@
 # Technical Scorecard
 
 Este documento se genera con `pnpm scorecard:update`. No contiene fechas ni SHA para evitar ciclos de actualización.
+Los porcentajes versionados se redondean a una decimal para mantener el documento estable entre instrumentaciones de cobertura; el artefacto JSON conserva la precisión completa.
 
 ## Current Metrics
 
 | Metric | Current value |
 | --- | ---: |
-| Statements coverage | 96.96% |
-| Branches coverage | 85.75% |
-| Functions coverage | 94.12% |
-| Lines coverage | 97.30% |
+| Statements coverage | 97.0% |
+| Branches coverage | 85.8% |
+| Functions coverage | 94.1% |
+| Lines coverage | 97.3% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
 | Prisma migrations | 18 |
