@@ -44,6 +44,7 @@ COPY --from=builder --chown=kaklen:kaklen /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder --chown=kaklen:kaklen /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder --chown=kaklen:kaklen /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder --chown=kaklen:kaklen /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=kaklen:kaklen /app/apps/web/public/brand ./apps/web/public/brand
 COPY --from=builder --chown=kaklen:kaklen /app/packages/config/package.json ./packages/config/package.json
 COPY --from=builder --chown=kaklen:kaklen /app/packages/config/dist ./packages/config/dist
 COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/package.json ./packages/shared/package.json

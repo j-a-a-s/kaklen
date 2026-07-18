@@ -34,11 +34,37 @@ export interface PdfRectCommand {
   gray: number;
 }
 
-export type PdfCommand = PdfTextCommand | PdfLineCommand | PdfRectCommand;
+export interface PdfImageCommand {
+  kind: "image";
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
-export function createPdfDocument(pages: PdfCommand[][], metadata: PdfMetadata): Buffer {
+export interface PdfImageResource {
+  name: string;
+  width: number;
+  height: number;
+  data: Buffer;
+}
+
+export interface PdfDocumentResources {
+  images?: readonly PdfImageResource[];
+}
+
+export type PdfCommand = PdfTextCommand | PdfLineCommand | PdfRectCommand | PdfImageCommand;
+
+export function createPdfDocument(
+  pages: PdfCommand[][],
+  metadata: PdfMetadata,
+  resources: PdfDocumentResources = {}
+): Buffer {
   const pageCount = Math.max(1, pages.length);
-  const firstPageObject = 5;
+  const images = resources.images ?? [];
+  const firstImageObject = 5;
+  const firstPageObject = firstImageObject + images.length;
   const pageReferences = Array.from({ length: pageCount }, (_, index) => firstPageObject + index * 2);
   const objects = new Map<number, string>();
   objects.set(1, "<< /Type /Catalog /Pages 2 0 R >>");
@@ -46,13 +72,25 @@ export function createPdfDocument(pages: PdfCommand[][], metadata: PdfMetadata):
   objects.set(3, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   objects.set(4, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
 
+  images.forEach((image, index) => {
+    const imageObject = firstImageObject + index;
+    const stream = image.data.toString("latin1");
+    objects.set(
+      imageObject,
+      `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.data.length} >>\nstream\n${stream}\nendstream`
+    );
+  });
+  const imageResources = images.length
+    ? ` /XObject << ${images.map((image, index) => `/${pdfName(image.name)} ${firstImageObject + index} 0 R`).join(" ")} >>`
+    : "";
+
   pages.forEach((commands, index) => {
     const pageObject = firstPageObject + index * 2;
     const contentObject = pageObject + 1;
     const stream = commands.map(renderCommand).join("\n");
     objects.set(
       pageObject,
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObject} 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${imageResources} >> /Contents ${contentObject} 0 R >>`
     );
     objects.set(contentObject, `<< /Length ${Buffer.byteLength(stream, "latin1")} >>\nstream\n${stream}\nendstream`);
   });
@@ -91,7 +129,15 @@ function renderCommand(command: PdfCommand): string {
     const gray = command.gray ?? 0.75;
     return `q ${number(gray)} G ${number(command.width ?? 0.5)} w ${number(command.x1)} ${number(command.y1)} m ${number(command.x2)} ${number(command.y2)} l S Q`;
   }
+  if (command.kind === "image") {
+    return `q ${number(command.width)} 0 0 ${number(command.height)} ${number(command.x)} ${number(command.y)} cm /${pdfName(command.name)} Do Q`;
+  }
   return `q ${number(command.gray)} g ${number(command.x)} ${number(command.y)} ${number(command.width)} ${number(command.height)} re f Q`;
+}
+
+export function measurePdfText(value: string, size: number, bold = false): number {
+  return [...value.normalize("NFD")].reduce((width, character) =>
+    width + glyphWidth(character, bold), 0) * size / 1000;
 }
 
 function pdfString(value: string): string {
@@ -112,5 +158,40 @@ function pdfDate(value: Date): string {
 }
 
 function number(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
+}
+
+function pdfName(value: string): string {
+  const normalized = value.replace(/[^A-Za-z0-9_-]/g, "");
+  if (!normalized) throw new RangeError("PDF resource name is empty");
+  return normalized;
+}
+
+const NORMAL_WIDTHS: Readonly<Record<string, number>> = {
+  " ": 278, "!": 278, '"': 355, "#": 556, "$": 556, "%": 889, "&": 667, "'": 191,
+  "(": 333, ")": 333, "*": 389, "+": 584, ",": 278, "-": 333, ".": 278, "/": 278,
+  A: 667, B: 667, C: 722, D: 722, E: 667, F: 611, G: 778, H: 722, I: 278, J: 500,
+  K: 667, L: 556, M: 833, N: 722, O: 778, P: 667, Q: 778, R: 722, S: 667, T: 611,
+  U: 722, V: 667, W: 944, X: 667, Y: 667, Z: 611,
+  a: 556, b: 556, c: 500, d: 556, e: 556, f: 278, g: 556, h: 556, i: 222, j: 222,
+  k: 500, l: 222, m: 833, n: 556, o: 556, p: 556, q: 556, r: 333, s: 500, t: 278,
+  u: 556, v: 500, w: 722, x: 500, y: 500, z: 500,
+  ":": 278, ";": 278, "<": 584, "=": 584, ">": 584, "?": 556, "@": 1015,
+  "[": 278, "\\": 278, "]": 278, "^": 469, "_": 556, "`": 333, "{": 334, "|": 260, "}": 334, "~": 584
+};
+
+const BOLD_WIDTHS: Readonly<Record<string, number>> = {
+  ...NORMAL_WIDTHS,
+  A: 722, B: 722, C: 722, D: 722, E: 667, F: 611, G: 778, H: 722, I: 278, J: 556,
+  K: 722, L: 611, M: 833, N: 722, O: 778, P: 667, Q: 778, R: 722, S: 667, T: 611,
+  U: 722, V: 667, W: 944, X: 667, Y: 667, Z: 611,
+  a: 556, b: 611, c: 556, d: 611, e: 556, f: 333, g: 611, h: 611, i: 278, j: 278,
+  k: 556, l: 278, m: 889, n: 611, o: 611, p: 611, q: 611, r: 389, s: 556, t: 333,
+  u: 611, v: 556, w: 778, x: 556, y: 556, z: 500
+};
+
+function glyphWidth(character: string, bold: boolean): number {
+  if (/\p{M}/u.test(character)) return 0;
+  if (/\d/.test(character)) return 556;
+  return (bold ? BOLD_WIDTHS : NORMAL_WIDTHS)[character] ?? 556;
 }

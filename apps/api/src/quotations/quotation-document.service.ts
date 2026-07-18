@@ -1,8 +1,13 @@
-import { ConflictException, Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { QuotationDiscountType, QuotationStatus } from "@prisma/client";
 import { calculateQuotationMoney, formatMoney, moneyToMinorUnits } from "@kaklen/shared";
 import type { QuotationMoneyResult } from "@kaklen/shared";
-import { createPdfDocument, PdfCommand } from "./pdf";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { createPdfDocument, measurePdfText, PdfCommand } from "./pdf";
+import type { PdfImageResource } from "./pdf";
+import { loadPngImage } from "./png-image";
+import { assertPersistedQuotationMoneyParity } from "./quotation-money-consistency";
 
 type Locale = "es" | "en" | "pt-BR";
 
@@ -108,6 +113,7 @@ export interface QuotationDocumentViewModel {
     subtotal: string;
     lineDiscount: string;
     globalDiscount: string;
+    discountTotal: string;
     taxableBase: string;
     tax: string;
     total: string;
@@ -119,8 +125,6 @@ export interface QuotationDocumentViewModel {
 
 @Injectable()
 export class QuotationDocumentService {
-  private readonly logger = new Logger(QuotationDocumentService.name);
-
   buildViewModel(source: QuotationDocumentSource, locale: string): QuotationDocumentViewModel {
     const language = normalizeLocale(locale);
     const labels = documentLabels(language);
@@ -176,13 +180,14 @@ export class QuotationDocumentService {
         quantityAndUnit: `${item.quantity.toString()} ${item.unit}`,
         unitPrice: money(item.unitPrice.toString()),
         lineDiscount: money(calculated.lines[index].lineDiscountTotal),
-        tax: `${item.taxPercent.toString()}%`,
+        tax: money(calculated.lines[index].taxTotal),
         total: money(calculated.lines[index].total)
       })),
       totals: {
         subtotal: money(calculated.subtotal),
         lineDiscount: money(calculated.lineDiscountTotal),
         globalDiscount: money(calculated.globalDiscountTotal),
+        discountTotal: money(calculated.discountTotal),
         taxableBase: money(calculated.taxableBase),
         tax: money(calculated.taxTotal),
         total: money(calculated.total)
@@ -195,35 +200,11 @@ export class QuotationDocumentService {
     };
   }
 
-  private assertPersistenceParity(source: QuotationDocumentSource, calculated: QuotationMoneyResult): void {
-    const comparisons: Array<[string, string, DecimalValue]> = [
-      ["subtotal", calculated.subtotal, source.subtotal],
-      ["discountTotal", calculated.discountTotal, source.discountTotal],
-      ["taxTotal", calculated.taxTotal, source.taxTotal],
-      ["total", calculated.total, source.total]
-    ];
-    source.items.forEach((item, index) => {
-      const line = calculated.lines[index];
-      comparisons.push(
-        [`items.${index}.subtotal`, line.subtotal, item.subtotal],
-        [`items.${index}.discountTotal`, line.discountTotal, item.discountTotal],
-        [`items.${index}.taxTotal`, line.taxTotal, item.taxTotal],
-        [`items.${index}.total`, line.total, item.total]
-      );
-    });
-    const mismatch = comparisons.find(([, expected, persisted]) =>
-      moneyToMinorUnits(expected, source.currency) !== moneyToMinorUnits(persisted.toString(), source.currency)
-    );
-    if (!mismatch) return;
-
-    const [field, expected, persisted] = mismatch;
-    this.logger.error(
-      `Quotation money mismatch number=${source.number} field=${field} expectedMinor=${moneyToMinorUnits(expected, source.currency)} persistedMinor=${moneyToMinorUnits(persisted.toString(), source.currency)}`
-    );
-    throw new ConflictException({
-      code: "QUOTATION_MONEY_MISMATCH",
-      message: "Quotation totals are inconsistent. Recalculate and save before generating the document."
-    });
+  private assertPersistenceParity(
+    source: QuotationDocumentSource,
+    calculated: QuotationMoneyResult
+  ): void {
+    assertPersistedQuotationMoneyParity(source, calculated);
   }
 
   render(viewModel: QuotationDocumentViewModel): Buffer {
@@ -240,20 +221,58 @@ const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 const MARGIN = 42;
 const CONTENT_BOTTOM = 58;
+const TABLE_HEADER_HEIGHT = 22;
+const TABLE_COLUMNS = [
+  { x: 42, width: 45 },
+  { x: 87, width: 190 },
+  { x: 277, width: 52 },
+  { x: 329, width: 64 },
+  { x: 393, width: 66 },
+  { x: 459, width: 40 },
+  { x: 499, width: 54 }
+] as const;
 
 export function renderQuotationDocument(viewModel: QuotationDocumentViewModel): Buffer {
+  const layout = buildQuotationDocumentLayout(viewModel);
+  return createPdfDocument(layout.pages, {
+    title: `${viewModel.quotation.title} ${viewModel.quotation.number} v${viewModel.quotation.version}`,
+    author: viewModel.organization.name,
+    subject: `${viewModel.client.name} - ${viewModel.totals.total}`,
+    creator: "Kaklen QuotationDocumentService",
+    createdAt: viewModel.generatedAt
+  }, layout.logo ? { images: [layout.logo] } : {});
+}
+
+export interface QuotationDocumentLayout {
+  pages: PdfCommand[][];
+  logo: PdfImageResource | null;
+}
+
+export function buildQuotationDocumentLayout(
+  viewModel: QuotationDocumentViewModel
+): QuotationDocumentLayout {
   const labels = documentLabels(viewModel.locale);
   const pages: PdfCommand[][] = [];
+  const logo = loadQuotationLogo();
   let page: PdfCommand[] = [];
   let y = 0;
 
   const startPage = (): void => {
     page = [];
     pages.push(page);
-    page.push({ kind: "text", x: MARGIN, y: 796, text: "KAKLEN", size: 18, bold: true });
-    page.push({ kind: "text", x: 135, y: 798, text: viewModel.organization.name, size: 11, bold: true });
-    page.push({ kind: "line", x1: MARGIN, y1: 785, x2: PAGE_WIDTH - MARGIN, y2: 785, width: 1.4, gray: 0.25 });
-    y = 762;
+    if (logo) {
+      const logoHeight = 48;
+      const logoWidth = logoHeight * logo.width / logo.height;
+      page.push({ kind: "image", name: logo.name, x: MARGIN, y: 780, width: logoWidth, height: logoHeight });
+    } else {
+      page.push({ kind: "text", x: MARGIN, y: 800, text: "KAKLEN", size: 18, bold: true });
+    }
+    const organizationLines = wrapTextToWidth(viewModel.organization.name, 340, 11, true);
+    organizationLines.slice(0, 2).forEach((line, index) => {
+      page.push({ kind: "text", x: 125, y: 807 - index * 13, text: line, size: 11, bold: true });
+    });
+    page.push({ kind: "line", x1: MARGIN, y1: 772, x2: PAGE_WIDTH - MARGIN, y2: 772, width: 1.4, gray: 0.25 });
+    y = 748;
   };
   const ensure = (height: number): void => {
     if (y - height < CONTENT_BOTTOM) startPage();
@@ -264,10 +283,10 @@ export function renderQuotationDocument(viewModel: QuotationDocumentViewModel): 
   const textAt = (value: string, x: number, lineY: number, size = 9, bold = false): void => {
     page.push({ kind: "text", x, y: lineY, text: value, size, bold });
   };
-  const paragraph = (value: string, width = 88, size = 9): void => {
-    const lines = wrapText(value, width);
-    ensure(Math.max(1, lines.length) * 13 + 4);
+  const paragraph = (value: string, width = PAGE_WIDTH - MARGIN * 2, size = 9): void => {
+    const lines = wrapTextToWidth(value, width, size);
     for (const line of lines.length ? lines : [""]) {
+      ensure(15);
       text(line, MARGIN, size);
       y -= 13;
     }
@@ -282,65 +301,66 @@ export function renderQuotationDocument(viewModel: QuotationDocumentViewModel): 
   text(`${labels.validUntil}: ${viewModel.quotation.validUntil}`, 410, 9);
   y -= 22;
 
+  const contactWidth = 237;
+  const organizationContact = contactLines(
+    viewModel.organization.legalName || viewModel.organization.name,
+    joinParts([viewModel.organization.taxId, viewModel.organization.phone, viewModel.organization.whatsapp]),
+    viewModel.organization.address,
+    contactWidth
+  );
+  const clientContact = contactLines(
+    viewModel.client.legalName || viewModel.client.name,
+    joinParts([viewModel.client.taxId, viewModel.client.whatsapp, viewModel.client.email]),
+    viewModel.client.address,
+    contactWidth
+  );
+  const contactBlockHeight = Math.max(organizationContact.length, clientContact.length) * 11 + 31;
+  ensure(contactBlockHeight + 8);
   const contactBlockTop = y;
-  page.push({ kind: "rect", x: MARGIN, y: contactBlockTop - 60, width: PAGE_WIDTH - MARGIN * 2, height: 72, gray: 0.95 });
-  textAt(labels.organization, MARGIN + 8, contactBlockTop, 10, true);
-  textAt(truncate(viewModel.organization.legalName || viewModel.organization.name, 44), MARGIN + 8, contactBlockTop - 16, 9);
-  textAt(truncate(joinParts([viewModel.organization.taxId, viewModel.organization.phone, viewModel.organization.whatsapp]), 57), MARGIN + 8, contactBlockTop - 31, 8);
-  textAt(truncate(viewModel.organization.address, 57), MARGIN + 8, contactBlockTop - 46, 8);
-  textAt(labels.client, 315, contactBlockTop, 10, true);
-  textAt(truncate(viewModel.client.legalName || viewModel.client.name, 39), 315, contactBlockTop - 16, 9);
-  textAt(truncate(joinParts([viewModel.client.taxId, viewModel.client.whatsapp, viewModel.client.email]), 50), 315, contactBlockTop - 31, 8);
-  textAt(truncate(viewModel.client.address, 50), 315, contactBlockTop - 46, 8);
-  y -= 82;
+  page.push({ kind: "rect", x: MARGIN, y: contactBlockTop - contactBlockHeight + 10, width: PAGE_WIDTH - MARGIN * 2, height: contactBlockHeight, gray: 0.95 });
+  renderContactColumn(page, labels.organization, organizationContact, MARGIN + 8, contactBlockTop);
+  renderContactColumn(page, labels.client, clientContact, 315, contactBlockTop);
+  y -= contactBlockHeight + 6;
   text(`${labels.executive}: ${viewModel.quotation.executive}`, MARGIN, 8);
   y -= 24;
 
   text(labels.items, MARGIN, 11, true);
   y -= 18;
   renderTableHeader(page, y, labels);
-  y -= 22;
+  y -= TABLE_HEADER_HEIGHT;
 
   if (viewModel.items.length === 0) {
     text(labels.noItems, MARGIN, 9);
     y -= 20;
   }
   for (const item of viewModel.items) {
-    const descriptionLines = wrapText(item.description, 82);
-    const rowHeight = 25 + descriptionLines.length * 11;
-    ensure(rowHeight + 24);
-    if (y > 730) {
+    const row = measureTableRow(item);
+    if (row.height > 650) {
+      throw new RangeError(`Quotation row is too tall to fit on a page: ${item.code}`);
+    }
+    if (y - row.height < CONTENT_BOTTOM) {
+      startPage();
       renderTableHeader(page, y, labels);
-      y -= 22;
+      y -= TABLE_HEADER_HEIGHT;
     }
-    text(item.code, MARGIN, 8);
-    text(truncate(item.name, 33), 88, 8, true);
-    text(item.quantityAndUnit, 285, 8);
-    text(item.unitPrice, 350, 8);
-    text(item.lineDiscount, 420, 8);
-    text(item.tax, 480, 8);
-    text(item.total, 515, 8);
-    y -= 13;
-    for (const line of descriptionLines) {
-      text(line, 88, 7);
-      y -= 11;
-    }
-    page.push({ kind: "line", x1: MARGIN, y1: y + 4, x2: PAGE_WIDTH - MARGIN, y2: y + 4, gray: 0.85 });
-    y -= 10;
+    renderTableRow(page, y, row);
+    y -= row.height;
   }
 
-  ensure(118);
+  ensure(142);
   const totalRows: Array<[string, string, boolean]> = [
     [labels.subtotal, viewModel.totals.subtotal, false],
     [labels.lineDiscount, viewModel.totals.lineDiscount, false],
     [labels.globalDiscount, viewModel.totals.globalDiscount, false],
+    [labels.discountTotal, viewModel.totals.discountTotal, false],
     [labels.taxableBase, viewModel.totals.taxableBase, false],
     [labels.tax, viewModel.totals.tax, false],
-    [labels.total, `${viewModel.totals.total} ${viewModel.quotation.currency}`, true]
+    [labels.total, viewModel.totals.total, true]
   ];
   for (const [label, value, bold] of totalRows) {
     text(label, 365, bold ? 11 : 9, bold);
-    text(value, 470, bold ? 11 : 9, bold);
+    const amount = bold ? `${value} ${viewModel.quotation.currency}` : value;
+    textAt(amount, PAGE_WIDTH - MARGIN - measurePdfText(amount, bold ? 11 : 9, bold), y, bold ? 11 : 9, bold);
     y -= bold ? 18 : 15;
   }
 
@@ -361,9 +381,7 @@ export function renderQuotationDocument(viewModel: QuotationDocumentViewModel): 
     text(labels.history, MARGIN, 10, true);
     y -= 15;
     for (const entry of viewModel.history) {
-      ensure(15);
-      text(entry, MARGIN, 8);
-      y -= 13;
+      paragraph(entry, PAGE_WIDTH - MARGIN * 2, 8);
     }
   }
 
@@ -373,48 +391,172 @@ export function renderQuotationDocument(viewModel: QuotationDocumentViewModel): 
     commands.push({ kind: "text", x: 480, y: 28, text: `${labels.page} ${index + 1} ${labels.of} ${pages.length}`, size: 7 });
   });
 
-  return createPdfDocument(pages, {
-    title: `${viewModel.quotation.title} ${viewModel.quotation.number} v${viewModel.quotation.version}`,
-    author: viewModel.organization.name,
-    subject: `${viewModel.client.name} - ${viewModel.totals.total}`,
-    creator: "Kaklen QuotationDocumentService",
-    createdAt: viewModel.generatedAt
-  });
+  return { pages, logo };
 }
 
 function renderTableHeader(page: PdfCommand[], y: number, labels: ReturnType<typeof documentLabels>): void {
   page.push({ kind: "rect", x: MARGIN, y: y - 6, width: PAGE_WIDTH - MARGIN * 2, height: 18, gray: 0.91 });
-  const headers: Array<[number, string]> = [
-    [MARGIN, labels.code], [88, labels.description], [285, labels.quantity], [350, labels.unitPrice],
-    [420, labels.discount], [480, labels.tax], [515, labels.total]
-  ];
-  headers.forEach(([x, label]) => page.push({ kind: "text", x, y, text: label, size: 7, bold: true }));
+  const headers = [labels.code, labels.productService, labels.quantity, labels.unitPrice, labels.discount, labels.tax, labels.total];
+  TABLE_COLUMNS.forEach((column, index) => {
+    page.push({ kind: "text", x: column.x + 2, y, text: headers[index], size: 7, bold: true });
+  });
 }
 
-function wrapText(value: string, maxCharacters: number): string[] {
-  const words = value.trim().split(/\s+/).filter(Boolean);
+interface MeasuredTableRow {
+  item: QuotationDocumentItemViewModel;
+  cells: string[][];
+  nameLines: string[];
+  descriptionLines: string[];
+  height: number;
+}
+
+function measureTableRow(item: QuotationDocumentItemViewModel): MeasuredTableRow {
+  const cells = [
+    wrapTextToWidth(item.code, TABLE_COLUMNS[0].width - 4, 7.5),
+    [],
+    wrapTextToWidth(item.quantityAndUnit, TABLE_COLUMNS[2].width - 4, 7.5),
+    wrapTextToWidth(item.unitPrice, TABLE_COLUMNS[3].width - 4, 7.5),
+    wrapTextToWidth(item.lineDiscount, TABLE_COLUMNS[4].width - 4, 7.5),
+    wrapTextToWidth(item.tax, TABLE_COLUMNS[5].width - 4, 7.5),
+    wrapTextToWidth(item.total, TABLE_COLUMNS[6].width - 4, 7.5)
+  ];
+  const nameLines = wrapTextToWidth(item.name, TABLE_COLUMNS[1].width - 4, 8, true);
+  const descriptionLines = wrapTextToWidth(item.description, TABLE_COLUMNS[1].width - 4, 7);
+  const productHeight = nameLines.length * 10 + (descriptionLines.length ? 3 + descriptionLines.length * 9 : 0);
+  const otherHeight = Math.max(...cells.map((lines) => Math.max(1, lines.length) * 10));
+  return {
+    item,
+    cells,
+    nameLines,
+    descriptionLines,
+    height: Math.max(productHeight, otherHeight) + 13
+  };
+}
+
+function renderTableRow(page: PdfCommand[], top: number, row: MeasuredTableRow): void {
+  const baseline = top - 10;
+  row.cells.forEach((lines, index) => {
+    if (index === 1) return;
+    lines.forEach((line, lineIndex) => {
+      page.push({
+        kind: "text",
+        x: TABLE_COLUMNS[index].x + 2,
+        y: baseline - lineIndex * 10,
+        text: line,
+        size: 7.5
+      });
+    });
+  });
+  let productY = baseline;
+  row.nameLines.forEach((line) => {
+    page.push({ kind: "text", x: TABLE_COLUMNS[1].x + 2, y: productY, text: line, size: 8, bold: true });
+    productY -= 10;
+  });
+  if (row.descriptionLines.length) productY -= 3;
+  row.descriptionLines.forEach((line) => {
+    page.push({ kind: "text", x: TABLE_COLUMNS[1].x + 2, y: productY, text: line, size: 7 });
+    productY -= 9;
+  });
+  page.push({
+    kind: "line",
+    x1: MARGIN,
+    y1: top - row.height + 4,
+    x2: PAGE_WIDTH - MARGIN,
+    y2: top - row.height + 4,
+    gray: 0.85
+  });
+}
+
+export function wrapTextToWidth(value: string, maxWidth: number, size: number, bold = false): string[] {
   const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const pieces = word.length > maxCharacters
-      ? word.match(new RegExp(`.{1,${maxCharacters}}`, "g")) ?? [word]
-      : [word];
-    for (const piece of pieces) {
-      const candidate = line ? `${line} ${piece}` : piece;
-      if (candidate.length > maxCharacters && line) {
-        lines.push(line);
-        line = piece;
-      } else {
-        line = candidate;
+  for (const paragraph of value.replace(/\r\n/g, "\n").split("\n")) {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean);
+    let line = "";
+    for (const word of words) {
+      const pieces = splitWordToWidth(word, maxWidth, size, bold);
+      for (const piece of pieces) {
+        const candidate = line ? `${line} ${piece}` : piece;
+        if (line && measurePdfText(candidate, size, bold) > maxWidth) {
+          lines.push(line);
+          line = piece;
+        } else {
+          line = candidate;
+        }
       }
     }
+    if (line) lines.push(line);
+    if (!words.length && value.includes("\n")) lines.push("");
   }
-  if (line) lines.push(line);
   return lines;
 }
 
-function truncate(value: string, max: number): string {
-  return value.length <= max ? value : `${value.slice(0, max - 3)}...`;
+function splitWordToWidth(word: string, maxWidth: number, size: number, bold: boolean): string[] {
+  if (measurePdfText(word, size, bold) <= maxWidth) return [word];
+  const pieces: string[] = [];
+  let piece = "";
+  for (const character of word) {
+    const candidate = `${piece}${character}`;
+    if (piece && measurePdfText(candidate, size, bold) > maxWidth) {
+      pieces.push(piece);
+      piece = character;
+    } else {
+      piece = candidate;
+    }
+  }
+  if (piece) pieces.push(piece);
+  return pieces;
+}
+
+interface ContactLine {
+  text: string;
+  size: number;
+  bold: boolean;
+}
+
+function contactLines(name: string, contacts: string, address: string, width: number): ContactLine[] {
+  return [
+    ...wrapTextToWidth(name, width, 9, true).map((text) => ({ text, size: 9, bold: true })),
+    ...wrapTextToWidth(contacts, width, 8).map((text) => ({ text, size: 8, bold: false })),
+    ...wrapTextToWidth(address, width, 8).map((text) => ({ text, size: 8, bold: false }))
+  ];
+}
+
+function renderContactColumn(
+  page: PdfCommand[],
+  heading: string,
+  lines: readonly ContactLine[],
+  x: number,
+  top: number
+): void {
+  page.push({ kind: "text", x, y: top, text: heading, size: 10, bold: true });
+  lines.forEach((line, index) => {
+    page.push({ kind: "text", x, y: top - 16 - index * 11, text: line.text, size: line.size, bold: line.bold });
+  });
+}
+
+let cachedQuotationLogo: PdfImageResource | null | undefined;
+
+function loadQuotationLogo(): PdfImageResource | null {
+  if (cachedQuotationLogo !== undefined) return cachedQuotationLogo;
+  const path = resolveQuotationLogoPath();
+  if (!path) {
+    if (process.env.CI === "true" || process.env.NODE_ENV === "production") {
+      throw new Error("Official quotation logo asset is missing");
+    }
+    cachedQuotationLogo = null;
+    return cachedQuotationLogo;
+  }
+  cachedQuotationLogo = loadPngImage(path, "KaklenLogo");
+  return cachedQuotationLogo;
+}
+
+export function resolveQuotationLogoPath(): string | null {
+  const candidates = [
+    resolve(process.cwd(), "apps/web/public/brand/logo-kaklen.png"),
+    resolve(process.cwd(), "../web/public/brand/logo-kaklen.png"),
+    resolve(__dirname, "../../../web/public/brand/logo-kaklen.png")
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
 function joinParts(parts: string[]): string {
@@ -447,22 +589,22 @@ function documentLabels(locale: Locale) {
     es: {
       quotation: "Cotización", version: "Versión", status: "Estado", issueDate: "Emisión", validUntil: "Vigencia",
       organization: "Empresa", client: "Cliente", executive: "Ejecutivo", items: "Detalle", noItems: "Sin ítems",
-      code: "Código", description: "Descripción", quantity: "Cantidad", unitPrice: "Precio", discount: "Desc.", tax: "IVA", total: "Total",
-      subtotal: "Subtotal", lineDiscount: "Descuento por línea", globalDiscount: "Descuento global", taxableBase: "Base imponible",
+      code: "Código", description: "Descripción", productService: "Producto o servicio", quantity: "Cantidad", unitPrice: "Precio", discount: "Descuento", tax: "IVA", total: "Total",
+      subtotal: "Subtotal neto", lineDiscount: "Descuento por línea", globalDiscount: "Descuento global", discountTotal: "Descuento total", taxableBase: "Base imponible",
       notes: "Notas", terms: "Términos", history: "Historial", generated: "Generado", page: "Página", of: "de"
     },
     en: {
       quotation: "Quotation", version: "Version", status: "Status", issueDate: "Issue date", validUntil: "Valid until",
       organization: "Company", client: "Client", executive: "Executive", items: "Details", noItems: "No items",
-      code: "Code", description: "Description", quantity: "Quantity", unitPrice: "Price", discount: "Disc.", tax: "Tax", total: "Total",
-      subtotal: "Subtotal", lineDiscount: "Line discount", globalDiscount: "Global discount", taxableBase: "Taxable base",
+      code: "Code", description: "Description", productService: "Product or service", quantity: "Quantity", unitPrice: "Price", discount: "Discount", tax: "VAT", total: "Total",
+      subtotal: "Net subtotal", lineDiscount: "Line discount", globalDiscount: "Global discount", discountTotal: "Total discount", taxableBase: "Taxable base",
       notes: "Notes", terms: "Terms", history: "History", generated: "Generated", page: "Page", of: "of"
     },
     "pt-BR": {
       quotation: "Cotação", version: "Versão", status: "Status", issueDate: "Emissão", validUntil: "Válida até",
       organization: "Empresa", client: "Cliente", executive: "Executivo", items: "Detalhes", noItems: "Sem itens",
-      code: "Código", description: "Descrição", quantity: "Quantidade", unitPrice: "Preço", discount: "Desc.", tax: "Imposto", total: "Total",
-      subtotal: "Subtotal", lineDiscount: "Desconto por item", globalDiscount: "Desconto global", taxableBase: "Base tributável",
+      code: "Código", description: "Descrição", productService: "Produto ou serviço", quantity: "Quantidade", unitPrice: "Preço", discount: "Desconto", tax: "IVA", total: "Total",
+      subtotal: "Subtotal líquido", lineDiscount: "Desconto por item", globalDiscount: "Desconto global", discountTotal: "Desconto total", taxableBase: "Base tributável",
       notes: "Notas", terms: "Termos", history: "Histórico", generated: "Gerado", page: "Página", of: "de"
     }
   };
