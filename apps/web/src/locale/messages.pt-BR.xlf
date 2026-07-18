@@ -2247,20 +2247,28 @@
         <target>Selecionar para solicitar alterações</target>
       </trans-unit>
       <trans-unit id="quantityTimesPriceLabel" datatype="html">
-        <source>Cantidad × precio</source>
-        <target>Quantidade × preço</target>
+        <source>Cantidad × precio unitario</source>
+        <target>Quantidade × preço unitário</target>
       </trans-unit>
-      <trans-unit id="lineNetLabel" datatype="html">
-        <source>Neto</source>
-        <target>Líquido</target>
+      <trans-unit id="netSubtotalLabel" datatype="html">
+        <source>Subtotal neto</source>
+        <target>Subtotal líquido</target>
       </trans-unit>
       <trans-unit id="lineDiscountLabel" datatype="html">
-        <source>Descuento de línea</source>
+        <source>Descuento por línea</source>
         <target>Desconto do item</target>
       </trans-unit>
       <trans-unit id="allocatedGlobalDiscountLabel" datatype="html">
-        <source>Descuento global prorrateado</source>
+        <source>Descuento global asignado</source>
         <target>Desconto global rateado</target>
+      </trans-unit>
+      <trans-unit id="totalDiscountLabel" datatype="html">
+        <source>Descuento total</source>
+        <target>Desconto total</target>
+      </trans-unit>
+      <trans-unit id="taxableBaseLabel" datatype="html">
+        <source>Base imponible</source>
+        <target>Base tributável</target>
       </trans-unit>
       <trans-unit id="lineTaxLabel" datatype="html">
         <source>IVA</source>
@@ -2270,25 +2278,13 @@
         <source>Total línea, IVA incluido</source>
         <target>Total do item, IVA incluído</target>
       </trans-unit>
-      <trans-unit id="netSubtotalLabel" datatype="html">
-        <source>Subtotal neto</source>
-        <target>Subtotal líquido</target>
-      </trans-unit>
       <trans-unit id="lineDiscountTotalLabel" datatype="html">
-        <source>Descuento por líneas</source>
-        <target>Descontos por item</target>
+        <source>Descuento por línea</source>
+        <target>Desconto por item</target>
       </trans-unit>
       <trans-unit id="globalDiscountTotalLabel" datatype="html">
         <source>Descuento global</source>
         <target>Desconto global</target>
-      </trans-unit>
-      <trans-unit id="totalDiscountLabel" datatype="html">
-        <source>Descuento total</source>
-        <target>Desconto total</target>
-      </trans-unit>
-      <trans-unit id="taxableBaseLabel" datatype="html">
-        <source>Base imponible</source>
-        <target>Base tributável</target>
       </trans-unit>
       <trans-unit id="taxTotalLabel" datatype="html">
         <source>IVA</source>
@@ -2431,16 +2427,12 @@
         <target>Reenviar por e-mail</target>
       </trans-unit>
       <trans-unit id="newVersionButton" datatype="html">
-        <source>Nueva versión</source>
-        <target>Nova versão</target>
+        <source>Crear nueva versión</source>
+        <target>Criar nova versão</target>
       </trans-unit>
-      <trans-unit id="quotationChangesRequestedBannerTitle" datatype="html">
-        <source>El cliente solicitó cambios</source>
-        <target>O cliente solicitou alterações</target>
-      </trans-unit>
-      <trans-unit id="quotationChangesRequestedBannerBody" datatype="html">
-        <source>Revisa sus comentarios antes de crear una nueva versión.</source>
-        <target>Revise os comentários antes de criar uma nova versão.</target>
+      <trans-unit id="quotationChangesRequestedBanner" datatype="html">
+        <source>El cliente solicitó cambios. Revisa el comentario antes de crear una nueva versión.</source>
+        <target>O cliente solicitou alterações. Revise o comentário antes de criar uma nova versão.</target>
       </trans-unit>
       <trans-unit id="secureLinkReadyTitle" datatype="html">
         <source>Enlace seguro listo</source>
@@ -2470,13 +2462,17 @@
         <source>Solicitud de cambios</source>
         <target>Solicitação de alterações</target>
       </trans-unit>
+      <trans-unit id="changeRequestRelatedItems" datatype="html">
+        <source>Ítems relacionados:</source>
+        <target>Itens relacionados:</target>
+      </trans-unit>
       <trans-unit id="changeRequestNoItems" datatype="html">
-        <source>No se indicaron ítems específicos.</source>
-        <target>Nenhum item específico foi selecionado.</target>
+        <source>Sin ítems específicos</source>
+        <target>Sem itens específicos</target>
       </trans-unit>
       <trans-unit id="changeRequestMetadata" datatype="html">
-        <source>Versión <x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></source>
-        <target>Versão <x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada em <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></target>
+        <source>Versión v<x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></source>
+        <target>Versão v<x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada em <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></target>
       </trans-unit>
       <trans-unit id="downloadPdfButton" datatype="html">
         <source>Descargar PDF</source>
@@ -2826,13 +2822,13 @@
         <source>Aprobadas</source>
         <target>Aprovadas</target>
       </trans-unit>
-      <trans-unit id="approvedAmountLabel" datatype="html">
-        <source>Monto aprobado</source>
-        <target>Valor aprovado</target>
+      <trans-unit id="approvedBaseCurrencyLabel" datatype="html">
+        <source>Aprobado en moneda base</source>
+        <target>Aprovado na moeda base</target>
       </trans-unit>
-      <trans-unit id="approvedOtherCurrenciesLabel" datatype="html">
-        <source>Otras monedas aprobadas</source>
-        <target>Outras moedas aprovadas</target>
+      <trans-unit id="approvedOtherAmountsLabel" datatype="html">
+        <source>Otros importes aprobados</source>
+        <target>Outros valores aprovados</target>
       </trans-unit>
       <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>

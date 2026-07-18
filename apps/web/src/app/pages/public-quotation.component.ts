@@ -53,10 +53,12 @@ import { MoneyInputDirective } from "../shared/forms/money-input.directive";
               </label>
               <div><strong>{{ item.name }}</strong><small>{{ item.code || '' }} · {{ item.quantity }} {{ item.unit }}</small><p *ngIf="item.description">{{ item.description }}</p></div>
               <dl class="quotation-line-financial portal-item-money">
-                <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio</dt><dd>{{ item.quantity }} × {{ money(item.unitPrice, data.quotation.currency) }}</dd></div>
-                <div><dt i18n="@@lineNetLabel">Neto</dt><dd>{{ money(item.subtotal, data.quotation.currency) }}</dd></div>
-                <div><dt i18n="@@lineDiscountLabel">Descuento de línea</dt><dd>{{ money(item.lineDiscountTotal, data.quotation.currency) }}</dd></div>
-                <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global prorrateado</dt><dd>{{ money(item.globalDiscountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio unitario</dt><dd>{{ item.quantity }} × {{ money(item.unitPrice, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ money(item.subtotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@lineDiscountLabel">Descuento por línea</dt><dd>{{ money(item.lineDiscountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global asignado</dt><dd>{{ money(item.globalDiscountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ money(item.discountTotal, data.quotation.currency) }}</dd></div>
+                <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ money(item.taxableBase, data.quotation.currency) }}</dd></div>
                 <div><dt i18n="@@lineTaxLabel">IVA</dt><dd>{{ money(item.taxTotal, data.quotation.currency) }}</dd></div>
                 <div class="line-total"><dt i18n="@@lineTotalVatIncludedLabel">Total línea, IVA incluido</dt><dd>{{ money(item.total, data.quotation.currency) }}</dd></div>
               </dl>
@@ -64,7 +66,7 @@ import { MoneyInputDirective } from "../shared/forms/money-input.directive";
           </div>
           <dl class="portal-totals">
             <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ money(data.quotation.subtotal, data.quotation.currency) }}</dd></div>
-            <div><dt i18n="@@lineDiscountTotalLabel">Descuento por líneas</dt><dd>{{ money(data.quotation.lineDiscountTotal, data.quotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineDiscountTotalLabel">Descuento por línea</dt><dd>{{ money(data.quotation.lineDiscountTotal, data.quotation.currency) }}</dd></div>
             <div><dt i18n="@@globalDiscountTotalLabel">Descuento global</dt><dd>{{ money(data.quotation.globalDiscountTotal, data.quotation.currency) }}</dd></div>
             <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ money(data.quotation.discountTotal, data.quotation.currency) }}</dd></div>
             <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ money(data.quotation.taxableBase, data.quotation.currency) }}</dd></div>

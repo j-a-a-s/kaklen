@@ -127,6 +127,6 @@ export interface QuotationSummary {
   expired: number;
   cancelled: number;
   baseCurrency: string;
-  baseCurrencyAmountApproved: string;
-  amountApprovedByCurrency: Array<{ currency: string; amount: string }>;
+  approvedAmounts: Array<{ currency: string; amount: string; quotationCount: number }>;
+  baseCurrencyApprovedAmount: string;
 }

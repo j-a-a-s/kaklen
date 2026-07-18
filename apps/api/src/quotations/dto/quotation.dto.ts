@@ -276,3 +276,63 @@ export class SendQuotationEmailDto {
   @IsIn(["es", "en", "pt-BR"])
   locale?: "es" | "en" | "pt-BR";
 }
+
+export class QuotationChangeRequestItemResponseDto {
+  @ApiProperty({ minimum: 0, example: 0 })
+  index!: number;
+
+  @ApiProperty({ nullable: true, example: "SERV-001" })
+  code!: string | null;
+
+  @ApiProperty({ example: "Produccion integral de eventos" })
+  name!: string;
+}
+
+export class QuotationChangeRequestResponseDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ format: "uuid" })
+  quotationId!: string;
+
+  @ApiProperty({ minimum: 1, example: 2 })
+  quotationVersion!: number;
+
+  @ApiProperty({ example: "Solicito descuentos para los servicios seleccionados." })
+  comment!: string;
+
+  @ApiProperty({ type: [Number], example: [0] })
+  itemIndexes!: number[];
+
+  @ApiProperty({ type: QuotationChangeRequestItemResponseDto, isArray: true })
+  items!: QuotationChangeRequestItemResponseDto[];
+
+  @ApiProperty({ format: "date-time", example: "2026-07-17T21:44:00.000Z" })
+  createdAt!: string;
+}
+
+export class QuotationApprovedAmountResponseDto {
+  @ApiProperty({ minLength: 3, maxLength: 3, example: "CLP" })
+  currency!: string;
+
+  @ApiProperty({ example: "150000" })
+  amount!: string;
+
+  @ApiProperty({ minimum: 1, example: 2 })
+  quotationCount!: number;
+}
+
+export class QuotationSummaryResponseDto {
+  @ApiProperty() total!: number;
+  @ApiProperty() draft!: number;
+  @ApiProperty() sent!: number;
+  @ApiProperty() changesRequested!: number;
+  @ApiProperty() approved!: number;
+  @ApiProperty() rejected!: number;
+  @ApiProperty() expired!: number;
+  @ApiProperty() cancelled!: number;
+  @ApiProperty({ example: "CLP" }) baseCurrency!: string;
+  @ApiProperty({ type: QuotationApprovedAmountResponseDto, isArray: true })
+  approvedAmounts!: QuotationApprovedAmountResponseDto[];
+  @ApiProperty({ example: "150000" }) baseCurrencyApprovedAmount!: string;
+}

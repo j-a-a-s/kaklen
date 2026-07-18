@@ -89,8 +89,8 @@ export interface QuotationSummary {
   expired: number;
   cancelled: number;
   baseCurrency: string;
-  baseCurrencyAmountApproved: string;
-  amountApprovedByCurrency: Array<{ currency: string; amount: string }>;
+  approvedAmounts: Array<{ currency: string; amount: string; quotationCount: number }>;
+  baseCurrencyApprovedAmount: string;
 }
 
 export interface QuotationPdfDocument {
@@ -109,7 +109,7 @@ export interface QuotationChangeRequestView {
   comment: string;
   itemIndexes: number[];
   items: Array<{ index: number; name: string; code: string | null }>;
-  createdAt: Date;
+  createdAt: string;
 }
 
 @Injectable()
@@ -183,6 +183,7 @@ export class QuotationsService {
         by: ["currency"],
         where: { organizationId, archivedAt: null, status: QuotationStatus.APPROVED },
         _sum: { total: true },
+        _count: { _all: true },
         orderBy: { currency: "asc" }
       }),
       this.prisma.organization.findFirst({ where: { id: organizationId }, select: { currency: true } })
@@ -191,11 +192,18 @@ export class QuotationsService {
       const item = grouped.find((group) => group.status === status);
       return typeof item?._count === "object" ? item._count._all ?? 0 : 0;
     };
-    const baseCurrency = organization?.currency ?? "CLP";
-    const amountApprovedByCurrency = approvedByCurrency.map((group) => ({
-      currency: group.currency,
-      amount: parseMoney((group._sum?.total ?? new Prisma.Decimal(0)).toString(), group.currency)
-    }));
+    const baseCurrency = (organization?.currency ?? "CLP").toUpperCase();
+    const approvedAmounts = approvedByCurrency
+      .map((group) => ({
+        currency: group.currency.toUpperCase(),
+        amount: parseMoney((group._sum?.total ?? new Prisma.Decimal(0)).toString(), group.currency),
+        quotationCount: typeof group._count === "object" ? group._count._all ?? 0 : 0
+      }))
+      .sort((left, right) => {
+        if (left.currency === baseCurrency) return -1;
+        if (right.currency === baseCurrency) return 1;
+        return left.currency.localeCompare(right.currency);
+      });
     return {
       total: grouped.reduce((sum, item) => sum + (typeof item._count === "object" ? item._count._all ?? 0 : 0), 0),
       draft: count(QuotationStatus.DRAFT),
@@ -206,9 +214,9 @@ export class QuotationsService {
       expired: count(QuotationStatus.EXPIRED),
       cancelled: count(QuotationStatus.CANCELLED),
       baseCurrency,
-      baseCurrencyAmountApproved: amountApprovedByCurrency.find((item) => item.currency === baseCurrency)?.amount ??
+      approvedAmounts,
+      baseCurrencyApprovedAmount: approvedAmounts.find((item) => item.currency === baseCurrency)?.amount ??
         parseMoney("0", baseCurrency),
-      amountApprovedByCurrency
     };
   }
 
@@ -416,7 +424,7 @@ export class QuotationsService {
           const item = request.quotation.items[index];
           return item ? [{ index, name: item.name, code: item.code }] : [];
         }),
-        createdAt: request.createdAt
+        createdAt: request.createdAt.toISOString()
       };
     });
   }

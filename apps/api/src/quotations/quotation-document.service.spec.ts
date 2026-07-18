@@ -27,7 +27,45 @@ describe("QuotationDocumentService", () => {
     expect(view.totals.globalDiscount).toContain("9.500");
     expect(view.totals.discountTotal).toContain("19.500");
     expect(view.totals.taxableBase).toContain("180.500");
+    expect(view.items[0]).toEqual(expect.objectContaining({
+      subtotal: expect.stringContaining("100.000"),
+      lineDiscount: expect.stringContaining("10.000"),
+      globalDiscount: expect.stringContaining("4.500"),
+      discountTotal: expect.stringContaining("14.500"),
+      taxableBase: expect.stringContaining("85.500")
+    }));
     expect(view.items[0].tax).toContain("16.245");
+  });
+
+  it("renders the exact CLP fixture with a labeled financial breakdown per line", () => {
+    const source = documentSource([
+      line({ quantity: "2", unitPrice: "210000" }),
+      line({ code: "SERV-2", quantity: "1", unitPrice: "520000" }),
+      line({ code: "SERV-3", quantity: "19", unitPrice: "24900" })
+    ], "0", "CLP");
+    const view = service.buildViewModel(source, "es");
+    const commands = buildQuotationDocumentLayout(view).pages.flat()
+      .filter((command) => command.kind === "text")
+      .map((command) => command.text)
+      .join(" ");
+
+    expect(view.totals).toEqual(expect.objectContaining({
+      subtotal: "$1.413.100",
+      tax: "$268.489",
+      total: "$1.681.589"
+    }));
+    expect(view.items.map((item) => item.total)).toEqual(["$499.800", "$618.800", "$562.989"]);
+    for (const label of [
+      "Subtotal neto:",
+      "Descuento por línea:",
+      "Descuento global asignado:",
+      "Descuento total:",
+      "Base imponible:",
+      "IVA:",
+      "Total línea, IVA incluido:"
+    ]) {
+      expect(commands).toContain(label);
+    }
   });
 
   it.each([
@@ -62,11 +100,13 @@ describe("QuotationDocumentService", () => {
       description: "Descripción extensa que debe mantenerse completa dentro de la misma fila del documento."
     }));
     const source = documentSource(lines, "3.25", "USD");
-    const document = service.render(service.buildViewModel(source, "en"));
+    const view = service.buildViewModel(source, "en");
+    const layout = buildQuotationDocumentLayout(view);
+    const document = service.render(view);
     const text = document.toString("latin1");
 
     expect(document.subarray(0, 4).toString()).toBe("%PDF");
-    expect(text).toMatch(/\/Count [2-9]/);
+    expect(layout.pages.length).toBeGreaterThan(1);
     expect(text).toContain("Kaklen QuotationDocumentService");
     expect(text).toContain("Page 1 of");
     expect(text).toContain("Servicio profesional 1");

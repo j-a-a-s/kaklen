@@ -34,6 +34,8 @@ import {
   ChangeQuotationStatusDto,
   CreateQuotationDto,
   ListQuotationsQueryDto,
+  QuotationChangeRequestResponseDto,
+  QuotationSummaryResponseDto,
   SendQuotationEmailDto,
   UpdateQuotationDto
 } from "./dto/quotation.dto";
@@ -73,7 +75,7 @@ export class QuotationsController {
   @Get("summary")
   @RequirePermissions("quotations.read")
   @ApiOperation({ summary: "Quotation summary", description: "Requires quotations.read." })
-  @ApiOkResponse()
+  @ApiOkResponse({ type: QuotationSummaryResponseDto })
   summary(@Param("organizationId", new ParseUUIDPipe()) organizationId: string): Promise<QuotationSummary> {
     return this.quotationsService.summary(organizationId);
   }
@@ -81,7 +83,7 @@ export class QuotationsController {
   @Get(":quotationId/change-requests")
   @RequirePermissions("quotations.read")
   @ApiOperation({ summary: "List quotation change requests", description: "Requires quotations.read." })
-  @ApiOkResponse()
+  @ApiOkResponse({ type: QuotationChangeRequestResponseDto, isArray: true })
   changeRequests(
     @Param("organizationId", new ParseUUIDPipe()) organizationId: string,
     @Param("quotationId", new ParseUUIDPipe()) quotationId: string

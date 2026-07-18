@@ -281,7 +281,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     const token = (await link.json()).publicToken;
     const portal = await api.get(`/api/portal/quotations/${token}`);
     expect(portal.status()).toBe(200);
-    expect(await portal.json()).toMatchObject({
+    const portalBody = await portal.json();
+    expect(portalBody).toMatchObject({
       quotation: {
         subtotal: "1413100",
         lineDiscountTotal: "26000",
@@ -292,6 +293,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
         total: "1634142"
       }
     });
+    expect(portalBody.quotation.items.map((item) => item.total)).toEqual(["494802", "581981", "557359"]);
+    expect(portalBody.quotation.items.reduce((sum, item) => sum + BigInt(item.total), 0n).toString()).toBe("1634142");
 
     const payment = await api.post(`/api/portal/quotations/${token}/payments`, {
       data: { idempotencyKey: crypto.randomUUID(), locale: "es" }
@@ -303,6 +306,66 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(pdf.status()).toBe(200);
     expect(pdf.headers()["content-type"]).toContain("application/pdf");
     expect((await pdf.body()).subarray(0, 4).toString("ascii")).toBe("%PDF");
+  });
+
+  test("keeps approved quotation KPIs separated by currency", async ({ page }) => {
+    const approvedFixtures = [
+      ["CLP", "100000"],
+      ["CLP", "50000"],
+      ["USD", "500.25"],
+      ["EUR", "100.50"],
+      ["BRL", "800.00"]
+    ];
+    for (const [currency, unitPrice] of approvedFixtures) {
+      const create = await authorizedPost(`/organizations/${organizationId}/quotations`, {
+        clientId,
+        issueDate: "2026-07-17",
+        validUntil: "2026-08-31",
+        currency,
+        items: [{
+          type: "CUSTOM",
+          name: `Approved ${currency} ${unitPrice}`,
+          quantity: "1",
+          unit: "unit",
+          unitPrice,
+          discountType: "NONE",
+          discountValue: "0",
+          taxPercent: "0"
+        }]
+      });
+      expect(create.status()).toBe(201);
+      const quotation = await create.json();
+      expect((await authorizedPost(`/organizations/${organizationId}/quotations/${quotation.id}/send`, {})).status()).toBe(200);
+      expect((await authorizedPost(`/organizations/${organizationId}/quotations/${quotation.id}/approve`, {})).status()).toBe(200);
+    }
+
+    const summary = await authorizedGet(`/organizations/${organizationId}/quotations/summary`);
+    expect(summary.status()).toBe(200);
+    expect(await summary.json()).toMatchObject({
+      baseCurrency: "CLP",
+      baseCurrencyApprovedAmount: "150000",
+      approvedAmounts: [
+        { currency: "CLP", amount: "150000", quotationCount: 2 },
+        { currency: "BRL", amount: "800.00", quotationCount: 1 },
+        { currency: "EUR", amount: "100.50", quotationCount: 1 },
+        { currency: "USD", amount: "500.25", quotationCount: 1 }
+      ]
+    });
+    const isolatedSummary = await authorizedGet(`/organizations/${otherOrganizationId}/quotations/summary`);
+    expect(isolatedSummary.status()).toBe(200);
+    expect(await isolatedSummary.json()).toMatchObject({
+      baseCurrency: "CLP",
+      baseCurrencyApprovedAmount: "0",
+      approvedAmounts: []
+    });
+
+    await page.context().addCookies((await api.storageState()).cookies);
+    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
+    await expect(page.getByText("Aprobado en moneda base", { exact: true })).toBeVisible();
+    await expect(page.getByText("$150.000 CLP", { exact: true })).toBeVisible();
+    await expect(page.getByText("BRL 800,00", { exact: true })).toBeVisible();
+    await expect(page.getByText("EUR 100,50", { exact: true })).toBeVisible();
+    await expect(page.getByText("USD 500,25", { exact: true })).toBeVisible();
   });
 
   test("manages catalog products and services", async () => {
@@ -406,6 +469,10 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
     const changeComment = "Solicito descuentos para los servicios seleccionados.";
     await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
+    const lineBreakdown = page.locator(".portal-item-money").first();
+    for (const label of ["Subtotal neto", "Descuento por línea", "Descuento global asignado", "Descuento total", "Base imponible", "IVA", "Total línea, IVA incluido"]) {
+      await expect(lineBreakdown.getByText(label, { exact: true })).toBeVisible();
+    }
     await page.getByRole("button", { name: "Solicitar cambios" }).click();
     await page.getByRole("checkbox", { name: "Seleccionar para solicitar cambios" }).first().check();
     await page.getByLabel("Comentario").fill(changeComment);
@@ -452,13 +519,17 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     await expect(page.locator("#change-requests")).toContainText("Versión 1");
     await expect(page.locator("#change-requests")).toContainText("Producto MVP");
     await expect(page.locator("#change-requests small")).toContainText(/Enviada .*\d/);
-    await expect(page.locator("#change-requests").getByRole("button", { name: "Nueva versión" })).toBeVisible();
-    await expect(page.getByText("El cliente solicitó cambios", { exact: true })).toBeVisible();
+    await expect(page.locator("#change-requests").getByRole("button", { name: "Crear nueva versión" })).toBeVisible();
+    await expect(page.getByText("El cliente solicitó cambios. Revisa el comentario antes de crear una nueva versión.", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Abrir notificaciones" }).click();
     const notificationItem = page.locator(".notification-item").filter({ hasText: changeComment });
     await expect(notificationItem).toBeVisible();
     await notificationItem.click();
     await expect(page).toHaveURL(new RegExp(`/quotations/${quotationId}#change-requests$`));
+    await expect(page.locator("#change-requests")).toHaveClass(/change-requests-highlighted/);
+    const notificationsAfterOpen = await authorizedGet(`/organizations/${organizationId}/notifications`);
+    const openedFeedback = (await notificationsAfterOpen.json()).find((notification) => notification.id === feedbackNotification.id);
+    expect(openedFeedback.readAt).toBeTruthy();
 
     const version = await authorizedPost(`/organizations/${organizationId}/quotations/${quotationId}/new-version`, {});
     expect(version.status()).toBe(200);
@@ -546,6 +617,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   });
 
   test("renders the public quotation and payment checkout without horizontal overflow", async ({ page }) => {
+    await page.context().addCookies((await api.storageState()).cookies);
     for (const locale of ["es", "en", "pt-BR"]) {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`${webBase}/${locale}/p/quotations/${publicToken}`);
@@ -565,6 +637,15 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       await page.setViewportSize(viewport);
       await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
       await expect(page.locator("kaklen-public-quotation")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      const financialLabelSizes = await page.locator(".quotation-line-financial dt").evaluateAll((elements) =>
+        elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize))
+      );
+      expect(financialLabelSizes.length).toBeGreaterThan(0);
+      expect(financialLabelSizes.every((size) => size >= 11)).toBe(true);
+      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
+      await expect(page.locator("kaklen-quotation-detail")).toBeVisible();
+      await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await page.goto(`${webBase}/es/p/payments/${checkoutToken}`);
       await expect(page.locator("kaklen-payment-checkout")).toBeVisible();

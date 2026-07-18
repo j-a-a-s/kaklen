@@ -57,9 +57,12 @@ test("centralizes currency precision, parsing, formatting and minor units", () =
   assert.equal(validateMoneyPrecision("1000.50", "CLP"), false);
   assert.equal(parseMoney("001000.00", "CLP"), "1000");
   assert.equal(parseMoney("10.5", "USD"), "10.50");
+  assert.equal(parseMoney("-0", "CLP"), "0");
+  assert.equal(parseMoney("-0.00", "USD"), "0.00");
   assert.equal(moneyToMinorUnits("1000", "CLP"), "1000");
   assert.equal(moneyToMinorUnits("10.50", "USD"), "1050");
   assert.equal(formatMoney("59500", "CLP", "es-CL"), "$59.500");
+  assert.equal(formatMoney("-0", "CLP", "es-CL"), "$0");
 });
 
 test("rejects fractional CLP money instead of rounding silently", () => {

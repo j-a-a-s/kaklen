@@ -254,18 +254,46 @@ describe("QuotationsService", () => {
       totalPages: 1
     });
     await expect(realService.summary("org-1")).resolves.toMatchObject({
-      total: 2,
+      total: 6,
       draft: 1,
-      approved: 1,
+      approved: 5,
       baseCurrency: "CLP",
-      baseCurrencyAmountApproved: "1190",
-      amountApprovedByCurrency: [
-        { currency: "BRL", amount: "50.25" },
-        { currency: "CLP", amount: "1190" },
-        { currency: "EUR", amount: "75.50" },
-        { currency: "USD", amount: "100.10" }
+      baseCurrencyApprovedAmount: "150000",
+      approvedAmounts: [
+        { currency: "CLP", amount: "150000", quotationCount: 2 },
+        { currency: "BRL", amount: "800.00", quotationCount: 1 },
+        { currency: "EUR", amount: "100.50", quotationCount: 1 },
+        { currency: "USD", amount: "500.25", quotationCount: 1 }
       ]
     });
+    expect(prisma.quotation.groupBy).toHaveBeenNthCalledWith(2, {
+      by: ["currency"],
+      where: { organizationId: "org-1", archivedAt: null, status: QuotationStatus.APPROVED },
+      _sum: { total: true },
+      _count: { _all: true },
+      orderBy: { currency: "asc" }
+    });
+  });
+
+  it("keeps single-currency and empty approved summaries exact", async () => {
+    const singleCurrency = makeQuotationsPrisma({
+      approvedByCurrency: [{ currency: "USD", amount: "20.5", count: 1 }],
+      organizationCurrency: "USD"
+    });
+    const empty = makeQuotationsPrisma({ approvedByCurrency: [] });
+
+    await expect(new QuotationsService(singleCurrency as unknown as ConstructorParameters<typeof QuotationsService>[0])
+      .summary("org-1")).resolves.toMatchObject({
+        baseCurrency: "USD",
+        baseCurrencyApprovedAmount: "20.50",
+        approvedAmounts: [{ currency: "USD", amount: "20.50", quotationCount: 1 }]
+      });
+    await expect(new QuotationsService(empty as unknown as ConstructorParameters<typeof QuotationsService>[0])
+      .summary("org-1")).resolves.toMatchObject({
+        baseCurrency: "CLP",
+        baseCurrencyApprovedAmount: "0",
+        approvedAmounts: []
+      });
   });
 
   it("returns newest tenant change requests with version item snapshots", async () => {
@@ -280,7 +308,7 @@ describe("QuotationsService", () => {
         comment: "Cambiar el alcance",
         itemIndexes: [0],
         items: [{ index: 0, name: "Historical consulting", code: "HISTORICAL" }],
-        createdAt: new Date("2026-07-16T00:00:00.000Z")
+        createdAt: "2026-07-16T00:00:00.000Z"
       }
     ]);
     expect(prisma.quotationChangeRequest.findMany).toHaveBeenCalledWith({
@@ -301,6 +329,16 @@ describe("QuotationsService", () => {
         }
       }
     });
+    expect(JSON.stringify(await realService.changeRequests("org-1", "quotation-1")))
+      .not.toMatch(/publicToken|tokenHash|publicLinkId/);
+  });
+
+  it("rejects change requests outside the quotation organization", async () => {
+    const prisma = makeQuotationsPrisma({ quotation: null });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.changeRequests("org-2", "quotation-1")).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.quotationChangeRequest.findMany).not.toHaveBeenCalled();
   });
 
   it("uses default list pagination and date filter permutations", async () => {
@@ -678,6 +716,8 @@ function makeQuotationsPrisma(options: {
   catalogItems?: unknown[];
   quotationStatus?: QuotationStatus;
   quotation?: unknown;
+  organizationCurrency?: string;
+  approvedByCurrency?: Array<{ currency: string; amount: string; count: number }>;
 } = {}) {
   const catalogItems = options.catalogItems ?? [catalogItem()];
   const currentQuotation = options.quotation === undefined ? quotation({ status: options.quotationStatus ?? QuotationStatus.DRAFT }) : options.quotation;
@@ -686,7 +726,7 @@ function makeQuotationsPrisma(options: {
       findFirst: jest.fn(async () => ({
         id: "org-1",
         name: "Kaklen",
-        currency: "CLP",
+        currency: options.organizationCurrency ?? "CLP",
         deletedAt: null
       }))
     },
@@ -709,15 +749,19 @@ function makeQuotationsPrisma(options: {
       findMany: jest.fn(async () => [quotation()]),
       count: jest.fn(async () => 1),
       groupBy: jest.fn(async ({ by }: { by: string[] }) => by.includes("currency")
-        ? [
-            { currency: "BRL", _sum: { total: new Prisma.Decimal("50.25") } },
-            { currency: "CLP", _sum: { total: new Prisma.Decimal(1190) } },
-            { currency: "EUR", _sum: { total: new Prisma.Decimal("75.50") } },
-            { currency: "USD", _sum: { total: new Prisma.Decimal("100.10") } }
-          ]
+        ? (options.approvedByCurrency ?? [
+            { currency: "BRL", amount: "800.00", count: 1 },
+            { currency: "CLP", amount: "150000", count: 2 },
+            { currency: "EUR", amount: "100.50", count: 1 },
+            { currency: "USD", amount: "500.25", count: 1 }
+          ]).map((group) => ({
+            currency: group.currency,
+            _sum: { total: new Prisma.Decimal(group.amount) },
+            _count: { _all: group.count }
+          }))
         : [
             { status: QuotationStatus.DRAFT, _count: { _all: 1 } },
-            { status: QuotationStatus.APPROVED, _count: { _all: 1 } }
+            { status: QuotationStatus.APPROVED, _count: { _all: 5 } }
           ]),
       create: jest.fn(async () => quotation()),
       update: jest.fn(async () => quotation())

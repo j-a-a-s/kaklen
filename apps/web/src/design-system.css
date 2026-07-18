@@ -2265,6 +2265,28 @@ kaklen-wizard-steps {
   overflow-wrap: anywhere;
 }
 
+.change-requests-highlighted {
+  animation: change-requests-highlight 1.8s ease-out;
+}
+
+@keyframes change-requests-highlight {
+  0%, 30% {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 24%, transparent);
+  }
+
+  100% {
+    border-color: var(--color-border);
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .change-requests-highlighted {
+    animation-duration: 1ms;
+  }
+}
+
 .approved-currency-breakdown {
   display: flex;
   flex-wrap: wrap;

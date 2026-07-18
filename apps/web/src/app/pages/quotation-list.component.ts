@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
+import { formatRegionalCurrency, formatRegionalDate, formatRegionalMoneyValue } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { PaginatedQuotations, QuotationStatus, QuotationSummary } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
@@ -30,11 +30,11 @@ import { StatusBadgeComponent } from "../shared/status-badge.component";
           <span><strong>{{ currentSummary.draft }}</strong><small i18n="@@quotationDraftPluralLabel">Borradores</small></span>
           <span><strong>{{ currentSummary.sent }}</strong><small i18n="@@quotationSentPluralLabel">Enviadas</small></span>
           <span><strong>{{ currentSummary.approved }}</strong><small i18n="@@quotationApprovedPluralLabel">Aprobadas</small></span>
-          <span><strong>{{ moneyLabel(currentSummary.baseCurrencyAmountApproved, currentSummary.baseCurrency) }}</strong><small i18n="@@approvedAmountLabel">Monto aprobado</small></span>
+          <span><strong>{{ baseApprovedAmountLabel(currentSummary) }}</strong><small i18n="@@approvedBaseCurrencyLabel">Aprobado en moneda base</small></span>
         </div>
         <div class="approved-currency-breakdown" *ngIf="otherApprovedAmounts(currentSummary).length">
-          <span i18n="@@approvedOtherCurrenciesLabel">Otras monedas aprobadas</span>
-          <strong *ngFor="let item of otherApprovedAmounts(currentSummary)">{{ moneyLabel(item.amount, item.currency) }}</strong>
+          <span i18n="@@approvedOtherAmountsLabel">Otros importes aprobados</span>
+          <strong *ngFor="let item of otherApprovedAmounts(currentSummary)">{{ approvedAmountLabel(item) }}</strong>
         </div>
       </section>
 
@@ -189,8 +189,21 @@ export class QuotationListComponent implements OnInit {
     });
   }
 
-  otherApprovedAmounts(summary: QuotationSummary): Array<{ currency: string; amount: string }> {
-    return summary.amountApprovedByCurrency.filter((item) => item.currency !== summary.baseCurrency);
+  baseApprovedAmountLabel(summary: QuotationSummary): string {
+    return `${this.moneyLabel(summary.baseCurrencyApprovedAmount, summary.baseCurrency)} ${summary.baseCurrency}`;
+  }
+
+  approvedAmountLabel(item: QuotationSummary["approvedAmounts"][number]): string {
+    const organization = this.organizationService.activeOrganization();
+    const value = formatRegionalMoneyValue(item.amount, {
+      currency: item.currency,
+      numberFormat: organization?.numberFormat ?? "es"
+    });
+    return `${item.currency} ${value}`;
+  }
+
+  otherApprovedAmounts(summary: QuotationSummary): QuotationSummary["approvedAmounts"] {
+    return summary.approvedAmounts.filter((item) => item.currency !== summary.baseCurrency);
   }
 
   dateLabel(value: string): string {

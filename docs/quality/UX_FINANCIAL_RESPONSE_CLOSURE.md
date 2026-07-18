@@ -1,8 +1,8 @@
 # Cierre UX, financiero y respuesta del cliente
 
-Fecha de cierre: 2026-07-17
+Fecha de cierre: 2026-07-18
 Rama: main
-SHA inicial: 3d183a4381d50d4495e940705e2c3519419bbadd
+SHA inicial: 62038d16d84dc0ed68e7c2915c5337b6af3c7a86
 
 Este documento registra la reproduccion, causa raiz, correccion y evidencia de
 regresion del sprint. La evidencia integral queda materializada por
@@ -73,18 +73,26 @@ QUOTATION_MONEY_MISMATCH y bloquea la operacion.
 
 ## Resumen multi-moneda
 
-La API devuelve baseCurrencyAmountApproved y amountApprovedByCurrency. El KPI
-principal incluye unicamente cotizaciones en la moneda base de la organizacion;
-CLP, USD, EUR y BRL restantes se muestran por separado. No existe conversion
-implicita ni suma de monedas incompatibles.
+La API devuelve `baseCurrencyApprovedAmount` y `approvedAmounts`, donde cada
+grupo incluye `currency`, `amount` y `quotationCount`. Prisma agrupa solo
+cotizaciones aprobadas por moneda y organizacion. La moneda base aparece primero
+y las restantes se ordenan alfabeticamente; no existe conversion implicita ni
+suma de monedas incompatibles.
+
+El fixture de regresion usa CLP 100000, CLP 50000, USD 500.25, EUR 100.50 y BRL
+800.00. La respuesta exacta conserva CLP 150000 con dos cotizaciones, seguido de
+BRL 800.00, EUR 100.50 y USD 500.25 con una cotizacion cada uno. El KPI muestra
+`Aprobado en moneda base`, `$150.000 CLP` y una lista independiente bajo
+`Otros importes aprobados`. El E2E comprueba estos valores en API y en la vista,
+por lo que una suma consolidada de 151400.75 no puede presentarse como importe.
 
 ## Respuesta del cliente
 
 | Superficie | Implementacion | Regresion |
 | --- | --- | --- |
 | Endpoint | GET /api/organizations/:organizationId/quotations/:quotationId/change-requests, protegido por quotations.read, valida tenant y devuelve versiones e items mapeados de mas reciente a mas antiguo. | Servicio y controller prueban permiso, orden, snapshot y rechazo cross-tenant. |
-| Vendedor | La seccion #change-requests muestra banner, comentario completo escapado, saltos, fecha, version, items y accion para nueva version. | Playwright envia el comentario exacto y comprueba todos los datos en el detalle. |
-| Notificacion | Se persiste un extracto sin HTML de hasta 120 caracteres y el deep link termina en #change-requests. | Specs de portal y centro de notificaciones validan sanitizacion, contenido y ruta. |
+| Vendedor | La seccion #change-requests muestra banner, comentario completo escapado, saltos, fecha, version, items, estado sin items y accion Crear nueva version. Cotizacion, historial y solicitudes cargan en paralelo. | Playwright envia el comentario exacto y comprueba todos los datos en el detalle; pruebas Angular cubren carga, permiso y comentario con HTML literal. |
+| Notificacion | Se persiste un extracto sin HTML de hasta 120 caracteres y el deep link termina en #change-requests. La ruta desplaza y resalta la seccion mediante una animacion temporal, incluso si Angular reutiliza el componente. | Specs de portal y centro de notificaciones validan sanitizacion, contenido, lectura y ruta; Angular prueba la llegada posterior del fragmento. |
 | Historial | Conserva el evento general; QuotationChangeRequest sigue siendo la unica fuente del comentario completo. | Integracion comprueba que no se duplica el contenido comercial en historial. |
 
 ## Documento PDF
@@ -93,11 +101,13 @@ El documento incrusta apps/web/public/brand/logo-kaklen.png mediante una ruta
 portable. El fallback solo esta permitido en desarrollo; CI y produccion fallan
 si el asset no existe. El Dockerfile incorpora los assets de marca.
 
-La tabla define columnas independientes para codigo, producto o servicio,
-cantidad, precio, descuento, IVA y total. El renderer mide glifos, envuelve por
-ancho real, toma la altura maxima de cada fila y mueve la fila completa a una
-nueva pagina cuando no cabe. Cada pagina repite logo, encabezado de documento y
-encabezado de tabla. No se aplica ellipsis a datos comerciales.
+La tabla define columnas para codigo, producto o servicio, cantidad y precio.
+Debajo de cada item incorpora filas rotuladas para subtotal neto, descuento por
+linea, descuento global asignado, descuento total, base imponible, IVA y total
+de linea con IVA incluido. El renderer mide glifos, envuelve por ancho real,
+toma la altura maxima de cada fila y mueve la fila completa a una nueva pagina
+cuando no cabe. Cada pagina repite logo, encabezado de documento y encabezado de
+tabla. No se aplica ellipsis a datos comerciales.
 
 Los tests cubren 1, 20 y 75 lineas, texto y contactos largos, varias paginas,
 logo por pagina, encabezados repetidos, filas indivisibles, limites de pagina,
@@ -122,15 +132,13 @@ editan cantidad, no costo; pagos y reembolsos no exponen montos editables.
 
 ## Evidencia automatizada
 
-Pruebas focales ejecutadas durante el desarrollo:
+Pruebas focales ejecutadas durante el desarrollo antes del gate final:
 
-- calculo compartido: 13 tests;
-- servicios API relacionados: 87 tests;
-- servicio de cotizaciones: 36 tests;
-- componentes Angular focales: 11 tests;
-- auditoria y estructura de formularios: 18 tests;
-- servidor y rutas i18n: 10 tests;
-- TypeScript estricto del frontend y comprobacion limpia del diff.
+- calculo compartido: 15 tests;
+- cotizaciones, portal y PDF en API: 75 tests;
+- componentes Angular focales: 16 tests;
+- auditoria UX y paridad PDF focal: 9 tests;
+- TypeScript estricto de API y frontend.
 
 La validacion final se ejecuta una sola vez con pnpm quality:gate. El artefacto
 debe contener migraciones, demo, precision monetaria en DB, auditoria de

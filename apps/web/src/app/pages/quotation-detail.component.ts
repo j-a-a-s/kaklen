@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, computed, signal } from "@angular/core";
+import { Component, OnDestroy, OnInit, computed, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { formatRegionalCurrency, formatRegionalDate } from "../i18n/formatting";
 import { LocaleService } from "../i18n/locale.service";
@@ -16,6 +16,7 @@ import { UiIconComponent, UiIconName } from "../shared/ui-icon.component";
 import { QuotationEmailDialogComponent } from "../quotations/quotation-email-dialog.component";
 import { calculateQuotationMoney } from "@kaklen/shared";
 import type { QuotationMoneyAmounts } from "@kaklen/shared";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: "kaklen-quotation-detail",
@@ -40,7 +41,7 @@ import type { QuotationMoneyAmounts } from "@kaklen/shared";
           <kaklen-action-menu [contextKey]="organizationId">
             <button kaklenMenuItem type="button" class="secondary" (click)="downloadPdf()" [disabled]="downloadingPdf()"><kaklen-icon name="download" /><span>{{ downloadingPdf() ? preparingPdfLabel : downloadPdfLabel }}</span></button>
             <button *ngIf="commercialEmailEnabled && canSend() && currentQuotation.status === 'SENT'" kaklenMenuItem type="button" class="secondary" (click)="openEmailDialog()" [disabled]="emailSending()"><kaklen-icon name="mail" /><span i18n="@@resendQuotationEmailButton">Reenviar por email</span></button>
-            <button *ngIf="canUpdate() && canCreateVersion(currentQuotation.status)" kaklenMenuItem type="button" class="secondary" (click)="newVersion()" [disabled]="processing()"><kaklen-icon name="copy" /><span i18n="@@newVersionButton">Nueva versión</span></button>
+            <button *ngIf="canUpdate() && canCreateVersion(currentQuotation.status)" kaklenMenuItem type="button" class="secondary" (click)="newVersion()" [disabled]="processing()"><kaklen-icon name="copy" /><span i18n="@@newVersionButton">Crear nueva versión</span></button>
             <button *ngIf="canSend() && canCancel(currentQuotation.status)" kaklenMenuItem type="button" class="danger" (click)="requestStatusChange('cancel')" [disabled]="processing()"><kaklen-icon name="x-circle" /><span i18n="@@cancelDefinitelyButton">Cancelar definitivamente</span></button>
           </kaklen-action-menu>
         </div>
@@ -49,8 +50,7 @@ import type { QuotationMoneyAmounts } from "@kaklen/shared";
       <p class="form-error" *ngIf="error()">{{ error() }}</p>
 
       <section class="status-banner warning" *ngIf="quotation()?.status === 'CHANGES_REQUESTED'" role="status">
-        <strong i18n="@@quotationChangesRequestedBannerTitle">El cliente solicitó cambios</strong>
-        <span i18n="@@quotationChangesRequestedBannerBody">Revisa sus comentarios antes de crear una nueva versión.</span>
+        <strong i18n="@@quotationChangesRequestedBanner">El cliente solicitó cambios. Revisa el comentario antes de crear una nueva versión.</strong>
       </section>
 
       <section class="dashboard-panel secure-share-panel" *ngIf="publicLink() as link">
@@ -65,7 +65,7 @@ import type { QuotationMoneyAmounts } from "@kaklen/shared";
           <div><dt i18n="@@issueDateLabel">Fecha de emisión</dt><dd>{{ dateLabel(currentQuotation.issueDate) }}</dd></div>
           <div><dt i18n="@@validUntilLabel">Válida hasta</dt><dd>{{ dateLabel(currentQuotation.validUntil) }}</dd></div>
           <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ moneyLabel(calculatedAmounts()?.subtotal ?? currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
-          <div><dt i18n="@@lineDiscountTotalLabel">Descuento por líneas</dt><dd>{{ moneyLabel(calculatedAmounts()?.lineDiscountTotal ?? '0', currentQuotation.currency) }}</dd></div>
+          <div><dt i18n="@@lineDiscountTotalLabel">Descuento por línea</dt><dd>{{ moneyLabel(calculatedAmounts()?.lineDiscountTotal ?? '0', currentQuotation.currency) }}</dd></div>
           <div><dt i18n="@@globalDiscountTotalLabel">Descuento global</dt><dd>{{ moneyLabel(calculatedAmounts()?.globalDiscountTotal ?? '0', currentQuotation.currency) }}</dd></div>
           <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ moneyLabel(calculatedAmounts()?.discountTotal ?? currentQuotation.discountTotal, currentQuotation.currency) }}</dd></div>
           <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ moneyLabel(calculatedAmounts()?.taxableBase ?? currentQuotation.subtotal, currentQuotation.currency) }}</dd></div>
@@ -82,36 +82,46 @@ import type { QuotationMoneyAmounts } from "@kaklen/shared";
             <p *ngIf="item.description">{{ item.description }}</p>
           </div>
           <dl class="quotation-line-financial" *ngIf="lineAmounts(index) as amounts">
-            <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio</dt><dd>{{ item.quantity }} × {{ moneyLabel(item.unitPrice, currentQuotation.currency) }}</dd></div>
-            <div><dt i18n="@@lineNetLabel">Neto</dt><dd>{{ moneyLabel(amounts.subtotal, currentQuotation.currency) }}</dd></div>
-            <div><dt i18n="@@lineDiscountLabel">Descuento de línea</dt><dd>{{ moneyLabel(amounts.lineDiscountTotal, currentQuotation.currency) }}</dd></div>
-            <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global prorrateado</dt><dd>{{ moneyLabel(amounts.globalDiscountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@quantityTimesPriceLabel">Cantidad × precio unitario</dt><dd>{{ item.quantity }} × {{ moneyLabel(item.unitPrice, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@netSubtotalLabel">Subtotal neto</dt><dd>{{ moneyLabel(amounts.subtotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@lineDiscountLabel">Descuento por línea</dt><dd>{{ moneyLabel(amounts.lineDiscountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@allocatedGlobalDiscountLabel">Descuento global asignado</dt><dd>{{ moneyLabel(amounts.globalDiscountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@totalDiscountLabel">Descuento total</dt><dd>{{ moneyLabel(amounts.discountTotal, currentQuotation.currency) }}</dd></div>
+            <div><dt i18n="@@taxableBaseLabel">Base imponible</dt><dd>{{ moneyLabel(amounts.taxableBase, currentQuotation.currency) }}</dd></div>
             <div><dt i18n="@@lineTaxLabel">IVA</dt><dd>{{ moneyLabel(amounts.taxTotal, currentQuotation.currency) }}</dd></div>
             <div class="line-total"><dt i18n="@@lineTotalVatIncludedLabel">Total línea, IVA incluido</dt><dd>{{ moneyLabel(amounts.total, currentQuotation.currency) }}</dd></div>
           </dl>
         </article>
       </section>
 
-      <section id="change-requests" class="dashboard-panel" *ngIf="changeRequests().length">
+      <section
+        id="change-requests"
+        class="dashboard-panel change-requests-panel"
+        [class.change-requests-highlighted]="changeRequestsHighlighted()"
+        (animationend)="changeRequestsHighlighted.set(false)"
+        aria-labelledby="change-requests-title"
+        *ngIf="changeRequests().length"
+      >
         <div class="section-heading">
           <div>
             <p class="eyebrow" i18n="@@customerFeedbackEyebrow">Respuesta del cliente</p>
-            <h2 i18n="@@changeRequestsTitle">Solicitudes de cambios del cliente</h2>
+            <h2 id="change-requests-title" i18n="@@changeRequestsTitle">Solicitudes de cambios del cliente</h2>
           </div>
           <button type="button" *ngIf="canUpdate()" class="secondary" (click)="newVersion()" [disabled]="processing()">
-            <kaklen-icon name="copy" /><span i18n="@@newVersionButton">Nueva versión</span>
+            <kaklen-icon name="copy" /><span i18n="@@newVersionButton">Crear nueva versión</span>
           </button>
         </div>
         <article class="change-request" *ngFor="let request of changeRequests()">
           <strong i18n="@@changeRequestCardTitle">Solicitud de cambios</strong>
           <p>{{ request.comment }}</p>
+          <strong *ngIf="request.items.length" i18n="@@changeRequestRelatedItems">Ítems relacionados:</strong>
           <ul *ngIf="request.items.length">
             <li *ngFor="let item of request.items">
               <strong>{{ item.name }}</strong><span *ngIf="item.code"> · {{ item.code }}</span>
             </li>
           </ul>
-          <p *ngIf="!request.items.length" i18n="@@changeRequestNoItems">No se indicaron ítems específicos.</p>
-          <small i18n="@@changeRequestMetadata">Versión {{ request.quotationVersion }} · Enviada {{ historyDateLabel(request.createdAt) }}</small>
+          <p *ngIf="!request.items.length" i18n="@@changeRequestNoItems">Sin ítems específicos</p>
+          <small i18n="@@changeRequestMetadata">Versión v{{ request.quotationVersion }} · Enviada {{ historyDateLabel(request.createdAt) }}</small>
         </article>
       </section>
 
@@ -147,11 +157,12 @@ import type { QuotationMoneyAmounts } from "@kaklen/shared";
     </main>
   `
 })
-export class QuotationDetailComponent implements OnInit {
+export class QuotationDetailComponent implements OnInit, OnDestroy {
   readonly commercialEmailEnabled = RUNTIME_CONFIG.commercialEmailEnabled;
   readonly quotation = signal<Quotation | null>(null);
   readonly history = signal<QuotationStatusHistory[]>([]);
   readonly changeRequests = signal<QuotationChangeRequest[]>([]);
+  readonly changeRequestsHighlighted = signal(false);
   readonly calculatedAmounts = computed(() => {
     const quotation = this.quotation();
     if (!quotation) return null;
@@ -180,6 +191,9 @@ export class QuotationDetailComponent implements OnInit {
   organizationId = "";
   quotationId = "";
   private initialQuotationApproved = false;
+  private activeFragment: string | null = null;
+  private fragmentSubscription: Subscription | null = null;
+  private focusFrame: number | null = null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -195,6 +209,10 @@ export class QuotationDetailComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.organizationId = this.route.snapshot.paramMap.get("organizationId") ?? "";
     this.quotationId = this.route.snapshot.paramMap.get("quotationId") ?? "";
+    this.fragmentSubscription = this.route.fragment.subscribe((fragment) => {
+      this.activeFragment = fragment;
+      this.scheduleChangeRequestFocus();
+    });
     await this.organizationService.setActiveOrganization(this.organizationId);
     await Promise.all([
       this.load(),
@@ -202,6 +220,13 @@ export class QuotationDetailComponent implements OnInit {
         this.initialQuotationApproved = activation.completedSteps.includes("first_quotation_approved");
       })
     ]);
+  }
+
+  ngOnDestroy(): void {
+    this.fragmentSubscription?.unsubscribe();
+    if (this.focusFrame !== null && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(this.focusFrame);
+    }
   }
 
   canUpdate(): boolean {
@@ -479,8 +504,15 @@ export class QuotationDetailComponent implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      this.quotation.set(await this.quotationsService.get(this.organizationId, this.quotationId));
-      await this.loadRelatedContext();
+      const [quotation, history, changeRequests] = await Promise.all([
+        this.quotationsService.get(this.organizationId, this.quotationId),
+        this.quotationsService.history(this.organizationId, this.quotationId),
+        this.quotationsService.changeRequests(this.organizationId, this.quotationId)
+      ]);
+      this.quotation.set(quotation);
+      this.history.set(history);
+      this.changeRequests.set(changeRequests);
+      this.scheduleChangeRequestFocus();
     } catch {
       this.error.set($localize`:@@quotationLoadError:No fue posible cargar la cotización.`);
     }
@@ -493,6 +525,29 @@ export class QuotationDetailComponent implements OnInit {
     ]);
     this.history.set(history);
     this.changeRequests.set(changeRequests);
+    this.scheduleChangeRequestFocus();
+  }
+
+  private scheduleChangeRequestFocus(): void {
+    if (this.activeFragment !== "change-requests" || this.changeRequests().length === 0) return;
+    if (this.focusFrame !== null && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(this.focusFrame);
+    }
+    if (typeof requestAnimationFrame !== "function") {
+      this.focusChangeRequests();
+      return;
+    }
+    this.focusFrame = requestAnimationFrame(() => {
+      this.focusFrame = null;
+      this.focusChangeRequests();
+    });
+  }
+
+  private focusChangeRequests(): void {
+    const section = document.getElementById("change-requests");
+    if (!section) return;
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    this.changeRequestsHighlighted.set(true);
   }
 
   private statusSuccessMessage(action: "approve" | "reject" | "cancel"): string {

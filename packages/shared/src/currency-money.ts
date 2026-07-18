@@ -52,7 +52,8 @@ export function parseMoney(value: MoneyDecimalInput, currency: string): string {
     throw new MoneyPrecisionError(currency, fractionDigits);
   }
 
-  const sign = match[1] === "-" ? "-" : "";
+  const isZero = /^0+$/.test(match[2]) && /^0*$/.test(match[3] ?? "");
+  const sign = match[1] === "-" && !isZero ? "-" : "";
   const integer = stripLeadingZeroes(match[2]);
   if (fractionDigits === 0) return `${sign}${integer}`;
   const fraction = (match[3] ?? "").slice(0, fractionDigits).padEnd(fractionDigits, "0");
