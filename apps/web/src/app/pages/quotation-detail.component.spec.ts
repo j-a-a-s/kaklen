@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { AssistantService } from "../assistant/assistant.service";
@@ -55,6 +56,30 @@ describe("QuotationDetailComponent", () => {
 
     expect(allowed.canUpdate()).toBeTrue();
     expect(denied.canUpdate()).toBeFalse();
+  });
+
+  it("shows the localized parity error without retaining contradictory totals", async () => {
+    const context = createContext(null);
+    context.component.quotation.set(quotation());
+    context.quotations.get.and.rejectWith(new HttpErrorResponse({
+      status: 409,
+      error: {
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        field: "total"
+      }
+    }));
+
+    await context.component.ngOnInit();
+
+    expect(context.component.error()).toBe(
+      "Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento."
+    );
+    expect(context.component.quotation()).toBeNull();
+    expect(context.component.calculatedAmounts()).toBeNull();
+    expect(context.component.history()).toEqual([]);
+    expect(context.component.changeRequests()).toEqual([]);
+    context.component.ngOnDestroy();
   });
 });
 

@@ -25,6 +25,7 @@ import {
   UpdateQuotationDto
 } from "./dto/quotation.dto";
 import { QuotationDocumentService } from "./quotation-document.service";
+import { calculateConsistentQuotationMoney } from "./quotation-money-consistency";
 
 type QuotationWithDetails = Quotation & {
   client: Client;
@@ -221,7 +222,9 @@ export class QuotationsService {
   }
 
   async get(organizationId: string, quotationId: string): Promise<QuotationWithDetails> {
-    return this.findQuotation(organizationId, quotationId, this.prisma);
+    const quotation = await this.findQuotation(organizationId, quotationId, this.prisma);
+    calculateConsistentQuotationMoney(quotation);
+    return quotation;
   }
 
   async update(

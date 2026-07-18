@@ -6,7 +6,7 @@ import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationChangeRequest, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationPublicLink, QuotationsService } from "../quotations/quotations.service";
-import { NotificationService } from "../shared/notifications/notification.service";
+import { messageForError, NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { RUNTIME_CONFIG } from "../config/runtime-config";
@@ -503,6 +503,7 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
   }
 
   private async load(): Promise<void> {
+    this.error.set("");
     try {
       const [quotation, history, changeRequests] = await Promise.all([
         this.quotationsService.get(this.organizationId, this.quotationId),
@@ -513,8 +514,11 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.history.set(history);
       this.changeRequests.set(changeRequests);
       this.scheduleChangeRequestFocus();
-    } catch {
-      this.error.set($localize`:@@quotationLoadError:No fue posible cargar la cotización.`);
+    } catch (error) {
+      this.quotation.set(null);
+      this.history.set([]);
+      this.changeRequests.set([]);
+      this.error.set(messageForError(error));
     }
   }
 

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { CatalogItemStatus, CatalogItemType, Prisma, QuotationDiscountType, QuotationItemType, QuotationStatus } from "@prisma/client";
 import { QuotationsService } from "./quotations.service";
 
@@ -294,6 +294,44 @@ describe("QuotationsService", () => {
         baseCurrencyApprovedAmount: "0",
         approvedAmounts: []
       });
+  });
+
+  it("returns a consistent organization-scoped quotation detail", async () => {
+    const persisted = quotation();
+    const prisma = makeQuotationsPrisma({ quotation: persisted });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.get("org-1", "quotation-1")).resolves.toBe(persisted);
+    expect(prisma.quotation.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "quotation-1", organizationId: "org-1", archivedAt: null },
+      include: expect.objectContaining({ items: { orderBy: { sortOrder: "asc" } } })
+    }));
+  });
+
+  it("rejects a one-peso CLP detail mismatch with its exact field", async () => {
+    const prisma = makeQuotationsPrisma({ quotation: quotation({ total: new Prisma.Decimal(1191) }) });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), "total");
+  });
+
+  it("rejects a USD cent detail mismatch with its exact line field", async () => {
+    const persisted = quotation({ currency: "USD" });
+    persisted.items[0].total = new Prisma.Decimal("1190.01");
+    const prisma = makeQuotationsPrisma({ quotation: persisted });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), "items.0.total");
+  });
+
+  it("keeps quotation detail isolation before validating money", async () => {
+    const prisma = makeQuotationsPrisma({ quotation: null });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.get("org-2", "quotation-1")).rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.quotation.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "quotation-1", organizationId: "org-2", archivedAt: null }
+    }));
   });
 
   it("returns newest tenant change requests with version item snapshots", async () => {
@@ -900,4 +938,19 @@ function catalogItem() {
 function callData(mock: { mock: { calls: unknown[][] } }, callIndex = 0): unknown {
   const call = mock.mock.calls[callIndex]?.[0] as { data?: unknown } | undefined;
   return call?.data;
+}
+
+async function expectMoneyMismatch(result: Promise<unknown>, field: string): Promise<void> {
+  try {
+    await result;
+    fail("Expected quotation money parity validation to fail");
+  } catch (error) {
+    expect(error).toBeInstanceOf(ConflictException);
+    expect((error as ConflictException).getStatus()).toBe(409);
+    expect((error as ConflictException).getResponse()).toEqual({
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      field
+    });
+  }
 }
