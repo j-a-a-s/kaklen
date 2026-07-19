@@ -6,5 +6,5 @@ export interface AuthDeliveryJobData {
   email: string;
   ipHash: string;
   userAgentHash?: string;
-  requestId?: string;
+  requestIdHash?: string;
 }

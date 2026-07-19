@@ -42,8 +42,12 @@ describe("DistributedRateLimitService with Redis", () => {
     const first = await storageA.increment("nestjs-route-key", 5000, 1, 5000, "default");
     const second = await storageB.increment("nestjs-route-key", 5000, 1, 5000, "default");
 
-    expect(first).toMatchObject({ totalHits: 1, isBlocked: false });
+    expect(first).toMatchObject({ totalHits: 1, isBlocked: false, timeToExpire: 5 });
     expect(second).toMatchObject({ totalHits: 2, isBlocked: true });
+    expect(second.timeToExpire).toBeGreaterThanOrEqual(1);
+    expect(second.timeToExpire).toBeLessThanOrEqual(5);
+    expect(second.timeToBlockExpire).toBeGreaterThanOrEqual(1);
+    expect(second.timeToBlockExpire).toBeLessThanOrEqual(5);
   });
 
   it("keeps the counter when an application instance restarts", async () => {
@@ -92,6 +96,7 @@ describe("DistributedRateLimitService with Redis", () => {
     const loginKey = limiterA.keyFor("test:login", [email, ip]);
     const recoveryKey = limiterA.keyFor("test:recovery", [email, ip]);
 
+    expect(loginKey).toMatch(/^kaklen:rate-limit:test:login:[0-9a-f]{64}$/);
     expect(loginKey).not.toContain(email);
     expect(loginKey).not.toContain(ip);
     expect(loginKey).not.toBe(recoveryKey);

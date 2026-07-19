@@ -19,7 +19,7 @@ Required in production:
 
 - `NODE_ENV=production`
 - `PORT`
-- `DATABASE_URL`
+- `DATABASE_URL` with `sslmode=require`
 - `DATABASE_SSL=true`
 - `APP_VERSION`
 - `COMMIT_SHA`

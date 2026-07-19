@@ -347,6 +347,11 @@ describe("AuthService password recovery", () => {
         (token) => token.sentAt && !token.revokedAt && !token.usedAt
       )
     ).toHaveLength(1);
+    expect(
+      prisma.authAuditLogs.filter(
+        (entry) => entry.event === "password_reset_requested" && entry.success
+      )
+    ).toHaveLength(1);
   });
 
   it("rejects mismatched, personal, and reused passwords", async () => {
@@ -414,7 +419,7 @@ async function processPasswordReset(processor: AuthDeliveryProcessor): Promise<v
       email: "ada@example.com",
       ipHash: "request-ip-hash",
       userAgentHash: "request-agent-hash",
-      requestId: "request-1"
+      requestIdHash: "request-id-hash"
     }
   } as unknown as Parameters<AuthDeliveryProcessor["process"]>[0]);
 }

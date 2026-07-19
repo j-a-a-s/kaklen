@@ -300,7 +300,12 @@ test.describe.serial("Kaklen assisted product journey", () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await navigateSpa(page, `/organizations/${organizationId}/clients/${clientId}`);
     await page.getByRole("button", { name: "Abrir perfil" }).click();
+    const logoutResponsePromise = page.waitForResponse(
+      (response) => response.url() === `${apiBase}/api/auth/logout` && response.request().method() === "POST",
+      { timeout: 30_000 }
+    );
     await page.getByRole("menuitem", { name: "Salir" }).click();
+    expect((await logoutResponsePromise).status()).toBe(200);
     await expect(page).toHaveURL(/\/es\/login$/);
     await expect(page.getByText(clientName)).toHaveCount(0);
     await page.reload();

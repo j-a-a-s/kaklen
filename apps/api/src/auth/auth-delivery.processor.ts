@@ -59,7 +59,7 @@ export class AuthDeliveryProcessor {
         locale,
         resetUrl: resetUrl.toString(),
         expiresInMinutes: policy.expiresMinutes,
-        ...(data.requestId ? { requestId: data.requestId } : {})
+        ...(data.requestIdHash ? { requestId: data.requestIdHash } : {})
       });
       await this.markPasswordResetSent(resetToken.id, user.id, policy.expiresMinutes, locale, receipt.messageId);
     } catch (error) {
@@ -105,7 +105,7 @@ export class AuthDeliveryProcessor {
         locale,
         verificationUrl: verificationUrl.toString(),
         expiresInMinutes: policy.expiresMinutes,
-        ...(data.requestId ? { requestId: data.requestId } : {})
+        ...(data.requestIdHash ? { requestId: data.requestIdHash } : {})
       });
       await this.markVerificationSent(token.id, user.id, policy.expiresMinutes, locale, receipt.messageId);
     } catch (error) {

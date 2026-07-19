@@ -10,7 +10,9 @@ import {
 
 describe("authentication delivery queue with Redis", () => {
   let redis: RedisService;
+  let redisB: RedisService;
   let deliveryQueue: AuthDeliveryQueueService;
+  let deliveryQueueB: AuthDeliveryQueueService;
   let inspectionQueue: Queue<AuthDeliveryJobData, void, AuthDeliveryJobName>;
 
   beforeAll(async () => {
@@ -18,14 +20,17 @@ describe("authentication delivery queue with Redis", () => {
     process.env.REDIS_URL = "redis://localhost:6379/14";
     process.env.RATE_LIMIT_HASH_SECRET = "auth-delivery-integration-secret";
     redis = new RedisService();
+    redisB = new RedisService();
     const rateLimits = new DistributedRateLimitService(redis);
+    const rateLimitsB = new DistributedRateLimitService(redisB);
     deliveryQueue = new AuthDeliveryQueueService(redis, rateLimits);
+    deliveryQueueB = new AuthDeliveryQueueService(redisB, rateLimitsB);
     inspectionQueue = new Queue<AuthDeliveryJobData, void, AuthDeliveryJobName>(
       AUTH_DELIVERY_QUEUE,
       { connection: redis.client, prefix: redis.config.authDeliveryPrefix }
     );
     inspectionQueue.on("error", () => undefined);
-    await redis.ping();
+    await Promise.all([redis.ping(), redisB.ping()]);
   });
 
   beforeEach(async () => {
@@ -34,8 +39,12 @@ describe("authentication delivery queue with Redis", () => {
 
   afterAll(async () => {
     await inspectionQueue.obliterate({ force: true });
-    await Promise.all([inspectionQueue.close(), deliveryQueue.onModuleDestroy()]);
-    await redis.close();
+    await Promise.all([
+      inspectionQueue.close(),
+      deliveryQueue.onModuleDestroy(),
+      deliveryQueueB.onModuleDestroy()
+    ]);
+    await Promise.all([redis.close(), redisB.close()]);
   });
 
   it("uses a reconnecting connection without command timeouts for blocking workers", () => {
@@ -50,7 +59,7 @@ describe("authentication delivery queue with Redis", () => {
     const context = {
       ipAddress: "203.0.113.20",
       userAgent: "Integration Browser",
-      requestId: "request-1"
+      requestId: "https://example.test/reset?token=private-value"
     };
 
     await deliveryQueue.enqueuePasswordReset("existing@example.com", context);
@@ -71,8 +80,30 @@ describe("authentication delivery queue with Redis", () => {
       const serialized = JSON.stringify(job.data);
       expect(serialized).not.toContain(context.ipAddress);
       expect(serialized).not.toContain(context.userAgent);
+      expect(serialized).not.toContain(context.requestId);
+      expect(job.data.requestIdHash).toMatch(/^[0-9a-f]{64}$/);
       expect(serialized).not.toMatch(/token|password|https?:\/\//i);
     }
+  });
+
+  it("deduplicates the same account and delivery type across API instances", async () => {
+    const context = { ipAddress: "203.0.113.21", requestId: "request-2" };
+
+    await Promise.all([
+      deliveryQueue.enqueuePasswordReset(" ADA@example.com ", context),
+      deliveryQueueB.enqueuePasswordReset("ada@EXAMPLE.com", context)
+    ]);
+
+    const jobs = await inspectionQueue.getJobs(["waiting", "delayed", "active"]);
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]?.id).toMatch(/^[0-9a-f]{64}$/);
+    expect(jobs[0]?.data.email).toBe("ada@example.com");
+    expect(jobs[0]?.opts).toMatchObject({
+      attempts: 3,
+      backoff: { type: "exponential", delay: 500 },
+      removeOnComplete: true,
+      removeOnFail: true
+    });
   });
 
   it("allows two workers to claim a job only once", async () => {

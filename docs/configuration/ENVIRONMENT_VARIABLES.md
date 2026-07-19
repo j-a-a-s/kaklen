@@ -9,7 +9,7 @@ reales.
 | Variable | Valor local | Propósito |
 | --- | --- | --- |
 | `DATABASE_URL` | `postgresql://kaklen:***@localhost:5432/kaklen_dev?schema=public` | Conexión Prisma; la contraseña completa solo vive en `.env.example` y `.env`. |
-| `DATABASE_SSL` | `false` | Exige TLS para PostgreSQL cuando es `true`. |
+| `DATABASE_SSL` | `false` | Exige TLS para PostgreSQL cuando es `true`; producción también requiere `sslmode=require` en `DATABASE_URL`. |
 | `POSTGRES_PORT` | `5432` | Puerto publicado por Docker Compose. |
 | `REDIS_PORT` | `6379` | Puerto publicado de Redis. |
 | `REDIS_URL` | `redis://localhost:6379` | Conexión para límites y colas. |

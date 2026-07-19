@@ -9,7 +9,7 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 | --- | ---: |
 | Statements coverage | 96.8% |
 | Branches coverage | 85.9% |
-| Functions coverage | 94.4% |
+| Functions coverage | 94.5% |
 | Lines coverage | 97.2% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |

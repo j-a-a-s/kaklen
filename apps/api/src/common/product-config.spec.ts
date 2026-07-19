@@ -17,10 +17,17 @@ describe("production runtime configuration", () => {
     expect(config.redis.url).toBe("rediss://cache.kaklen.test");
   });
 
-  it("rejects a missing required secret", () => {
+  it.each([
+    "JWT_ACCESS_SECRET",
+    "JWT_REFRESH_SECRET",
+    "WHATSAPP_HASH_SECRET",
+    "PAYMENT_SANDBOX_SECRET",
+    "RATE_LIMIT_HASH_SECRET",
+    "REDIS_URL"
+  ])("rejects a missing production value for %s", (key) => {
     expect(() =>
-      validateRuntimeEnvironment(productionEnvironment({ JWT_ACCESS_SECRET: undefined }))
-    ).toThrow("JWT_ACCESS_SECRET is required in production");
+      validateRuntimeEnvironment(productionEnvironment({ [key]: undefined }))
+    ).toThrow(`${key} is required in production`);
   });
 
   it("rejects placeholders, low diversity, and equal JWT secrets", () => {
@@ -38,12 +45,22 @@ describe("production runtime configuration", () => {
     ).toThrow("repeated or low-diversity");
     expect(() =>
       validateRuntimeEnvironment(
+        productionEnvironment({
+          JWT_ACCESS_SECRET: "0123456789abcdef0123456789abcde0".repeat(2)
+        })
+      )
+    ).toThrow("repeated or low-diversity");
+    expect(() =>
+      validateRuntimeEnvironment(
         productionEnvironment({ JWT_REFRESH_SECRET: SECRETS.access })
       )
     ).toThrow("must be different");
   });
 
   it("rejects insecure cookies and origins", () => {
+    expect(() =>
+      validateRuntimeEnvironment(productionEnvironment({ DATABASE_SSL: undefined }))
+    ).toThrow("DATABASE_SSL must be true");
     expect(() =>
       validateRuntimeEnvironment(productionEnvironment({ COOKIE_SECURE: "false" }))
     ).toThrow("COOKIE_SECURE must be true");
@@ -62,6 +79,32 @@ describe("production runtime configuration", () => {
         productionEnvironment({ AUTH_ALLOWED_ORIGINS: "*" })
       )
     ).toThrow("wildcard or null");
+  });
+
+  it.each([
+    "postgresql://kaklen:private@db.kaklen.test:5432/kaklen",
+    "postgresql://kaklen:private@db.kaklen.test:5432/kaklen?sslmode=disable",
+    "postgresql://kaklen:private@db.kaklen.test:5432/kaklen?sslmode=prefer"
+  ])("rejects a production database URL that does not require TLS", (databaseUrl) => {
+    expect(() =>
+      validateRuntimeEnvironment(productionEnvironment({ DATABASE_URL: databaseUrl }))
+    ).toThrow("DATABASE_URL must include sslmode=require in production");
+  });
+
+  it.each([
+    "APP_PUBLIC_URL",
+    "APP_WEB_URL",
+    "CORS_ALLOWED_ORIGINS",
+    "AUTH_ALLOWED_ORIGINS"
+  ])("requires an explicit HTTPS origin in %s", (key) => {
+    expect(() =>
+      validateRuntimeEnvironment(productionEnvironment({ [key]: undefined }))
+    ).toThrow(`${key} is required in production`);
+    expect(() =>
+      validateRuntimeEnvironment(
+        productionEnvironment({ [key]: "http://app.kaklen.test" })
+      )
+    ).toThrow(`${key} must use https`);
   });
 
   it.each([
@@ -96,7 +139,7 @@ function productionEnvironment(
 ): Record<string, string | undefined> {
   return {
     NODE_ENV: "production",
-    DATABASE_URL: "postgresql://kaklen:private@db.kaklen.test:5432/kaklen",
+    DATABASE_URL: "postgresql://kaklen:private@db.kaklen.test:5432/kaklen?sslmode=require",
     DATABASE_SSL: "true",
     APP_VERSION: "1.0.0",
     COMMIT_SHA: "abcdef1234567890",

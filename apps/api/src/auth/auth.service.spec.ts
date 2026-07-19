@@ -211,6 +211,11 @@ class FakePrismaService {
     if (user) user.status = status;
   }
 
+  setUserPasswordHash(email: string, passwordHash: string): void {
+    const user = this.users.find((item) => item.email === email);
+    if (user) user.passwordHash = passwordHash;
+  }
+
   expireLatestVerificationToken(): void {
     const token = this.latestVerificationToken();
     if (token) token.expiresAt = new Date(Date.now() - 1000);
@@ -433,6 +438,31 @@ describe("AuthService", () => {
     ).resolves.toBe(false);
 
     expect(verify).toHaveBeenCalledWith("stored-argon2-hash", "wrong-password");
+  });
+
+  it("uses the dummy hash after a malformed persisted hash", async () => {
+    const verify = jest
+      .fn<Promise<boolean>, [string, string]>()
+      .mockRejectedValueOnce(new Error("Invalid Argon2 hash"))
+      .mockResolvedValueOnce(false);
+
+    await expect(
+      verifyLoginPassword({ passwordHash: "malformed-hash" }, "wrong-password", verify)
+    ).resolves.toBe(false);
+
+    expect(verify.mock.calls).toEqual([
+      ["malformed-hash", "wrong-password"],
+      [DUMMY_PASSWORD_HASH, "wrong-password"]
+    ]);
+  });
+
+  it("returns the same generic 401 for a malformed persisted password hash", async () => {
+    await registerAndVerify(service, mailRequests);
+    prisma.setUserPasswordHash("ada@example.com", "malformed-hash");
+
+    await expect(service.login(loginDto(), requestContext())).rejects.toMatchObject({
+      response: { error: "Unauthorized", message: "Invalid credentials", statusCode: 401 }
+    });
   });
 
   it("rotates valid refresh tokens and rejects expired or revoked tokens", async () => {

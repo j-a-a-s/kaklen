@@ -21,7 +21,7 @@ The committed `.env.example` contains only development defaults. Production star
 
 The NestJS API explicitly denies framing, enables MIME sniffing protection, uses a `no-referrer` policy, and enables one-year HSTS with subdomains only in production. Credentialed CORS uses an explicit origin, method, request-header, response-header, and preflight-cache contract. Swagger is always disabled in production.
 
-Production origins must use HTTPS and cannot contain localhost, loopback addresses, wildcards, `null`, credentials, paths, queries, or fragments. `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and `REDIS_URL` are mandatory.
+Production origins must use HTTPS and cannot contain localhost, loopback addresses, wildcards, `null`, credentials, paths, queries, or fragments. `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and `REDIS_URL` are mandatory. The production `DATABASE_URL` must also include `sslmode=require` so Prisma cannot fall back to an unencrypted PostgreSQL connection.
 
 Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The frontend must translate user-facing errors from stable `code` values instead of relying on backend message text.
 

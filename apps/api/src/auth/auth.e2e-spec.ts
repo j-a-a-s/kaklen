@@ -489,7 +489,8 @@ describe("Auth E2E", () => {
     const redis = app.get(RedisService);
     const keys = await redis.client.keys(`${redis.config.rateLimitPrefix}:throttler:*`);
 
-    expect(limited.headers["retry-after"]).toEqual(expect.any(String));
+    expect(Number(limited.headers["retry-after"])).toBeGreaterThanOrEqual(1);
+    expect(Number(limited.headers["retry-after"])).toBeLessThanOrEqual(60);
     expect(keys.length).toBeGreaterThan(0);
   });
 });

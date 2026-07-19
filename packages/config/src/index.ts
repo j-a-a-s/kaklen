@@ -78,7 +78,7 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
   const isProduction = nodeEnv === "production";
   const port = Number(env.PORT ?? env.API_PORT ?? 3000);
   const databaseUrl = requireString(env, "DATABASE_URL", isProduction, LOCAL_DATABASE_URL);
-  const databaseSsl = parseBoolean(env.DATABASE_SSL, isProduction);
+  const databaseSsl = parseStrictBoolean(env.DATABASE_SSL, false, "DATABASE_SSL");
   const appVersion = requireString(env, "APP_VERSION", isProduction, env.npm_package_version ?? "0.1.0");
   const commitSha = requireString(env, "COMMIT_SHA", isProduction, "local");
   const buildTime = env.BUILD_TIME ?? new Date().toISOString();
@@ -95,6 +95,9 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
 
   if (isProduction && !databaseSsl) {
     throw new Error("DATABASE_SSL must be true in production");
+  }
+  if (isProduction) {
+    assertProductionDatabaseTls(databaseUrl);
   }
 
   if (corsAllowedOrigins.length === 0) {
@@ -495,13 +498,17 @@ function assertCryptographicSecret(key: string, value: string): void {
   if (!/^[0-9a-f]{64,}$/i.test(value)) {
     throw new Error(`${key} must be hexadecimal with at least 64 characters`);
   }
-  if (new Set(normalized).size < 8 || isRepeatedShortPattern(normalized)) {
+  if (new Set(normalized).size < 8 || isRepeatedPattern(normalized)) {
     throw new Error(`${key} must not use repeated or low-diversity content`);
   }
 }
 
-function isRepeatedShortPattern(value: string): boolean {
-  for (let patternLength = 1; patternLength <= 8; patternLength += 1) {
+function isRepeatedPattern(value: string): boolean {
+  for (
+    let patternLength = 1;
+    patternLength <= Math.floor(value.length / 2);
+    patternLength += 1
+  ) {
     if (value.length % patternLength !== 0) {
       continue;
     }
@@ -518,6 +525,21 @@ function assertProductionOrigins(key: string, values: string[]): void {
     throw new Error(`${key} must include at least one origin`);
   }
   values.forEach((value) => assertProductionOrigin(key, value));
+}
+
+function assertProductionDatabaseTls(value: string): void {
+  let databaseUrl: URL;
+  try {
+    databaseUrl = new URL(value);
+  } catch {
+    throw new Error("DATABASE_URL must be a valid PostgreSQL URL");
+  }
+  if (!["postgres:", "postgresql:"].includes(databaseUrl.protocol)) {
+    throw new Error("DATABASE_URL must use postgres or postgresql");
+  }
+  if (databaseUrl.searchParams.get("sslmode") !== "require") {
+    throw new Error("DATABASE_URL must include sslmode=require in production");
+  }
 }
 
 function assertProductionOrigin(key: string, value: string): void {

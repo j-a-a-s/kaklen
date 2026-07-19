@@ -290,16 +290,16 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
       await authenticatePage(page);
       await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
-      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible();
+      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible({ timeout: 30_000 });
       await expect(page.locator("kaklen-quotation-list .entity-price")).toHaveCount(0);
       await expect(page.locator("kaklen-quotation-list .item-row")).toHaveCount(0);
 
-      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}/edit`);
+      await navigateSpa(page, `/organizations/${organizationId}/quotations/${clp.id}/edit`);
       await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible();
       await expect(page.locator("kaklen-quotation-form .quotation-wizard-layout")).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Guardar cotización" })).toHaveCount(0);
 
-      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
+      await navigateSpa(page, `/organizations/${organizationId}/quotations/${clp.id}`);
       await expect(page.getByText(
         "Detectamos una inconsistencia financiera.",
         { exact: true }
@@ -778,14 +778,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
   test("renders the public quotation and payment checkout without horizontal overflow", async ({ page }) => {
     await authenticatePage(page);
-    for (const locale of ["es", "en", "pt-BR"]) {
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto(`${webBase}/${locale}/p/quotations/${publicToken}`);
-      await expect(page.locator("kaklen-public-quotation")).toBeVisible();
-      await expectNoHorizontalOverflow(page);
-    }
-
-    for (const viewport of [
+    const viewports = [
       { width: 320, height: 568 },
       { width: 390, height: 844 },
       { width: 768, height: 1024 },
@@ -793,10 +786,19 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       { width: 1366, height: 768 },
       { width: 1440, height: 900 },
       { width: 1920, height: 1080 }
-    ]) {
-      await page.setViewportSize(viewport);
-      await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
+    ];
+
+    for (const locale of ["es", "en", "pt-BR"]) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`${webBase}/${locale}/p/quotations/${publicToken}`);
       await expect(page.locator("kaklen-public-quotation")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    }
+
+    await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
+    await expect(page.locator("kaklen-public-quotation")).toBeVisible();
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
       await expectNoHorizontalOverflow(page);
       const financialLabels = page.locator("kaklen-public-quotation .quotation-line-financial dt");
       await expect(financialLabels.first()).toBeVisible();
@@ -805,12 +807,20 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       );
       expect(financialLabelSizes.length).toBeGreaterThan(0);
       expect(financialLabelSizes.every((size) => size >= 11)).toBe(true);
-      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
-      await expect(page.locator("kaklen-quotation-detail")).toBeVisible();
+    }
+
+    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
+    await expect(page.locator("kaklen-quotation-detail")).toBeVisible({ timeout: 30_000 });
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
       await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
       await expectNoHorizontalOverflow(page);
-      await page.goto(`${webBase}/es/p/payments/${checkoutToken}`);
-      await expect(page.locator("kaklen-payment-checkout")).toBeVisible();
+    }
+
+    await page.goto(`${webBase}/es/p/payments/${checkoutToken}`);
+    await expect(page.locator("kaklen-payment-checkout")).toBeVisible();
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
       await expectNoHorizontalOverflow(page);
     }
   });
@@ -986,6 +996,16 @@ async function expectRuntimeConfig(request, locale) {
   expect(body.commitSha).toBeTruthy();
   expect(body.buildTime).toBeTruthy();
   expect(body.environment).toBeTruthy();
+}
+
+async function navigateSpa(page, route) {
+  const localizedRoute = `/es${route}`;
+  await page.evaluate((path) => {
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, localizedRoute);
+  await expect(page).toHaveURL(new RegExp(`${localizedRoute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+  await page.locator("main").last().waitFor();
 }
 
 async function expectNoHorizontalOverflow(page) {

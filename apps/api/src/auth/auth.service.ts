@@ -69,12 +69,35 @@ const RESEND_VERIFICATION_MESSAGE =
 export const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=4$JHvJNhZYTo7VQWem3+scvQ$hawKgBESxfffwFVQHFH+JH3DXKuka28o63sinL6cHCE";
 
-export function verifyLoginPassword(
+export async function verifyLoginPassword(
   user: Pick<User, "passwordHash"> | null,
   password: string,
   verify: (hash: string, plain: string) => Promise<boolean> = argon2.verify
 ): Promise<boolean> {
-  return verify(user?.passwordHash ?? DUMMY_PASSWORD_HASH, password);
+  const result = await verifyPasswordHash(
+    user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+    password,
+    verify
+  );
+  if (result !== null) {
+    return result;
+  }
+  if (user) {
+    await verifyPasswordHash(DUMMY_PASSWORD_HASH, password, verify);
+  }
+  return false;
+}
+
+async function verifyPasswordHash(
+  hash: string,
+  password: string,
+  verify: (hash: string, plain: string) => Promise<boolean>
+): Promise<boolean | null> {
+  try {
+    return await verify(hash, password);
+  } catch {
+    return null;
+  }
 }
 
 @Injectable()
