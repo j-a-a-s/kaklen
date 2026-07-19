@@ -67,13 +67,13 @@
     "prisma:studio": "DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^6.11.1"
+    "@prisma/client": "^7.8.0"
   },
   "devDependencies": {
     "@angular/compiler": "^20.0.5",
     "@playwright/test": "^1.61.1",
     "pg": "^8.16.3",
-    "prisma": "^6.11.1",
+    "prisma": "^7.8.0",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   }
