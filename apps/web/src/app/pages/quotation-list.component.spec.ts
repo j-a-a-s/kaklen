@@ -80,9 +80,34 @@ describe("QuotationListComponent", () => {
     expect(component.error()).toBe("Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.");
     expect(component.canRepairIntegrityIssue()).toBeFalse();
   });
+
+  it("closes the repair modal and keeps list money hidden when repair is impossible", async () => {
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list", "recalculateTotals"]);
+    quotationsService.summary.and.resolveTo(quotationSummary());
+    quotationsService.list.and.rejectWith(moneyMismatchError());
+    quotationsService.recalculateTotals.and.rejectWith(repairNotPossibleError());
+    const notifications = jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "fromError"]);
+    const component = createComponent(quotationsService, notifications);
+    await component.load(1);
+    component.repairConfirmationOpen.set(true);
+
+    await component.recalculateTotals();
+
+    expect(component.repairConfirmationOpen()).toBeFalse();
+    expect(component.canRepairIntegrityIssue()).toBeFalse();
+    expect(component.summary()).toBeNull();
+    expect(component.quotations().items).toEqual([]);
+    expect(component.error()).toBe(
+      "Detectamos una inconsistencia financiera. Contacta al administrador para revisarla."
+    );
+    expect(notifications.fromError).not.toHaveBeenCalled();
+  });
 });
 
-function createComponent(quotationsService = {} as QuotationsService): QuotationListComponent {
+function createComponent(
+  quotationsService = {} as QuotationsService,
+  notifications = jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "fromError"])
+): QuotationListComponent {
   return new QuotationListComponent(
     {} as ActivatedRoute,
     {
@@ -90,7 +115,7 @@ function createComponent(quotationsService = {} as QuotationsService): Quotation
       hasPermission: () => true
     } as unknown as OrganizationService,
     quotationsService,
-    jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "fromError"])
+    notifications
   );
 }
 
@@ -103,6 +128,19 @@ function moneyMismatchError(repairable = true): HttpErrorResponse {
       field: "total",
       resourceId: "quotation-1",
       repairable
+    }
+  });
+}
+
+function repairNotPossibleError(): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+      message: "Quotation source data cannot be recalculated safely.",
+      field: "items.0.unitPrice",
+      resourceId: "quotation-1",
+      repairable: false
     }
   });
 }

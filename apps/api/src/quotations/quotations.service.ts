@@ -35,6 +35,37 @@ type QuotationWithDetails = Quotation & {
   createdBy?: { firstName: string; lastName: string };
 };
 
+type QuotationIntegritySource = Pick<
+  Quotation,
+  | "id"
+  | "status"
+  | "paidAt"
+  | "archivedAt"
+  | "currency"
+  | "globalDiscountPercent"
+  | "subtotal"
+  | "discountTotal"
+  | "taxTotal"
+  | "total"
+> & {
+  items: Array<Pick<
+    QuotationItem,
+    | "quantity"
+    | "unitPrice"
+    | "discountType"
+    | "discountValue"
+    | "taxPercent"
+    | "subtotal"
+    | "discountTotal"
+    | "taxTotal"
+    | "total"
+  >>;
+};
+
+type SerializableRetryDelay = (milliseconds: number) => Promise<void>;
+
+const MAX_SERIALIZABLE_REPAIR_ATTEMPTS = 3;
+
 interface CalculatedItem {
   catalogItemId: string | null;
   type: QuotationItemType;
@@ -115,11 +146,18 @@ export interface QuotationChangeRequestView {
 
 @Injectable()
 export class QuotationsService {
+  private readonly retryDelay: SerializableRetryDelay;
+
   constructor(
     private readonly prisma: PrismaService,
     @Optional() private readonly mailService?: MailService,
-    @Optional() private readonly quotationDocumentService?: QuotationDocumentService
-  ) {}
+    @Optional() private readonly quotationDocumentService?: QuotationDocumentService,
+    @Optional() retryDelay?: SerializableRetryDelay
+  ) {
+    this.retryDelay = retryDelay ?? (async (milliseconds) => {
+      await new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+    });
+  }
 
   async create(organizationId: string, userId: string, dto: CreateQuotationDto): Promise<QuotationWithDetails> {
     this.assertDates(dto.issueDate, dto.validUntil);
@@ -192,20 +230,44 @@ export class QuotationsService {
       const approvedByCurrency = new Map<string, { minorUnits: bigint; quotationCount: number }>();
       let cursor: string | undefined;
       while (true) {
-        const approvedBatch = await tx.quotation.findMany({
+        const approvedBatch: QuotationIntegritySource[] = await tx.quotation.findMany({
           where: {
             organizationId,
             archivedAt: null,
             status: QuotationStatus.APPROVED,
             ...(cursor ? { id: { gt: cursor } } : {})
           },
-          include: { client: true, items: { orderBy: { sortOrder: "asc" } } },
+          select: {
+            id: true,
+            status: true,
+            paidAt: true,
+            archivedAt: true,
+            currency: true,
+            globalDiscountPercent: true,
+            subtotal: true,
+            discountTotal: true,
+            taxTotal: true,
+            total: true,
+            items: {
+              orderBy: { sortOrder: "asc" },
+              select: {
+                quantity: true,
+                unitPrice: true,
+                discountType: true,
+                discountValue: true,
+                taxPercent: true,
+                subtotal: true,
+                discountTotal: true,
+                taxTotal: true,
+                total: true
+              }
+            }
+          },
           orderBy: { id: "asc" },
           take: 200
         });
         for (const quotation of approvedBatch) {
-          const consistent = this.consistentQuotation(quotation);
-          const canonical = calculateConsistentQuotationMoney(consistent);
+          const canonical = this.canonicalQuotationMoney(quotation);
           const currency = quotation.currency.toUpperCase();
           const current = approvedByCurrency.get(currency) ?? { minorUnits: 0n, quotationCount: 0 };
           approvedByCurrency.set(currency, {
@@ -325,7 +387,7 @@ export class QuotationsService {
     quotationId: string,
     userId: string
   ): Promise<QuotationWithDetails> {
-    return this.prisma.$transaction(async (tx) => {
+    return this.withSerializableRepairRetry(async (tx) => {
       const quotation = await this.findQuotationForRepair(organizationId, quotationId, tx);
       this.assertQuotationRepairAllowed(quotation);
       let canonical: QuotationMoneyResult;
@@ -373,7 +435,7 @@ export class QuotationsService {
       const repaired = this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
       await this.audit(tx, organizationId, userId, "quotation.money_recalculated", quotationId);
       return repaired;
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    });
   }
 
   async archive(organizationId: string, quotationId: string, userId: string): Promise<void> {
@@ -734,9 +796,13 @@ export class QuotationsService {
   }
 
   private consistentQuotation(quotation: QuotationWithDetails): QuotationWithDetails {
+    this.canonicalQuotationMoney(quotation);
+    return quotation;
+  }
+
+  private canonicalQuotationMoney(quotation: QuotationIntegritySource): QuotationMoneyResult {
     try {
-      calculateConsistentQuotationMoney(quotation);
-      return quotation;
+      return calculateConsistentQuotationMoney(quotation);
     } catch (error) {
       if (!(error instanceof ConflictException)) throw error;
       const response = error.getResponse();
@@ -753,6 +819,32 @@ export class QuotationsService {
         repairable: quotation.status === QuotationStatus.DRAFT && quotation.paidAt === null && quotation.archivedAt === null
       });
     }
+  }
+
+  private async withSerializableRepairRetry<T>(
+    operation: (tx: Prisma.TransactionClient) => Promise<T>,
+    attempt = 1
+  ): Promise<T> {
+    try {
+      return await this.prisma.$transaction(operation, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable
+      });
+    } catch (error) {
+      if (!this.isSerializableConflict(error) || attempt >= MAX_SERIALIZABLE_REPAIR_ATTEMPTS) {
+        throw error;
+      }
+      await this.retryDelay(this.serializableRetryDelay(attempt));
+      return this.withSerializableRepairRetry(operation, attempt + 1);
+    }
+  }
+
+  private isSerializableConflict(error: unknown): error is Prisma.PrismaClientKnownRequestError {
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+  }
+
+  private serializableRetryDelay(attempt: number): number {
+    const exponentialDelay = 10 * (2 ** (attempt - 1));
+    return exponentialDelay + Math.floor(Math.random() * exponentialDelay);
   }
 
   private assertQuotationRepairAllowed(quotation: QuotationWithDetails): void {

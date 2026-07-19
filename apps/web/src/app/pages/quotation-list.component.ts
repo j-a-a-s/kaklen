@@ -223,13 +223,15 @@ export class QuotationListComponent implements OnInit {
       await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
       await this.load(this.quotations().page);
       if (this.integrityIssue()) return;
-      this.repairConfirmationOpen.set(false);
       this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
-    } catch (error) {
+    } catch {
+      const currentPage = this.quotations().page;
+      this.summary.set(null);
+      this.quotations.set({ items: [], page: currentPage, pageSize: 20, total: 0, totalPages: 0 });
       this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
       this.error.set(quotationIntegrityMessage(false));
-      this.notifications.fromError(error);
     } finally {
+      this.repairConfirmationOpen.set(false);
       this.repairing.set(false);
     }
   }

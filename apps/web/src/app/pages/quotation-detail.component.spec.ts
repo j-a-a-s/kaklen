@@ -135,12 +135,33 @@ describe("QuotationDetailComponent", () => {
     expect(context.component.calculatedAmounts()?.total).toBe("499800");
     context.component.ngOnDestroy();
   });
+
+  it("closes the repair modal and keeps contradictory detail money hidden when repair is impossible", async () => {
+    const context = createContext(null);
+    context.quotations.get.and.rejectWith(moneyMismatchError(true));
+    await context.component.ngOnInit();
+    context.component.repairConfirmationOpen.set(true);
+    context.quotations.recalculateTotals.and.rejectWith(repairNotPossibleError());
+
+    await context.component.recalculateTotals();
+
+    expect(context.component.repairConfirmationOpen()).toBeFalse();
+    expect(context.component.canRepairIntegrityIssue()).toBeFalse();
+    expect(context.component.quotation()).toBeNull();
+    expect(context.component.calculatedAmounts()).toBeNull();
+    expect(context.component.error()).toBe(
+      "Detectamos una inconsistencia financiera. Contacta al administrador para revisarla."
+    );
+    expect(context.notifications.fromError).not.toHaveBeenCalled();
+    context.component.ngOnDestroy();
+  });
 });
 
 function createContext(fragmentValue: string | null = "change-requests", canUpdate = true): {
   component: QuotationDetailComponent;
   fragment: BehaviorSubject<string | null>;
   quotations: jasmine.SpyObj<QuotationsService>;
+  notifications: jasmine.SpyObj<NotificationService>;
 } {
   const fragment = new BehaviorSubject<string | null>(fragmentValue);
   const quotations = jasmine.createSpyObj<QuotationsService>("QuotationsService", [
@@ -157,6 +178,7 @@ function createContext(fragmentValue: string | null = "change-requests", canUpda
     ),
     activeOrganization: () => ({ numberFormat: "es", dateFormat: "dd-MM-yyyy", currency: "CLP" })
   } as unknown as OrganizationService;
+  const notifications = jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "error", "info", "fromError"]);
   const component = new QuotationDetailComponent(
     {
       snapshot: {
@@ -168,11 +190,11 @@ function createContext(fragmentValue: string | null = "change-requests", canUpda
     organization,
     quotations,
     { getLocale: () => "es" } as LocaleService,
-    jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "error", "info", "fromError"]),
+    notifications,
     { activation: async () => ({ completedSteps: [] }) } as unknown as AssistantService,
     { track: () => undefined } as unknown as ProductAnalyticsService
   );
-  return { component, fragment, quotations };
+  return { component, fragment, quotations, notifications };
 }
 
 function moneyMismatchError(repairable: boolean): HttpErrorResponse {
@@ -184,6 +206,19 @@ function moneyMismatchError(repairable: boolean): HttpErrorResponse {
       field: "total",
       resourceId: "quotation-1",
       repairable
+    }
+  });
+}
+
+function repairNotPossibleError(): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+      message: "Quotation source data cannot be recalculated safely.",
+      field: "items.0.unitPrice",
+      resourceId: "quotation-1",
+      repairable: false
     }
   });
 }

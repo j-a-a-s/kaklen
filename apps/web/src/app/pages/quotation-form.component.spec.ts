@@ -181,6 +181,46 @@ describe("QuotationFormComponent", () => {
     component.ngOnDestroy();
   });
 
+  it("closes the repair modal and keeps form money hidden when repair is impossible", async () => {
+    const queryParams = new BehaviorSubject(convertToParamMap({}));
+    const quotations = jasmine.createSpyObj("QuotationsService", ["get", "recalculateTotals"]);
+    quotations.get.and.rejectWith(moneyMismatchError());
+    quotations.recalculateTotals.and.rejectWith(repairNotPossibleError());
+    const notifications = jasmine.createSpyObj("NotificationService", ["success", "fromError"]);
+    const component = new QuotationFormComponent(
+      {
+        snapshot: { paramMap: convertToParamMap({ organizationId: "organization-a", quotationId: "quotation-a" }) },
+        queryParamMap: queryParams.asObservable()
+      } as never,
+      {} as never,
+      { list: async () => ({ items: [] }) } as never,
+      { list: async () => ({ items: [] }) } as never,
+      {
+        setActiveOrganization: async () => undefined,
+        activeOrganization: () => ({ currency: "CLP" }),
+        hasPermission: () => true
+      } as never,
+      quotations,
+      notifications,
+      {} as never,
+      {} as never
+    );
+    await component.ngOnInit();
+    component.repairConfirmationOpen.set(true);
+
+    await component.recalculateTotals();
+
+    expect(component.repairConfirmationOpen()).toBeFalse();
+    expect(component.canRepairIntegrityIssue()).toBeFalse();
+    expect(component.financialDataBlocked()).toBeTrue();
+    expect(component.items.length).toBe(0);
+    expect(component.error()).toBe(
+      "Detectamos una inconsistencia financiera. Contacta al administrador para revisarla."
+    );
+    expect(notifications.fromError).not.toHaveBeenCalled();
+    component.ngOnDestroy();
+  });
+
   for (const fixture of [
     {
       name: "without discounts",
@@ -252,6 +292,32 @@ function quotationComponent(): QuotationFormComponent {
     {} as never, {} as never, {} as never, {} as never, {} as never,
     {} as never, {} as never, {} as never, {} as never
   );
+}
+
+function moneyMismatchError(): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      field: "total",
+      resourceId: "quotation-a",
+      repairable: true
+    }
+  });
+}
+
+function repairNotPossibleError(): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+      message: "Quotation source data cannot be recalculated safely.",
+      field: "items.0.unitPrice",
+      resourceId: "quotation-a",
+      repairable: false
+    }
+  });
 }
 
 function editableQuotation() {

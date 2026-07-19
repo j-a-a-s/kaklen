@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, NotFoundExc
 import { CatalogItemStatus, CatalogItemType, Prisma, QuotationDiscountType, QuotationItemType, QuotationStatus } from "@prisma/client";
 import { calculateQuotationMoney } from "@kaklen/shared";
 import { assertPersistedQuotationMoneyParity } from "./quotation-money-consistency";
+import * as quotationMoneyConsistency from "./quotation-money-consistency";
 import { QuotationsService } from "./quotations.service";
 
 type TransitionProbe = {
@@ -21,6 +22,10 @@ type NumberProbe = {
 
 describe("QuotationsService", () => {
   const service = new QuotationsService({} as ConstructorParameters<typeof QuotationsService>[0]);
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   it("calculates totals without discount", () => {
     const result = service.calculateQuotationItems([
@@ -277,13 +282,58 @@ describe("QuotationsService", () => {
     });
     expect(prisma.quotation.findMany).toHaveBeenCalledWith({
       where: { organizationId: "org-1", archivedAt: null, status: QuotationStatus.APPROVED },
-      include: { client: true, items: { orderBy: { sortOrder: "asc" } } },
+      select: {
+        id: true,
+        status: true,
+        paidAt: true,
+        archivedAt: true,
+        currency: true,
+        globalDiscountPercent: true,
+        subtotal: true,
+        discountTotal: true,
+        taxTotal: true,
+        total: true,
+        items: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            quantity: true,
+            unitPrice: true,
+            discountType: true,
+            discountValue: true,
+            taxPercent: true,
+            subtotal: true,
+            discountTotal: true,
+            taxTotal: true,
+            total: true
+          }
+        }
+      },
       orderBy: { id: "asc" },
       take: 200
     });
+    const summaryQuery = prisma.quotation.findMany.mock.calls.at(-1)?.[0];
+    expect(JSON.stringify(summaryQuery)).not.toMatch(
+      /"client"|"organization"|"history"|"notes"|"terms"|"description"|"name"|"code"/
+    );
     expect(prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({
       isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead
     });
+  });
+
+  it("executes the canonical money engine exactly once per approved quotation", async () => {
+    const approvedQuotations = [
+      summaryQuotation("approved-clp", "CLP", "1000"),
+      summaryQuotation("approved-usd", "USD", "10.25"),
+      summaryQuotation("approved-eur", "EUR", "20.50"),
+      summaryQuotation("approved-brl", "BRL", "30.75")
+    ];
+    const prisma = makeQuotationsPrisma({ approvedQuotations });
+    const canonicalEngine = jest.spyOn(quotationMoneyConsistency, "calculateConsistentQuotationMoney");
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await realService.summary("org-1");
+
+    expect(canonicalEngine).toHaveBeenCalledTimes(approvedQuotations.length);
   });
 
   it("keeps single-currency and empty approved summaries exact", async () => {
@@ -554,6 +604,91 @@ describe("QuotationsService", () => {
         targetId: "quotation-1"
       }
     });
+  });
+
+  it("retries one P2034 conflict and audits only the successful serializable repair", async () => {
+    const corrupt = quotation({ total: new Prisma.Decimal(1191) });
+    corrupt.items[0].total = new Prisma.Decimal(1191);
+    const prisma = makeQuotationsPrisma({ quotation: corrupt, serializableConflicts: 1 });
+    const retryDelay = jest.fn(async (_milliseconds: number) => undefined);
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      undefined,
+      undefined,
+      retryDelay
+    );
+
+    await expect(realService.recalculateTotals("org-1", "quotation-1", "user-1")).resolves.toMatchObject({
+      total: new Prisma.Decimal(1190)
+    });
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(2);
+    expect(prisma.$transaction.mock.calls.map((call) => call[1])).toEqual([
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    ]);
+    expect(retryDelay).toHaveBeenCalledTimes(1);
+    expect(retryDelay.mock.calls[0]?.[0]).toBeGreaterThanOrEqual(10);
+    expect(retryDelay.mock.calls[0]?.[0]).toBeLessThan(20);
+    expect(prisma.quotation.update).toHaveBeenCalledTimes(1);
+    expect(prisma.quotationItem.update).toHaveBeenCalledTimes(1);
+    expect(prisma.organizationAuditLog.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops after three P2034 conflicts without partial writes or audit records", async () => {
+    const corrupt = quotation({ total: new Prisma.Decimal(1191) });
+    corrupt.items[0].total = new Prisma.Decimal(1191);
+    const prisma = makeQuotationsPrisma({ quotation: corrupt, serializableConflicts: 3 });
+    const retryDelay = jest.fn(async (_milliseconds: number) => undefined);
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      undefined,
+      undefined,
+      retryDelay
+    );
+
+    await expect(realService.recalculateTotals("org-1", "quotation-1", "user-1")).rejects.toMatchObject({
+      code: "P2034"
+    });
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(3);
+    expect(prisma.$transaction.mock.calls.every((call) =>
+      call[1]?.isolationLevel === Prisma.TransactionIsolationLevel.Serializable
+    )).toBe(true);
+    expect(retryDelay).toHaveBeenCalledTimes(2);
+    expect(retryDelay.mock.calls[0]?.[0]).toBeGreaterThanOrEqual(10);
+    expect(retryDelay.mock.calls[0]?.[0]).toBeLessThan(20);
+    expect(retryDelay.mock.calls[1]?.[0]).toBeGreaterThanOrEqual(20);
+    expect(retryDelay.mock.calls[1]?.[0]).toBeLessThan(40);
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+    expect(prisma.quotationItem.update).not.toHaveBeenCalled();
+    expect(prisma.organizationAuditLog.create).not.toHaveBeenCalled();
+    expect(corrupt.total.toString()).toBe("1191");
+    expect(corrupt.items[0].total.toString()).toBe("1191");
+  });
+
+  it("does not retry a functional repair conflict", async () => {
+    const prisma = makeQuotationsPrisma({
+      quotation: quotation({ status: QuotationStatus.APPROVED, total: new Prisma.Decimal(1191) })
+    });
+    const retryDelay = jest.fn(async (_milliseconds: number) => undefined);
+    const realService = new QuotationsService(
+      prisma as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      undefined,
+      undefined,
+      retryDelay
+    );
+
+    await expectRepairConflict(
+      realService.recalculateTotals("org-1", "quotation-1", "user-1"),
+      "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+      "status"
+    );
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(retryDelay).not.toHaveBeenCalled();
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+    expect(prisma.organizationAuditLog.create).not.toHaveBeenCalled();
   });
 
   it("repairs USD cents exactly and remains idempotent", async () => {
@@ -1053,6 +1188,7 @@ function makeQuotationsPrisma(options: {
   organizationCurrency?: string;
   approvedQuotations?: ReturnType<typeof quotation>[];
   listQuotations?: unknown[];
+  serializableConflicts?: number;
 } = {}) {
   const catalogItems = options.catalogItems ?? [catalogItem()];
   const currentQuotation = options.quotation === undefined ? quotation({ status: options.quotationStatus ?? QuotationStatus.DRAFT }) : options.quotation;
@@ -1063,6 +1199,7 @@ function makeQuotationsPrisma(options: {
     summaryQuotation("approved-eur", "EUR", "100.50"),
     summaryQuotation("approved-usd", "USD", "500.25")
   ];
+  let remainingSerializableConflicts = options.serializableConflicts ?? 0;
   const tx = {
     organization: {
       findFirst: jest.fn(async () => ({
@@ -1168,9 +1305,26 @@ function makeQuotationsPrisma(options: {
     ...tx,
     $transaction: jest.fn(async (
       input: unknown,
-      _options?: { isolationLevel?: Prisma.TransactionIsolationLevel }
-    ) => (Array.isArray(input) ? Promise.all(input) : (input as (transaction: typeof tx) => Promise<unknown>)(tx)))
+      transactionOptions?: { isolationLevel?: Prisma.TransactionIsolationLevel }
+    ) => {
+      if (
+        !Array.isArray(input) &&
+        transactionOptions?.isolationLevel === Prisma.TransactionIsolationLevel.Serializable &&
+        remainingSerializableConflicts > 0
+      ) {
+        remainingSerializableConflicts -= 1;
+        throw serializableConflictError();
+      }
+      return Array.isArray(input) ? Promise.all(input) : (input as (transaction: typeof tx) => Promise<unknown>)(tx);
+    })
   };
+}
+
+function serializableConflictError(): Prisma.PrismaClientKnownRequestError {
+  return new Prisma.PrismaClientKnownRequestError("Serializable transaction conflict", {
+    code: "P2034",
+    clientVersion: "6.19.3"
+  });
 }
 
 function quotation(overrides: Record<string, unknown> = {}) {

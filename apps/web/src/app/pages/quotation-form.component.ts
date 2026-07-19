@@ -355,13 +355,14 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
       await this.loadQuotationForEdit();
       if (this.financialDataBlocked()) return;
-      this.repairConfirmationOpen.set(false);
       this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
-    } catch (error) {
+    } catch {
+      this.financialDataBlocked.set(true);
+      this.items.clear();
       this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
       this.error.set(quotationIntegrityMessage(false));
-      this.notifications.fromError(error);
     } finally {
+      this.repairConfirmationOpen.set(false);
       this.repairing.set(false);
     }
   }

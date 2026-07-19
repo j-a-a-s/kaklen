@@ -454,15 +454,16 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
       await this.load();
       if (this.integrityIssue() || !this.quotation()) return;
-      this.repairConfirmationOpen.set(false);
       this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
-    } catch (error) {
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
-        this.error.set(quotationIntegrityMessage(false));
-        this.notifications.fromError(error);
-      }
+    } catch {
+      this.quotation.set(null);
+      this.history.set([]);
+      this.changeRequests.set([]);
+      this.publicLink.set(null);
+      this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+      this.error.set(quotationIntegrityMessage(false));
     } finally {
+      this.repairConfirmationOpen.set(false);
       this.repairing.set(false);
     }
   }
