@@ -104,6 +104,7 @@ test("task signal is preserved", async () => {
 });
 
 test("profiles select local and CI environments without nesting profiles", () => {
+  assert.equal(resolveProfile("check").environment, "local");
   assert.equal(resolveProfile("quality:gate").environment, "local");
   assert.equal(resolveProfile("quality:gate:ci").environment, "ci");
   assert.ok(resolveProfile("release:check:strict").tasks.some((task) => task.key === "external-readiness"));
@@ -111,6 +112,31 @@ test("profiles select local and CI environments without nesting profiles", () =>
     assert.equal(task.args.some((argument) => Object.hasOwn(QUALITY_PROFILES, argument)), false);
   }
   validateTaskGraph();
+});
+
+test("check is the fast service-free workspace profile", () => {
+  const keys = resolveProfile("check").tasks.map((task) => task.key);
+  assert.deepEqual(keys, [
+    "architecture",
+    "quality-scan",
+    "forms-audit",
+    "pdf-money-parity",
+    "lint",
+    "test"
+  ]);
+  for (const excluded of [
+    "local-services",
+    "db-migrate",
+    "e2e",
+    "build-es",
+    "build-en",
+    "build-pt-BR",
+    "mutation-critical",
+    "external-readiness",
+    "docker-api"
+  ]) {
+    assert.equal(keys.includes(excluded), false, excluded);
+  }
 });
 
 test("quality gate does not invoke release check", () => {

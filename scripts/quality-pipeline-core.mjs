@@ -69,6 +69,10 @@ const COMMON_PROFILE = [
 ];
 
 export const QUALITY_PROFILES = Object.freeze({
+  check: {
+    environment: "local",
+    tasks: ["architecture", "quality-scan", "forms-audit", "pdf-money-parity", "lint", "test"]
+  },
   "quality:gate": { environment: "local", tasks: ["local-services", ...COMMON_PROFILE] },
   "quality:gate:ci": { environment: "ci", tasks: COMMON_PROFILE },
   "release:check": { environment: "local", tasks: ["local-services", ...COMMON_PROFILE] },

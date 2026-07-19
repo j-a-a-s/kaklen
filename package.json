@@ -8,6 +8,8 @@
     "pnpm": ">=9.15.4 <10"
   },
   "scripts": {
+    "start": "node scripts/start.mjs",
+    "check": "node scripts/quality-pipeline.mjs check",
     "dev": "turbo run build --filter='./packages/*' && turbo run dev --filter='./apps/*' --parallel",
     "dev:i18n": "node scripts/dev-i18n.mjs",
     "dev:full:i18n": "node scripts/dev-full-i18n.mjs",

@@ -50,20 +50,53 @@ pnpm --filter @kaklen/web build:pt-BR
 ## Development Commands
 
 ```bash
-pnpm install
-docker compose up -d
-pnpm prisma:generate
-pnpm prisma:migrate
-pnpm dev
+pnpm start
+pnpm check
+pnpm quality:gate
+pnpm release:check:strict
 ```
 
-If port `5432` is already in use, set `POSTGRES_PORT` consistently:
+`pnpm start` delegates to the existing `dev:fresh`, `dev:i18n`, or
+`dev:full:i18n` implementation according to its mode. The complete contract is
+documented in [Development Commands](development/COMMANDS.md), and local port
+configuration lives in [Local Environment](development/LOCAL_ENVIRONMENT.md).
 
-```bash
-POSTGRES_PORT=55432 docker compose up -d
-POSTGRES_PORT=55432 pnpm prisma:migrate
-POSTGRES_PORT=55432 pnpm dev
-```
+## HTTP Module Boundaries
+
+Authentication owns registration, verification, login, token rotation, logout,
+password recovery, profile reads, and locale preferences under `/api/auth`.
+Its public routes are:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/verify-email`
+- `POST /api/auth/resend-verification-email`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me/preferences`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+
+Organizations owns tenant lifecycle, membership, invitations, and permission
+resolution:
+
+- `POST /api/organizations`
+- `GET /api/organizations`
+- `GET /api/organizations/:organizationId`
+- `PATCH /api/organizations/:organizationId`
+- `GET /api/organizations/:organizationId/members`
+- `PATCH /api/organizations/:organizationId/members/:membershipId`
+- `DELETE /api/organizations/:organizationId/members/:membershipId`
+- `POST /api/organizations/:organizationId/invitations`
+- `GET /api/organizations/:organizationId/invitations`
+- `DELETE /api/organizations/:organizationId/invitations/:invitationId`
+- `POST /api/organization-invitations/accept`
+- `GET /api/organizations/:organizationId/me/permissions`
+
+The organization creator becomes `OWNER`. Invitations expire after the
+configured `ORGANIZATION_INVITATION_EXPIRES_SECONDS` value, which defaults to
+72 hours locally.
 
 ## Build Strategy
 

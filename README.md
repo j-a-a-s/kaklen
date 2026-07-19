@@ -1,8 +1,16 @@
 # Kaklen
 
-Foundation monorepo para Kaklen con API NestJS, web Angular, Prisma y PostgreSQL.
+Kaklen es un monorepo para operaciones comerciales y de eventos, construido con
+Angular 20, NestJS 11, Prisma, PostgreSQL y Turborepo.
 
-## Primer inicio
+## Requisitos
+
+- Node.js 22, 23 o 24.
+- pnpm 9.15.4 o una versión compatible de la serie 9.
+- Docker con Docker Compose v2.
+- Git.
+
+## Inicio rápido
 
 ```bash
 git clone git@github.com:j-a-a-s/kaklen.git
@@ -10,300 +18,58 @@ cd kaklen
 cp .env.example .env
 pnpm install
 pnpm run setup
-pnpm dev:fresh
+pnpm start
 ```
 
-`pnpm run setup` verifica `DATABASE_URL` contra PostgreSQL real, compara las credenciales con el contenedor activo cuando existe, levanta PostgreSQL con Docker Compose si no responde, genera Prisma Client y ejecuta migraciones. No modifica `.env` automaticamente.
-
-Comandos utiles:
-
-- `pnpm run doctor`: diagnostica Node, pnpm, Docker, PostgreSQL, `DATABASE_URL`, Prisma y variables criticas.
-- `node scripts/check-db.mjs`: prueba solo la conexion PostgreSQL.
-- `pnpm dev:fresh`: limpia artefactos regenerables, regenera runtime config, ejecuta Prisma generate y levanta desarrollo.
-- `pnpm dev:i18n`: limpia artefactos, genera runtime config, construye y sirve solo los builds localizados en `/es`, `/en` y `/pt-BR`.
-- `pnpm dev:full:i18n`: levanta PostgreSQL, servicios auxiliares, API NestJS y frontend localizado para validar el MVP completo.
-- `pnpm verify:full-local`: valida health, frontend localizado, runtime config, CORS y conectividad del login.
-- `pnpm e2e`: prepara API y frontend localizado, ejecuta Playwright y limpia todos los procesos que inició.
-- `pnpm e2e:ui`: abre Playwright UI bajo el mismo ciclo controlado; `Ctrl+C` ejecuta cleanup.
-- `pnpm clean:dev`: limpia caches locales sin borrar `.env`, `node_modules`, datos ni volumenes Docker.
-- `pnpm verify`: ejecuta doctor, lint, test y build.
-
-## Uso diario recomendado
-
-Usa siempre:
-
-```bash
-pnpm dev:fresh
-```
-
-Para probar el cambio real de idioma con `@angular/localize`, usa:
-
-```bash
-pnpm dev:i18n
-```
-
-`pnpm dev` sirve el idioma base para desarrollo rapido. `pnpm dev:i18n` sirve `http://localhost:4200/es/login`, `http://localhost:4200/en/login` y `http://localhost:4200/pt-BR/login` desde compilaciones separadas.
-
-Para validar autenticacion, CRUD, health checks y el recorrido completo del MVP con los tres idiomas, usa:
-
-```bash
-pnpm dev:full:i18n
-```
-
-No uses solo `pnpm dev:i18n` para pruebas de autenticacion o CRUD: ese comando esta limitado al frontend localizado y no garantiza que la API NestJS este levantada.
-
-La informacion de version en login esta oculta por defecto y se revela solo con el atajo de diagnostico `Cmd/Ctrl + K`, soltar, luego `O`.
-
-## E2E y Quality Gate
-
-`pnpm e2e` es la única ruta oficial para Playwright. El runner comprueba puertos libres, espera health real de API y web, conserva el código de Playwright y considera `SIGTERM` esperado únicamente durante su propio cleanup. No reutiliza servidores iniciados manualmente.
-
-```bash
-pnpm e2e
-pnpm quality:gate
-```
-
-El Quality Gate resuelve un grafo canónico, ejecuta cada tarea una sola vez, se detiene ante el primer control no exitoso y termina con `QUALITY GATE PASSED` solo cuando todos devuelven 0. CI usa el mismo grafo mediante `pnpm quality:gate:ci`; no mantiene una segunda lista manual. La arquitectura está documentada en [docs/testing/QUALITY_PIPELINE.md](docs/testing/QUALITY_PIPELINE.md) y el lifecycle E2E en [docs/testing/E2E_PROCESS_LIFECYCLE.md](docs/testing/E2E_PROCESS_LIFECYCLE.md).
-
-Controles especializados:
-
-```bash
-pnpm forms:audit
-pnpm pdf:verify-money
-pnpm scorecard:verify
-```
-
-El auditor usa AST de TypeScript y Angular para `input`, `select`, `textarea` y controles personalizados. El scorecard versionado se actualiza con `pnpm scorecard:update`; AWS staging, WhatsApp real y el gateway productivo se mantienen como evidencia externa y bloquean una calificación global 10/10 mientras no estén validados.
-
-Si sospechas cache del navegador o builds antiguos:
-
-```bash
-pnpm clean:dev
-pnpm dev:fresh
-```
-
-No uses `git reset --hard` para limpiar cache local. Tampoco borres `node_modules` salvo que el problema sea de dependencias. Para comparar frontend y API, usa el panel oculto de version en login y `GET /api/health`; en desarrollo Kaklen avisa si los commits no coinciden.
-
-## Solucion de problemas
-
-Ejecuta primero:
-
-```bash
-pnpm run doctor
-```
-
-Si Docker esta instalado pero apagado, abre Docker Desktop y vuelve a ejecutar:
-
-```bash
-pnpm run setup
-```
-
-## Errores comunes
-
-### P1000
-
-Credenciales invalidas para PostgreSQL. Suele ocurrir cuando un contenedor antiguo fue creado con otra contraseña.
-
-Solucion:
-
-```bash
-pnpm run setup
-```
-
-El setup inspecciona el contenedor local de PostgreSQL y avisa si `DATABASE_URL` no coincide con `POSTGRES_USER`, `POSTGRES_PASSWORD` o `POSTGRES_DB`. No muestra la password completa ni modifica `.env` automaticamente.
-
-### P1001
-
-El servidor PostgreSQL no esta disponible.
-
-Solucion:
-
-```bash
-docker compose up -d postgres
-pnpm run doctor
-```
-
-### P1003
-
-La base de datos no existe.
-
-Solucion:
-
-```bash
-pnpm run setup
-```
-
-El setup intentara crear la base indicada por `DATABASE_URL` cuando las credenciales permitan conectarse a la base administrativa `postgres`.
-
-## Auth
-
-La autenticacion expone:
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/verify-email`
-- `POST /api/auth/resend-verification-email`
-- `POST /api/auth/refresh`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `PATCH /api/auth/me/preferences`
-- `POST /api/auth/forgot-password`
-- `POST /api/auth/reset-password`
-
-`/api/auth/refresh` y `/api/auth/logout` validan el header `Origin` contra
-`AUTH_ALLOWED_ORIGINS`. Para desarrollo local:
-
-```bash
-AUTH_ALLOWED_ORIGINS="http://localhost:4200"
-COOKIE_SECURE=false
-```
-
-### Confirmacion obligatoria de correo
-
-El registro crea una cuenta `ACTIVE` pendiente con `emailVerifiedAt = null`, envia un enlace localizado y responde solo con un mensaje. No emite access token, refresh token ni cookie, y la interfaz permanece anonima. Login devuelve `403 EMAIL_NOT_VERIFIED` hasta que `POST /api/auth/verify-email` consume el enlace de un solo uso; el usuario inicia sesion manualmente despues.
-
-El reenvio mediante `POST /api/auth/resend-verification-email` siempre entrega una respuesta publica generica y aplica limites Redis por IP y correo normalizado. Una cola durable procesa la elegibilidad, rota el token y envia SMTP fuera del tiempo de respuesta. Si SMTP falla, el token fallido se revoca y BullMQ reintenta con backoff exponencial.
-
-### Recuperacion de contraseña
-
-El enlace `¿Olvidaste tu contraseña?` de Login inicia un flujo con respuesta publica generica, token aleatorio de un solo uso almacenado como SHA-256 y vencimiento configurable. Al completar el cambio se revocan todos los refresh tokens y se incrementa la version de sesion para invalidar access tokens anteriores.
-
-Los limites de registro, login, recuperacion y verificacion usan contadores atomicos Redis. Las claves contienen solo identificadores HMAC-SHA256 y nunca correo, IP o token sin proteger. Si Redis o la cola no estan disponibles, la API responde con `RATE_LIMIT_BACKEND_UNAVAILABLE` o `AUTH_DELIVERY_UNAVAILABLE`; no existe fallback en memoria.
-
-Configuracion local:
-
-```bash
-APP_PUBLIC_URL=http://localhost:4200
-EMAIL_VERIFICATION_EXPIRES_MINUTES=1440
-PASSWORD_RESET_EXPIRES_MINUTES=30
-MAIL_FROM="Kaklen <no-reply@kaklen.local>"
-MAIL_HOST=localhost
-MAIL_PORT=1025
-MAIL_SECURE=false
-MAIL_USER=
-MAIL_PASSWORD=
-MAIL_CONNECTION_TIMEOUT_MS=5000
-MAIL_GREETING_TIMEOUT_MS=5000
-MAIL_SOCKET_TIMEOUT_MS=10000
-REDIS_URL=redis://localhost:6379
-RATE_LIMIT_HASH_SECRET=local-rate-limit-hash-secret-change-me
-```
-
-### Seguridad en produccion
-
-Con `NODE_ENV=production`, el arranque valida antes de crear Nest que los secrets criptograficos sean hexadecimales de al menos 64 caracteres, distintos y sin placeholders o patrones repetidos. Genera cada valor de forma independiente:
-
-```bash
-openssl rand -hex 32
-```
-
-Produccion exige `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `WHATSAPP_HASH_SECRET`, `PAYMENT_SANDBOX_SECRET`, `RATE_LIMIT_HASH_SECRET`, `REDIS_URL`, `COOKIE_SECURE=true` y `DATABASE_SSL=true`. `APP_PUBLIC_URL`, `APP_WEB_URL`, `AUTH_ALLOWED_ORIGINS` y `CORS_ALLOWED_ORIGINS` deben ser origenes HTTPS publicos sin wildcard, credenciales, path, query ni fragment.
-
-Swagger se habilita por defecto en desarrollo y test, puede controlarse con `SWAGGER_ENABLED` solo en esos entornos y permanece deshabilitado siempre en produccion.
-
-Verifica SMTP antes de probar el formulario:
-
-```bash
-pnpm mail:verify
-```
-
-Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con fingerprint del destinatario, locale y `messageId`; nunca contiene el email completo, token, URL completa, contraseña ni credenciales SMTP. Las especificaciones viven en [confirmacion de correo](docs/auth/EMAIL_VERIFICATION.md), [recuperacion de contraseña](docs/auth/PASSWORD_RECOVERY.md) y la [guia de correo local](docs/notifications/LOCAL_EMAIL_TESTING.md).
-
-## Internacionalizacion y configuracion regional
-
-La web soporta `es`, `en` y `pt-BR`, con `es` como idioma de interfaz predeterminado.
-El selector visible guarda la preferencia en `localStorage` solo como preferencia visual y, cuando hay usuario autenticado, actualiza `PATCH /api/auth/me/preferences`.
-
-Prioridad de locale:
-
-1. `User.locale`
-2. `Organization.defaultLocale`
-3. locale del navegador
-4. `es`
-
-La configuracion regional de negocio es independiente del idioma de interfaz. `Organization.country`, `currency`, `timezone`, `dateFormat` y `numberFormat` controlan fechas, numeros y moneda.
-
-Builds localizados:
-
-```bash
-pnpm --filter @kaklen/web build:es
-pnpm --filter @kaklen/web build:en
-pnpm --filter @kaklen/web build:pt-BR
-```
-
-## Organizaciones y RBAC
-
-Endpoints principales:
-
-- `POST /api/organizations`
-- `GET /api/organizations`
-- `GET /api/organizations/:organizationId`
-- `PATCH /api/organizations/:organizationId`
-- `GET /api/organizations/:organizationId/members`
-- `PATCH /api/organizations/:organizationId/members/:membershipId`
-- `DELETE /api/organizations/:organizationId/members/:membershipId`
-- `POST /api/organizations/:organizationId/invitations`
-- `GET /api/organizations/:organizationId/invitations`
-- `DELETE /api/organizations/:organizationId/invitations/:invitationId`
-- `POST /api/organization-invitations/accept`
-- `GET /api/organizations/:organizationId/me/permissions`
-
-El creador de una organización queda como `OWNER`. Las invitaciones expiran por defecto en 72 horas:
-
-```bash
-ORGANIZATION_INVITATION_EXPIRES_SECONDS=259200
-APP_WEB_URL=http://localhost:4200
-```
-
-## Base de datos de desarrollo
-
-Validar conexion, schema Prisma, migraciones y tablas accesibles:
-
-```bash
-pnpm db:validate
-```
-
-Reconstruir todas las migraciones en un schema temporal, comprobar drift, estructura crítica y dataset demo:
-
-```bash
-pnpm db:verify:migrations
-```
-
-Aplicar seed reproducible local:
-
-```bash
-pnpm db:seed
-```
-
-Credencial demo local creada por el seed:
+La guía para preparar el entorno y realizar el primer cambio está en
+[Start Here](docs/START_HERE.md).
+
+## Cuatro comandos
+
+| Comando | Propósito |
+| --- | --- |
+| `pnpm start` | Iniciar el entorno de desarrollo; admite `--mode=i18n` y `--mode=full`. |
+| `pnpm check` | Ejecutar controles rápidos sin servicios externos. |
+| `pnpm quality:gate` | Validar la integración local completa. |
+| `pnpm release:check:strict` | Evaluar todos los requisitos de una entrega estricta. |
+
+Los comandos anteriores son la interfaz pública del repositorio. Los aliases
+históricos siguen disponibles y están documentados en
+[Commands](docs/development/COMMANDS.md).
+
+## Arquitectura resumida
 
 ```text
-Email: admin.demo@kaklen.local
-Password: KaklenDemo123!
+Angular Web -> NestJS API -> Prisma Client -> PostgreSQL 16
+                         -> Redis / BullMQ
+                         -> SMTP / Mailpit
 ```
 
-Reset local destructivo, solo contra `localhost` y nunca en production:
+El workspace separa aplicaciones en `apps/`, contratos y configuración
+reutilizable en `packages/`, y persistencia en `prisma/`. Consulta la
+[arquitectura completa](docs/ARCHITECTURE.md).
 
-```bash
-pnpm db:reset:dev -- --confirm reset-dev
-```
+## Quality Gate
 
-## Gate de primer tag
+`pnpm quality:gate` resuelve un grafo canónico, ejecuta cada control una sola
+vez, falla rápido y solo termina correctamente cuando imprime
+`QUALITY GATE PASSED`. CI ejecuta el mismo grafo con el perfil preparado para
+GitHub Actions. Los perfiles y artefactos están descritos en
+[Quality Pipeline](docs/testing/QUALITY_PIPELINE.md).
 
-Antes de crear un tag estable ejecuta:
+## Documentación
 
-```bash
-pnpm release:check
-```
+- [Índice central](docs/README.md)
+- [Instalación y primer cambio](docs/START_HERE.md)
+- [Entorno local](docs/development/LOCAL_ENVIRONMENT.md)
+- [Solución de problemas](docs/development/TROUBLESHOOTING.md)
+- [Variables de entorno](docs/configuration/ENVIRONMENT_VARIABLES.md)
+- [Gobierno de dependencias](docs/governance/DEPENDENCY_UPDATES.md)
+- [Contribución](CONTRIBUTING.md)
 
-El comando selecciona el perfil pre-tag del mismo grafo canónico y termina con `RELEASE READY` solo si todos sus controles pasan. El checklist manual vive en `docs/release/FIRST_TAG_CHECKLIST.md` y el informe de auditoria en `docs/release/FIRST_TAG_AUDIT.md`.
+## Credenciales demo locales
 
-Para evaluar el criterio estricto 10/10:
-
-```bash
-pnpm release:check:strict
-```
-
-El perfil estricto agrega mutación crítica y exige evidencia real de AWS staging, WhatsApp y gateway productivo.
-
-Este gate agrega arquitectura, quality scan, SAST local, SBOM, dependency audit, cobertura y accesibilidad. Debe bloquear con `RELEASE BLOCKED` mientras no se validen AWS staging real y los umbrales de cobertura descritos en `docs/release/TECHNICAL_SCORECARD.md`.
+Los seeds crean cuentas y datos de demostración exclusivamente para desarrollo
+local. Sus credenciales son públicas, no deben reutilizarse fuera de un entorno
+local y nunca deben convertirse en secretos reales. Consulta
+[Demo Accounts](docs/testing/DEMO_ACCOUNTS.md).

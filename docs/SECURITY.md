@@ -43,21 +43,9 @@ See [Email Verification](auth/EMAIL_VERIFICATION.md) and [Password Recovery](aut
 
 ## Dependency Updates
 
-Dependabot is configured for:
-
-- npm workspace dependencies.
-- GitHub Actions.
-- Docker images.
-
-Review dependency updates with the normal validation flow:
-
-```bash
-pnpm install
-pnpm prisma:generate
-pnpm lint
-pnpm test
-pnpm build
-```
+Dependabot covers pnpm workspace dependencies, GitHub Actions, and Docker
+images. Cadence, grouping, major-version handling, and review controls live in
+[Dependency Updates](governance/DEPENDENCY_UPDATES.md).
 
 ## Reporting
 

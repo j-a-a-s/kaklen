@@ -4,13 +4,15 @@ import { dirname, resolve } from "node:path";
 import { runQualityPipeline } from "./quality-pipeline-core.mjs";
 
 const profile = process.argv[2] ?? "quality:gate";
-const logPath = resolve("artifacts/quality-gate.log");
+const artifactName = profile === "check" ? "check" : "quality-gate";
+const logPath = resolve(`artifacts/${artifactName}.log`);
 mkdirSync(dirname(logPath), { recursive: true });
 writeFileSync(logPath, `profile=${profile}\n`);
 console.log(`KAKLEN QUALITY PIPELINE\nProfile: ${profile}`);
 
 const result = await runQualityPipeline({
   profile,
+  artifactPath: `artifacts/${artifactName}.json`,
   onTaskStart: (task) => {
     appendFileSync(logPath, `start ${task.key}\n`);
     console.log(`\n== ${task.label} [${task.key}] ==`);
@@ -33,5 +35,6 @@ if (result.failure) {
 }
 
 appendFileSync(logPath, "status=passed\n");
-if (profile.startsWith("release:")) console.log("\nRELEASE READY");
+if (profile === "check") console.log("\nCHECK PASSED");
+else if (profile.startsWith("release:")) console.log("\nRELEASE READY");
 else console.log("\nQUALITY GATE PASSED");

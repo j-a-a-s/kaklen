@@ -2,17 +2,19 @@
 
 ## Development Flow
 
-1. Work from a feature branch.
-2. Keep changes focused and small enough to review.
-3. Run validation before opening a pull request:
+1. Prepare the repository with [Start Here](docs/START_HERE.md).
+2. Work from a focused feature branch.
+3. Run the fast local controls while iterating:
 
 ```bash
-pnpm install
-pnpm prisma:generate
-pnpm lint
-pnpm test
-pnpm build
+pnpm check
 ```
+
+4. Run `pnpm quality:gate` before requesting review when the change is ready.
+5. Use `pnpm release:check:strict` only when preparing release evidence.
+
+The command contract and compatibility aliases are documented in
+[Commands](docs/development/COMMANDS.md).
 
 ## Commit Style
 
@@ -32,6 +34,8 @@ docs(scope): update documentation
 - Keep environment parsing and defaults in `packages/config`.
 - Do not commit secrets, local `.env` files, generated logs, or build artifacts.
 - Document meaningful architecture decisions in `docs/DECISIONS.md`.
+- Update the relevant canonical guide instead of copying instructions into
+  multiple files.
 
 ## Pull Requests
 

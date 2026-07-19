@@ -1,17 +1,23 @@
 # Canonical Quality Pipeline
 
-`scripts/quality-pipeline-core.mjs` define un grafo de tareas con key, label, comando, argumentos, dependencias, entornos, timeout, artefactos y obligatoriedad. `scripts/quality-pipeline.mjs` resuelve el perfil, ejecuta sin shell, conserva exit code/señal, falla rápido y escribe `artifacts/quality-gate.json` más un log técnico sanitizado.
+`scripts/quality-pipeline-core.mjs` define un grafo de tareas con key, label, comando, argumentos, dependencias, entornos, timeout, artefactos y obligatoriedad. `scripts/quality-pipeline.mjs` resuelve el perfil, ejecuta sin shell, conserva exit code/señal, falla rápido y escribe un artefacto JSON más un log técnico sanitizado.
 
 ## Profiles
 
 | Profile | Purpose | Environment |
 | --- | --- | --- |
+| `pnpm check` | Arquitectura, scans estáticos, formularios, dinero, lint y tests sin servicios | local |
 | `pnpm quality:gate` | Validación local completa y servicios Docker | local |
 | `pnpm quality:gate:ci` | Check canónico con servicios provistos por Actions | CI |
 | `pnpm release:check` | Evidencia local previa a tag | local |
 | `pnpm release:check:strict` | Lo anterior más mutación crítica y validaciones externas | local |
 
 Los perfiles seleccionan tareas; ninguno ejecuta otro perfil. El resolver topológico garantiza una ejecución máxima por key y respeta todas las dependencias.
+
+El perfil `check` excluye Docker, migraciones, E2E, builds localizados, mutation
+testing y evidencia externa. Escribe `artifacts/check.json` y
+`artifacts/check.log`; los demás perfiles conservan
+`artifacts/quality-gate.json` y `artifacts/quality-gate.log`.
 
 ## Artifact Reuse
 
