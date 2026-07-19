@@ -647,9 +647,20 @@ describe("QuotationsService", () => {
       retryDelay
     );
 
-    await expect(realService.recalculateTotals("org-1", "quotation-1", "user-1")).rejects.toMatchObject({
-      code: "P2034"
-    });
+    try {
+      await realService.recalculateTotals("org-1", "quotation-1", "user-1");
+      fail("Expected exhausted serializable conflicts to fail safely");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConflictException);
+      expect((error as ConflictException).getStatus()).toBe(409);
+      expect((error as ConflictException).getResponse()).toEqual({
+        code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+        message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+        resourceId: "quotation-1",
+        repairable: true
+      });
+      expect(error).not.toHaveProperty("code", "P2034");
+    }
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(3);
     expect(prisma.$transaction.mock.calls.every((call) =>

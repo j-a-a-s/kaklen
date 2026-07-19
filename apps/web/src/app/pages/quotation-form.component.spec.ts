@@ -221,6 +221,57 @@ describe("QuotationFormComponent", () => {
     component.ngOnDestroy();
   });
 
+  it("keeps repair available after a transient conflict without exposing form money or duplicate toasts", async () => {
+    const queryParams = new BehaviorSubject(convertToParamMap({}));
+    const quotations = jasmine.createSpyObj("QuotationsService", ["get", "recalculateTotals"]);
+    quotations.get.and.rejectWith(moneyMismatchError());
+    quotations.recalculateTotals.and.rejectWith(repairConflictError("quotation-a"));
+    const notifications = jasmine.createSpyObj("NotificationService", ["success", "fromError"]);
+    const component = new QuotationFormComponent(
+      {
+        snapshot: { paramMap: convertToParamMap({ organizationId: "organization-a", quotationId: "quotation-a" }) },
+        queryParamMap: queryParams.asObservable()
+      } as never,
+      {} as never,
+      { list: async () => ({ items: [] }) } as never,
+      { list: async () => ({ items: [] }) } as never,
+      {
+        setActiveOrganization: async () => undefined,
+        activeOrganization: () => ({ currency: "CLP" }),
+        hasPermission: () => true
+      } as never,
+      quotations,
+      notifications,
+      {} as never,
+      {} as never
+    );
+    await component.ngOnInit();
+    component.repairConfirmationOpen.set(true);
+
+    await component.recalculateTotals();
+
+    expect(component.repairConfirmationOpen()).toBeFalse();
+    expect(component.canRepairIntegrityIssue()).toBeTrue();
+    expect(component.financialDataBlocked()).toBeTrue();
+    expect(component.items.length).toBe(0);
+    expect(component.error()).toBe(
+      "La cotización cambió mientras recalculábamos los totales. Intenta nuevamente."
+    );
+    expect(notifications.success).not.toHaveBeenCalled();
+    expect(notifications.fromError).not.toHaveBeenCalled();
+
+    quotations.recalculateTotals.and.resolveTo(editableQuotation());
+    quotations.get.and.resolveTo(editableQuotation());
+    await component.recalculateTotals();
+
+    expect(quotations.recalculateTotals).toHaveBeenCalledTimes(2);
+    expect(component.integrityIssue()).toBeNull();
+    expect(component.financialDataBlocked()).toBeFalse();
+    expect(component.items.length).toBe(1);
+    expect(notifications.success).toHaveBeenCalledTimes(1);
+    component.ngOnDestroy();
+  });
+
   for (const fixture of [
     {
       name: "without discounts",
@@ -316,6 +367,18 @@ function repairNotPossibleError(): HttpErrorResponse {
       field: "items.0.unitPrice",
       resourceId: "quotation-a",
       repairable: false
+    }
+  });
+}
+
+function repairConflictError(resourceId: string): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+      message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+      resourceId,
+      repairable: true
     }
   });
 }

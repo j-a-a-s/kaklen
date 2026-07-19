@@ -89,6 +89,30 @@ describe("ApiErrorFilter", () => {
     expect(response.body).not.toHaveProperty("persistedValue");
   });
 
+  it("returns exhausted quotation repair conflicts as a stable recoverable 409", () => {
+    const filter = new ApiErrorFilter();
+    const response = createResponse();
+
+    filter.catch(new ConflictException({
+      code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+      message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+      resourceId: "quotation-1",
+      repairable: true,
+      prismaCode: "P2034",
+      financialData: "sensitive"
+    }), createHost(response, "en"));
+
+    expect(response.body).toEqual({
+      code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+      message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+      statusCode: 409,
+      resourceId: "quotation-1",
+      repairable: true
+    });
+    expect(response.body).not.toHaveProperty("prismaCode");
+    expect(response.body).not.toHaveProperty("financialData");
+  });
+
   it("normalizes unexpected errors and internal server errors without exposing stacks", () => {
     const filter = new ApiErrorFilter();
     const unexpected = createResponse();

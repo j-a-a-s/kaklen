@@ -155,6 +155,36 @@ describe("QuotationDetailComponent", () => {
     expect(context.notifications.fromError).not.toHaveBeenCalled();
     context.component.ngOnDestroy();
   });
+
+  it("keeps repair available after a transient conflict without exposing detail money or duplicate toasts", async () => {
+    const context = createContext(null);
+    context.quotations.get.and.rejectWith(moneyMismatchError(true));
+    await context.component.ngOnInit();
+    context.component.repairConfirmationOpen.set(true);
+    context.quotations.recalculateTotals.and.rejectWith(repairConflictError("quotation-1"));
+
+    await context.component.recalculateTotals();
+
+    expect(context.component.repairConfirmationOpen()).toBeFalse();
+    expect(context.component.canRepairIntegrityIssue()).toBeTrue();
+    expect(context.component.quotation()).toBeNull();
+    expect(context.component.calculatedAmounts()).toBeNull();
+    expect(context.component.error()).toBe(
+      "La cotización cambió mientras recalculábamos los totales. Intenta nuevamente."
+    );
+    expect(context.notifications.success).not.toHaveBeenCalled();
+    expect(context.notifications.fromError).not.toHaveBeenCalled();
+
+    context.quotations.recalculateTotals.and.resolveTo(quotation());
+    context.quotations.get.and.resolveTo(quotation());
+    await context.component.recalculateTotals();
+
+    expect(context.quotations.recalculateTotals).toHaveBeenCalledTimes(2);
+    expect(context.component.integrityIssue()).toBeNull();
+    expect(context.component.quotation()?.total).toBe("499800");
+    expect(context.notifications.success).toHaveBeenCalledTimes(1);
+    context.component.ngOnDestroy();
+  });
 });
 
 function createContext(fragmentValue: string | null = "change-requests", canUpdate = true): {
@@ -219,6 +249,18 @@ function repairNotPossibleError(): HttpErrorResponse {
       field: "items.0.unitPrice",
       resourceId: "quotation-1",
       repairable: false
+    }
+  });
+}
+
+function repairConflictError(resourceId: string): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+      message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+      resourceId,
+      repairable: true
     }
   });
 }

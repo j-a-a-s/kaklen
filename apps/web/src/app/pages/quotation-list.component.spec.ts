@@ -102,6 +102,38 @@ describe("QuotationListComponent", () => {
     );
     expect(notifications.fromError).not.toHaveBeenCalled();
   });
+
+  it("keeps repair available after a transient conflict without exposing list money or duplicate toasts", async () => {
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list", "recalculateTotals"]);
+    quotationsService.summary.and.resolveTo(quotationSummary());
+    quotationsService.list.and.rejectWith(moneyMismatchError());
+    quotationsService.recalculateTotals.and.rejectWith(repairConflictError("quotation-1"));
+    const notifications = jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "fromError"]);
+    const component = createComponent(quotationsService, notifications);
+    await component.load(1);
+    component.repairConfirmationOpen.set(true);
+
+    await component.recalculateTotals();
+
+    expect(component.repairConfirmationOpen()).toBeFalse();
+    expect(component.canRepairIntegrityIssue()).toBeTrue();
+    expect(component.summary()).toBeNull();
+    expect(component.quotations().items).toEqual([]);
+    expect(component.error()).toBe(
+      "La cotización cambió mientras recalculábamos los totales. Intenta nuevamente."
+    );
+    expect(notifications.success).not.toHaveBeenCalled();
+    expect(notifications.fromError).not.toHaveBeenCalled();
+
+    quotationsService.recalculateTotals.and.resolveTo({} as Quotation);
+    quotationsService.list.and.resolveTo({ items: [{} as Quotation], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    await component.recalculateTotals();
+
+    expect(quotationsService.recalculateTotals).toHaveBeenCalledTimes(2);
+    expect(component.integrityIssue()).toBeNull();
+    expect(component.quotations().items).toHaveSize(1);
+    expect(notifications.success).toHaveBeenCalledTimes(1);
+  });
 });
 
 function createComponent(
@@ -141,6 +173,18 @@ function repairNotPossibleError(): HttpErrorResponse {
       field: "items.0.unitPrice",
       resourceId: "quotation-1",
       repairable: false
+    }
+  });
+}
+
+function repairConflictError(resourceId: string): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_REPAIR_CONFLICT",
+      message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+      resourceId,
+      repairable: true
     }
   });
 }

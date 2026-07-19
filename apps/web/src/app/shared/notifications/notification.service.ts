@@ -106,6 +106,7 @@ export function messageForError(error: unknown): string {
     QUOTATION_MONEY_MISMATCH: quotationIntegrityMessage(false),
     QUOTATION_MONEY_REPAIR_NOT_ALLOWED: quotationIntegrityMessage(false),
     QUOTATION_MONEY_REPAIR_NOT_POSSIBLE: quotationIntegrityMessage(false),
+    QUOTATION_MONEY_REPAIR_CONFLICT: quotationRepairConflictMessage(),
     CLP_FRACTION_NOT_ALLOWED: $localize`:@@errorClpFractionNotAllowed:Los montos en pesos chilenos no pueden contener decimales.`,
     MONEY_PRECISION_NOT_ALLOWED: $localize`:@@errorMoneyPrecisionNotAllowed:El monto tiene más decimales de los permitidos para la moneda seleccionada.`,
     EVENT_INVALID_STATUS: $localize`:@@errorEventInvalidStatus:El evento no permite esa acción en su estado actual.`
@@ -138,6 +139,10 @@ export function quotationIntegrityMessage(canRepair: boolean): string {
   return canRepair
     ? $localize`:@@quotationMoneyMismatchRepairable:Detectamos una inconsistencia financiera.`
     : $localize`:@@quotationMoneyMismatchNotRepairable:Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.`;
+}
+
+export function quotationRepairConflictMessage(): string {
+  return $localize`:@@quotationMoneyRepairConflict:La cotización cambió mientras recalculábamos los totales. Intenta nuevamente.`;
 }
 
 function isDevelopment(): boolean {

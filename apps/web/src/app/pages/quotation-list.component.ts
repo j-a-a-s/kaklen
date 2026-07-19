@@ -13,7 +13,8 @@ import {
   BackendErrorDetails,
   isBackendErrorCode,
   NotificationService,
-  quotationIntegrityMessage
+  quotationIntegrityMessage,
+  quotationRepairConflictMessage
 } from "../shared/notifications/notification.service";
 import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 import { UiIconComponent } from "../shared/ui-icon.component";
@@ -224,12 +225,17 @@ export class QuotationListComponent implements OnInit {
       await this.load(this.quotations().page);
       if (this.integrityIssue()) return;
       this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
-    } catch {
+    } catch (error) {
       const currentPage = this.quotations().page;
       this.summary.set(null);
       this.quotations.set({ items: [], page: currentPage, pageSize: 20, total: 0, totalPages: 0 });
-      this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
-      this.error.set(quotationIntegrityMessage(false));
+      if (isBackendErrorCode(error, "QUOTATION_MONEY_REPAIR_CONFLICT")) {
+        this.integrityIssue.set({ ...backendErrorDetails(error), repairable: true });
+        this.error.set(quotationRepairConflictMessage());
+      } else {
+        this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+        this.error.set(quotationIntegrityMessage(false));
+      }
     } finally {
       this.repairConfirmationOpen.set(false);
       this.repairing.set(false);

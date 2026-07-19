@@ -16,7 +16,8 @@ import {
   isBackendErrorCode,
   messageForError,
   NotificationService,
-  quotationIntegrityMessage
+  quotationIntegrityMessage,
+  quotationRepairConflictMessage
 } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
@@ -356,11 +357,16 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       await this.loadQuotationForEdit();
       if (this.financialDataBlocked()) return;
       this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
-    } catch {
+    } catch (error) {
       this.financialDataBlocked.set(true);
       this.items.clear();
-      this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
-      this.error.set(quotationIntegrityMessage(false));
+      if (isBackendErrorCode(error, "QUOTATION_MONEY_REPAIR_CONFLICT")) {
+        this.integrityIssue.set({ ...backendErrorDetails(error), repairable: true });
+        this.error.set(quotationRepairConflictMessage());
+      } else {
+        this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+        this.error.set(quotationIntegrityMessage(false));
+      }
     } finally {
       this.repairConfirmationOpen.set(false);
       this.repairing.set(false);

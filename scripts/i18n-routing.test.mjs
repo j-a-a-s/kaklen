@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const sourceMessages = readText("apps/web/src/locale/messages.xlf");
+const spanishMessages = readText("apps/web/src/locale/messages.es.xlf");
 const englishMessages = readText("apps/web/src/locale/messages.en.xlf");
 const portugueseMessages = readText("apps/web/src/locale/messages.pt-BR.xlf");
 
@@ -100,6 +101,21 @@ test("login has expected English and Brazilian Portuguese translations", () => {
   for (const text of ["Entrar", "Cadastro", "Idioma", "Bem-vindo de volta", "E-mail", "Senha", "Ainda não tem uma conta?", "Crie uma"]) {
     assert.match(portugueseMessages, new RegExp(escapeRegExp(text)));
   }
+});
+
+test("quotation repair conflict has exact localized recovery guidance", () => {
+  assert.match(
+    spanishMessages,
+    /<trans-unit id="quotationMoneyRepairConflict"[\s\S]*?<target>La cotización cambió mientras recalculábamos los totales\. Intenta nuevamente\.<\/target>/
+  );
+  assert.match(
+    englishMessages,
+    /<trans-unit id="quotationMoneyRepairConflict"[\s\S]*?<target>The quotation changed while totals were being recalculated\. Try again\.<\/target>/
+  );
+  assert.match(
+    portugueseMessages,
+    /<trans-unit id="quotationMoneyRepairConflict"[\s\S]*?<target>A cotação foi alterada durante o recálculo dos totais\. Tente novamente\.<\/target>/
+  );
 });
 
 test("localized XLIFF files include every source translation id with targets", () => {

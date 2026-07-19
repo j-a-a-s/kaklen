@@ -3562,6 +3562,10 @@
         <source>Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.</source>
         <target>Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.</target>
       </trans-unit>
+      <trans-unit id="quotationMoneyRepairConflict" datatype="html">
+        <source>La cotización cambió mientras recalculábamos los totales. Intenta nuevamente.</source>
+        <target>La cotización cambió mientras recalculábamos los totales. Intenta nuevamente.</target>
+      </trans-unit>
       <trans-unit id="noRecentActivity" datatype="html">
         <source>La actividad aparecerá aquí cuando tu equipo empiece a trabajar.</source>
         <target>La actividad aparecerá aquí cuando tu equipo empiece a trabajar.</target>

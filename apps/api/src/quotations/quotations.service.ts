@@ -12,6 +12,7 @@ import {
   QuotationStatusHistory
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { ERROR_CODES } from "../common/error-codes";
 import { calculateQuotationMoney, minorUnitsToMoney, moneyToMinorUnits, MoneyPrecisionError } from "@kaklen/shared";
 import type { QuotationDecimalInput, QuotationMoneyAmounts, QuotationMoneyResult } from "@kaklen/shared";
 import { MailService } from "../notifications/mail.service";
@@ -387,7 +388,7 @@ export class QuotationsService {
     quotationId: string,
     userId: string
   ): Promise<QuotationWithDetails> {
-    return this.withSerializableRepairRetry(async (tx) => {
+    return this.withSerializableRepairRetry(quotationId, async (tx) => {
       const quotation = await this.findQuotationForRepair(organizationId, quotationId, tx);
       this.assertQuotationRepairAllowed(quotation);
       let canonical: QuotationMoneyResult;
@@ -822,6 +823,7 @@ export class QuotationsService {
   }
 
   private async withSerializableRepairRetry<T>(
+    quotationId: string,
     operation: (tx: Prisma.TransactionClient) => Promise<T>,
     attempt = 1
   ): Promise<T> {
@@ -830,11 +832,19 @@ export class QuotationsService {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable
       });
     } catch (error) {
-      if (!this.isSerializableConflict(error) || attempt >= MAX_SERIALIZABLE_REPAIR_ATTEMPTS) {
+      if (!this.isSerializableConflict(error)) {
         throw error;
       }
+      if (attempt >= MAX_SERIALIZABLE_REPAIR_ATTEMPTS) {
+        throw new ConflictException({
+          code: ERROR_CODES.quotationMoneyRepairConflict,
+          message: "Quotation totals could not be recalculated because the quotation changed concurrently.",
+          resourceId: quotationId,
+          repairable: true
+        });
+      }
       await this.retryDelay(this.serializableRetryDelay(attempt));
-      return this.withSerializableRepairRetry(operation, attempt + 1);
+      return this.withSerializableRepairRetry(quotationId, operation, attempt + 1);
     }
   }
 

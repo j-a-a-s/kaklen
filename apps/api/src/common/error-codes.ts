@@ -13,6 +13,7 @@ export const ERROR_CODES = {
   quotationMoneyMismatch: "QUOTATION_MONEY_MISMATCH",
   quotationMoneyRepairNotAllowed: "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
   quotationMoneyRepairNotPossible: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+  quotationMoneyRepairConflict: "QUOTATION_MONEY_REPAIR_CONFLICT",
   clpFractionNotAllowed: "CLP_FRACTION_NOT_ALLOWED",
   moneyPrecisionNotAllowed: "MONEY_PRECISION_NOT_ALLOWED",
   eventInvalidStatus: "EVENT_INVALID_STATUS",

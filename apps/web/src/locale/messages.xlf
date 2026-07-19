@@ -8528,6 +8528,13 @@
           <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quotationMoneyRepairConflict" datatype="html">
+        <source>La cotización cambió mientras recalculábamos los totales. Intenta nuevamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
+          <context context-type="linenumber">145</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="noRecentActivity" datatype="html">
         <source>La actividad aparecerá aquí cuando tu equipo empiece a trabajar.</source>
         <context-group purpose="location">
