@@ -49,7 +49,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @SkipThrottle()
   @ApiOperation({ summary: "Register a new user" })
   @ApiCreatedResponse({ type: MessageResponseDto })
   @ApiConflictResponse({ description: "Email is already registered" })
@@ -62,16 +62,17 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @SkipThrottle()
   @ApiOperation({ summary: "Login with email and password" })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: "Invalid credentials" })
   @ApiForbiddenResponse({ description: "Email address has not been verified" })
   async login(
     @Body() dto: LoginDto,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response
   ): Promise<AuthResponseDto> {
-    const result = await this.authService.login(dto);
+    const result = await this.authService.login(dto, this.authRequestContext(request));
     this.setRefreshCookie(response, result.refreshToken);
 
     return {
@@ -82,17 +83,20 @@ export class AuthController {
 
   @Post("verify-email")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @SkipThrottle()
   @ApiOperation({ summary: "Confirm an email address using a single-use token" })
   @ApiOkResponse({ type: MessageResponseDto })
   @ApiBadRequestResponse({ description: "Verification token is invalid" })
-  verifyEmail(@Body() dto: VerifyEmailDto): Promise<MessageResponseDto> {
-    return this.authService.verifyEmail(dto);
+  verifyEmail(
+    @Body() dto: VerifyEmailDto,
+    @Req() request: Request
+  ): Promise<MessageResponseDto> {
+    return this.authService.verifyEmail(dto, this.authRequestContext(request));
   }
 
   @Post("resend-verification-email")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @SkipThrottle()
   @ApiOperation({ summary: "Resend account confirmation instructions when eligible" })
   @ApiOkResponse({ type: MessageResponseDto })
   @ApiTooManyRequestsResponse({ description: "Too many resend attempts" })
@@ -120,7 +124,7 @@ export class AuthController {
 
   @Post("reset-password")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @SkipThrottle()
   @ApiOperation({ summary: "Replace a password using a single-use recovery token" })
   @ApiOkResponse({ type: MessageResponseDto })
   @ApiBadRequestResponse({ description: "Token or password is invalid" })

@@ -1,4 +1,5 @@
 import { spawn as nodeSpawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 
 export const E2E_EXIT_CODES = Object.freeze({
   passed: 0,
@@ -7,6 +8,10 @@ export const E2E_EXIT_CODES = Object.freeze({
   SIGINT: 130,
   SIGTERM: 143
 });
+
+export function createE2ERateLimitSecret() {
+  return randomBytes(32).toString("hex");
+}
 
 export function normalizePlaywrightArguments(argumentsList) {
   return argumentsList[0] === "--" ? argumentsList.slice(1) : [...argumentsList];

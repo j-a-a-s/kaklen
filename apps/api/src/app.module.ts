@@ -14,8 +14,26 @@ import { QuotationPortalModule } from "./quotation-portal/quotation-portal.modul
 import { WhatsAppModule } from "./whatsapp/whatsapp.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { ProviderProfilesModule } from "./provider-profiles/provider-profiles.module";
+import { DistributedThrottlingModule } from "./security/distributed-throttling.module";
 
 @Module({
-  imports: [HealthModule, PrismaModule, AuthModule, OrganizationsModule, ClientsModule, CatalogModule, QuotationsModule, EventsModule, StorageModule, AssistantModule, InAppNotificationsModule, QuotationPortalModule, WhatsAppModule, PaymentsModule, ProviderProfilesModule]
+  imports: [
+    DistributedThrottlingModule,
+    HealthModule,
+    PrismaModule,
+    AuthModule,
+    OrganizationsModule,
+    ClientsModule,
+    CatalogModule,
+    QuotationsModule,
+    EventsModule,
+    StorageModule,
+    AssistantModule,
+    InAppNotificationsModule,
+    QuotationPortalModule,
+    WhatsAppModule,
+    PaymentsModule,
+    ProviderProfilesModule
+  ]
 })
 export class AppModule {}

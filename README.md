@@ -162,11 +162,13 @@ COOKIE_SECURE=false
 
 El registro crea una cuenta `ACTIVE` pendiente con `emailVerifiedAt = null`, envia un enlace localizado y responde solo con un mensaje. No emite access token, refresh token ni cookie, y la interfaz permanece anonima. Login devuelve `403 EMAIL_NOT_VERIFIED` hasta que `POST /api/auth/verify-email` consume el enlace de un solo uso; el usuario inicia sesion manualmente despues.
 
-El reenvio mediante `POST /api/auth/resend-verification-email` siempre entrega una respuesta publica generica, revoca enlaces anteriores y aplica limites por IP y correo normalizado. Si SMTP falla, la cuenta se conserva pendiente, el token fallido se revoca y el fallo queda en log y auditoria para permitir un reenvio posterior.
+El reenvio mediante `POST /api/auth/resend-verification-email` siempre entrega una respuesta publica generica y aplica limites Redis por IP y correo normalizado. Una cola durable procesa la elegibilidad, rota el token y envia SMTP fuera del tiempo de respuesta. Si SMTP falla, el token fallido se revoca y BullMQ reintenta con backoff exponencial.
 
 ### Recuperacion de contraseña
 
 El enlace `¿Olvidaste tu contraseña?` de Login inicia un flujo con respuesta publica generica, token aleatorio de un solo uso almacenado como SHA-256 y vencimiento configurable. Al completar el cambio se revocan todos los refresh tokens y se incrementa la version de sesion para invalidar access tokens anteriores.
+
+Los limites de registro, login, recuperacion y verificacion usan contadores atomicos Redis. Las claves contienen solo identificadores HMAC-SHA256 y nunca correo, IP o token sin proteger. Si Redis o la cola no estan disponibles, la API responde con `RATE_LIMIT_BACKEND_UNAVAILABLE` o `AUTH_DELIVERY_UNAVAILABLE`; no existe fallback en memoria.
 
 Configuracion local:
 
@@ -183,7 +185,21 @@ MAIL_PASSWORD=
 MAIL_CONNECTION_TIMEOUT_MS=5000
 MAIL_GREETING_TIMEOUT_MS=5000
 MAIL_SOCKET_TIMEOUT_MS=10000
+REDIS_URL=redis://localhost:6379
+RATE_LIMIT_HASH_SECRET=local-rate-limit-hash-secret-change-me
 ```
+
+### Seguridad en produccion
+
+Con `NODE_ENV=production`, el arranque valida antes de crear Nest que los secrets criptograficos sean hexadecimales de al menos 64 caracteres, distintos y sin placeholders o patrones repetidos. Genera cada valor de forma independiente:
+
+```bash
+openssl rand -hex 32
+```
+
+Produccion exige `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `WHATSAPP_HASH_SECRET`, `PAYMENT_SANDBOX_SECRET`, `RATE_LIMIT_HASH_SECRET`, `REDIS_URL`, `COOKIE_SECURE=true` y `DATABASE_SSL=true`. `APP_PUBLIC_URL`, `APP_WEB_URL`, `AUTH_ALLOWED_ORIGINS` y `CORS_ALLOWED_ORIGINS` deben ser origenes HTTPS publicos sin wildcard, credenciales, path, query ni fragment.
+
+Swagger se habilita por defecto en desarrollo y test, puede controlarse con `SWAGGER_ENABLED` solo en esos entornos y permanece deshabilitado siempre en produccion.
 
 Verifica SMTP antes de probar el formulario:
 
@@ -191,7 +207,7 @@ Verifica SMTP antes de probar el formulario:
 pnpm mail:verify
 ```
 
-Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con destinatario, locale y `messageId`; nunca contiene el token, la URL completa, la contraseña ni credenciales SMTP. Las especificaciones viven en [confirmacion de correo](docs/auth/EMAIL_VERIFICATION.md), [recuperacion de contraseña](docs/auth/PASSWORD_RECOVERY.md) y la [guia de correo local](docs/notifications/LOCAL_EMAIL_TESTING.md).
+Con `pnpm dev:full:i18n`, los correos quedan disponibles en Mailpit: `http://localhost:8025`. Un envio aceptado genera un log `[mail:sent]` con fingerprint del destinatario, locale y `messageId`; nunca contiene el email completo, token, URL completa, contraseña ni credenciales SMTP. Las especificaciones viven en [confirmacion de correo](docs/auth/EMAIL_VERIFICATION.md), [recuperacion de contraseña](docs/auth/PASSWORD_RECOVERY.md) y la [guia de correo local](docs/notifications/LOCAL_EMAIL_TESTING.md).
 
 ## Internacionalizacion y configuracion regional
 

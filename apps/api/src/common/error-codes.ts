@@ -30,6 +30,8 @@ export const ERROR_CODES = {
   emailVerificationTokenUsed: "EMAIL_VERIFICATION_TOKEN_USED",
   emailVerificationTokenRevoked: "EMAIL_VERIFICATION_TOKEN_REVOKED",
   tooManyRequests: "TOO_MANY_REQUESTS",
+  rateLimitBackendUnavailable: "RATE_LIMIT_BACKEND_UNAVAILABLE",
+  authDeliveryUnavailable: "AUTH_DELIVERY_UNAVAILABLE",
   internalServerError: "INTERNAL_SERVER_ERROR"
 } as const;
 
@@ -53,6 +55,9 @@ export function codeForStatus(statusCode: number): ErrorCode {
   }
   if (statusCode === 429) {
     return ERROR_CODES.tooManyRequests;
+  }
+  if (statusCode === 503) {
+    return ERROR_CODES.internalServerError;
   }
   return ERROR_CODES.internalServerError;
 }

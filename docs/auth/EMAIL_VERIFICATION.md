@@ -19,10 +19,10 @@ If SMTP delivery fails, the account remains pending so it can be recovered throu
 
 - `POST /api/auth/register`: create a pending account and request delivery.
 - `POST /api/auth/verify-email`: consume a confirmation token.
-- `POST /api/auth/resend-verification-email`: return a generic response and send only for an eligible pending account.
+- `POST /api/auth/resend-verification-email`: return a generic response and enqueue the same job type for every allowed request; a worker sends only for an eligible pending account.
 - `POST /api/auth/login`: issue a session only for an active, verified account.
 
-Resend uses limits by IP and normalized email. The response is identical for missing, verified, suspended, and pending accounts. Resending revokes every previous unused token before creating a replacement.
+Resend uses shared Redis limits by IP and normalized email. The response is identical for missing, verified, suspended, and pending accounts. The worker revokes every previous unused token before creating a replacement and retries delivery at most three times with exponential backoff.
 
 ## Configuration
 
@@ -39,7 +39,7 @@ The API builds the link from `APP_PUBLIC_URL` and the persisted user locale. It 
 
 ## Local verification
 
-Run `pnpm dev:full:i18n`, open a localized registration page, and inspect Mailpit at `http://localhost:8025`. A successful delivery writes `[mail:sent]` with `mailType=email_verification`, recipient, locale, provider `messageId`, accepted and rejected addresses, and timestamp. Logs never include the raw token, full URL, password, message body, or SMTP credentials.
+Run `pnpm dev:full:i18n`, open a localized registration page, and inspect Mailpit at `http://localhost:8025`. A successful delivery writes `[mail:sent]` with `mailType=email_verification`, a recipient fingerprint, locale, provider `messageId`, delivery counts, and timestamp. Logs never include the full email, raw token, full URL, password, message body, or SMTP credentials.
 
 The migration backfills `emailVerifiedAt` for existing users before enforcing the new login rule. New registrations remain pending. Demo seeds always create explicitly verified users.
 

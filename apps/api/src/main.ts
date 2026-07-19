@@ -1,37 +1,22 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, type INestApplication } from "@nestjs/common";
 import { json, urlencoded } from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import { readApiConfig } from "@kaklen/config";
+import { validateRuntimeEnvironment, type ApiConfig } from "@kaklen/config";
 import { KAKLEN_API_PREFIX } from "@kaklen/shared";
 import { AppModule } from "./app.module";
 import { ApiErrorFilter } from "./common/api-error.filter";
 import { requestLoggingMiddleware } from "./common/runtime-logging";
 
 export async function bootstrap(): Promise<void> {
-  const config = readApiConfig(process.env);
+  const runtimeConfig = validateRuntimeEnvironment(process.env);
+  const config = runtimeConfig.api;
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.enableShutdownHooks();
-  const expressApp = app.getHttpAdapter().getInstance();
-  if (config.trustProxy && typeof expressApp.set === "function") {
-    expressApp.set("trust proxy", 1);
-  }
-  app.use(json({ limit: "1mb" }));
-  app.use(urlencoded({ extended: true, limit: "1mb" }));
-  app.use(helmet());
-  app.use(cookieParser());
-  app.use(requestLoggingMiddleware);
-  app.enableCors({
-    origin: config.corsAllowedOrigins,
-    credentials: true,
-    exposedHeaders: ["Content-Disposition"]
-  });
-  if (typeof expressApp.disable === "function") {
-    expressApp.disable("x-powered-by");
-  }
+  configureHttpSecurity(app, config);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -42,16 +27,51 @@ export async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new ApiErrorFilter());
   app.setGlobalPrefix(KAKLEN_API_PREFIX);
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle("Kaklen API")
-    .setDescription("Kaklen foundation API")
-    .setVersion("0.1.0")
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("docs", app, document);
+  if (config.swaggerEnabled) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle("Kaklen API")
+      .setDescription("Kaklen foundation API")
+      .setVersion(config.appVersion)
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup("docs", app, document);
+  }
 
   await app.listen(config.port);
+}
+
+export function configureHttpSecurity(app: INestApplication, config: ApiConfig): void {
+  const expressApp = app.getHttpAdapter().getInstance();
+  if (config.trustProxy && typeof expressApp.set === "function") {
+    expressApp.set("trust proxy", 1);
+  }
+  app.use(json({ limit: "1mb" }));
+  app.use(urlencoded({ extended: true, limit: "1mb" }));
+  app.use(
+    helmet({
+      frameguard: { action: "deny" },
+      noSniff: true,
+      referrerPolicy: { policy: "no-referrer" },
+      hsts:
+        config.nodeEnv === "production"
+          ? { maxAge: 31_536_000, includeSubDomains: true, preload: false }
+          : false
+    })
+  );
+  app.use(cookieParser());
+  app.use(requestLoggingMiddleware);
+  app.enableCors({
+    origin: config.corsAllowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
+    exposedHeaders: ["Content-Disposition", "Retry-After"],
+    maxAge: 86400
+  });
+  if (typeof expressApp.disable === "function") {
+    expressApp.disable("x-powered-by");
+  }
 }
 
 if (require.main === module) {
@@ -83,7 +103,12 @@ export function prismaErrorCode(error: unknown): string | undefined {
   if (error && typeof error === "object" && "code" in error && typeof error.code === "string") {
     return error.code;
   }
-  if (error && typeof error === "object" && "errorCode" in error && typeof error.errorCode === "string") {
+  if (
+    error &&
+    typeof error === "object" &&
+    "errorCode" in error &&
+    typeof error.errorCode === "string"
+  ) {
     return error.errorCode;
   }
   return undefined;

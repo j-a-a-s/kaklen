@@ -16,7 +16,7 @@ import {
   User,
   UserStatus
 } from "@prisma/client";
-import { createHash, createHmac, randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import * as argon2 from "argon2";
 import { readAuthConfig } from "@kaklen/config";
 import {
@@ -42,8 +42,8 @@ import { LoginDto } from "./dto/login.dto";
 import { ForgotPasswordDto, ResetPasswordDto } from "./dto/password-recovery.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { UpdatePreferencesDto } from "./dto/update-preferences.dto";
-import { EmailVerificationRateLimitService } from "./email-verification-rate-limit.service";
-import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
+import { AuthDeliveryQueueService } from "./auth-delivery-queue.service";
+import { AuthRateLimitService } from "./auth-rate-limit.service";
 
 interface TokenPair {
   accessToken: string;
@@ -66,6 +66,16 @@ const REGISTER_MESSAGE = "Cuenta creada. Revisa tu correo para confirmar tu dire
 const VERIFY_EMAIL_MESSAGE = "Tu correo fue confirmado correctamente.";
 const RESEND_VERIFICATION_MESSAGE =
   "Si la cuenta requiere confirmación, enviaremos un nuevo correo.";
+export const DUMMY_PASSWORD_HASH =
+  "$argon2id$v=19$m=65536,t=3,p=4$JHvJNhZYTo7VQWem3+scvQ$hawKgBESxfffwFVQHFH+JH3DXKuka28o63sinL6cHCE";
+
+export function verifyLoginPassword(
+  user: Pick<User, "passwordHash"> | null,
+  password: string,
+  verify: (hash: string, plain: string) => Promise<boolean> = argon2.verify
+): Promise<boolean> {
+  return verify(user?.passwordHash ?? DUMMY_PASSWORD_HASH, password);
+}
 
 @Injectable()
 export class AuthService {
@@ -75,11 +85,12 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
-    private readonly recoveryRateLimit: PasswordRecoveryRateLimitService,
-    private readonly verificationRateLimit: EmailVerificationRateLimitService
+    private readonly authRateLimits: AuthRateLimitService,
+    private readonly authDeliveryQueue: AuthDeliveryQueueService
   ) {}
 
   async register(dto: RegisterDto, context: AuthRequestContext): Promise<MessageResponse> {
+    await this.authRateLimits.assertRegisterAllowed(context);
     const email = this.normalizeEmail(dto.email);
     const firstName = dto.firstName.trim();
     const lastName = dto.lastName.trim();
@@ -111,17 +122,16 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto): Promise<AuthResponse & { refreshToken: string }> {
+  async login(
+    dto: LoginDto,
+    context: AuthRequestContext
+  ): Promise<AuthResponse & { refreshToken: string }> {
+    await this.authRateLimits.assertLoginAllowed(dto.email, context);
     const user = await this.prisma.user.findUnique({
       where: { email: this.normalizeEmail(dto.email) }
     });
-
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const validPassword = await argon2.verify(user.passwordHash, dto.password);
-    if (!validPassword || user.status !== UserStatus.ACTIVE) {
+    const validPassword = await verifyLoginPassword(user, dto.password);
+    if (!user || !validPassword || user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -141,7 +151,11 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(dto: VerifyEmailDto): Promise<MessageResponse> {
+  async verifyEmail(
+    dto: VerifyEmailDto,
+    context: AuthRequestContext
+  ): Promise<MessageResponse> {
+    await this.authRateLimits.assertEmailVerificationAllowed(dto.token, context);
     const tokenHash = this.hashEmailVerificationToken(dto.token);
     const storedToken = await this.prisma.emailVerificationToken.findUnique({
       where: { tokenHash },
@@ -208,12 +222,10 @@ export class AuthService {
     dto: ResendVerificationEmailDto,
     context: AuthRequestContext
   ): Promise<MessageResponse> {
-    const startedAt = Date.now();
     const email = this.normalizeEmail(dto.email);
-    if (this.verificationRateLimit.allowResend(email)) {
-      await this.processVerificationResend(email, context);
+    if (await this.authRateLimits.allowVerificationResend(email, context)) {
+      await this.authDeliveryQueue.enqueueVerificationResend(email, context);
     }
-    await this.ensureMinimumDuration(startedAt, 250);
     return { message: RESEND_VERIFICATION_MESSAGE };
   }
 
@@ -221,15 +233,10 @@ export class AuthService {
     dto: ForgotPasswordDto,
     context: PasswordRecoveryRequestContext
   ): Promise<MessageResponse> {
-    const startedAt = Date.now();
     const email = this.normalizeEmail(dto.email);
-    const allowed = this.recoveryRateLimit.allowForgot(email, context.ipAddress);
-
-    if (allowed) {
-      await this.processPasswordResetRequest(email, context);
+    if (await this.authRateLimits.allowForgotPassword(email, context)) {
+      await this.authDeliveryQueue.enqueuePasswordReset(email, context);
     }
-
-    await this.ensureMinimumDuration(startedAt, 250);
     return { message: FORGOT_PASSWORD_MESSAGE };
   }
 
@@ -237,7 +244,7 @@ export class AuthService {
     dto: ResetPasswordDto,
     context: PasswordRecoveryRequestContext
   ): Promise<MessageResponse> {
-    this.recoveryRateLimit.assertResetAllowed(dto.token, context.ipAddress);
+    await this.authRateLimits.assertResetPasswordAllowed(dto.token, context);
     const tokenHash = this.hashResetToken(dto.token);
     const storedToken = await this.prisma.passwordResetToken.findUnique({
       where: { tokenHash },
@@ -405,114 +412,6 @@ export class AuthService {
     return this.toAuthUser(user);
   }
 
-  private async processPasswordResetRequest(
-    email: string,
-    context: PasswordRecoveryRequestContext
-  ): Promise<void> {
-    const rawToken = randomBytes(48).toString("base64url");
-    const tokenHash = this.hashResetToken(rawToken);
-    const user = await this.prisma.user.findUnique({ where: { email } });
-
-    if (!user || user.status !== UserStatus.ACTIVE || !user.emailVerifiedAt) {
-      if (user) {
-        await this.auditResetFailure(user.id, "ACCOUNT_INACTIVE");
-      }
-      return;
-    }
-
-    const config = this.mailService.getPasswordResetPolicy();
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + config.expiresMinutes * 60 * 1000);
-    const resetToken = await this.prisma.$transaction(async (tx) => {
-      await tx.passwordResetToken.updateMany({
-        where: {
-          userId: user.id,
-          usedAt: null,
-          revokedAt: null,
-          expiresAt: { gt: now }
-        },
-        data: { revokedAt: now }
-      });
-      const created = await tx.passwordResetToken.create({
-        data: {
-          userId: user.id,
-          tokenHash,
-          expiresAt,
-          requestedIpHash: this.hashRequestContext(context.ipAddress),
-          userAgentHash: context.userAgent
-            ? this.hashRequestContext(context.userAgent)
-            : null
-        }
-      });
-      return created;
-    });
-
-    const locale = normalizeNotificationLocale(user.locale);
-    const resetUrl = new URL(`/${locale}/reset-password`, `${config.appPublicUrl}/`);
-    resetUrl.searchParams.set("token", rawToken);
-
-    try {
-      const receipt = await this.mailService.sendPasswordResetEmail({
-        recipient: user.email,
-        locale,
-        resetUrl: resetUrl.toString(),
-        expiresInMinutes: config.expiresMinutes,
-        ...(context.requestId ? { requestId: context.requestId } : {})
-      });
-      const sentAt = new Date();
-      await this.prisma.$transaction(async (tx) => {
-        const markedSent = await tx.passwordResetToken.updateMany({
-          where: {
-            id: resetToken.id,
-            usedAt: null,
-            revokedAt: null,
-            sentAt: null
-          },
-          data: { sentAt }
-        });
-        if (markedSent.count !== 1) {
-          throw new Error("Password reset token could not be marked as sent");
-        }
-        await tx.authAuditLog.create({
-          data: {
-            userId: user.id,
-            event: "password_reset_requested",
-            success: true,
-            metadata: {
-              expiresMinutes: config.expiresMinutes,
-              locale,
-              messageId: receipt.messageId
-            }
-          }
-        });
-      });
-    } catch (error) {
-      const reason =
-        error instanceof MailDeliveryError ? error.code : "PASSWORD_RESET_STATE_FAILED";
-      try {
-        await this.prisma.$transaction(async (tx) => {
-          await tx.passwordResetToken.updateMany({
-            where: { id: resetToken.id, usedAt: null, revokedAt: null },
-            data: { revokedAt: new Date() }
-          });
-          await tx.authAuditLog.create({
-            data: {
-              userId: user.id,
-              event: "password_reset_failed",
-              success: false,
-              metadata: { reason }
-            }
-          });
-        });
-      } catch {
-        this.logPasswordResetStateFailure(user.id, "TOKEN_REVOCATION_FAILED", context.requestId);
-      }
-      if (!(error instanceof MailDeliveryError)) {
-        this.logPasswordResetStateFailure(user.id, reason, context.requestId);
-      }
-    }
-  }
-
   private async auditResetFailure(userId: string, reason: string): Promise<void> {
     await this.prisma.authAuditLog.create({
       data: {
@@ -522,29 +421,6 @@ export class AuthService {
         metadata: { reason }
       }
     });
-  }
-
-  private async processVerificationResend(
-    email: string,
-    context: AuthRequestContext
-  ): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || user.status !== UserStatus.ACTIVE || user.emailVerifiedAt) {
-      return;
-    }
-
-    const pending = await this.prisma.$transaction(async (tx) => {
-      await tx.emailVerificationToken.updateMany({
-        where: {
-          userId: user.id,
-          usedAt: null,
-          revokedAt: null
-        },
-        data: { revokedAt: new Date() }
-      });
-      return this.createEmailVerificationToken(user, tx);
-    });
-    await this.deliverEmailVerification(pending, context, "resend");
   }
 
   private async createEmailVerificationToken(
@@ -818,29 +694,8 @@ export class AuthService {
     return createHash("sha256").update(token).digest("hex");
   }
 
-  private hashRequestContext(value: string): string {
-    const secret = readAuthConfig(process.env).jwtRefreshSecret;
-    return createHmac("sha256", secret).update(value).digest("hex");
-  }
-
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
-  }
-
-  private logPasswordResetStateFailure(
-    userId: string,
-    reason: string,
-    requestId?: string
-  ): void {
-    this.logger.error(
-      `[password-reset:failed] ${JSON.stringify({
-        event: "password_reset.failed",
-        userId,
-        reason,
-        timestamp: new Date().toISOString(),
-        ...(requestId ? { requestId } : {})
-      })}`
-    );
   }
 
   private logEmailVerificationStateFailure(
@@ -875,12 +730,5 @@ export class AuthService {
 
   private isUniqueConstraintError(error: unknown): boolean {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-  }
-
-  private async ensureMinimumDuration(startedAt: number, minimumMs: number): Promise<void> {
-    const remainingMs = minimumMs - (Date.now() - startedAt);
-    if (remainingMs > 0) {
-      await new Promise<void>((resolve) => setTimeout(resolve, remainingMs));
-    }
   }
 }

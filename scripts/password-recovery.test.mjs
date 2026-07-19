@@ -20,28 +20,41 @@ test("password recovery schema and migration remain present", () => {
   assert.ok(sentAtMigration, "add_password_reset_sent_at migration is required");
 });
 
-test("password recovery keeps tokens out of logs and invalidates sessions", () => {
+test("password recovery queues delivery, keeps tokens out of logs, and invalidates sessions", () => {
   const auth = read("apps/api/src/auth/auth.service.ts");
+  const processor = read("apps/api/src/auth/auth-delivery.processor.ts");
+  const queue = read("apps/api/src/auth/auth-delivery-queue.service.ts");
   const logging = read("apps/api/src/common/runtime-logging.ts");
   assert.match(auth, /createHash\("sha256"\)/);
   assert.match(auth, /refreshToken\.updateMany/);
   assert.match(auth, /authVersion: \{ increment: 1 \}/);
   assert.match(auth, /password_reset_completed/);
-  assert.match(auth, /sendPasswordResetEmail/);
-  assert.match(auth, /data: \{ sentAt \}/);
+  assert.match(auth, /enqueuePasswordReset/);
+  assert.match(processor, /sendPasswordResetEmail/);
+  assert.match(processor, /data: \{ sentAt: new Date\(\) \}/);
+  assert.match(queue, /ipHash: this\.rateLimits\.hashSensitive/);
+  assert.doesNotMatch(queue, /rawToken|resetUrl|verificationUrl/);
   assert.doesNotMatch(auth, /console\.(?:log|info|warn|error)/);
   assert.match(logging, /originalUrl\.split\("\?"\)/);
 });
 
-test("rate limits, localized templates, and Mailpit E2E are wired", () => {
-  const limiter = read("apps/api/src/auth/password-recovery-rate-limit.service.ts");
+test("distributed rate limits, durable delivery, templates, and Mailpit E2E are wired", () => {
+  const limiter = read("apps/api/src/auth/auth-rate-limit.service.ts");
+  const distributedLimiter = read(
+    "apps/api/src/security/distributed-rate-limit.service.ts"
+  );
+  const queue = read("apps/api/src/auth/auth-delivery-queue.service.ts");
   const templates = read("apps/api/src/notifications/templates.ts");
   const e2e = read("e2e/password-recovery.spec.mjs");
   const mail = read("apps/api/src/notifications/mail.service.ts");
   const packageJson = JSON.parse(read("package.json"));
-  assert.match(limiter, /forgot:email/);
-  assert.match(limiter, /reset:token/);
+  assert.match(limiter, /forgot-password:email/);
+  assert.match(limiter, /reset-password:token/);
   assert.match(limiter, /createHash\("sha256"\)/);
+  assert.match(distributedLimiter, /createHmac\("sha256"/);
+  assert.match(distributedLimiter, /client\.call\("EVAL"/);
+  assert.match(queue, /attempts: 3/);
+  assert.match(queue, /backoff: \{ type: "exponential", delay: 500 \}/);
   assert.match(templates, /Recupera tu acceso a Kaklen/);
   assert.match(templates, /Reset your Kaklen password/);
   assert.match(templates, /Redefina sua senha do Kaklen/);

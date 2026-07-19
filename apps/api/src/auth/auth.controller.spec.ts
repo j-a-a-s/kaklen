@@ -24,7 +24,11 @@ describe("AuthController", () => {
       )
     ).resolves.toEqual({ message: "account pending" });
     expect(response.cookie).not.toHaveBeenCalled();
-    await controller.login({ email: "ada@example.com", password: "secret" }, response as never);
+    await controller.login(
+      { email: "ada@example.com", password: "secret" },
+      { ip: "127.0.0.1", socket: {}, headers: {} } as never,
+      response as never
+    );
     await controller.refresh({ cookies: { kaklen_refresh_token: "refresh-token" }, headers: { origin: "http://localhost:4200" } } as never, response as never);
 
     expect(response.cookie).toHaveBeenCalledWith(
@@ -44,9 +48,9 @@ describe("AuthController", () => {
       requestId: "request-1"
     };
 
-    await expect(controller.verifyEmail({ token: "x".repeat(48) })).resolves.toEqual({
-      message: "email verified"
-    });
+    await expect(
+      controller.verifyEmail({ token: "x".repeat(48) }, request as never)
+    ).resolves.toEqual({ message: "email verified" });
     await expect(
       controller.resendVerificationEmail({ email: "ada@example.com" }, request as never)
     ).resolves.toEqual({ message: "generic verification response" });

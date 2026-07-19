@@ -1,5 +1,6 @@
 import { BadRequestException, ArgumentsHost, ConflictException, HttpException, InternalServerErrorException } from "@nestjs/common";
 import { ApiErrorFilter } from "./api-error.filter";
+import { RateLimitExceededException } from "./rate-limit-exceptions";
 
 interface TestBody {
   code: string;
@@ -15,6 +16,8 @@ interface TestResponse {
   body?: TestBody;
   status(statusCode: number): TestResponse;
   json(body: TestBody): TestResponse;
+  setHeader(name: string, value: string): void;
+  headers?: Record<string, string>;
 }
 
 describe("ApiErrorFilter", () => {
@@ -148,10 +151,22 @@ describe("ApiErrorFilter", () => {
       statusCode: 400
     });
   });
+
+  it("sets Retry-After for distributed rate limit failures", () => {
+    const filter = new ApiErrorFilter();
+    const response = createResponse();
+
+    filter.catch(new RateLimitExceededException(47), createHost(response, "en"));
+
+    expect(response.statusCode).toBe(429);
+    expect(response.headers?.["Retry-After"]).toBe("47");
+    expect(response.body?.code).toBe("TOO_MANY_REQUESTS");
+  });
 });
 
 function createResponse(): TestResponse {
   return {
+    headers: {},
     status(statusCode: number) {
       this.statusCode = statusCode;
       return this;
@@ -159,6 +174,9 @@ function createResponse(): TestResponse {
     json(body: TestBody) {
       this.body = body;
       return this;
+    },
+    setHeader(name: string, value: string) {
+      this.headers = { ...this.headers, [name]: value };
     }
   };
 }

@@ -63,7 +63,7 @@ Resend creates a new message and revokes the previous link. A pending account do
 An accepted delivery includes a structured entry similar to:
 
 ```text
-[mail:sent] {"event":"mail.sent","result":"success","mailType":"password_reset","recipient":"empresa.angela@demo.kaklen.local","locale":"es","messageId":"<id@kaklen.local>","accepted":["empresa.angela@demo.kaklen.local"],"rejected":[],"timestamp":"..."}
+[mail:sent] {"event":"mail.sent","result":"success","mailType":"password_reset","recipientHash":"4d9f9f35c648ea1f","locale":"es","messageId":"<id@kaklen.local>","acceptedCount":1,"rejectedCount":0,"timestamp":"..."}
 ```
 
 The browser always receives the same generic response for active, inactive, missing, rate-limited, and SMTP-failed requests. Operational truth belongs to the internal log, `PasswordResetToken.sentAt`, audit data, and Mailpit.

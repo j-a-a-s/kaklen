@@ -59,7 +59,7 @@ pnpm mail:verify
 
 La API ejecutada directamente en macOS usa `MAIL_HOST=localhost`. Una API ejecutada dentro de Docker debe usar el nombre del servicio: `MAIL_HOST=mailpit`.
 
-Los valores de `.env.example` usan SMTP local sin autenticacion. En staging y produccion configura `APP_PUBLIC_URL`, `MAIL_FROM`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER` y `MAIL_PASSWORD` con el proveedor real. Nunca uses credenciales de produccion en `.env` versionado.
+Los valores de `.env.example` usan Redis y SMTP locales sin autenticacion. En staging y produccion configura `APP_PUBLIC_URL`, `APP_WEB_URL`, los origenes CORS/Auth, `REDIS_URL`, los secrets y las variables SMTP con los proveedores reales. Genera cada secret criptografico con `openssl rand -hex 32`; nunca uses credenciales de produccion en `.env` versionado.
 
 ## Nota sobre pnpm setup
 

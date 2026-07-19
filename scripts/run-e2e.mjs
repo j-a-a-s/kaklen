@@ -8,6 +8,7 @@ import {
   E2EInfrastructureError,
   InterruptController,
   ProcessSupervisor,
+  createE2ERateLimitSecret,
   executeE2ELifecycle,
   normalizePlaywrightArguments,
   printE2EResult
@@ -31,6 +32,7 @@ const playwrightArguments = normalizePlaywrightArguments(process.argv.slice(2));
 const reuseArtifacts = process.env.E2E_REUSE_ARTIFACTS === "true";
 const localEnv = loadLocalEnv();
 const startedDockerServices = [];
+const e2eRateLimitSecret = createE2ERateLimitSecret();
 
 export async function runE2E() {
   const interruptController = new InterruptController();
@@ -371,6 +373,7 @@ function createRuntimeEnv(config) {
     MAIL_HOST: localEnv.MAIL_HOST ?? "localhost",
     MAIL_PORT: localEnv.MAIL_PORT ?? String(mailpitSmtpPort),
     MAIL_SECURE: localEnv.MAIL_SECURE ?? "false",
+    RATE_LIMIT_HASH_SECRET: e2eRateLimitSecret,
     PASSWORD_RESET_EXPIRES_MINUTES: localEnv.PASSWORD_RESET_EXPIRES_MINUTES ?? "30",
     PORT: String(apiPort),
     API_PORT: String(apiPort),

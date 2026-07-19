@@ -5,10 +5,20 @@ import {
   E2EInfrastructureError,
   InterruptController,
   ProcessSupervisor,
+  createE2ERateLimitSecret,
   executeE2ELifecycle,
   normalizePlaywrightArguments,
   printE2EResult
 } from "./e2e-runner-core.mjs";
+
+test("isolates distributed rate-limit counters for every E2E execution", () => {
+  const first = createE2ERateLimitSecret();
+  const second = createE2ERateLimitSecret();
+
+  assert.match(first, /^[a-f0-9]{64}$/);
+  assert.match(second, /^[a-f0-9]{64}$/);
+  assert.notEqual(first, second);
+});
 
 test("normalizes the pnpm argument separator before invoking Playwright", () => {
   assert.deepEqual(normalizePlaywrightArguments(["--", "--grep", "controlled failure"]), [

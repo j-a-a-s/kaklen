@@ -4,7 +4,7 @@ Kaklen is a pnpm workspace managed by Turborepo. The foundation separates runtim
 
 ## Workspace Layout
 
-- `apps/api`: NestJS 11 API. It exposes `/api/health`, serves Swagger at `/docs`, enables Helmet, and uses Prisma for database access.
+- `apps/api`: NestJS 11 API. It exposes `/api/health`, serves Swagger at `/docs` outside production, enables explicit Helmet/CORS policies, and uses Prisma for database access.
 - `apps/web`: Angular 20 application served on port `4200` in development.
 - `packages/shared`: Shared TypeScript contracts and constants used by apps.
 - `packages/config`: Configuration helpers and runtime defaults.

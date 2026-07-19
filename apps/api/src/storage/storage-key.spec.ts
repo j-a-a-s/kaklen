@@ -85,6 +85,37 @@ describe("storage key validation", () => {
     expect(() => clampExpiration(3600)).toThrow(BadRequestException);
   });
 
+  it("uses only the basename and preserves a safe extension", () => {
+    const key = buildStorageKey({
+      organizationId,
+      resource: "quotations",
+      resourceId,
+      filename: "../../private/final.proposal.pdf",
+      contentType: "application/pdf",
+      contentLength: 1024
+    });
+
+    expect(key).toMatch(/-final\.proposal\.pdf$/);
+    expect(key).not.toContain("private");
+    expect(key).not.toContain("..");
+  });
+
+  it("normalizes Unicode filenames and caps their stored length", () => {
+    const key = buildStorageKey({
+      organizationId,
+      resource: "quotations",
+      resourceId,
+      filename: `${"Cotización-".repeat(30)}final.pdf`,
+      contentType: "application/pdf",
+      contentLength: 1024
+    });
+    const storedFilename = key.split("/").at(-1);
+    const sanitizedFilename = storedFilename?.replace(/^[0-9a-f-]{36}-/, "") ?? "";
+
+    expect(sanitizedFilename).toMatch(/^[\w.-]+$/);
+    expect(sanitizedFilename.length).toBeLessThanOrEqual(120);
+  });
+
   it("rejects unsafe storage keys", () => {
     expect(() => assertSafeStorageKey("organizations/org/files/key.pdf")).not.toThrow();
     expect(() => assertSafeStorageKey("other/org/files/key.pdf")).toThrow(BadRequestException);

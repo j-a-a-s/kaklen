@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
 import { ApiErrorResponse, codeForStatus } from "./error-codes";
+import { RateLimitExceededException } from "./rate-limit-exceptions";
 
 interface HttpExceptionBody {
   code?: string;
@@ -28,6 +29,10 @@ export class ApiErrorFilter implements ExceptionFilter {
       ...(typeof body.resourceId === "string" ? { resourceId: body.resourceId } : {}),
       ...(typeof body.repairable === "boolean" ? { repairable: body.repairable } : {})
     };
+
+    if (exception instanceof RateLimitExceededException) {
+      response.setHeader("Retry-After", String(exception.retryAfterSeconds));
+    }
 
     response.status(statusCode).json(payload);
   }

@@ -124,7 +124,8 @@ describe("MailService", () => {
 
     expect(receipt.accepted).toEqual(["user@example.com"]);
     expect(output).toContain('"mailType":"email_verification"');
-    expect(output).toContain('"recipient":"user@example.com"');
+    expect(output).toContain('"recipientHash":');
+    expect(output).not.toContain("user@example.com");
     expect(output).not.toContain("private-verification-token");
     expect(output).not.toContain("verify-email?");
     expect(failureLog).not.toHaveBeenCalled();
@@ -174,7 +175,8 @@ describe("MailService", () => {
     expect(output).toContain("[mail:sent]");
     expect(output).toContain('"event":"mail.sent"');
     expect(output).toContain('"mailType":"password_reset"');
-    expect(output).toContain('"recipient":"user@example.com"');
+    expect(output).toContain('"recipientHash":');
+    expect(output).not.toContain("user@example.com");
     expect(output).toContain('"messageId":"<mail-1@mail.local>"');
     expect(output).not.toContain("private-reset-token");
     expect(output).not.toContain("reset-password?");
@@ -252,7 +254,7 @@ describe("MailService", () => {
     expect(successLog).not.toHaveBeenCalled();
   });
 
-  it("propagates a sanitized typed error when the transporter throws", async () => {
+  it("propagates a typed error without logging provider details", async () => {
     sendMail.mockRejectedValue(new Error("connect ECONNREFUSED token=should-not-leak"));
 
     await expect(new MailService().sendPasswordResetEmail(resetRequest())).rejects.toBeInstanceOf(
@@ -260,9 +262,11 @@ describe("MailService", () => {
     );
 
     const output = loggedMessages(failureLog);
-    expect(output).toContain("ECONNREFUSED");
-    expect(output).toContain("token=[REDACTED]");
+    expect(output).toContain('"code":"MAIL_DELIVERY_FAILED"');
+    expect(output).not.toContain("ECONNREFUSED");
+    expect(output).not.toContain("token=");
     expect(output).not.toContain("should-not-leak");
+    expect(output).not.toContain("user@example.com");
     expect(successLog).not.toHaveBeenCalled();
   });
 

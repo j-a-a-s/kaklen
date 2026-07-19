@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import {
   EmailVerificationToken,
+  PasswordResetToken,
   Prisma,
   RefreshToken,
   User,
@@ -11,8 +12,14 @@ import cookieParser from "cookie-parser";
 import request from "supertest";
 import { KAKLEN_API_PREFIX } from "@kaklen/shared";
 import { AppModule } from "../app.module";
-import { MailService, type EmailVerificationRequest } from "../notifications/mail.service";
+import {
+  MailService,
+  type EmailVerificationRequest,
+  type PasswordResetEmailRequest
+} from "../notifications/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { RedisService } from "../redis/redis.service";
+import { AuthRateLimitService } from "./auth-rate-limit.service";
 
 type StoredRefreshToken = RefreshToken & { user?: User };
 
@@ -20,6 +27,7 @@ class FakePrismaService {
   private users: User[] = [];
   private refreshTokens: RefreshToken[] = [];
   private verificationTokens: EmailVerificationToken[] = [];
+  private passwordResetTokens: PasswordResetToken[] = [];
 
   readonly user = {
     create: async ({ data }: { data: Prisma.UserCreateInput }): Promise<User> => {
@@ -66,8 +74,80 @@ class FakePrismaService {
       if (!user) throw new Error("User not found");
       if (typeof data.locale === "string") user.locale = data.locale;
       if (data.emailVerifiedAt instanceof Date) user.emailVerifiedAt = data.emailVerifiedAt;
+      if (typeof data.passwordHash === "string") user.passwordHash = data.passwordHash;
+      if (
+        data.authVersion &&
+        typeof data.authVersion === "object" &&
+        "increment" in data.authVersion &&
+        typeof data.authVersion.increment === "number"
+      ) {
+        user.authVersion += data.authVersion.increment;
+      }
       user.updatedAt = new Date();
       return user;
+    }
+  };
+
+  readonly passwordResetToken = {
+    create: async ({
+      data
+    }: {
+      data: Prisma.PasswordResetTokenUncheckedCreateInput;
+    }): Promise<PasswordResetToken> => {
+      const token: PasswordResetToken = {
+        id: `reset-${this.passwordResetTokens.length + 1}`,
+        userId: data.userId,
+        tokenHash: data.tokenHash,
+        expiresAt: data.expiresAt instanceof Date ? data.expiresAt : new Date(data.expiresAt),
+        sentAt: null,
+        usedAt: null,
+        revokedAt: null,
+        createdAt: new Date(),
+        requestedIpHash: data.requestedIpHash ?? null,
+        userAgentHash: data.userAgentHash ?? null
+      };
+      this.passwordResetTokens.push(token);
+      return token;
+    },
+    findUnique: async ({
+      where
+    }: {
+      where: Prisma.PasswordResetTokenWhereUniqueInput;
+    }): Promise<(PasswordResetToken & { user: User }) | null> => {
+      const token = this.passwordResetTokens.find((entry) => entry.tokenHash === where.tokenHash);
+      const user = token ? this.users.find((entry) => entry.id === token.userId) : undefined;
+      return token && user ? { ...token, user } : null;
+    },
+    updateMany: async ({
+      where,
+      data
+    }: {
+      where: Prisma.PasswordResetTokenWhereInput;
+      data: Prisma.PasswordResetTokenUpdateManyMutationInput;
+    }): Promise<{ count: number }> => {
+      const matches = this.passwordResetTokens.filter((token) => {
+        if (where.id && token.id !== where.id) return false;
+        if (where.userId && token.userId !== where.userId) return false;
+        if (where.sentAt === null && token.sentAt !== null) return false;
+        if (where.usedAt === null && token.usedAt !== null) return false;
+        if (where.revokedAt === null && token.revokedAt !== null) return false;
+        if (
+          where.expiresAt &&
+          typeof where.expiresAt === "object" &&
+          "gt" in where.expiresAt &&
+          where.expiresAt.gt instanceof Date &&
+          token.expiresAt <= where.expiresAt.gt
+        ) {
+          return false;
+        }
+        return true;
+      });
+      for (const token of matches) {
+        if (data.sentAt instanceof Date) token.sentAt = data.sentAt;
+        if (data.usedAt instanceof Date) token.usedAt = data.usedAt;
+        if (data.revokedAt instanceof Date) token.revokedAt = data.revokedAt;
+      }
+      return { count: matches.length };
     }
   };
 
@@ -158,6 +238,21 @@ class FakePrismaService {
       if (!token) throw new Error("Refresh token not found");
       token.revokedAt = new Date();
       return token;
+    },
+    updateMany: async ({
+      where,
+      data
+    }: {
+      where: Prisma.RefreshTokenWhereInput;
+      data: Prisma.RefreshTokenUpdateManyMutationInput;
+    }): Promise<{ count: number }> => {
+      const matches = this.refreshTokens.filter(
+        (token) => token.userId === where.userId && token.revokedAt === null
+      );
+      for (const token of matches) {
+        if (data.revokedAt instanceof Date) token.revokedAt = data.revokedAt;
+      }
+      return { count: matches.length };
     }
   };
 
@@ -178,11 +273,16 @@ class FakePrismaService {
 }
 
 describe("Auth E2E", () => {
+  let testSequence = 0;
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
   let verificationRequests: EmailVerificationRequest[];
+  let passwordResetRequests: PasswordResetEmailRequest[];
 
   beforeEach(async () => {
+    testSequence += 1;
+    process.env.REDIS_URL = "redis://localhost:6379/12";
+    process.env.RATE_LIMIT_HASH_SECRET = `auth-e2e-rate-secret-${testSequence}`;
     process.env.JWT_ACCESS_SECRET = "e2e-access-secret-that-is-long-enough";
     process.env.JWT_REFRESH_SECRET = "e2e-refresh-secret-that-is-long-enough";
     process.env.JWT_ACCESS_EXPIRES_SECONDS = "900";
@@ -190,6 +290,7 @@ describe("Auth E2E", () => {
     process.env.COOKIE_SECURE = "false";
     process.env.AUTH_ALLOWED_ORIGINS = "http://localhost:4200";
     verificationRequests = [];
+    passwordResetRequests = [];
 
     const mailService = {
       getEmailVerificationPolicy: () => ({ appPublicUrl: "http://localhost:4200", expiresMinutes: 1440 }),
@@ -198,7 +299,15 @@ describe("Auth E2E", () => {
         verificationRequests.push(mail);
         return { recipient: mail.recipient, messageId: "<e2e@test>", accepted: [mail.recipient], rejected: [] };
       },
-      sendPasswordResetEmail: async () => ({ recipient: "", messageId: "<e2e@test>", accepted: [], rejected: [] }),
+      sendPasswordResetEmail: async (mail: PasswordResetEmailRequest) => {
+        passwordResetRequests.push(mail);
+        return {
+          recipient: mail.recipient,
+          messageId: "<reset-e2e@test>",
+          accepted: [mail.recipient],
+          rejected: []
+        };
+      },
       send: async () => ({ recipient: "", messageId: "<e2e@test>", accepted: [], rejected: [] }),
       onModuleDestroy: () => undefined
     };
@@ -208,6 +317,15 @@ describe("Auth E2E", () => {
       .useValue(new FakePrismaService())
       .overrideProvider(MailService)
       .useValue(mailService)
+      .overrideProvider(AuthRateLimitService)
+      .useValue({
+        assertRegisterAllowed: async () => undefined,
+        assertLoginAllowed: async () => undefined,
+        allowForgotPassword: async () => true,
+        assertResetPasswordAllowed: async () => undefined,
+        allowVerificationResend: async () => true,
+        assertEmailVerificationAllowed: async () => undefined
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -217,6 +335,11 @@ describe("Auth E2E", () => {
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })
     );
     await app.init();
+    const redis = app.get(RedisService);
+    const staleRateKeys = await redis.client.keys(`${redis.config.rateLimitPrefix}:*`);
+    if (staleRateKeys.length > 0) {
+      await redis.client.del(...staleRateKeys);
+    }
     server = app.getHttpAdapter().getInstance() as Parameters<typeof request>[0];
   });
 
@@ -273,6 +396,7 @@ describe("Auth E2E", () => {
     expect(resend.body).toEqual({
       message: "Si la cuenta requiere confirmación, enviaremos un nuevo correo."
     });
+    await waitFor(() => verificationRequests.length === 2);
     expect(verificationRequests).toHaveLength(2);
 
     await request(server)
@@ -323,6 +447,51 @@ describe("Auth E2E", () => {
     await request(server).post("/api/auth/login").send({ email: "missing@example.com", password: "wrong-password" }).expect(401);
     await request(server).get("/api/auth/me").expect(401);
   });
+
+  it("keeps forgot-password generic and completes a queued password reset", async () => {
+    await request(server).post("/api/auth/register").send(registerPayload("ada@example.com")).expect(201);
+    await request(server)
+      .post("/api/auth/verify-email")
+      .send({ token: verificationToken(verificationRequests[0]) })
+      .expect(200);
+
+    const existing = await request(server)
+      .post("/api/auth/forgot-password")
+      .send({ email: "ada@example.com" })
+      .expect(200);
+    const missing = await request(server)
+      .post("/api/auth/forgot-password")
+      .send({ email: "missing@example.com" })
+      .expect(200);
+    expect(existing.body).toEqual(missing.body);
+    await waitFor(() => passwordResetRequests.length === 1);
+
+    await request(server)
+      .post("/api/auth/reset-password")
+      .send({
+        token: passwordResetToken(passwordResetRequests[0]),
+        password: "UpdatedPass456!",
+        confirmPassword: "UpdatedPass456!"
+      })
+      .expect(200);
+    await request(server)
+      .post("/api/auth/login")
+      .send({ email: "ada@example.com", password: "UpdatedPass456!" })
+      .expect(200);
+  });
+
+  it("uses Redis-backed Nest throttling and returns Retry-After", async () => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      await request(server).post("/api/auth/refresh").expect(401);
+    }
+
+    const limited = await request(server).post("/api/auth/refresh").expect(429);
+    const redis = app.get(RedisService);
+    const keys = await redis.client.keys(`${redis.config.rateLimitPrefix}:throttler:*`);
+
+    expect(limited.headers["retry-after"]).toEqual(expect.any(String));
+    expect(keys.length).toBeGreaterThan(0);
+  });
 });
 
 function registerPayload(email: string) {
@@ -340,4 +509,21 @@ function verificationToken(mail: EmailVerificationRequest | undefined): string {
   const token = new URL(mail.verificationUrl).searchParams.get("token");
   if (!token) throw new Error("Verification token was not included");
   return token;
+}
+
+function passwordResetToken(mail: PasswordResetEmailRequest | undefined): string {
+  if (!mail) throw new Error("Password reset email was not sent");
+  const token = new URL(mail.resetUrl).searchParams.get("token");
+  if (!token) throw new Error("Password reset token was not included");
+  return token;
+}
+
+async function waitFor(condition: () => boolean): Promise<void> {
+  const deadline = Date.now() + 3000;
+  while (!condition()) {
+    if (Date.now() >= deadline) {
+      throw new Error("Timed out waiting for asynchronous authentication delivery");
+    }
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  }
 }

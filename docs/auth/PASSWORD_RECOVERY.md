@@ -4,8 +4,8 @@
 
 1. The user opens `/:locale/forgot-password` from Login and submits an email address.
 2. `POST /api/auth/forgot-password` normalizes the address and always returns the same public message.
-3. For an active and email-verified account, the API revokes valid tokens, creates 48 random bytes, and saves only the SHA-256 hash. Pending accounts receive the same public response but no reset token or email.
-4. SMTP sends an `es`, `en`, or `pt-BR` template with a link built from `APP_PUBLIC_URL`.
+3. The endpoint enqueues the same BullMQ job type without querying account eligibility or waiting for SMTP.
+4. A worker loads the account and, when eligible, revokes valid tokens, creates 48 random bytes, saves only the SHA-256 hash, and sends an `es`, `en`, or `pt-BR` template built from `APP_PUBLIC_URL`.
 5. The token receives `sentAt` only after SMTP accepts the recipient and returns a `messageId`.
 6. `/:locale/reset-password?token=...` submits the new password to `POST /api/auth/reset-password`.
 7. One transaction consumes the token, replaces the Argon2id hash, revokes refresh tokens, increments `User.authVersion`, and writes an audit event.
@@ -20,11 +20,12 @@
 - Silent request limits by IP and email; reset limits by IP and token.
 - Optional IP and user-agent values persisted as HMAC, never plaintext.
 - No client-provided redirect URL; the public origin comes from the environment.
-- Delivery logs include the normalized recipient because operations require it, but never include the token, complete reset URL, password, message body, or SMTP credentials.
+- Delivery logs include only a recipient fingerprint and delivery counts, never the full email, token, complete reset URL, password, message body, or SMTP credentials.
 - A failed or rejected SMTP delivery revokes the newly created token and leaves `sentAt` empty.
+- Delivery uses at most three durable attempts with exponential backoff and limited failed-job retention.
 - Immediate access-token invalidation through `authVersion` and refresh-token revocation.
 
-The keyed limiter is process-local. Before horizontally scaling the API, production must use a shared rate-limit store.
+Rate limits use a shared atomic Redis counter and HMAC-protected identifiers. Redis failure returns a stable 503 and never falls back to process memory.
 
 ## Environment
 
@@ -40,6 +41,8 @@ MAIL_PASSWORD=
 MAIL_CONNECTION_TIMEOUT_MS=5000
 MAIL_GREETING_TIMEOUT_MS=5000
 MAIL_SOCKET_TIMEOUT_MS=10000
+REDIS_URL=redis://localhost:6379
+RATE_LIMIT_HASH_SECRET=local-rate-limit-hash-secret-change-me
 ```
 
 `MAIL_USER` and `MAIL_PASSWORD` must be configured together. `APP_PUBLIC_URL` accepts only HTTP or HTTPS and must point to the real public origin.
@@ -68,7 +71,7 @@ Verify SMTP independently with `pnpm mail:verify`. Use `MAIL_HOST=localhost` whe
 - Inject SMTP credentials from the secret manager, never a committed file.
 - Set `MAIL_SECURE=true` when the provider requires direct TLS.
 - Monitor delivery failures without recording complete recipients or tokens.
-- Configure a shared rate-limit store before running more than one API replica.
+- Use a durable production Redis deployment shared by every API replica and worker.
 
 ## Tests
 

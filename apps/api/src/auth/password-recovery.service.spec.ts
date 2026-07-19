@@ -10,8 +10,7 @@ import {
   type PasswordResetEmailRequest
 } from "../notifications/mail.service";
 import { AuthService } from "./auth.service";
-import { EmailVerificationRateLimitService } from "./email-verification-rate-limit.service";
-import { PasswordRecoveryRateLimitService } from "./password-recovery-rate-limit.service";
+import { AuthDeliveryProcessor } from "./auth-delivery.processor";
 
 interface TokenWhere {
   id?: string;
@@ -166,6 +165,8 @@ describe("AuthService password recovery", () => {
     (request: PasswordResetEmailRequest) => Promise<MailDeliveryReceipt>
   >;
   let service: AuthService;
+  let processor: AuthDeliveryProcessor;
+  let authDeliveryQueue: ReturnType<typeof createAuthDeliveryQueue>;
 
   beforeEach(async () => {
     process.env.JWT_ACCESS_SECRET = "test-access-secret-that-is-long-enough";
@@ -201,14 +202,32 @@ describe("AuthService password recovery", () => {
         appPublicUrl: "http://localhost:4200",
         expiresMinutes: 30
       }),
-      sendPasswordResetEmail
+      sendPasswordResetEmail,
+      getEmailVerificationPolicy: () => ({
+        appPublicUrl: "http://localhost:4200",
+        expiresMinutes: 1440
+      }),
+      sendEmailVerification: jest.fn()
     };
+    const authRateLimits = {
+      assertRegisterAllowed: jest.fn(async () => undefined),
+      assertLoginAllowed: jest.fn(async () => undefined),
+      allowForgotPassword: jest.fn(async () => true),
+      assertResetPasswordAllowed: jest.fn(async () => undefined),
+      allowVerificationResend: jest.fn(async () => true),
+      assertEmailVerificationAllowed: jest.fn(async () => undefined)
+    };
+    authDeliveryQueue = createAuthDeliveryQueue();
     service = new AuthService(
       prisma as unknown as ConstructorParameters<typeof AuthService>[0],
       new JwtService(),
       mailService as unknown as ConstructorParameters<typeof AuthService>[2],
-      new PasswordRecoveryRateLimitService(),
-      new EmailVerificationRateLimitService()
+      authRateLimits as unknown as ConstructorParameters<typeof AuthService>[3],
+      authDeliveryQueue as unknown as ConstructorParameters<typeof AuthService>[4]
+    );
+    processor = new AuthDeliveryProcessor(
+      prisma as unknown as ConstructorParameters<typeof AuthDeliveryProcessor>[0],
+      mailService as unknown as ConstructorParameters<typeof AuthDeliveryProcessor>[1]
     );
   });
 
@@ -217,12 +236,21 @@ describe("AuthService password recovery", () => {
     const missing = await service.forgotPassword({ email: "missing@example.com" }, context);
 
     expect(existing).toEqual(missing);
-    expect(sentMessages).toHaveLength(1);
-    expect(sentMessages[0]?.recipient).toBe("ada@example.com");
+    expect(authDeliveryQueue.enqueuePasswordReset).toHaveBeenNthCalledWith(
+      1,
+      "ada@example.com",
+      context
+    );
+    expect(authDeliveryQueue.enqueuePasswordReset).toHaveBeenNthCalledWith(
+      2,
+      "missing@example.com",
+      context
+    );
+    expect(sentMessages).toHaveLength(0);
   });
 
   it("stores only a SHA-256 token hash and hashes request context", async () => {
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
     const rawToken = resetTokenFromMessage(sentMessages[0]);
     const stored = prisma.passwordResetTokens[0];
 
@@ -234,8 +262,8 @@ describe("AuthService password recovery", () => {
   });
 
   it("revokes a previous valid token when requesting another", async () => {
-    await service.forgotPassword({ email: "ada@example.com" }, context);
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
+    await processPasswordReset(processor);
 
     expect(prisma.passwordResetTokens[0]?.revokedAt).toBeInstanceOf(Date);
     expect(prisma.passwordResetTokens[1]?.revokedAt).toBeNull();
@@ -246,7 +274,7 @@ describe("AuthService password recovery", () => {
     ["used", ERROR_CODES.passwordResetTokenUsed],
     ["revoked", ERROR_CODES.passwordResetTokenRevoked]
   ])("rejects a %s token with a stable code", async (state, code) => {
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
     const token = prisma.passwordResetTokens[0];
     if (state === "expired") token.expiresAt = new Date(Date.now() - 1000);
     if (state === "used") token.usedAt = new Date();
@@ -261,9 +289,8 @@ describe("AuthService password recovery", () => {
   it("does not issue recovery email for an inactive account", async () => {
     prisma.users[0].status = UserStatus.INACTIVE;
 
-    const response = await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
 
-    expect(response.message).toContain("Si existe una cuenta asociada");
     expect(sentMessages).toHaveLength(0);
     expect(prisma.passwordResetTokens).toHaveLength(0);
   });
@@ -271,21 +298,19 @@ describe("AuthService password recovery", () => {
   it("does not issue recovery email for an unverified account", async () => {
     prisma.users[0].emailVerifiedAt = null;
 
-    const response = await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
 
-    expect(response.message).toContain("Si existe una cuenta asociada");
     expect(sentMessages).toHaveLength(0);
     expect(prisma.passwordResetTokens).toHaveLength(0);
   });
 
-  it("revokes an unsent token and keeps the generic response when SMTP fails", async () => {
+  it("revokes an unsent token when SMTP fails", async () => {
     sendPasswordResetEmail.mockRejectedValueOnce(
       new MailDeliveryError("ECONNREFUSED", "connection", "SMTP unavailable")
     );
 
-    const response = await service.forgotPassword({ email: "ada@example.com" }, context);
+    await expect(processPasswordReset(processor)).rejects.toBeInstanceOf(MailDeliveryError);
 
-    expect(response.message).toContain("Si existe una cuenta asociada");
     expect(prisma.passwordResetTokens[0]?.sentAt).toBeNull();
     expect(prisma.passwordResetTokens[0]?.revokedAt).toBeInstanceOf(Date);
     expect(prisma.authAuditLogs).toEqual(
@@ -302,8 +327,30 @@ describe("AuthService password recovery", () => {
     );
   });
 
+  it("keeps only one valid token after a delivery retry", async () => {
+    sendPasswordResetEmail.mockRejectedValueOnce(
+      new MailDeliveryError("ECONNRESET", "delivery", "SMTP connection reset")
+    );
+
+    await expect(processPasswordReset(processor)).rejects.toBeInstanceOf(MailDeliveryError);
+    await expect(processPasswordReset(processor)).resolves.toBeUndefined();
+
+    expect(prisma.passwordResetTokens).toHaveLength(2);
+    expect(prisma.passwordResetTokens[0]?.revokedAt).toBeInstanceOf(Date);
+    expect(prisma.passwordResetTokens[1]).toMatchObject({
+      sentAt: expect.any(Date),
+      revokedAt: null,
+      usedAt: null
+    });
+    expect(
+      prisma.passwordResetTokens.filter(
+        (token) => token.sentAt && !token.revokedAt && !token.usedAt
+      )
+    ).toHaveLength(1);
+  });
+
   it("rejects mismatched, personal, and reused passwords", async () => {
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
     const token = resetTokenFromMessage(sentMessages[0]);
 
     await expectErrorCode(
@@ -333,7 +380,7 @@ describe("AuthService password recovery", () => {
       revokedAt: null,
       createdAt: new Date()
     });
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
     const token = resetTokenFromMessage(sentMessages[0]);
 
     await expect(service.resetPassword(resetPayload(token), context)).resolves.toEqual({
@@ -349,7 +396,7 @@ describe("AuthService password recovery", () => {
   });
 
   it("rejects a consumed token and limits repeated reset attempts", async () => {
-    await service.forgotPassword({ email: "ada@example.com" }, context);
+    await processPasswordReset(processor);
     const token = resetTokenFromMessage(sentMessages[0]);
     await service.resetPassword(resetPayload(token), context);
 
@@ -359,6 +406,29 @@ describe("AuthService password recovery", () => {
     );
   });
 });
+
+async function processPasswordReset(processor: AuthDeliveryProcessor): Promise<void> {
+  await processor.process({
+    name: "password-reset",
+    data: {
+      email: "ada@example.com",
+      ipHash: "request-ip-hash",
+      userAgentHash: "request-agent-hash",
+      requestId: "request-1"
+    }
+  } as unknown as Parameters<AuthDeliveryProcessor["process"]>[0]);
+}
+
+function createAuthDeliveryQueue() {
+  return {
+    enqueuePasswordReset: jest.fn(
+      async (_email: string, _context: { ipAddress: string; userAgent?: string }) => undefined
+    ),
+    enqueueVerificationResend: jest.fn(
+      async (_email: string, _context: { ipAddress: string; userAgent?: string }) => undefined
+    )
+  };
+}
 
 function resetPayload(token: string, password = "UpdatedPass456!"): {
   token: string;

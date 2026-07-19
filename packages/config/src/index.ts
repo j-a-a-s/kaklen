@@ -13,6 +13,7 @@ export interface ApiConfig {
   awsCloudFrontDomain?: string;
   logLevel: "debug" | "info" | "warn" | "error";
   trustProxy: boolean;
+  swaggerEnabled: boolean;
 }
 
 export interface AuthConfig {
@@ -53,6 +54,22 @@ export interface ProductIntegrationsConfig {
   paymentSandboxSecret: string;
 }
 
+export interface RedisConfig {
+  url: string;
+  rateLimitHashSecret: string;
+  rateLimitPrefix: string;
+  authDeliveryPrefix: string;
+}
+
+export interface RuntimeEnvironmentConfig {
+  api: ApiConfig;
+  auth: AuthConfig;
+  organization: OrganizationConfig;
+  passwordRecovery: PasswordRecoveryConfig;
+  productIntegrations: ProductIntegrationsConfig;
+  redis: RedisConfig;
+}
+
 const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
 const LOCAL_ORIGIN = "http://localhost:4200";
 
@@ -83,6 +100,9 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
   if (corsAllowedOrigins.length === 0) {
     throw new Error("CORS_ALLOWED_ORIGINS must include at least one origin");
   }
+  if (isProduction) {
+    assertProductionOrigins("CORS_ALLOWED_ORIGINS", corsAllowedOrigins);
+  }
 
   return {
     nodeEnv,
@@ -98,21 +118,28 @@ export function readApiConfig(env: Record<string, string | undefined>): ApiConfi
     awsS3Endpoint: optionalString(env.AWS_S3_ENDPOINT),
     awsCloudFrontDomain: optionalString(env.AWS_CLOUDFRONT_DOMAIN),
     logLevel,
-    trustProxy: parseBoolean(env.TRUST_PROXY, false)
+    trustProxy: parseBoolean(env.TRUST_PROXY, false),
+    swaggerEnabled: isProduction
+      ? false
+      : parseStrictBoolean(env.SWAGGER_ENABLED, true, "SWAGGER_ENABLED")
   };
 }
 
 export function readOrganizationConfig(env: Record<string, string | undefined>): OrganizationConfig {
+  const isProduction = parseNodeEnv(env.NODE_ENV) === "production";
   const organizationInvitationExpiresSeconds = Number(
     env.ORGANIZATION_INVITATION_EXPIRES_SECONDS ?? 259200
   );
-  const appWebUrl = env.APP_WEB_URL ?? "http://localhost:4200";
+  const appWebUrl = requireString(env, "APP_WEB_URL", isProduction, LOCAL_ORIGIN);
 
   if (
     !Number.isInteger(organizationInvitationExpiresSeconds) ||
     organizationInvitationExpiresSeconds <= 0
   ) {
     throw new Error("ORGANIZATION_INVITATION_EXPIRES_SECONDS must be a positive integer");
+  }
+  if (isProduction) {
+    assertProductionOrigin("APP_WEB_URL", appWebUrl);
   }
 
   return {
@@ -131,7 +158,7 @@ export function readPasswordRecoveryConfig(
     "APP_PUBLIC_URL",
     isProduction,
     env.APP_WEB_URL ?? LOCAL_ORIGIN
-  ).replace(/\/$/, "");
+  );
   const expiresMinutes = Number(env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
   const emailVerificationExpiresMinutes = Number(
     env.EMAIL_VERIFICATION_EXPIRES_MINUTES ?? 1440
@@ -202,9 +229,12 @@ export function readPasswordRecoveryConfig(
   if (publicUrl.pathname !== "/") {
     throw new Error("APP_PUBLIC_URL must be an origin without a path");
   }
+  if (isProduction) {
+    assertProductionOrigin("APP_PUBLIC_URL", publicUrl.toString());
+  }
 
   return {
-    appPublicUrl: publicUrl.toString().replace(/\/$/, ""),
+    appPublicUrl: publicUrl.origin,
     expiresMinutes,
     emailVerificationExpiresMinutes,
     mailFrom,
@@ -252,6 +282,10 @@ export function readProductIntegrationsConfig(
   if (paymentSandboxSecret.length < 32) {
     throw new Error("PAYMENT_SANDBOX_SECRET must be at least 32 characters");
   }
+  if (nodeEnv === "production") {
+    assertCryptographicSecret("WHATSAPP_HASH_SECRET", whatsappHashSecret);
+    assertCryptographicSecret("PAYMENT_SANDBOX_SECRET", paymentSandboxSecret);
+  }
 
   return {
     whatsappMode,
@@ -259,6 +293,60 @@ export function readProductIntegrationsConfig(
     paymentGateway,
     paymentSandboxSecret
   };
+}
+
+export function readRedisConfig(env: Record<string, string | undefined>): RedisConfig {
+  const isProduction = parseNodeEnv(env.NODE_ENV) === "production";
+  const redisPort = Number(env.REDIS_PORT ?? 6379);
+  if (!Number.isInteger(redisPort) || redisPort <= 0 || redisPort > 65535) {
+    throw new Error("REDIS_PORT must be a valid TCP port");
+  }
+
+  const url = requireString(
+    env,
+    "REDIS_URL",
+    isProduction,
+    `redis://localhost:${redisPort}`
+  );
+  const rateLimitHashSecret = requireString(
+    env,
+    "RATE_LIMIT_HASH_SECRET",
+    isProduction,
+    "local-rate-limit-hash-secret-change-me"
+  );
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error("REDIS_URL must be a valid Redis URL");
+  }
+  if (parsedUrl.protocol !== "redis:" && parsedUrl.protocol !== "rediss:") {
+    throw new Error("REDIS_URL must use redis or rediss");
+  }
+  if (isProduction) {
+    assertCryptographicSecret("RATE_LIMIT_HASH_SECRET", rateLimitHashSecret);
+  }
+
+  return {
+    url: parsedUrl.toString(),
+    rateLimitHashSecret,
+    rateLimitPrefix: "kaklen:rate-limit",
+    authDeliveryPrefix: "kaklen:auth-delivery"
+  };
+}
+
+export function validateRuntimeEnvironment(
+  env: Record<string, string | undefined>
+): RuntimeEnvironmentConfig {
+  const api = readApiConfig(env);
+  const auth = readAuthConfig(env);
+  const organization = readOrganizationConfig(env);
+  const passwordRecovery = readPasswordRecoveryConfig(env);
+  const productIntegrations = readProductIntegrationsConfig(env);
+  const redis = readRedisConfig(env);
+
+  return { api, auth, organization, passwordRecovery, productIntegrations, redis };
 }
 
 function parseTimeout(value: string | undefined, fallback: number, key: string): number {
@@ -334,17 +422,25 @@ function optionalString(value: string | undefined): string | undefined {
 }
 
 export function readAuthConfig(env: Record<string, string | undefined>): AuthConfig {
-  const jwtAccessSecret =
-    env.JWT_ACCESS_SECRET ?? "local-access-secret-change-me-at-least-32-characters";
-  const jwtRefreshSecret =
-    env.JWT_REFRESH_SECRET ?? "local-refresh-secret-change-me-at-least-32-characters";
+  const isProduction = parseNodeEnv(env.NODE_ENV) === "production";
+  const jwtAccessSecret = requireString(
+    env,
+    "JWT_ACCESS_SECRET",
+    isProduction,
+    "local-access-secret-change-me-at-least-32-characters"
+  );
+  const jwtRefreshSecret = requireString(
+    env,
+    "JWT_REFRESH_SECRET",
+    isProduction,
+    "local-refresh-secret-change-me-at-least-32-characters"
+  );
   const jwtAccessExpiresSeconds = Number(env.JWT_ACCESS_EXPIRES_SECONDS ?? 900);
   const jwtRefreshExpiresSeconds = Number(env.JWT_REFRESH_EXPIRES_SECONDS ?? 604800);
-  const cookieSecure = (env.COOKIE_SECURE ?? "false").toLowerCase() === "true";
-  const authAllowedOrigins = (env.AUTH_ALLOWED_ORIGINS ?? "http://localhost:4200")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
+  const cookieSecure = parseStrictBoolean(env.COOKIE_SECURE, false, "COOKIE_SECURE");
+  const authAllowedOrigins = parseList(
+    requireString(env, "AUTH_ALLOWED_ORIGINS", isProduction, LOCAL_ORIGIN)
+  );
 
   if (jwtAccessSecret.length < 32) {
     throw new Error("JWT_ACCESS_SECRET must be at least 32 characters");
@@ -361,6 +457,17 @@ export function readAuthConfig(env: Record<string, string | undefined>): AuthCon
   if (!Number.isInteger(jwtRefreshExpiresSeconds) || jwtRefreshExpiresSeconds <= 0) {
     throw new Error("JWT_REFRESH_EXPIRES_SECONDS must be a positive integer");
   }
+  if (isProduction) {
+    assertCryptographicSecret("JWT_ACCESS_SECRET", jwtAccessSecret);
+    assertCryptographicSecret("JWT_REFRESH_SECRET", jwtRefreshSecret);
+    if (jwtAccessSecret.toLowerCase() === jwtRefreshSecret.toLowerCase()) {
+      throw new Error("JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different");
+    }
+    if (!cookieSecure) {
+      throw new Error("COOKIE_SECURE must be true in production");
+    }
+    assertProductionOrigins("AUTH_ALLOWED_ORIGINS", authAllowedOrigins);
+  }
 
   return {
     jwtAccessSecret,
@@ -370,4 +477,87 @@ export function readAuthConfig(env: Record<string, string | undefined>): AuthCon
     cookieSecure,
     authAllowedOrigins
   };
+}
+
+const FORBIDDEN_SECRET_FRAGMENTS = [
+  "change-me",
+  "local-",
+  "example",
+  "default",
+  "secret-at-least"
+];
+
+function assertCryptographicSecret(key: string, value: string): void {
+  const normalized = value.toLowerCase();
+  if (FORBIDDEN_SECRET_FRAGMENTS.some((fragment) => normalized.includes(fragment))) {
+    throw new Error(`${key} contains a forbidden placeholder`);
+  }
+  if (!/^[0-9a-f]{64,}$/i.test(value)) {
+    throw new Error(`${key} must be hexadecimal with at least 64 characters`);
+  }
+  if (new Set(normalized).size < 8 || isRepeatedShortPattern(normalized)) {
+    throw new Error(`${key} must not use repeated or low-diversity content`);
+  }
+}
+
+function isRepeatedShortPattern(value: string): boolean {
+  for (let patternLength = 1; patternLength <= 8; patternLength += 1) {
+    if (value.length % patternLength !== 0) {
+      continue;
+    }
+    const pattern = value.slice(0, patternLength);
+    if (pattern.repeat(value.length / patternLength) === value) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function assertProductionOrigins(key: string, values: string[]): void {
+  if (values.length === 0) {
+    throw new Error(`${key} must include at least one origin`);
+  }
+  values.forEach((value) => assertProductionOrigin(key, value));
+}
+
+function assertProductionOrigin(key: string, value: string): void {
+  const normalized = value.trim();
+  if (normalized.includes("*") || normalized.toLowerCase() === "null") {
+    throw new Error(`${key} must not contain wildcard or null origins`);
+  }
+
+  let origin: URL;
+  try {
+    origin = new URL(normalized);
+  } catch {
+    throw new Error(`${key} must contain valid origins`);
+  }
+  if (origin.protocol !== "https:") {
+    throw new Error(`${key} must use https in production`);
+  }
+  if (origin.username || origin.password) {
+    throw new Error(`${key} must not contain embedded credentials`);
+  }
+  if (origin.pathname !== "/" || origin.search || origin.hash) {
+    throw new Error(`${key} must contain origins without path, query, or fragment`);
+  }
+  if (isLocalOrLoopbackHost(origin.hostname)) {
+    throw new Error(`${key} must not contain localhost or loopback addresses`);
+  }
+}
+
+function isLocalOrLoopbackHost(hostname: string): boolean {
+  const normalized = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.$/, "");
+  return (
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized === "::1" ||
+    normalized === "0:0:0:0:0:0:0:1" ||
+    /^::ffff:7f[0-9a-f]{2}:/.test(normalized) ||
+    normalized === "0.0.0.0" ||
+    /^127(?:\.\d{1,3}){3}$/.test(normalized)
+  );
 }

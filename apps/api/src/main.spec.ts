@@ -11,10 +11,12 @@ describe("API bootstrap", () => {
   });
 
   it("configures the Nest app for production-like runtime", async () => {
-    const { app, expressApp, swaggerSetup } = mockBootstrapDependencies({
+    const { app, expressApp, helmetMiddleware, swaggerSetup } = mockBootstrapDependencies({
       trustProxy: true,
       expressHasSet: true,
-      expressHasDisable: true
+      expressHasDisable: true,
+      nodeEnv: "test",
+      swaggerEnabled: true
     });
     const { bootstrap } = await import("./main");
 
@@ -26,7 +28,16 @@ describe("API bootstrap", () => {
     expect(app.enableCors).toHaveBeenCalledWith({
       origin: ["http://localhost:4200"],
       credentials: true,
-      exposedHeaders: ["Content-Disposition"]
+      methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
+      exposedHeaders: ["Content-Disposition", "Retry-After"],
+      maxAge: 86400
+    });
+    expect(helmetMiddleware).toHaveBeenCalledWith({
+      frameguard: { action: "deny" },
+      noSniff: true,
+      referrerPolicy: { policy: "no-referrer" },
+      hsts: false
     });
     expect(expressApp.disable).toHaveBeenCalledWith("x-powered-by");
     expect(app.useGlobalPipes).toHaveBeenCalledTimes(1);
@@ -40,7 +51,9 @@ describe("API bootstrap", () => {
     const { expressApp } = mockBootstrapDependencies({
       trustProxy: false,
       expressHasSet: false,
-      expressHasDisable: false
+      expressHasDisable: false,
+      nodeEnv: "test",
+      swaggerEnabled: true
     });
     const { bootstrap } = await import("./main");
 
@@ -48,6 +61,41 @@ describe("API bootstrap", () => {
 
     expect(expressApp.set).toBeUndefined();
     expect(expressApp.disable).toBeUndefined();
+  });
+
+  it("enables HSTS and keeps Swagger disabled in production", async () => {
+    const { helmetMiddleware, swaggerSetup } = mockBootstrapDependencies({
+      trustProxy: true,
+      expressHasSet: true,
+      expressHasDisable: true,
+      nodeEnv: "production",
+      swaggerEnabled: false
+    });
+    const { bootstrap } = await import("./main");
+
+    await bootstrap();
+
+    expect(helmetMiddleware).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hsts: { maxAge: 31_536_000, includeSubDomains: true, preload: false }
+      })
+    );
+    expect(swaggerSetup).not.toHaveBeenCalled();
+  });
+
+  it("fails product startup before creating Nest when configuration is unsafe", async () => {
+    const { nestCreate } = mockBootstrapDependencies({
+      trustProxy: true,
+      expressHasSet: true,
+      expressHasDisable: true,
+      nodeEnv: "production",
+      swaggerEnabled: false,
+      validationError: new Error("JWT_ACCESS_SECRET contains a forbidden placeholder")
+    });
+    const { bootstrap } = await import("./main");
+
+    await expect(bootstrap()).rejects.toThrow("forbidden placeholder");
+    expect(nestCreate).not.toHaveBeenCalled();
   });
 
   it("maps Prisma startup errors to actionable local diagnostics", async () => {
@@ -63,7 +111,14 @@ describe("API bootstrap", () => {
   });
 });
 
-function mockBootstrapDependencies(options: { trustProxy: boolean; expressHasSet: boolean; expressHasDisable: boolean }) {
+function mockBootstrapDependencies(options: {
+  trustProxy: boolean;
+  expressHasSet: boolean;
+  expressHasDisable: boolean;
+  nodeEnv: "test" | "production";
+  swaggerEnabled: boolean;
+  validationError?: Error;
+}) {
   const expressApp: { set?: jest.Mock; disable?: jest.Mock } = {};
   if (options.expressHasSet) {
     expressApp.set = jest.fn();
@@ -82,8 +137,10 @@ function mockBootstrapDependencies(options: { trustProxy: boolean; expressHasSet
     listen: jest.fn(async () => undefined)
   };
   const swaggerSetup = jest.fn();
+  const helmetMiddleware = jest.fn(() => "helmet-middleware");
 
-  jest.doMock("@nestjs/core", () => ({ NestFactory: { create: jest.fn(async () => app) } }));
+  const nestCreate = jest.fn(async () => app);
+  jest.doMock("@nestjs/core", () => ({ NestFactory: { create: nestCreate } }));
   jest.doMock("@nestjs/swagger", () => ({
     DocumentBuilder: jest.fn().mockImplementation(() => ({
       setTitle: jest.fn().mockReturnThis(),
@@ -102,16 +159,25 @@ function mockBootstrapDependencies(options: { trustProxy: boolean; expressHasSet
     urlencoded: jest.fn(() => "urlencoded-middleware")
   }));
   jest.doMock("cookie-parser", () => jest.fn(() => "cookie-middleware"));
-  jest.doMock("helmet", () => jest.fn(() => "helmet-middleware"));
+  jest.doMock("helmet", () => helmetMiddleware);
   jest.doMock("@kaklen/config", () => ({
-    readApiConfig: jest.fn(() => ({
-      nodeEnv: "test",
-      port: 3000,
-      corsAllowedOrigins: ["http://localhost:4200"],
-      trustProxy: options.trustProxy
-    }))
+    validateRuntimeEnvironment: jest.fn(() => {
+      if (options.validationError) {
+        throw options.validationError;
+      }
+      return {
+        api: {
+          nodeEnv: options.nodeEnv,
+          port: 3000,
+          appVersion: "0.1.0",
+          corsAllowedOrigins: ["http://localhost:4200"],
+          trustProxy: options.trustProxy,
+          swaggerEnabled: options.swaggerEnabled
+        }
+      };
+    })
   }));
   jest.doMock("./app.module", () => ({ AppModule: class AppModule {} }));
 
-  return { app, expressApp, swaggerSetup };
+  return { app, expressApp, helmetMiddleware, nestCreate, swaggerSetup };
 }

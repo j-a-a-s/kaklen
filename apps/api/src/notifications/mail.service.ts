@@ -1,4 +1,5 @@
 import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import { createHash } from "node:crypto";
 import { isEmail } from "class-validator";
 import nodemailer from "nodemailer";
 import { readPasswordRecoveryConfig, type PasswordRecoveryConfig } from "@kaklen/config";
@@ -381,11 +382,11 @@ export class MailService implements OnModuleDestroy {
       event: "mail.sent",
       result: "success",
       mailType: message.mailType,
-      recipient: receipt.recipient,
+      recipientHash: recipientFingerprint(receipt.recipient),
       locale: message.locale,
       messageId: receipt.messageId,
-      accepted: receipt.accepted,
-      rejected: receipt.rejected,
+      acceptedCount: receipt.accepted.length,
+      rejectedCount: receipt.rejected.length,
       timestamp: new Date().toISOString(),
       ...(message.requestId ? { requestId: sanitizeLogValue(message.requestId) } : {})
     };
@@ -401,11 +402,10 @@ export class MailService implements OnModuleDestroy {
       event: "mail.failed",
       result: "failure",
       mailType: message.mailType,
-      recipient,
+      recipientHash: recipientFingerprint(recipient),
       locale: message.locale,
       code: error.code,
       phase: error.phase,
-      cause: sanitizeLogValue(error.message),
       timestamp: new Date().toISOString(),
       ...(message.requestId ? { requestId: sanitizeLogValue(message.requestId) } : {})
     };
@@ -435,6 +435,10 @@ export class MailService implements OnModuleDestroy {
 
 function normalizeRecipient(value: string): string {
   return sanitizeLogValue(value).trim().toLowerCase();
+}
+
+function recipientFingerprint(value: string): string {
+  return createHash("sha256").update(normalizeRecipient(value)).digest("hex").slice(0, 16);
 }
 
 function providerAddresses(value: unknown): string[] {

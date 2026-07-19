@@ -30,6 +30,15 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     env:
       DATABASE_URL: postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public
@@ -38,8 +47,15 @@ jobs:
       PORT: 3000
       WEB_PORT: 4200
       NODE_ENV: test
+      REDIS_URL: redis://localhost:6379
       CORS_ALLOWED_ORIGINS: http://localhost:4200
       AUTH_ALLOWED_ORIGINS: http://localhost:4200
+      JWT_ACCESS_SECRET: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      JWT_REFRESH_SECRET: 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+      RATE_LIMIT_HASH_SECRET: 4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a
+      WHATSAPP_HASH_SECRET: d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35
+      PAYMENT_SANDBOX_SECRET: 4e07408562bedb8b60ce05c1decfe3ad16b722309a7c3799cb11a4e0bdf3a4a9
+      SWAGGER_ENABLED: "true"
       AWS_REGION: us-east-1
       AWS_S3_BUCKET: kaklen-ci
       COMMIT_SHA: ${{ github.sha }}
