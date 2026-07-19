@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
 const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
-const demoEmail = "empresa.angela@demo.kaklen.local";
+const demoSourceEmail = "empresa.angela@demo.kaklen.local";
 const demoPassword = "KaklenDemo2026!";
 
 test.describe.serial("secure password recovery with real Mailpit delivery", () => {
@@ -14,8 +14,8 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
   let mailpit;
   let prisma;
   let genericResponse;
+  let recoveryEmail;
   let temporaryPassword;
-  let passwordChanged = false;
 
   test.beforeAll(async ({ playwright }) => {
     api = await playwright.request.newContext({
@@ -27,23 +27,41 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     });
     mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
     prisma = new PrismaClient();
+    recoveryEmail = `password-recovery-${process.pid}-${Date.now()}@kaklen.local`;
     temporaryPassword = `Recovered-${Date.now()}!`;
+    const sourceUser = await prisma.user.findUnique({
+      where: { email: demoSourceEmail },
+      select: { passwordHash: true }
+    });
+    if (!sourceUser) {
+      throw new Error("Seeded password recovery source user was not found");
+    }
+    await prisma.user.create({
+      data: {
+        email: recoveryEmail,
+        firstName: "Password",
+        lastName: "Recovery E2E",
+        passwordHash: sourceUser.passwordHash,
+        emailVerifiedAt: new Date(),
+        locale: "es"
+      }
+    });
     await clearMailpit(mailpit);
   });
 
   test.afterAll(async () => {
-    if (passwordChanged) {
-      await restoreDemoPassword(api, mailpit);
-    }
     await clearMailpit(mailpit);
+    if (recoveryEmail) {
+      await prisma?.user.deleteMany({ where: { email: recoveryEmail } });
+    }
     await prisma?.$disconnect();
     await api?.dispose();
     await mailpit?.dispose();
   });
 
-  test("delivers one localized email, resets the demo password, and rejects token reuse", async ({ page }) => {
+  test("delivers one localized email, resets an isolated account, and rejects token reuse", async ({ page }) => {
     const originalLogin = await api.post("/api/auth/login", {
-      data: { email: demoEmail, password: demoPassword }
+      data: { email: recoveryEmail, password: demoPassword }
     });
     expect(originalLogin.status()).toBe(200);
     const originalAccessToken = (await originalLogin.json()).accessToken;
@@ -51,7 +69,7 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     await page.goto(`${webBase}/es/login`);
     await page.getByRole("link", { name: "¿Olvidaste tu contraseña?" }).click();
     await expect(page).toHaveURL(/\/es\/forgot-password$/);
-    await page.getByLabel("Email").fill(demoEmail);
+    await page.getByLabel("Email").fill(recoveryEmail);
     const recoveryResponsePromise = page.waitForResponse(
       (response) =>
         response.url().endsWith("/api/auth/forgot-password") && response.request().method() === "POST"
@@ -62,9 +80,9 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     genericResponse = await recoveryResponse.json();
     await expect(page.getByRole("heading", { name: "Revisa tu correo" })).toBeVisible();
 
-    const delivered = await waitForResetEmail(mailpit, demoEmail);
+    const delivered = await waitForResetEmail(mailpit, recoveryEmail);
     expect(delivered.messages).toHaveLength(1);
-    expect(recipientAddresses(delivered.summary)).toEqual([demoEmail]);
+    expect(recipientAddresses(delivered.summary)).toEqual([recoveryEmail]);
     expect(delivered.summary.Subject).toBe("Recupera tu acceso a Kaklen");
     expect(delivered.content).toContain("KAKLEN");
     expect(delivered.content).toContain("30 minutos");
@@ -72,7 +90,7 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
 
     const rawToken = new URL(delivered.resetUrl).searchParams.get("token");
     expect(rawToken).toBeTruthy();
-    const user = await prisma.user.findUnique({ where: { email: demoEmail } });
+    const user = await prisma.user.findUnique({ where: { email: recoveryEmail } });
     expect(user).not.toBeNull();
     const storedToken = await prisma.passwordResetToken.findFirst({
       where: { userId: user.id },
@@ -102,7 +120,6 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     await page.getByRole("button", { name: "Restablecer contraseña" }).click();
     const resetResponse = await resetResponsePromise;
     expect(resetResponse.status()).toBe(200);
-    passwordChanged = true;
     await expect(page.getByRole("heading", { name: "Contraseña actualizada" })).toBeVisible();
     expect(page.url()).not.toContain("token=");
 
@@ -115,14 +132,14 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     expect(
       (
         await api.post("/api/auth/login", {
-          data: { email: demoEmail, password: demoPassword }
+          data: { email: recoveryEmail, password: demoPassword }
         })
       ).status()
     ).toBe(401);
     expect(
       (
         await api.post("/api/auth/login", {
-          data: { email: demoEmail, password: temporaryPassword }
+          data: { email: recoveryEmail, password: temporaryPassword }
         })
       ).status()
     ).toBe(200);
@@ -147,22 +164,6 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     expect(await prisma.user.findUnique({ where: { email } })).toBeNull();
   });
 });
-
-async function restoreDemoPassword(api, mailpit) {
-  if (!api || !mailpit) return;
-  await clearMailpit(mailpit);
-  const recovery = await api.post("/api/auth/forgot-password", { data: { email: demoEmail } });
-  if (recovery.status() !== 200) return;
-  const delivered = await waitForResetEmail(mailpit, demoEmail);
-  const reset = await api.post("/api/auth/reset-password", {
-    data: {
-      token: new URL(delivered.resetUrl).searchParams.get("token"),
-      password: demoPassword,
-      confirmPassword: demoPassword
-    }
-  });
-  expect(reset.status()).toBe(200);
-}
 
 async function clearMailpit(mailpit) {
   const response = await mailpit.delete("/api/v1/messages");
