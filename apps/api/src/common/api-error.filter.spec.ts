@@ -6,6 +6,8 @@ interface TestBody {
   message: string;
   statusCode: number;
   field?: string;
+  resourceId?: string;
+  repairable?: boolean;
 }
 
 interface TestResponse {
@@ -71,6 +73,8 @@ describe("ApiErrorFilter", () => {
       code: "QUOTATION_MONEY_MISMATCH",
       message: "Quotation totals are inconsistent.",
       field: "items.0.total",
+      resourceId: "quotation-1",
+      repairable: true,
       persistedValue: "sensitive"
     }), createHost(response, "en"));
 
@@ -78,7 +82,9 @@ describe("ApiErrorFilter", () => {
       code: "QUOTATION_MONEY_MISMATCH",
       message: "Quotation totals are inconsistent.",
       statusCode: 409,
-      field: "items.0.total"
+      field: "items.0.total",
+      resourceId: "quotation-1",
+      repairable: true
     });
     expect(response.body).not.toHaveProperty("persistedValue");
   });

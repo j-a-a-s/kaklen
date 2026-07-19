@@ -268,21 +268,30 @@ describe("QuotationsService", () => {
         { currency: "USD", amount: "500.25", quotationCount: 1 }
       ]
     });
-    expect(prisma.quotation.groupBy).toHaveBeenNthCalledWith(2, {
-      by: ["currency"],
-      where: { organizationId: "org-1", archivedAt: null, status: QuotationStatus.APPROVED },
-      _sum: { total: true },
+    expect(prisma.quotation.groupBy).toHaveBeenCalledTimes(1);
+    expect(prisma.quotation.groupBy).toHaveBeenCalledWith({
+      by: ["status"],
+      where: { organizationId: "org-1", archivedAt: null },
       _count: { _all: true },
-      orderBy: { currency: "asc" }
+      orderBy: { status: "asc" }
+    });
+    expect(prisma.quotation.findMany).toHaveBeenCalledWith({
+      where: { organizationId: "org-1", archivedAt: null, status: QuotationStatus.APPROVED },
+      include: { client: true, items: { orderBy: { sortOrder: "asc" } } },
+      orderBy: { id: "asc" },
+      take: 200
+    });
+    expect(prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({
+      isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead
     });
   });
 
   it("keeps single-currency and empty approved summaries exact", async () => {
     const singleCurrency = makeQuotationsPrisma({
-      approvedByCurrency: [{ currency: "USD", amount: "20.5", count: 1 }],
+      approvedQuotations: [summaryQuotation("approved-usd", "USD", "20.50")],
       organizationCurrency: "USD"
     });
-    const empty = makeQuotationsPrisma({ approvedByCurrency: [] });
+    const empty = makeQuotationsPrisma({ approvedQuotations: [] });
 
     await expect(new QuotationsService(singleCurrency as unknown as ConstructorParameters<typeof QuotationsService>[0])
       .summary("org-1")).resolves.toMatchObject({
@@ -296,6 +305,38 @@ describe("QuotationsService", () => {
         baseCurrencyApprovedAmount: "0",
         approvedAmounts: []
       });
+  });
+
+  it("loads approved quotations in canonical batches of at most 200", async () => {
+    const approvedQuotations = Array.from({ length: 201 }, (_, index) =>
+      summaryQuotation(`approved-${String(index).padStart(3, "0")}`, "CLP", "1")
+    );
+    const prisma = makeQuotationsPrisma({ approvedQuotations });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.summary("org-1")).resolves.toMatchObject({
+      baseCurrencyApprovedAmount: "201",
+      approvedAmounts: [{ currency: "CLP", amount: "201", quotationCount: 201 }]
+    });
+    expect(prisma.quotation.findMany).toHaveBeenCalledTimes(2);
+    expect(prisma.quotation.findMany.mock.calls[1]?.[0]).toMatchObject({
+      where: { id: { gt: "approved-199" } },
+      take: 200
+    });
+  });
+
+  it("blocks an approved summary when canonical parity fails without returning partial amounts", async () => {
+    const corrupt = summaryQuotation("approved-corrupt", "USD", "10.00");
+    corrupt.total = new Prisma.Decimal("10.01");
+    const prisma = makeQuotationsPrisma({ approvedQuotations: [corrupt] });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(
+      realService.summary("org-1"),
+      "total",
+      "summary",
+      { resourceId: "approved-corrupt", repairable: false }
+    );
   });
 
   it("returns a consistent organization-scoped quotation detail", async () => {
@@ -397,7 +438,9 @@ describe("QuotationsService", () => {
 
     await expectMoneyMismatch(
       Promise.resolve().then(() => assertPersistedQuotationMoneyParity(persisted, calculated)),
-      "items.0.discountTotal"
+      "items.0.discountTotal",
+      undefined,
+      null
     );
   });
 
@@ -419,7 +462,7 @@ describe("QuotationsService", () => {
       currency: "CLP",
       items: [item({ unitPrice: 1000, taxPercent: 19 })]
     };
-    const cases: Array<[string, () => Promise<unknown>]> = [];
+    const cases: Array<[string, boolean, () => Promise<unknown>]> = [];
     const draftService = (): QuotationsService => new QuotationsService(
       makeQuotationsPrisma({ quotation: corruptDraft }) as unknown as ConstructorParameters<typeof QuotationsService>[0],
       { isCommercialEmailEnabled: () => true, send: jest.fn(async () => undefined) } as unknown as ConstructorParameters<typeof QuotationsService>[1]
@@ -428,21 +471,21 @@ describe("QuotationsService", () => {
       makeQuotationsPrisma({ quotation: corruptSent }) as unknown as ConstructorParameters<typeof QuotationsService>[0]
     );
     cases.push(
-      ["create", () => draftService().create("org-1", "user-1", validCreate)],
-      ["get", () => draftService().get("org-1", "quotation-1")],
-      ["update", () => draftService().update("org-1", "quotation-1", "user-1", {})],
-      ["send", () => draftService().send("org-1", "quotation-1", "user-1", {})],
-      ["approve", () => sentService().approve("org-1", "quotation-1", "user-1", {})],
-      ["reject", () => sentService().reject("org-1", "quotation-1", "user-1", {})],
-      ["cancel", () => draftService().cancel("org-1", "quotation-1", "user-1", {})],
-      ["newVersion", () => sentService().newVersion("org-1", "quotation-1", "user-1")],
-      ["sendEmail", () => draftService().sendEmail("org-1", "quotation-1", "user-1", {
+      ["create", true, () => draftService().create("org-1", "user-1", validCreate)],
+      ["get", true, () => draftService().get("org-1", "quotation-1")],
+      ["update", true, () => draftService().update("org-1", "quotation-1", "user-1", {})],
+      ["send", true, () => draftService().send("org-1", "quotation-1", "user-1", {})],
+      ["approve", false, () => sentService().approve("org-1", "quotation-1", "user-1", {})],
+      ["reject", false, () => sentService().reject("org-1", "quotation-1", "user-1", {})],
+      ["cancel", true, () => draftService().cancel("org-1", "quotation-1", "user-1", {})],
+      ["newVersion", false, () => sentService().newVersion("org-1", "quotation-1", "user-1")],
+      ["sendEmail", true, () => draftService().sendEmail("org-1", "quotation-1", "user-1", {
         to: "client@example.com", subject: "Quotation", message: "Review it", locale: "en"
       })]
     );
 
-    for (const [method, call] of cases) {
-      await expectMoneyMismatch(call(), "total", method);
+    for (const [method, repairable, call] of cases) {
+      await expectMoneyMismatch(call(), "total", method, { resourceId: "quotation-1", repairable });
     }
   });
 
@@ -469,6 +512,122 @@ describe("QuotationsService", () => {
     expect(prisma.quotation.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: "quotation-1", organizationId: "org-2", archivedAt: null }
     }));
+  });
+
+  it("repairs every CLP aggregate and line total in a serializable audited transaction", async () => {
+    const corrupt = quotation({
+      subtotal: new Prisma.Decimal(1001),
+      discountTotal: new Prisma.Decimal(1),
+      taxTotal: new Prisma.Decimal(191),
+      total: new Prisma.Decimal(1191)
+    });
+    Object.assign(corrupt.items[0], {
+      subtotal: new Prisma.Decimal(1001),
+      discountTotal: new Prisma.Decimal(1),
+      taxTotal: new Prisma.Decimal(191),
+      total: new Prisma.Decimal(1191)
+    });
+    const prisma = makeQuotationsPrisma({ quotation: corrupt });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    const repaired = await realService.recalculateTotals("org-1", "quotation-1", "user-1");
+
+    expect(repaired.subtotal.toString()).toBe("1000");
+    expect(repaired.discountTotal.toString()).toBe("0");
+    expect(repaired.taxTotal.toString()).toBe("190");
+    expect(repaired.total.toString()).toBe("1190");
+    expect(repaired.items[0]).toMatchObject({
+      subtotal: new Prisma.Decimal(1000),
+      discountTotal: new Prisma.Decimal(0),
+      taxTotal: new Prisma.Decimal(190),
+      total: new Prisma.Decimal(1190)
+    });
+    expect(prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable
+    });
+    expect(prisma.organizationAuditLog.create).toHaveBeenCalledWith({
+      data: {
+        organizationId: "org-1",
+        actorUserId: "user-1",
+        action: "quotation.money_recalculated",
+        targetType: "quotation",
+        targetId: "quotation-1"
+      }
+    });
+  });
+
+  it("repairs USD cents exactly and remains idempotent", async () => {
+    const corrupt = quotation({ currency: "USD", total: new Prisma.Decimal("1190.01") });
+    corrupt.items[0].total = new Prisma.Decimal("1190.01");
+    const prisma = makeQuotationsPrisma({ quotation: corrupt });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    const first = await realService.recalculateTotals("org-1", "quotation-1", "user-1");
+    const second = await realService.recalculateTotals("org-1", "quotation-1", "user-1");
+
+    expect(first.total.toString()).toBe("1190");
+    expect(second.total.toString()).toBe("1190");
+    expect(second.items[0].total.toString()).toBe("1190");
+  });
+
+  it.each([
+    [QuotationStatus.SENT, "status"],
+    [QuotationStatus.CHANGES_REQUESTED, "status"],
+    [QuotationStatus.APPROVED, "status"],
+    [QuotationStatus.REJECTED, "status"],
+    [QuotationStatus.CANCELLED, "status"],
+    [QuotationStatus.EXPIRED, "status"]
+  ])("rejects repair for %s quotations", async (status, field) => {
+    const prisma = makeQuotationsPrisma({ quotation: quotation({ status, total: new Prisma.Decimal(1191) }) });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectRepairConflict(
+      realService.recalculateTotals("org-1", "quotation-1", "user-1"),
+      "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+      field
+    );
+    expect(prisma.quotationItem.update).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["paidAt", { paidAt: new Date("2026-07-16T00:00:00.000Z") }],
+    ["archivedAt", { archivedAt: new Date("2026-07-16T00:00:00.000Z") }]
+  ])("rejects repair when %s prevents it", async (field, overrides) => {
+    const prisma = makeQuotationsPrisma({ quotation: quotation({ ...overrides, total: new Prisma.Decimal(1191) }) });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectRepairConflict(
+      realService.recalculateTotals("org-1", "quotation-1", "user-1"),
+      "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+      field
+    );
+  });
+
+  it("rejects invalid repair source data without rounding or writing", async () => {
+    const invalid = quotation({ total: new Prisma.Decimal(1191) });
+    invalid.items[0].unitPrice = decimalValue("1000.5") as unknown as Prisma.Decimal;
+    const prisma = makeQuotationsPrisma({ quotation: invalid });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectRepairConflict(
+      realService.recalculateTotals("org-1", "quotation-1", "user-1"),
+      "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+      "items.0.unitPrice"
+    );
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
+    expect(prisma.quotationItem.update).not.toHaveBeenCalled();
+  });
+
+  it("keeps repair tenant isolation before reading or changing money", async () => {
+    const prisma = makeQuotationsPrisma({ quotation: null });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expect(realService.recalculateTotals("org-2", "quotation-1", "user-1"))
+      .rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.quotation.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "quotation-1", organizationId: "org-2" }
+    }));
+    expect(prisma.quotation.update).not.toHaveBeenCalled();
   });
 
   it("returns newest tenant change requests with version item snapshots", async () => {
@@ -890,13 +1049,20 @@ function makeQuotationsPrisma(options: {
   client?: unknown;
   catalogItems?: unknown[];
   quotationStatus?: QuotationStatus;
-  quotation?: unknown;
+  quotation?: ReturnType<typeof quotation> | null;
   organizationCurrency?: string;
-  approvedByCurrency?: Array<{ currency: string; amount: string; count: number }>;
+  approvedQuotations?: ReturnType<typeof quotation>[];
   listQuotations?: unknown[];
 } = {}) {
   const catalogItems = options.catalogItems ?? [catalogItem()];
   const currentQuotation = options.quotation === undefined ? quotation({ status: options.quotationStatus ?? QuotationStatus.DRAFT }) : options.quotation;
+  const approvedQuotations = options.approvedQuotations ?? [
+    summaryQuotation("approved-clp-1", "CLP", "50000"),
+    summaryQuotation("approved-clp-2", "CLP", "100000"),
+    summaryQuotation("approved-brl", "BRL", "800.00"),
+    summaryQuotation("approved-eur", "EUR", "100.50"),
+    summaryQuotation("approved-usd", "USD", "500.25")
+  ];
   const tx = {
     organization: {
       findFirst: jest.fn(async () => ({
@@ -922,28 +1088,37 @@ function makeQuotationsPrisma(options: {
         }
         return currentQuotation;
       }),
-      findMany: jest.fn(async () => options.listQuotations ?? [quotation()]),
+      findMany: jest.fn(async (args: { take?: number; where?: { id?: { gt?: string } } } = {}) => {
+        if (args.take === 200) {
+          const previousId = args.where?.id?.gt;
+          const start = previousId
+            ? approvedQuotations.findIndex((entry) => entry.id === previousId) + 1
+            : 0;
+          return approvedQuotations.slice(start, start + 200);
+        }
+        return options.listQuotations ?? [quotation()];
+      }),
       count: jest.fn(async () => 1),
-      groupBy: jest.fn(async ({ by }: { by: string[] }) => by.includes("currency")
-        ? (options.approvedByCurrency ?? [
-            { currency: "BRL", amount: "800.00", count: 1 },
-            { currency: "CLP", amount: "150000", count: 2 },
-            { currency: "EUR", amount: "100.50", count: 1 },
-            { currency: "USD", amount: "500.25", count: 1 }
-          ]).map((group) => ({
-            currency: group.currency,
-            _sum: { total: new Prisma.Decimal(group.amount) },
-            _count: { _all: group.count }
-          }))
-        : [
-            { status: QuotationStatus.DRAFT, _count: { _all: 1 } },
-            { status: QuotationStatus.APPROVED, _count: { _all: 5 } }
-          ]),
+      groupBy: jest.fn(async () => [
+        { status: QuotationStatus.DRAFT, _count: { _all: 1 } },
+        { status: QuotationStatus.APPROVED, _count: { _all: approvedQuotations.length } }
+      ]),
       create: jest.fn(async () => quotation()),
-      update: jest.fn(async () => quotation())
+      update: jest.fn(async ({ data }: { data: Record<string, unknown> }) => {
+        const aggregateMoneyFields = ["subtotal", "discountTotal", "taxTotal", "total"];
+        if (currentQuotation && Object.keys(data).every((field) => aggregateMoneyFields.includes(field))) {
+          Object.assign(currentQuotation, data);
+        }
+        return currentQuotation ?? quotation();
+      })
     },
     quotationItem: {
-      deleteMany: jest.fn(async () => ({ count: 1 }))
+      deleteMany: jest.fn(async () => ({ count: 1 })),
+      update: jest.fn(async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
+        const target = currentQuotation?.items.find((quotationItem) => quotationItem.id === where.id);
+        if (target) Object.assign(target, data);
+        return target;
+      })
     },
     quotationStatusHistory: {
       create: jest.fn(async () => ({
@@ -991,7 +1166,10 @@ function makeQuotationsPrisma(options: {
 
   return {
     ...tx,
-    $transaction: jest.fn(async (input: unknown) => (Array.isArray(input) ? Promise.all(input) : (input as (transaction: typeof tx) => Promise<unknown>)(tx)))
+    $transaction: jest.fn(async (
+      input: unknown,
+      _options?: { isolationLevel?: Prisma.TransactionIsolationLevel }
+    ) => (Array.isArray(input) ? Promise.all(input) : (input as (transaction: typeof tx) => Promise<unknown>)(tx)))
   };
 }
 
@@ -1018,6 +1196,7 @@ function quotation(overrides: Record<string, unknown> = {}) {
     approvedAt: null,
     rejectedAt: null,
     sentAt: null,
+    paidAt: null,
     createdAt: now,
     updatedAt: now,
     archivedAt: null,
@@ -1048,6 +1227,31 @@ function quotation(overrides: Record<string, unknown> = {}) {
     history: [],
     ...overrides
   };
+}
+
+function summaryQuotation(id: string, currency: string, total: string): ReturnType<typeof quotation> {
+  const persisted = quotation({
+    id,
+    status: QuotationStatus.APPROVED,
+    currency,
+    subtotal: new Prisma.Decimal(total),
+    discountTotal: new Prisma.Decimal(0),
+    taxTotal: new Prisma.Decimal(0),
+    total: new Prisma.Decimal(total),
+    approvedAt: new Date("2026-07-15T00:00:00.000Z")
+  });
+  persisted.items[0] = {
+    ...persisted.items[0],
+    id: `${id}-item`,
+    quotationId: id,
+    unitPrice: new Prisma.Decimal(total),
+    taxPercent: new Prisma.Decimal(0),
+    subtotal: new Prisma.Decimal(total),
+    discountTotal: new Prisma.Decimal(0),
+    taxTotal: new Prisma.Decimal(0),
+    total: new Prisma.Decimal(total)
+  };
+  return persisted;
 }
 
 function catalogItem() {
@@ -1082,7 +1286,15 @@ function decimalValue(value: string): { toString(): string } {
   return { toString: () => value };
 }
 
-async function expectMoneyMismatch(result: Promise<unknown>, field: string, context?: string): Promise<void> {
+async function expectMoneyMismatch(
+  result: Promise<unknown>,
+  field: string,
+  context?: string,
+  integrityContext: { resourceId: string; repairable: boolean } | null = {
+    resourceId: "quotation-1",
+    repairable: true
+  }
+): Promise<void> {
   try {
     await result;
     fail(`Expected quotation money parity validation to fail${context ? ` for ${context}` : ""}`);
@@ -1092,7 +1304,28 @@ async function expectMoneyMismatch(result: Promise<unknown>, field: string, cont
     expect((error as ConflictException).getResponse()).toEqual({
       code: "QUOTATION_MONEY_MISMATCH",
       message: "Quotation totals are inconsistent.",
-      field
+      field,
+      ...(integrityContext ?? {})
+    });
+  }
+}
+
+async function expectRepairConflict(
+  result: Promise<unknown>,
+  code: "QUOTATION_MONEY_REPAIR_NOT_ALLOWED" | "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+  field: string
+): Promise<void> {
+  try {
+    await result;
+    fail(`Expected ${code}`);
+  } catch (error) {
+    expect(error).toBeInstanceOf(ConflictException);
+    expect((error as ConflictException).getStatus()).toBe(409);
+    expect((error as ConflictException).getResponse()).toMatchObject({
+      code,
+      field,
+      resourceId: "quotation-1",
+      repairable: false
     });
   }
 }

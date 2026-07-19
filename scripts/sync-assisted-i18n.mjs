@@ -146,7 +146,13 @@ const translations = {
     approvedBaseCurrencyLabel: "Approved in base currency",
     approvedOtherAmountsLabel: "Other approved amounts",
     errorMoneyPrecisionNotAllowed: "The amount has more decimal places than the selected currency allows.",
-    errorQuotationMoneyMismatch: "The quotation totals do not match. Recalculate and save it before continuing."
+    quotationMoneyMismatchRepairable: "Financial inconsistency detected.",
+    quotationMoneyMismatchNotRepairable: "Financial inconsistency detected. Contact your administrator to review it.",
+    recalculateQuotationTotalsButton: "Recalculate totals",
+    recalculatingQuotationTotalsButton: "Recalculating...",
+    recalculateQuotationTotalsTitle: "Recalculate quotation totals",
+    recalculateQuotationTotalsDescription: "Amounts will be recalculated from each line's source data.",
+    quotationTotalsRecalculatedSuccess: "Totals recalculated successfully."
   },
   "pt-BR": {
     changeEmailAction: "Alterar e-mail",
@@ -289,7 +295,13 @@ const translations = {
     approvedBaseCurrencyLabel: "Aprovado na moeda base",
     approvedOtherAmountsLabel: "Outros valores aprovados",
     errorMoneyPrecisionNotAllowed: "O valor tem mais casas decimais do que a moeda selecionada permite.",
-    errorQuotationMoneyMismatch: "Os totais da cotação não conferem. Recalcule e salve-a antes de continuar."
+    quotationMoneyMismatchRepairable: "Detectamos uma inconsistência financeira.",
+    quotationMoneyMismatchNotRepairable: "Detectamos uma inconsistência financeira. Entre em contato com o administrador para revisá-la.",
+    recalculateQuotationTotalsButton: "Recalcular totais",
+    recalculatingQuotationTotalsButton: "Recalculando...",
+    recalculateQuotationTotalsTitle: "Recalcular totais da cotação",
+    recalculateQuotationTotalsDescription: "Os valores serão recalculados a partir dos dados de origem de cada item.",
+    quotationTotalsRecalculatedSuccess: "Totais recalculados com sucesso."
   }
 };
 

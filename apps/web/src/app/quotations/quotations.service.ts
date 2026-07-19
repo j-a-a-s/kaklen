@@ -87,6 +87,16 @@ export class QuotationsService {
     );
   }
 
+  recalculateTotals(organizationId: string, quotationId: string): Promise<Quotation> {
+    return firstValueFrom(
+      this.http.post<Quotation>(
+        `${API_URL}/organizations/${organizationId}/quotations/${quotationId}/recalculate-totals`,
+        {},
+        { withCredentials: true }
+      )
+    );
+  }
+
   changeStatus(
     organizationId: string,
     quotationId: string,

@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationSummary } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
+import { NotificationService } from "../shared/notifications/notification.service";
 import { QuotationListComponent } from "./quotation-list.component";
 
 describe("QuotationListComponent", () => {
@@ -28,7 +29,7 @@ describe("QuotationListComponent", () => {
   });
 
   it("clears previous rows and summary when list parity fails", async () => {
-    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list"]);
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list", "recalculateTotals"]);
     quotationsService.summary.and.resolveTo(quotationSummary());
     quotationsService.list.and.rejectWith(moneyMismatchError());
     const component = createComponent(quotationsService);
@@ -39,9 +40,45 @@ describe("QuotationListComponent", () => {
 
     expect(component.summary()).toBeNull();
     expect(component.quotations()).toEqual({ items: [], page: 2, pageSize: 20, total: 0, totalPages: 0 });
-    expect(component.error()).toBe(
-      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
-    );
+    expect(component.error()).toBe("Detectamos una inconsistencia financiera.");
+    expect(component.integrityIssue()).toEqual(jasmine.objectContaining({
+      field: "total",
+      resourceId: "quotation-1",
+      repairable: true
+    }));
+    expect(component.canRepairIntegrityIssue()).toBeTrue();
+  });
+
+  it("keeps all rows and summary hidden until repair reloads consistent data", async () => {
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list", "recalculateTotals"]);
+    quotationsService.summary.and.resolveTo(quotationSummary());
+    quotationsService.list.and.rejectWith(moneyMismatchError());
+    quotationsService.recalculateTotals.and.resolveTo({} as Quotation);
+    const component = createComponent(quotationsService);
+    await component.load(1);
+
+    expect(component.summary()).toBeNull();
+    expect(component.quotations().items).toEqual([]);
+
+    quotationsService.list.and.resolveTo({ items: [{} as Quotation], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    await component.recalculateTotals();
+
+    expect(quotationsService.recalculateTotals).toHaveBeenCalledOnceWith("", "quotation-1");
+    expect(component.integrityIssue()).toBeNull();
+    expect(component.summary()).toEqual(quotationSummary());
+    expect(component.quotations().items).toHaveSize(1);
+  });
+
+  it("directs non-repairable inconsistencies to an administrator", async () => {
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list", "recalculateTotals"]);
+    quotationsService.summary.and.rejectWith(moneyMismatchError(false));
+    quotationsService.list.and.resolveTo({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const component = createComponent(quotationsService);
+
+    await component.load(1);
+
+    expect(component.error()).toBe("Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.");
+    expect(component.canRepairIntegrityIssue()).toBeFalse();
   });
 });
 
@@ -49,19 +86,23 @@ function createComponent(quotationsService = {} as QuotationsService): Quotation
   return new QuotationListComponent(
     {} as ActivatedRoute,
     {
-      activeOrganization: () => ({ currency: "CLP", numberFormat: "es" })
+      activeOrganization: () => ({ currency: "CLP", numberFormat: "es" }),
+      hasPermission: () => true
     } as unknown as OrganizationService,
-    quotationsService
+    quotationsService,
+    jasmine.createSpyObj<NotificationService>("NotificationService", ["success", "fromError"])
   );
 }
 
-function moneyMismatchError(): HttpErrorResponse {
+function moneyMismatchError(repairable = true): HttpErrorResponse {
   return new HttpErrorResponse({
     status: 409,
     error: {
       code: "QUOTATION_MONEY_MISMATCH",
       message: "Quotation totals are inconsistent.",
-      field: "total"
+      field: "total",
+      resourceId: "quotation-1",
+      repairable
     }
   });
 }

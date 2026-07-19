@@ -86,10 +86,16 @@ describe("QuotationFormComponent", () => {
 
   it("blocks edit amounts and actions when persisted parity fails", async () => {
     const queryParams = new BehaviorSubject(convertToParamMap({}));
-    const quotations = jasmine.createSpyObj("QuotationsService", ["get"]);
+    const quotations = jasmine.createSpyObj("QuotationsService", ["get", "recalculateTotals"]);
     quotations.get.and.rejectWith(new HttpErrorResponse({
       status: 409,
-      error: { code: "QUOTATION_MONEY_MISMATCH", message: "Quotation totals are inconsistent.", field: "total" }
+      error: {
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        field: "total",
+        resourceId: "quotation-a",
+        repairable: true
+      }
     }));
     const component = new QuotationFormComponent(
       {
@@ -101,7 +107,8 @@ describe("QuotationFormComponent", () => {
       { list: async () => ({ items: [] }) } as never,
       {
         setActiveOrganization: async () => undefined,
-        activeOrganization: () => ({ currency: "CLP" })
+        activeOrganization: () => ({ currency: "CLP" }),
+        hasPermission: () => true
       } as never,
       quotations,
       jasmine.createSpyObj("NotificationService", ["success", "fromError"]) as never,
@@ -113,9 +120,64 @@ describe("QuotationFormComponent", () => {
 
     expect(component.financialDataBlocked()).toBeTrue();
     expect(component.items.length).toBe(0);
-    expect(component.error()).toBe(
-      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
+    expect(component.error()).toBe("Detectamos una inconsistencia financiera.");
+    expect(component.integrityIssue()).toEqual(jasmine.objectContaining({
+      resourceId: "quotation-a",
+      field: "total",
+      repairable: true
+    }));
+    expect(component.canRepairIntegrityIssue()).toBeTrue();
+    component.ngOnDestroy();
+  });
+
+  it("reloads the edit form only after a successful explicit repair", async () => {
+    const queryParams = new BehaviorSubject(convertToParamMap({}));
+    const quotations = jasmine.createSpyObj("QuotationsService", ["get", "recalculateTotals"]);
+    quotations.get.and.rejectWith(new HttpErrorResponse({
+      status: 409,
+      error: {
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        field: "total",
+        resourceId: "quotation-a",
+        repairable: true
+      }
+    }));
+    quotations.recalculateTotals.and.resolveTo(editableQuotation());
+    const notifications = jasmine.createSpyObj("NotificationService", ["success", "fromError"]);
+    const component = new QuotationFormComponent(
+      {
+        snapshot: { paramMap: convertToParamMap({ organizationId: "organization-a", quotationId: "quotation-a" }) },
+        queryParamMap: queryParams.asObservable()
+      } as never,
+      {} as never,
+      { list: async () => ({ items: [{ id: "client-a", displayName: "Client A" }] }) } as never,
+      { list: async () => ({ items: [] }) } as never,
+      {
+        setActiveOrganization: async () => undefined,
+        activeOrganization: () => ({ currency: "CLP" }),
+        hasPermission: () => true
+      } as never,
+      quotations,
+      notifications,
+      {} as never,
+      {} as never
     );
+    await component.ngOnInit();
+    expect(component.financialDataBlocked()).toBeTrue();
+    expect(component.items.length).toBe(0);
+
+    quotations.get.and.resolveTo(editableQuotation());
+    const repair = component.recalculateTotals();
+    expect(component.financialDataBlocked()).toBeTrue();
+    await repair;
+
+    expect(quotations.recalculateTotals).toHaveBeenCalledOnceWith("organization-a", "quotation-a");
+    expect(component.financialDataBlocked()).toBeFalse();
+    expect(component.integrityIssue()).toBeNull();
+    expect(component.items.length).toBe(1);
+    expect(component.grandTotal()).toBe("1190");
+    expect(notifications.success).toHaveBeenCalled();
     component.ngOnDestroy();
   });
 
@@ -190,6 +252,32 @@ function quotationComponent(): QuotationFormComponent {
     {} as never, {} as never, {} as never, {} as never, {} as never,
     {} as never, {} as never, {} as never, {} as never
   );
+}
+
+function editableQuotation() {
+  return {
+    id: "quotation-a",
+    clientId: "client-a",
+    issueDate: "2026-07-18T00:00:00.000Z",
+    validUntil: "2026-08-18T00:00:00.000Z",
+    currency: "CLP",
+    globalDiscountPercent: "0",
+    notes: null,
+    terms: null,
+    items: [{
+      catalogItemId: null,
+      type: "SERVICE",
+      code: "SERVICE-1",
+      name: "Service",
+      description: null,
+      quantity: "1",
+      unit: "unit",
+      unitPrice: "1000",
+      discountType: "NONE",
+      discountValue: "0",
+      taxPercent: "19"
+    }]
+  } as never;
 }
 
 function addExactClpFixture(component: QuotationFormComponent, lineDiscount: boolean): void {

@@ -66,15 +66,21 @@ describe("QuotationDetailComponent", () => {
       error: {
         code: "QUOTATION_MONEY_MISMATCH",
         message: "Quotation totals are inconsistent.",
-        field: "total"
+        field: "total",
+        resourceId: "quotation-1",
+        repairable: true
       }
     }));
 
     await context.component.ngOnInit();
 
-    expect(context.component.error()).toBe(
-      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
-    );
+    expect(context.component.error()).toBe("Detectamos una inconsistencia financiera.");
+    expect(context.component.integrityIssue()).toEqual(jasmine.objectContaining({
+      field: "total",
+      resourceId: "quotation-1",
+      repairable: true
+    }));
+    expect(context.component.canRepairIntegrityIssue()).toBeTrue();
     expect(context.component.quotation()).toBeNull();
     expect(context.component.calculatedAmounts()).toBeNull();
     expect(context.component.history()).toEqual([]);
@@ -91,7 +97,9 @@ describe("QuotationDetailComponent", () => {
       error: {
         code: "QUOTATION_MONEY_MISMATCH",
         message: "Quotation totals are inconsistent.",
-        field: "items.0.total"
+        field: "items.0.total",
+        resourceId: "quotation-1",
+        repairable: false
       }
     }));
 
@@ -103,8 +111,28 @@ describe("QuotationDetailComponent", () => {
     expect(context.component.changeRequests()).toEqual([]);
     expect(context.component.pendingStatusAction()).toBeNull();
     expect(context.component.error()).toBe(
-      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
+      "Detectamos una inconsistencia financiera. Contacta al administrador para revisarla."
     );
+    expect(context.component.canRepairIntegrityIssue()).toBeFalse();
+    context.component.ngOnDestroy();
+  });
+
+  it("keeps financial actions hidden until repair reloads a consistent quotation", async () => {
+    const context = createContext(null);
+    context.quotations.get.and.rejectWith(moneyMismatchError(true));
+    await context.component.ngOnInit();
+    expect(context.component.quotation()).toBeNull();
+
+    context.quotations.recalculateTotals.and.resolveTo(quotation());
+    context.quotations.get.and.resolveTo(quotation());
+    const repair = context.component.recalculateTotals();
+    expect(context.component.quotation()).toBeNull();
+    await repair;
+
+    expect(context.quotations.recalculateTotals).toHaveBeenCalledOnceWith("organization-1", "quotation-1");
+    expect(context.component.integrityIssue()).toBeNull();
+    expect(context.component.quotation()?.total).toBe("499800");
+    expect(context.component.calculatedAmounts()?.total).toBe("499800");
     context.component.ngOnDestroy();
   });
 });
@@ -117,7 +145,7 @@ function createContext(fragmentValue: string | null = "change-requests", canUpda
   const fragment = new BehaviorSubject<string | null>(fragmentValue);
   const quotations = jasmine.createSpyObj<QuotationsService>("QuotationsService", [
     "get", "history", "changeRequests", "changeStatus", "newVersion", "downloadPdf",
-    "sendEmail", "createPublicLink", "prepareWhatsApp"
+    "sendEmail", "createPublicLink", "prepareWhatsApp", "recalculateTotals"
   ]);
   quotations.get.and.resolveTo(quotation());
   quotations.history.and.resolveTo([]);
@@ -145,6 +173,19 @@ function createContext(fragmentValue: string | null = "change-requests", canUpda
     { track: () => undefined } as unknown as ProductAnalyticsService
   );
   return { component, fragment, quotations };
+}
+
+function moneyMismatchError(repairable: boolean): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      field: "total",
+      resourceId: "quotation-1",
+      repairable
+    }
+  });
 }
 
 function changeRequest(): QuotationChangeRequest {

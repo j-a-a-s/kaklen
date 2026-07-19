@@ -97,13 +97,21 @@ function throwNormalizedMismatch(error: unknown): never {
   if (error instanceof ConflictException) {
     throw error;
   }
-  if (error && typeof error === "object" && "field" in error && typeof error.field === "string") {
-    throwMismatch(publicField(error.field));
+  const field = quotationMoneyErrorField(error);
+  if (field) {
+    throwMismatch(field);
   }
   throw error;
 }
 
-function publicField(field: string): string {
+export function quotationMoneyErrorField(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("field" in error) || typeof error.field !== "string") {
+    return undefined;
+  }
+  return publicQuotationMoneyField(error.field);
+}
+
+export function publicQuotationMoneyField(field: string): string {
   const lineField = /^lines\[(\d+)\](?:\.(.+))?$/.exec(field);
   if (!lineField) return field;
   return `items.${lineField[1]}${lineField[2] ? `.${lineField[2]}` : ""}`;

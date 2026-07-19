@@ -20,6 +20,7 @@ describe("QuotationsController", () => {
     await controller.changeRequests("org-1", "quotation-1");
     await controller.get("org-1", "quotation-1");
     await controller.update("org-1", "quotation-1", request as never, { notes: "Updated" });
+    await controller.recalculateTotals("org-1", "quotation-1", request as never);
     await controller.archive("org-1", "quotation-1", request as never);
     await controller.send("org-1", "quotation-1", request as never, { note: "Sent" });
     await controller.approve("org-1", "quotation-1", request as never, { note: "Approved" });
@@ -32,6 +33,7 @@ describe("QuotationsController", () => {
 
     expect(service.create).toHaveBeenCalledWith("org-1", "user-1", createDto);
     expect(service.update).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { notes: "Updated" });
+    expect(service.recalculateTotals).toHaveBeenCalledWith("org-1", "quotation-1", "user-1");
     expect(service.approve).toHaveBeenCalledWith("org-1", "quotation-1", "user-1", { note: "Approved" });
     expect(service.newVersion).toHaveBeenCalledWith("org-1", "quotation-1", "user-1");
     expect(service.changeRequests).toHaveBeenCalledWith("org-1", "quotation-1");
@@ -62,6 +64,7 @@ describe("QuotationsController", () => {
       ["changeRequests", "quotations.read"],
       ["get", "quotations.read"],
       ["update", "quotations.update"],
+      ["recalculateTotals", "quotations.update"],
       ["archive", "quotations.delete"],
       ["send", "quotations.send"],
       ["approve", "quotations.approve"],
@@ -89,6 +92,7 @@ function makeQuotationsService() {
     changeRequests: jest.fn(ok),
     get: jest.fn(ok),
     update: jest.fn(ok),
+    recalculateTotals: jest.fn(ok),
     archive: jest.fn(async () => undefined),
     send: jest.fn(ok),
     approve: jest.fn(ok),

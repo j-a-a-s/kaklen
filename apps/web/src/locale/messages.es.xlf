@@ -2482,6 +2482,22 @@
         <source>Preparando PDF...</source>
         <target>Preparando PDF...</target>
       </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsButton" datatype="html">
+        <source>Recalcular totales</source>
+        <target>Recalcular totales</target>
+      </trans-unit>
+      <trans-unit id="recalculatingQuotationTotalsButton" datatype="html">
+        <source>Recalculando...</source>
+        <target>Recalculando...</target>
+      </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsTitle" datatype="html">
+        <source>Recalcular totales de la cotización</source>
+        <target>Recalcular totales de la cotización</target>
+      </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsDescription" datatype="html">
+        <source>Se recalcularán los importes desde los datos fuente de cada línea.</source>
+        <target>Se recalcularán los importes desde los datos fuente de cada línea.</target>
+      </trans-unit>
       <trans-unit id="quotationStatusError" datatype="html">
         <source>No fue posible cambiar el estado.</source>
         <target>No fue posible cambiar el estado.</target>
@@ -2537,6 +2553,10 @@
       <trans-unit id="quotationEmailSendError" datatype="html">
         <source>No pudimos enviar el correo. La cotización no cambió de estado.</source>
         <target>No pudimos enviar el correo. La cotización no cambió de estado.</target>
+      </trans-unit>
+      <trans-unit id="quotationTotalsRecalculatedSuccess" datatype="html">
+        <source>Totales recalculados correctamente.</source>
+        <target>Totales recalculados correctamente.</target>
       </trans-unit>
       <trans-unit id="approveQuotationDialogTitle" datatype="html">
         <source>Aprobar cotización</source>
@@ -2605,10 +2625,6 @@
       <trans-unit id="systemActorLabel" datatype="html">
         <source>Sistema</source>
         <target>Sistema</target>
-      </trans-unit>
-      <trans-unit id="quotationLoadError" datatype="html">
-        <source>No fue posible cargar la cotización.</source>
-        <target>No fue posible cargar la cotización.</target>
       </trans-unit>
       <trans-unit id="quotationApprovedSuccess" datatype="html">
         <source>Cotización aprobada.</source>
@@ -3522,10 +3538,6 @@
         <source>La cotización no permite esa acción en su estado actual.</source>
         <target>La cotización no permite esa acción en su estado actual.</target>
       </trans-unit>
-      <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
-        <source>Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.</source>
-        <target>Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.</target>
-      </trans-unit>
       <trans-unit id="errorClpFractionNotAllowed" datatype="html">
         <source>Los montos en pesos chilenos no pueden contener decimales.</source>
         <target>Los montos en pesos chilenos no pueden contener decimales.</target>
@@ -3541,6 +3553,14 @@
       <trans-unit id="errorFallback" datatype="html">
         <source>No fue posible completar la operación.</source>
         <target>No fue posible completar la operación.</target>
+      </trans-unit>
+      <trans-unit id="quotationMoneyMismatchRepairable" datatype="html">
+        <source>Detectamos una inconsistencia financiera.</source>
+        <target>Detectamos una inconsistencia financiera.</target>
+      </trans-unit>
+      <trans-unit id="quotationMoneyMismatchNotRepairable" datatype="html">
+        <source>Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.</source>
+        <target>Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.</target>
       </trans-unit>
       <trans-unit id="noRecentActivity" datatype="html">
         <source>La actividad aparecerá aquí cuando tu equipo empiece a trabajar.</source>

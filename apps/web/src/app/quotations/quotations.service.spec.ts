@@ -40,4 +40,17 @@ describe("QuotationsService documents", () => {
     request.flush({ id: "quotation-1" });
     await promise;
   });
+
+  it("posts an explicit total recalculation with credentials", async () => {
+    const promise = service.recalculateTotals("org-1", "quotation-1");
+    const request = http.expectOne((candidate) =>
+      candidate.url.endsWith("/organizations/org-1/quotations/quotation-1/recalculate-totals")
+    );
+    expect(request.request.method).toBe("POST");
+    expect(request.request.withCredentials).toBeTrue();
+    expect(request.request.body).toEqual({});
+    request.flush({ id: "quotation-1", total: "1190" });
+
+    await expectAsync(promise).toBeResolved();
+  });
 });

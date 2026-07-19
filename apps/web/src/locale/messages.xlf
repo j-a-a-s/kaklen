@@ -114,15 +114,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">477</context>
+          <context context-type="linenumber">545</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">59,61</context>
+          <context context-type="linenumber">68,70</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">173</context>
+          <context context-type="linenumber">248</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sentLabel" datatype="html">
@@ -137,15 +137,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">478</context>
+          <context context-type="linenumber">546</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">60,61</context>
+          <context context-type="linenumber">69,70</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">174</context>
+          <context context-type="linenumber">249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changesRequestedLabel" datatype="html">
@@ -160,15 +160,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">479</context>
+          <context context-type="linenumber">547</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">61,63</context>
+          <context context-type="linenumber">70,72</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approvedLabel" datatype="html">
@@ -183,15 +183,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">480</context>
+          <context context-type="linenumber">548</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">71,72</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">176</context>
+          <context context-type="linenumber">251</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectedLabel" datatype="html">
@@ -206,15 +206,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">481</context>
+          <context context-type="linenumber">549</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">63,64</context>
+          <context context-type="linenumber">72,73</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">177</context>
+          <context context-type="linenumber">252</context>
         </context-group>
       </trans-unit>
       <trans-unit id="expiredLabel" datatype="html">
@@ -229,11 +229,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">482</context>
+          <context context-type="linenumber">550</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">178</context>
+          <context context-type="linenumber">253</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationCancelledLabel" datatype="html">
@@ -248,15 +248,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">483</context>
+          <context context-type="linenumber">551</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">64,67</context>
+          <context context-type="linenumber">73,76</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">179</context>
+          <context context-type="linenumber">254</context>
         </context-group>
       </trans-unit>
       <trans-unit id="confirmedLabel" datatype="html">
@@ -569,7 +569,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">106</context>
+          <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="currencyUsdLabel" datatype="html">
@@ -592,7 +592,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">106</context>
+          <context context-type="linenumber">123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="currencyBrlLabel" datatype="html">
@@ -615,7 +615,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">106,107</context>
+          <context context-type="linenumber">123,124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="currencyEurLabel" datatype="html">
@@ -638,7 +638,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">106,107</context>
+          <context context-type="linenumber">123,124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="ownerOrganizationRole" datatype="html">
@@ -953,11 +953,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">41,42</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">53,56</context>
+          <context context-type="linenumber">61,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="editLink" datatype="html">
@@ -988,11 +988,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">35,36</context>
+          <context context-type="linenumber">42,43</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">96,101</context>
+          <context context-type="linenumber">113,118</context>
         </context-group>
       </trans-unit>
       <trans-unit id="archiveButton" datatype="html">
@@ -1050,7 +1050,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">63,65</context>
+          <context context-type="linenumber">77,79</context>
         </context-group>
       </trans-unit>
       <trans-unit id="skuLabel" datatype="html">
@@ -1096,7 +1096,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">92</context>
+          <context context-type="linenumber">109</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -1323,7 +1323,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">88</context>
+          <context context-type="linenumber">105</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -1342,7 +1342,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">88</context>
+          <context context-type="linenumber">105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="serviceOption" datatype="html">
@@ -1357,7 +1357,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">88</context>
+          <context context-type="linenumber">105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="statusLabel" datatype="html">
@@ -1392,7 +1392,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">56,58</context>
+          <context context-type="linenumber">65,67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="activeOption" datatype="html">
@@ -1464,7 +1464,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">89</context>
+          <context context-type="linenumber">106</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -1515,7 +1515,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">90</context>
+          <context context-type="linenumber">107</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -1545,7 +1545,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">115</context>
+          <context context-type="linenumber">132</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -1580,15 +1580,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">106</context>
+          <context context-type="linenumber">123</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">144</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">187</context>
+          <context context-type="linenumber">222</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelLink" datatype="html">
@@ -1633,7 +1633,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">174</context>
+          <context context-type="linenumber">205</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productInventoryHint" datatype="html">
@@ -1733,7 +1733,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">45,46</context>
+          <context context-type="linenumber">54,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogSearchPlaceholder" datatype="html">
@@ -1770,7 +1770,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">50,52</context>
+          <context context-type="linenumber">59,61</context>
         </context-group>
       </trans-unit>
       <trans-unit id="resultsCountLabel" datatype="html">
@@ -1789,7 +1789,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">61,62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="allOption" datatype="html">
@@ -1816,7 +1816,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">67,68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="minPriceLabel" datatype="html">
@@ -1860,7 +1860,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">68,69</context>
+          <context context-type="linenumber">77,78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clearFiltersButton" datatype="html">
@@ -1879,7 +1879,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">69,72</context>
+          <context context-type="linenumber">78,81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="skuInlineLabel" datatype="html">
@@ -1905,7 +1905,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">96</context>
+          <context context-type="linenumber">113</context>
         </context-group>
       </trans-unit>
       <trans-unit id="previousPageButton" datatype="html">
@@ -1928,7 +1928,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">108,109</context>
+          <context context-type="linenumber">125,126</context>
         </context-group>
       </trans-unit>
       <trans-unit id="paginationLabel" datatype="html">
@@ -1947,7 +1947,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">109,110</context>
+          <context context-type="linenumber">126,127</context>
         </context-group>
       </trans-unit>
       <trans-unit id="nextPageButton" datatype="html">
@@ -1970,7 +1970,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">110,115</context>
+          <context context-type="linenumber">127,131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogEmptyTitle" datatype="html">
@@ -2085,11 +2085,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">24,27</context>
+          <context context-type="linenumber">33,36</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">103,107</context>
+          <context context-type="linenumber">120,124</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/action-registry.service.ts</context>
@@ -2337,7 +2337,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">121</context>
+          <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newInteractionTitle" datatype="html">
@@ -3000,7 +3000,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">134,135</context>
+          <context context-type="linenumber">150,151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="continueButton" datatype="html">
@@ -3015,7 +3015,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">135,136</context>
+          <context context-type="linenumber">151,152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="saveBasicClientButton" datatype="html">
@@ -3152,15 +3152,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">73</context>
+          <context context-type="linenumber">87</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142,144</context>
+          <context context-type="linenumber">158,160</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">29,30</context>
+          <context context-type="linenumber">38,39</context>
         </context-group>
       </trans-unit>
       <trans-unit id="leadsLabel" datatype="html">
@@ -3982,15 +3982,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">70</context>
+          <context context-type="linenumber">87</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">144</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">186</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="venueNameLabel" datatype="html">
@@ -4198,7 +4198,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">91</context>
+          <context context-type="linenumber">108</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -4313,11 +4313,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">45,50</context>
+          <context context-type="linenumber">52,57</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">429</context>
+          <context context-type="linenumber">497</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventTaskAddedSuccess" datatype="html">
@@ -4935,7 +4935,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">49,50</context>
+          <context context-type="linenumber">58,59</context>
         </context-group>
       </trans-unit>
       <trans-unit id="eventsEmptyTitle" datatype="html">
@@ -5316,7 +5316,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">96,100</context>
+          <context context-type="linenumber">113,117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="inviteFirstMemberAction" datatype="html">
@@ -5774,19 +5774,19 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">65,66</context>
+          <context context-type="linenumber">79,80</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">104</context>
+          <context context-type="linenumber">121</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">144</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">186</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="validUntilLabel" datatype="html">
@@ -5797,19 +5797,19 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">66,67</context>
+          <context context-type="linenumber">80,81</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">105</context>
+          <context context-type="linenumber">122</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">144</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">187</context>
+          <context context-type="linenumber">222</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -5845,11 +5845,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">85</context>
+          <context context-type="linenumber">99</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">148</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="netSubtotalLabel" datatype="html">
@@ -5864,23 +5864,23 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">81</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">86,87</context>
+          <context context-type="linenumber">100,101</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">149,150</context>
+          <context context-type="linenumber">165,166</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lineDiscountLabel" datatype="html">
@@ -5891,11 +5891,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">87,88</context>
+          <context context-type="linenumber">101,102</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">150,151</context>
+          <context context-type="linenumber">166,167</context>
         </context-group>
       </trans-unit>
       <trans-unit id="allocatedGlobalDiscountLabel" datatype="html">
@@ -5906,11 +5906,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">88,89</context>
+          <context context-type="linenumber">102,103</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">151,152</context>
+          <context context-type="linenumber">167,168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="totalDiscountLabel" datatype="html">
@@ -5925,23 +5925,23 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">70</context>
+          <context context-type="linenumber">84</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">89,90</context>
+          <context context-type="linenumber">103,104</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">152,153</context>
+          <context context-type="linenumber">168,169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="taxableBaseLabel" datatype="html">
@@ -5956,23 +5956,23 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">71</context>
+          <context context-type="linenumber">85</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">90,91</context>
+          <context context-type="linenumber">104,105</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">153,154</context>
+          <context context-type="linenumber">169,170</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lineTaxLabel" datatype="html">
@@ -5983,11 +5983,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">91,92</context>
+          <context context-type="linenumber">105,106</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">154,155</context>
+          <context context-type="linenumber">170,171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lineTotalVatIncludedLabel" datatype="html">
@@ -5998,11 +5998,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">92,94</context>
+          <context context-type="linenumber">106,108</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">155,158</context>
+          <context context-type="linenumber">171,174</context>
         </context-group>
       </trans-unit>
       <trans-unit id="lineDiscountTotalLabel" datatype="html">
@@ -6013,15 +6013,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">68</context>
+          <context context-type="linenumber">82</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
       </trans-unit>
       <trans-unit id="globalDiscountTotalLabel" datatype="html">
@@ -6032,15 +6032,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">69</context>
+          <context context-type="linenumber">83</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
       </trans-unit>
       <trans-unit id="taxTotalLabel" datatype="html">
@@ -6051,15 +6051,15 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">72</context>
+          <context context-type="linenumber">86</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144,146</context>
+          <context context-type="linenumber">160,162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="termsLabel" datatype="html">
@@ -6070,7 +6070,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationDecisionTitle" datatype="html">
@@ -6226,7 +6226,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">129,132</context>
+          <context context-type="linenumber">143,146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="providerConsentShortLabel" datatype="html">
@@ -6275,29 +6275,29 @@
         <source>Cotizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">29,31</context>
+          <context context-type="linenumber">36,38</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">49,51</context>
+          <context context-type="linenumber">57,59</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">20,22</context>
+          <context context-type="linenumber">29,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="shareSecurelyButton" datatype="html">
         <source>Compartir de forma segura</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">43,44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sendQuotationEmailTitle" datatype="html">
         <source>Enviar por email</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">37,38</context>
+          <context context-type="linenumber">44,45</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/quotations/quotation-email-dialog.component.ts</context>
@@ -6308,517 +6308,585 @@
         <source>Aprobar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">38,39</context>
+          <context context-type="linenumber">45,46</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">427</context>
+          <context context-type="linenumber">495</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectQuotationButton" datatype="html">
         <source>Rechazar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">46,47</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">428</context>
+          <context context-type="linenumber">496</context>
         </context-group>
       </trans-unit>
       <trans-unit id="createEventButton" datatype="html">
         <source>Crear evento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">40,42</context>
+          <context context-type="linenumber">47,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="resendQuotationEmailButton" datatype="html">
         <source>Reenviar por email</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">43,44</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newVersionButton" datatype="html">
         <source>Crear nueva versión</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">44,45</context>
+          <context context-type="linenumber">51,52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">111,114</context>
+          <context context-type="linenumber">125,128</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationChangesRequestedBanner" datatype="html">
         <source>El cliente solicitó cambios. Revisa el comentario antes de crear una nueva versión.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">53,56</context>
+          <context context-type="linenumber">67,70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="secureLinkReadyTitle" datatype="html">
         <source>Enlace seguro listo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">57</context>
+          <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="secureLinkReadyBody" datatype="html">
         <source>Comparte este enlace con el cliente. Vence en siete días y puedes reemplazarlo generando uno nuevo.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">57,58</context>
+          <context context-type="linenumber">71,72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="copyLinkButton" datatype="html">
         <source>Copiar enlace</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">72,73</context>
         </context-group>
       </trans-unit>
       <trans-unit id="openWhatsAppButton" datatype="html">
         <source>Abrir WhatsApp</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">59,62</context>
+          <context context-type="linenumber">73,76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="customerFeedbackEyebrow" datatype="html">
         <source>Respuesta del cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">107,108</context>
+          <context context-type="linenumber">121,122</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changeRequestsTitle" datatype="html">
         <source>Solicitudes de cambios del cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">108,110</context>
+          <context context-type="linenumber">122,124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changeRequestCardTitle" datatype="html">
         <source>Solicitud de cambios</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">115,117</context>
+          <context context-type="linenumber">129,131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changeRequestRelatedItems" datatype="html">
         <source>Ítems relacionados:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">117,119</context>
+          <context context-type="linenumber">131,133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changeRequestNoItems" datatype="html">
         <source>Sin ítems específicos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">123,124</context>
+          <context context-type="linenumber">137,138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="changeRequestMetadata" datatype="html">
         <source>Versión v<x id="INTERPOLATION" equiv-text="{{ request.quotationVersion }}"/> · Enviada <x id="INTERPOLATION_1" equiv-text="{{ historyDateLabel(request.createdAt) }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">124,125</context>
+          <context context-type="linenumber">138,139</context>
         </context-group>
       </trans-unit>
       <trans-unit id="downloadPdfButton" datatype="html">
         <source>Descargar PDF</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="preparingPdfMessage" datatype="html">
         <source>Preparando PDF...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">190</context>
+          <context context-type="linenumber">218</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsButton" datatype="html">
+        <source>Recalcular totales</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
+          <context context-type="linenumber">219</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
+          <context context-type="linenumber">206</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recalculatingQuotationTotalsButton" datatype="html">
+        <source>Recalculando...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
+          <context context-type="linenumber">220</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
+          <context context-type="linenumber">207</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsTitle" datatype="html">
+        <source>Recalcular totales de la cotización</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
+          <context context-type="linenumber">221</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
+          <context context-type="linenumber">208</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">155</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="recalculateQuotationTotalsDescription" datatype="html">
+        <source>Se recalcularán los importes desde los datos fuente de cada línea.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
+          <context context-type="linenumber">222</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
+          <context context-type="linenumber">209</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStatusError" datatype="html">
         <source>No fue posible cambiar el estado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">264</context>
+          <context context-type="linenumber">297</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationNewVersionSuccess" datatype="html">
         <source>Nueva versión creada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">275</context>
+          <context context-type="linenumber">308</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationVersionError" datatype="html">
         <source>No fue posible crear una nueva versión.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">279</context>
+          <context context-type="linenumber">313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="preparingPdfNotification" datatype="html">
         <source>Estamos preparando tu PDF.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">288</context>
+          <context context-type="linenumber">322</context>
         </context-group>
       </trans-unit>
       <trans-unit id="pdfDownloadedSuccess" datatype="html">
         <source>Cotización descargada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">303</context>
+          <context context-type="linenumber">337</context>
         </context-group>
       </trans-unit>
       <trans-unit id="pdfDownloadError" datatype="html">
         <source>No pudimos generar el PDF. Intenta nuevamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">306</context>
+          <context context-type="linenumber">341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="secureLinkCreatedSuccess" datatype="html">
         <source>Enlace seguro creado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">324</context>
+          <context context-type="linenumber">363</context>
         </context-group>
       </trans-unit>
       <trans-unit id="secureLinkCreateError" datatype="html">
         <source>No fue posible crear el enlace seguro.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">327</context>
+          <context context-type="linenumber">367</context>
         </context-group>
       </trans-unit>
       <trans-unit id="linkCopiedSuccess" datatype="html">
         <source>Enlace copiado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">376</context>
         </context-group>
       </trans-unit>
       <trans-unit id="linkCopyError" datatype="html">
         <source>No fue posible copiar el enlace.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">338</context>
+          <context context-type="linenumber">378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="whatsappPreparedInfo" datatype="html">
         <source>Mensaje preparado. Confirma el envío en WhatsApp.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">354</context>
+          <context context-type="linenumber">394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="whatsappPrepareError" datatype="html">
         <source>No fue posible preparar el mensaje de WhatsApp.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">358</context>
+          <context context-type="linenumber">399</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationEmailSentSuccess" datatype="html">
         <source>Cotización enviada por email.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">376</context>
+          <context context-type="linenumber">417</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationEmailSendError" datatype="html">
         <source>No pudimos enviar el correo. La cotización no cambió de estado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">379</context>
+          <context context-type="linenumber">421</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quotationTotalsRecalculatedSuccess" datatype="html">
+        <source>Totales recalculados correctamente.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
+          <context context-type="linenumber">458</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
+          <context context-type="linenumber">359</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
+          <context context-type="linenumber">227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approveQuotationDialogTitle" datatype="html">
         <source>Aprobar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">413</context>
+          <context context-type="linenumber">481</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectQuotationDialogTitle" datatype="html">
         <source>Rechazar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">414</context>
+          <context context-type="linenumber">482</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelQuotationDialogTitle" datatype="html">
         <source>Cancelar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">483</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approveQuotationDialogDescription" datatype="html">
         <source>La cotización quedará aprobada y podrá originar un evento.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">420</context>
+          <context context-type="linenumber">488</context>
         </context-group>
       </trans-unit>
       <trans-unit id="rejectQuotationDialogDescription" datatype="html">
         <source>La cotización quedará rechazada y esta decisión se registrará en el historial.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">421</context>
+          <context context-type="linenumber">489</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cancelQuotationDialogDescription" datatype="html">
         <source>La cotización dejará de estar disponible para aprobación y conservará el estado cancelado en su historial.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">422</context>
+          <context context-type="linenumber">490</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationEmailed" datatype="html">
         <source>Cotización enviada por email</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">433</context>
+          <context context-type="linenumber">501</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationVersionCreated" datatype="html">
         <source>Nueva versión creada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">434</context>
+          <context context-type="linenumber">502</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationCreated" datatype="html">
         <source>Cotización creada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">435</context>
+          <context context-type="linenumber">503</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationSent" datatype="html">
         <source>Cotización enviada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">437</context>
+          <context context-type="linenumber">505</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationChangesRequested" datatype="html">
         <source>Cambios solicitados por el cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">438</context>
+          <context context-type="linenumber">506</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationApproved" datatype="html">
         <source>Cotización aprobada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">439</context>
+          <context context-type="linenumber">507</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationRejected" datatype="html">
         <source>Cotización rechazada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">440</context>
+          <context context-type="linenumber">508</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationCancelled" datatype="html">
         <source>Cotización cancelada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">441</context>
+          <context context-type="linenumber">509</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationUpdated" datatype="html">
         <source>Cotización actualizada</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">443</context>
+          <context context-type="linenumber">511</context>
         </context-group>
       </trans-unit>
       <trans-unit id="historyQuotationEmailedDescription" datatype="html">
         <source>Enviada por correo a <x id="recipientEmail" equiv-text="recipient"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">449</context>
+          <context context-type="linenumber">517</context>
         </context-group>
       </trans-unit>
       <trans-unit id="systemActorLabel" datatype="html">
         <source>Sistema</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">457</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quotationLoadError" datatype="html">
-        <source>No fue posible cargar la cotización.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">517</context>
+          <context context-type="linenumber">525</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationApprovedSuccess" datatype="html">
         <source>Cotización aprobada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">555</context>
+          <context context-type="linenumber">645</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationRejectedSuccess" datatype="html">
         <source>Cotización rechazada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">556</context>
+          <context context-type="linenumber">646</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationCancelledSuccess" datatype="html">
         <source>Cotización cancelada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-detail.component.ts</context>
-          <context context-type="linenumber">557</context>
+          <context context-type="linenumber">647</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationFormDescription" datatype="html">
         <source>Kaklen calculará y verificará automáticamente los totales al guardar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">51,53</context>
+          <context context-type="linenumber">59,61</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStepClient" datatype="html">
         <source>Elegir cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">79,80</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">180</context>
+          <context context-type="linenumber">215</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationClientStepHelp" datatype="html">
         <source>Selecciona quién recibirá la propuesta y define su vigencia.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">63,65</context>
+          <context context-type="linenumber">80,82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="searchClientLabel" datatype="html">
         <source>Buscar cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">65</context>
+          <context context-type="linenumber">82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="searchClientPlaceholder" datatype="html">
         <source>Nombre, email o RUT</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">65,66</context>
+          <context context-type="linenumber">82,83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="createClientNewTabAction" datatype="html">
         <source>Crear cliente en otra pestaña</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">66,67</context>
+          <context context-type="linenumber">83,84</context>
         </context-group>
       </trans-unit>
       <trans-unit id="refreshClientsAction" datatype="html">
         <source>Actualizar clientes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">67,70</context>
+          <context context-type="linenumber">84,87</context>
         </context-group>
       </trans-unit>
       <trans-unit id="selectClientOption" datatype="html">
         <source>Selecciona cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">72,73</context>
+          <context context-type="linenumber">89,90</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStepItems" datatype="html">
         <source>Agregar productos y servicios</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">99</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationItemsStepHelp" datatype="html">
         <source>Usa el catálogo o agrega un concepto personalizado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">99</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addItemButton" datatype="html">
         <source>Agregar ítem</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">82,83</context>
+          <context context-type="linenumber">99,100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="searchCatalogLabel" datatype="html">
         <source>Buscar en catálogo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">83</context>
+          <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="searchCatalogPlaceholder" datatype="html">
         <source>Nombre, código o SKU</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">83,84</context>
+          <context context-type="linenumber">100,101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationItemNumber" datatype="html">
         <source>Ítem <x id="INTERPOLATION" equiv-text="{{ index + 1 }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">85</context>
+          <context context-type="linenumber">102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="catalogItemLabel" datatype="html">
         <source>Producto o servicio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">87</context>
+          <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="customItemOption" datatype="html">
         <source>Ítem personalizado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">87</context>
+          <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="customOption" datatype="html">
         <source>Personalizado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">88,89</context>
+          <context context-type="linenumber">105,106</context>
         </context-group>
       </trans-unit>
       <trans-unit id="unitPriceLabel" datatype="html">
         <source>Precio unitario</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">93</context>
+          <context context-type="linenumber">110</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -6829,54 +6897,54 @@
         <source>Duplicar línea</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">96</context>
+          <context context-type="linenumber">113</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStepAdjustments" datatype="html">
         <source>Ajustar descuentos e impuestos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">101,102</context>
+          <context context-type="linenumber">118,119</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">182</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationAdjustmentsStepHelp" datatype="html">
         <source>Revisa cada concepto y aplica solo los ajustes necesarios.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">102,104</context>
+          <context context-type="linenumber">119,121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="globalDiscountLabel" datatype="html">
         <source>Descuento global (%)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">107</context>
+          <context context-type="linenumber">124</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">127,128</context>
+          <context context-type="linenumber">144,145</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">188</context>
+          <context context-type="linenumber">223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="globalDiscountHelp" datatype="html">
         <source>El descuento global se aplica al subtotal después de los descuentos por línea.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">107</context>
+          <context context-type="linenumber">124</context>
         </context-group>
       </trans-unit>
       <trans-unit id="discountTypeLabel" datatype="html">
         <source>Tipo de descuento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">113</context>
+          <context context-type="linenumber">130</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -6887,28 +6955,28 @@
         <source>Sin descuento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">113</context>
+          <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="discountPercentageOption" datatype="html">
         <source>Porcentaje</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">113,114</context>
+          <context context-type="linenumber">130,131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="discountFixedOption" datatype="html">
         <source>Monto fijo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">113,114</context>
+          <context context-type="linenumber">130,131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="discountValueLabel" datatype="html">
         <source>Descuento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">114</context>
+          <context context-type="linenumber">131</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/forms/validation-message-resolver.ts</context>
@@ -6919,204 +6987,204 @@
         <source>Forma de pago, plazos y condiciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">120,121</context>
+          <context context-type="linenumber">137,138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationNotesExample" datatype="html">
         <source>Información útil para el cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">121,124</context>
+          <context context-type="linenumber">138,141</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationStepReview" datatype="html">
         <source>Revisar y guardar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">125,126</context>
+          <context context-type="linenumber">142,143</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">183</context>
+          <context context-type="linenumber">218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationReviewStepHelp" datatype="html">
         <source>Confirma el cliente, los conceptos y el total antes de guardar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">126,127</context>
+          <context context-type="linenumber">143,144</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationVerificationNote" datatype="html">
         <source>Kaklen calculará y verificará automáticamente los totales al guardar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">129,133</context>
+          <context context-type="linenumber">146,150</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSummaryLabel" datatype="html">
         <source>Resumen de cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">140,142</context>
+          <context context-type="linenumber">156,158</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">144</context>
+          <context context-type="linenumber">160</context>
         </context-group>
       </trans-unit>
       <trans-unit id="summaryTitle" datatype="html">
         <source>Resumen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">141,142</context>
+          <context context-type="linenumber">157,158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="newQuotationTitle" datatype="html">
         <source>Nueva cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">171</context>
+          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="editQuotationTitle" datatype="html">
         <source>Editar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">172</context>
+          <context context-type="linenumber">203</context>
         </context-group>
       </trans-unit>
       <trans-unit id="saveQuotationButton" datatype="html">
         <source>Guardar cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">173</context>
+          <context context-type="linenumber">204</context>
         </context-group>
       </trans-unit>
       <trans-unit id="clientSummaryFallback" datatype="html">
         <source>Cliente registrado sin datos de contacto</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationDateValidation" datatype="html">
         <source>La fecha válida hasta debe ser posterior o igual a la fecha de emisión.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">176</context>
+          <context context-type="linenumber">211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationProgressLabel" datatype="html">
         <source>Progreso de la cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">178</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="itemsLabel" datatype="html">
         <source>Ítems</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">188</context>
+          <context context-type="linenumber">223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationUpdatedSuccess" datatype="html">
         <source>Cotización actualizada correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">316</context>
+          <context context-type="linenumber">324</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationCreatedSuccess" datatype="html">
         <source>Cotización creada correctamente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">325</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSaveError" datatype="html">
         <source>No fue posible guardar la cotización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-form.component.ts</context>
-          <context context-type="linenumber">327</context>
+          <context context-type="linenumber">338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsTitle" datatype="html">
         <source>Cotizaciones</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">21,22</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsDescription" datatype="html">
         <source>Crea, envía y controla propuestas comerciales por organización.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">22,24</context>
+          <context context-type="linenumber">31,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationDraftPluralLabel" datatype="html">
         <source>Borradores</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">39,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSentPluralLabel" datatype="html">
         <source>Enviadas</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">31,32</context>
+          <context context-type="linenumber">40,41</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationApprovedPluralLabel" datatype="html">
         <source>Aprobadas</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">32,33</context>
+          <context context-type="linenumber">41,42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approvedBaseCurrencyLabel" datatype="html">
         <source>Aprobado en moneda base</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">33,35</context>
+          <context context-type="linenumber">42,44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="approvedOtherAmountsLabel" datatype="html">
         <source>Otros importes aprobados</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">45,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationSearchPlaceholder" datatype="html">
         <source>Número o cliente</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">46,48</context>
+          <context context-type="linenumber">55,57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsEmptyTitle" datatype="html">
         <source>Crea tu primera cotización</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">119</context>
+          <context context-type="linenumber">151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsEmpty" datatype="html">
         <source>Prepara una propuesta y conviértela en un evento cuando el cliente la apruebe.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quotationsLoadError" datatype="html">
         <source>No fue posible cargar las cotizaciones.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/quotation-list.component.ts</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
       <trans-unit id="registerBrandPromise" datatype="html">
@@ -8362,95 +8430,102 @@
         <source>Revisa los datos ingresados.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">88</context>
+          <context context-type="linenumber">97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorRutInvalid" datatype="html">
         <source>Ingresa un RUT válido.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">89</context>
+          <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorRutRequired" datatype="html">
         <source>El RUT es obligatorio para clientes chilenos.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">90</context>
+          <context context-type="linenumber">99</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorResourceNotFound" datatype="html">
         <source>No encontramos el recurso solicitado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">91</context>
+          <context context-type="linenumber">100</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">92</context>
+          <context context-type="linenumber">101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorForbidden" datatype="html">
         <source>No tienes permiso para realizar esta acción.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">93</context>
+          <context context-type="linenumber">102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorConflict" datatype="html">
         <source>La operación entra en conflicto con información existente.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">94</context>
+          <context context-type="linenumber">103</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorDuplicateTaxId" datatype="html">
         <source>Ya existe un registro con ese RUT.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">95</context>
+          <context context-type="linenumber">104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorQuotationInvalidStatus" datatype="html">
         <source>La cotización no permite esa acción en su estado actual.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">96</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
-        <source>Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">97</context>
+          <context context-type="linenumber">105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorClpFractionNotAllowed" datatype="html">
         <source>Los montos en pesos chilenos no pueden contener decimales.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">109</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorMoneyPrecisionNotAllowed" datatype="html">
         <source>El monto tiene más decimales de los permitidos para la moneda seleccionada.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">99</context>
+          <context context-type="linenumber">110</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorEventInvalidStatus" datatype="html">
         <source>El evento no permite esa acción en su estado actual.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">100</context>
+          <context context-type="linenumber">111</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errorFallback" datatype="html">
         <source>No fue posible completar la operación.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
-          <context context-type="linenumber">103</context>
+          <context context-type="linenumber">114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quotationMoneyMismatchRepairable" datatype="html">
+        <source>Detectamos una inconsistencia financiera.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
+          <context context-type="linenumber">139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quotationMoneyMismatchNotRepairable" datatype="html">
+        <source>Detectamos una inconsistencia financiera. Contacta al administrador para revisarla.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
+          <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="noRecentActivity" datatype="html">

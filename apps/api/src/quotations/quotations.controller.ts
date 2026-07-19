@@ -115,6 +115,22 @@ export class QuotationsController {
     return this.quotationsService.update(organizationId, quotationId, request.user.sub, dto);
   }
 
+  @Post(":quotationId/recalculate-totals")
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions("quotations.update")
+  @ApiOperation({
+    summary: "Recalculate quotation totals",
+    description: "Requires quotations.update. Only unpaid, unarchived DRAFT quotations can be repaired."
+  })
+  @ApiOkResponse()
+  recalculateTotals(
+    @Param("organizationId", new ParseUUIDPipe()) organizationId: string,
+    @Param("quotationId", new ParseUUIDPipe()) quotationId: string,
+    @Req() request: OrganizationRequest
+  ) {
+    return this.quotationsService.recalculateTotals(organizationId, quotationId, request.user.sub);
+  }
+
   @Delete(":quotationId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions("quotations.delete")

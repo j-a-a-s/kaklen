@@ -10,7 +10,14 @@ import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { QuotationDiscountType, QuotationItemPayload, QuotationItemType } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
-import { isBackendErrorCode, messageForError, NotificationService } from "../shared/notifications/notification.service";
+import {
+  backendErrorDetails,
+  BackendErrorDetails,
+  isBackendErrorCode,
+  messageForError,
+  NotificationService,
+  quotationIntegrityMessage
+} from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { calculateQuotationMoney, parseMoney } from "@kaklen/shared";
@@ -23,6 +30,7 @@ import { WizardValidationState } from "../shared/forms/wizard-validation-state";
 import { UiIconComponent } from "../shared/ui-icon.component";
 import { MoneyInputDirective } from "../shared/forms/money-input.directive";
 import { Subscription } from "rxjs";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
 
 type ItemForm = FormGroup<{
   catalogItemId: FormControl<string>;
@@ -41,7 +49,7 @@ type ItemForm = FormGroup<{
 @Component({
   selector: "kaklen-quotation-form",
   standalone: true,
-  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, WizardStepIndicatorComponent, UiIconComponent, MoneyInputDirective],
+  imports: [FormFieldComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent, FormControlA11yDirective, FormErrorSummaryComponent, WizardStepIndicatorComponent, UiIconComponent, MoneyInputDirective, ConfirmationDialogComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -55,7 +63,14 @@ type ItemForm = FormGroup<{
 
       <kaklen-wizard-steps [steps]="wizardSteps" [currentStep]="currentStep()" [ariaLabel]="quotationProgressLabel" />
 
-      <p class="form-error" *ngIf="error()">{{ error() }}</p>
+      <p class="form-error" *ngIf="error() && !integrityIssue()">{{ error() }}</p>
+      <section class="status-banner warning" *ngIf="integrityIssue()" role="alert">
+        <strong>{{ error() }}</strong>
+        <button type="button" *ngIf="canRepairIntegrityIssue()" (click)="repairConfirmationOpen.set(true)" [disabled]="repairing()">
+          <kaklen-icon name="refresh" />
+          <span>{{ repairing() ? recalculatingTotalsLabel : recalculateTotalsLabel }}</span>
+        </button>
+      </section>
 
       <form *ngIf="!financialDataBlocked()" class="quotation-wizard-layout" [formGroup]="form" (ngSubmit)="save()">
         <section class="dashboard-panel wizard-panel">
@@ -157,6 +172,17 @@ type ItemForm = FormGroup<{
           </dl>
         </ng-template>
       </form>
+      <kaklen-confirmation-dialog
+        [open]="repairConfirmationOpen()"
+        [busy]="repairing()"
+        [title]="recalculateTotalsTitle"
+        [description]="recalculateTotalsDescription"
+        [confirmLabel]="recalculateTotalsLabel"
+        tone="primary"
+        icon="refresh"
+        (confirm)="recalculateTotals()"
+        (cancel)="repairConfirmationOpen.set(false)"
+      />
     </main>
   `
 })
@@ -164,6 +190,9 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal("");
   readonly financialDataBlocked = signal(false);
+  readonly integrityIssue = signal<BackendErrorDetails | null>(null);
+  readonly repairing = signal(false);
+  readonly repairConfirmationOpen = signal(false);
   readonly submitAttempted = signal(false);
   readonly currentStep = signal(1);
   readonly clients = signal<Client[]>([]);
@@ -174,6 +203,10 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   readonly editTitle = $localize`:@@editQuotationTitle:Editar cotización`;
   readonly saveQuotationLabel = $localize`:@@saveQuotationButton:Guardar cotización`;
   readonly savingLabel = $localize`:@@savingButton:Guardando...`;
+  readonly recalculateTotalsLabel = $localize`:@@recalculateQuotationTotalsButton:Recalcular totales`;
+  readonly recalculatingTotalsLabel = $localize`:@@recalculatingQuotationTotalsButton:Recalculando...`;
+  readonly recalculateTotalsTitle = $localize`:@@recalculateQuotationTotalsTitle:Recalcular totales de la cotización`;
+  readonly recalculateTotalsDescription = $localize`:@@recalculateQuotationTotalsDescription:Se recalcularán los importes desde los datos fuente de cada línea.`;
   readonly clientSummaryFallback = $localize`:@@clientSummaryFallback:Cliente registrado sin datos de contacto`;
   readonly dateErrorLabel = $localize`:@@quotationDateValidation:La fecha válida hasta debe ser posterior o igual a la fecha de emisión.`;
   readonly dateOrderError = { dateOrder: true } as const;
@@ -298,14 +331,38 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id]);
     } catch (error) {
-      this.notifications.fromError(error);
       if (isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) {
         this.blockInconsistentFinancialData(error);
       } else {
+        this.notifications.fromError(error);
         this.error.set($localize`:@@quotationSaveError:No fue posible guardar la cotización.`);
       }
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  canRepairIntegrityIssue(): boolean {
+    const issue = this.integrityIssue();
+    return issue?.repairable === true && Boolean(issue.resourceId) && this.organizationService.hasPermission("quotations.update");
+  }
+
+  async recalculateTotals(): Promise<void> {
+    const issue = this.integrityIssue();
+    if (this.repairing() || !this.canRepairIntegrityIssue() || !issue?.resourceId) return;
+    this.repairing.set(true);
+    try {
+      await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
+      await this.loadQuotationForEdit();
+      if (this.financialDataBlocked()) return;
+      this.repairConfirmationOpen.set(false);
+      this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
+    } catch (error) {
+      this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+      this.error.set(quotationIntegrityMessage(false));
+      this.notifications.fromError(error);
+    } finally {
+      this.repairing.set(false);
     }
   }
 
@@ -503,6 +560,10 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
         taxPercent: item.taxPercent
       })));
       this.onCurrencyChange();
+      this.financialDataBlocked.set(false);
+      this.integrityIssue.set(null);
+      this.repairConfirmationOpen.set(false);
+      this.error.set("");
     } catch (error) {
       this.blockInconsistentFinancialData(error);
     }
@@ -511,6 +572,13 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   private blockInconsistentFinancialData(error: unknown): void {
     this.financialDataBlocked.set(true);
     this.items.clear();
+    if (isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) {
+      const issue = backendErrorDetails(error);
+      this.integrityIssue.set(issue);
+      this.error.set(quotationIntegrityMessage(issue.repairable === true && this.organizationService.hasPermission("quotations.update")));
+      return;
+    }
+    this.integrityIssue.set(null);
     this.error.set(messageForError(error));
   }
 

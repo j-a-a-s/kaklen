@@ -11,6 +11,8 @@ export const ERROR_CODES = {
   validationError: "VALIDATION_ERROR",
   quotationInvalidStatus: "QUOTATION_INVALID_STATUS",
   quotationMoneyMismatch: "QUOTATION_MONEY_MISMATCH",
+  quotationMoneyRepairNotAllowed: "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+  quotationMoneyRepairNotPossible: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
   clpFractionNotAllowed: "CLP_FRACTION_NOT_ALLOWED",
   moneyPrecisionNotAllowed: "MONEY_PRECISION_NOT_ALLOWED",
   eventInvalidStatus: "EVENT_INVALID_STATUS",
@@ -59,4 +61,6 @@ export interface ApiErrorResponse {
   message: string;
   statusCode: number;
   field?: string;
+  resourceId?: string;
+  repairable?: boolean;
 }

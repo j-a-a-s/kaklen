@@ -241,7 +241,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(update.status()).toBe(200);
   });
 
-  test("rejects persisted CLP and USD parity corruption without leaking totals", async ({ page }) => {
+  test("repairs draft parity explicitly and blocks non-repairable financial corruption", async ({ page }) => {
     await ensureParityContext();
     const createQuotation = async (currency, unitPrice) => {
       const response = await authorizedPost(`/organizations/${organizationId}/quotations`, {
@@ -270,60 +270,117 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     try {
       const detail = await authorizedGet(`/organizations/${organizationId}/quotations/${clp.id}`);
       expect(detail.status()).toBe(409);
-      expect(await detail.json()).toMatchObject({
+      expect(await detail.json()).toEqual({
         code: "QUOTATION_MONEY_MISMATCH",
         message: "Quotation totals are inconsistent.",
-        field: "total"
+        statusCode: 409,
+        field: "total",
+        resourceId: clp.id,
+        repairable: true
+      });
+
+      const list = await authorizedGet(`/organizations/${organizationId}/quotations?page=1&pageSize=20`);
+      expect(list.status()).toBe(409);
+      expect(await list.json()).toMatchObject({
+        code: "QUOTATION_MONEY_MISMATCH",
+        field: "total",
+        resourceId: clp.id,
+        repairable: true
       });
 
       await authenticatePage(page);
-      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
-      await expect(page.getByText(
-        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
-        { exact: true }
-      )).toBeVisible();
-      await expect(page.locator("kaklen-quotation-detail .quotation-line-financial")).toHaveCount(0);
-      await expect(page.getByRole("button", { name: "Descargar PDF" })).toHaveCount(0);
-      await expect(page.getByRole("link", { name: "Editar" })).toHaveCount(0);
-
       await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
-      await expect(page.getByText(
-        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
-        { exact: true }
-      )).toBeVisible();
+      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible();
       await expect(page.locator("kaklen-quotation-list .entity-price")).toHaveCount(0);
       await expect(page.locator("kaklen-quotation-list .item-row")).toHaveCount(0);
 
       await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}/edit`);
-      await expect(page.getByText(
-        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
-        { exact: true }
-      )).toBeVisible();
+      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible();
       await expect(page.locator("kaklen-quotation-form .quotation-wizard-layout")).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Guardar cotización" })).toHaveCount(0);
+
+      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
+      await expect(page.getByText(
+        "Detectamos una inconsistencia financiera.",
+        { exact: true }
+      )).toBeVisible();
+      await expect(page.locator("kaklen-quotation-detail .quotation-line-financial")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Más acciones" })).toHaveCount(0);
+      await expect(page.getByRole("link", { name: "Editar" })).toHaveCount(0);
+      await page.getByRole("button", { name: "Recalcular totales" }).click();
+      const repairDialog = page.getByRole("alertdialog");
+      await expect(repairDialog).toBeVisible();
+      await repairDialog.getByRole("button", { name: "Recalcular totales" }).click();
+      await expect(page.getByText("Totales recalculados correctamente.", { exact: true })).toBeVisible();
+      await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
+      await page.getByRole("button", { name: "Más acciones" }).click();
+      await expect(page.getByRole("menuitem", { name: "Descargar PDF" })).toBeVisible();
+
+      const repairedDetail = await authorizedGet(`/organizations/${organizationId}/quotations/${clp.id}`);
+      expect(repairedDetail.status()).toBe(200);
+      expect((await repairedDetail.json()).total).toBe(clp.total);
+      expect((await authorizedGet(`/organizations/${organizationId}/quotations?page=1&pageSize=20`)).status()).toBe(200);
     } finally {
       await prisma.quotation.update({ where: { id: clp.id }, data: { total: clp.total } });
     }
-
-    const restored = await authorizedGet(`/organizations/${organizationId}/quotations/${clp.id}`);
-    expect(restored.status()).toBe(200);
-    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
-    await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
 
     const usd = await createQuotation("USD", "100.00");
     await prisma.quotation.update({ where: { id: usd.id }, data: { total: "100.01" } });
     try {
       const detail = await authorizedGet(`/organizations/${organizationId}/quotations/${usd.id}`);
       expect(detail.status()).toBe(409);
-      expect(await detail.json()).toMatchObject({ code: "QUOTATION_MONEY_MISMATCH", field: "total" });
+      expect(await detail.json()).toMatchObject({
+        code: "QUOTATION_MONEY_MISMATCH",
+        field: "total",
+        resourceId: usd.id,
+        repairable: true
+      });
 
       const isolated = await authorizedGet(`/organizations/${otherOrganizationId}/quotations/${usd.id}`);
       expect(isolated.status()).toBe(404);
+      const isolatedRepair = await authorizedPost(
+        `/organizations/${otherOrganizationId}/quotations/${usd.id}/recalculate-totals`,
+        {}
+      );
+      expect(isolatedRepair.status()).toBe(404);
+
+      const repair = await authorizedPost(`/organizations/${organizationId}/quotations/${usd.id}/recalculate-totals`, {});
+      expect(repair.status()).toBe(200);
+      expect(moneyToMinorUnits((await repair.json()).total, "USD")).toBe("10000");
+
+      const sent = await authorizedPost(`/organizations/${organizationId}/quotations/${usd.id}/send`, {});
+      expect(sent.status()).toBe(200);
+      await prisma.quotation.update({ where: { id: usd.id }, data: { total: "100.01" } });
+      const blockedRepair = await authorizedPost(`/organizations/${organizationId}/quotations/${usd.id}/recalculate-totals`, {});
+      expect(blockedRepair.status()).toBe(409);
+      expect(await blockedRepair.json()).toMatchObject({
+        code: "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+        field: "status",
+        resourceId: usd.id,
+        repairable: false
+      });
     } finally {
       await prisma.quotation.update({ where: { id: usd.id }, data: { total: usd.total } });
     }
 
     expect((await authorizedGet(`/organizations/${organizationId}/quotations/${usd.id}`)).status()).toBe(200);
+
+    const approved = await createQuotation("CLP", "2000");
+    expect((await authorizedPost(`/organizations/${organizationId}/quotations/${approved.id}/send`, {})).status()).toBe(200);
+    expect((await authorizedPost(`/organizations/${organizationId}/quotations/${approved.id}/approve`, {})).status()).toBe(200);
+    await prisma.quotation.update({ where: { id: approved.id }, data: { total: "2001" } });
+    try {
+      const summary = await authorizedGet(`/organizations/${organizationId}/quotations/summary`);
+      expect(summary.status()).toBe(409);
+      expect(await summary.json()).toMatchObject({
+        code: "QUOTATION_MONEY_MISMATCH",
+        field: "total",
+        resourceId: approved.id,
+        repairable: false
+      });
+    } finally {
+      await prisma.quotation.update({ where: { id: approved.id }, data: { total: approved.total } });
+    }
   });
 
   test("persists and exposes the exact CLP discount fixtures", async () => {

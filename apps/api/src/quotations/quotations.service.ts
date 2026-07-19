@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional, ServiceUnavailableException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, Optional, ServiceUnavailableException } from "@nestjs/common";
 import {
   CatalogItem,
   Client,
@@ -12,8 +12,8 @@ import {
   QuotationStatusHistory
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { calculateQuotationMoney, MoneyPrecisionError, parseMoney } from "@kaklen/shared";
-import type { QuotationDecimalInput, QuotationMoneyAmounts } from "@kaklen/shared";
+import { calculateQuotationMoney, minorUnitsToMoney, moneyToMinorUnits, MoneyPrecisionError } from "@kaklen/shared";
+import type { QuotationDecimalInput, QuotationMoneyAmounts, QuotationMoneyResult } from "@kaklen/shared";
 import { MailService } from "../notifications/mail.service";
 import { normalizeNotificationLocale, renderQuotationEmail } from "../notifications/templates";
 import {
@@ -25,7 +25,7 @@ import {
   UpdateQuotationDto
 } from "./dto/quotation.dto";
 import { QuotationDocumentService } from "./quotation-document.service";
-import { calculateConsistentQuotationMoney } from "./quotation-money-consistency";
+import { calculateConsistentQuotationMoney, quotationMoneyErrorField } from "./quotation-money-consistency";
 
 type QuotationWithDetails = Quotation & {
   client: Client;
@@ -179,52 +179,74 @@ export class QuotationsService {
   }
 
   async summary(organizationId: string): Promise<QuotationSummary> {
-    const [grouped, approvedByCurrency, organization] = await this.prisma.$transaction([
-      this.prisma.quotation.groupBy({
-        by: ["status"],
-        where: { organizationId, archivedAt: null },
-        _count: { _all: true },
-        orderBy: { status: "asc" }
-      }),
-      this.prisma.quotation.groupBy({
-        by: ["currency"],
-        where: { organizationId, archivedAt: null, status: QuotationStatus.APPROVED },
-        _sum: { total: true },
-        _count: { _all: true },
-        orderBy: { currency: "asc" }
-      }),
-      this.prisma.organization.findFirst({ where: { id: organizationId }, select: { currency: true } })
-    ]);
-    const count = (status: QuotationStatus): number => {
-      const item = grouped.find((group) => group.status === status);
-      return typeof item?._count === "object" ? item._count._all ?? 0 : 0;
-    };
-    const baseCurrency = (organization?.currency ?? "CLP").toUpperCase();
-    const approvedAmounts = approvedByCurrency
-      .map((group) => ({
-        currency: group.currency.toUpperCase(),
-        amount: parseMoney((group._sum?.total ?? new Prisma.Decimal(0)).toString(), group.currency),
-        quotationCount: typeof group._count === "object" ? group._count._all ?? 0 : 0
-      }))
-      .sort((left, right) => {
+    return this.prisma.$transaction(async (tx) => {
+      const [grouped, organization] = await Promise.all([
+        tx.quotation.groupBy({
+          by: ["status"],
+          where: { organizationId, archivedAt: null },
+          _count: { _all: true },
+          orderBy: { status: "asc" }
+        }),
+        tx.organization.findFirst({ where: { id: organizationId }, select: { currency: true } })
+      ]);
+      const approvedByCurrency = new Map<string, { minorUnits: bigint; quotationCount: number }>();
+      let cursor: string | undefined;
+      while (true) {
+        const approvedBatch = await tx.quotation.findMany({
+          where: {
+            organizationId,
+            archivedAt: null,
+            status: QuotationStatus.APPROVED,
+            ...(cursor ? { id: { gt: cursor } } : {})
+          },
+          include: { client: true, items: { orderBy: { sortOrder: "asc" } } },
+          orderBy: { id: "asc" },
+          take: 200
+        });
+        for (const quotation of approvedBatch) {
+          const consistent = this.consistentQuotation(quotation);
+          const canonical = calculateConsistentQuotationMoney(consistent);
+          const currency = quotation.currency.toUpperCase();
+          const current = approvedByCurrency.get(currency) ?? { minorUnits: 0n, quotationCount: 0 };
+          approvedByCurrency.set(currency, {
+            minorUnits: current.minorUnits + BigInt(moneyToMinorUnits(canonical.total, currency)),
+            quotationCount: current.quotationCount + 1
+          });
+        }
+        if (approvedBatch.length < 200) break;
+        cursor = approvedBatch.at(-1)?.id;
+        if (!cursor) break;
+      }
+
+      const count = (status: QuotationStatus): number => {
+        const item = grouped.find((group) => group.status === status);
+        return typeof item?._count === "object" ? item._count._all ?? 0 : 0;
+      };
+      const baseCurrency = (organization?.currency ?? "CLP").toUpperCase();
+      const approvedAmounts = Array.from(approvedByCurrency, ([currency, amount]) => ({
+        currency,
+        amount: minorUnitsToMoney(amount.minorUnits, currency),
+        quotationCount: amount.quotationCount
+      })).sort((left, right) => {
         if (left.currency === baseCurrency) return -1;
         if (right.currency === baseCurrency) return 1;
         return left.currency.localeCompare(right.currency);
       });
-    return {
-      total: grouped.reduce((sum, item) => sum + (typeof item._count === "object" ? item._count._all ?? 0 : 0), 0),
-      draft: count(QuotationStatus.DRAFT),
-      sent: count(QuotationStatus.SENT),
-      changesRequested: count(QuotationStatus.CHANGES_REQUESTED),
-      approved: count(QuotationStatus.APPROVED),
-      rejected: count(QuotationStatus.REJECTED),
-      expired: count(QuotationStatus.EXPIRED),
-      cancelled: count(QuotationStatus.CANCELLED),
-      baseCurrency,
-      approvedAmounts,
-      baseCurrencyApprovedAmount: approvedAmounts.find((item) => item.currency === baseCurrency)?.amount ??
-        parseMoney("0", baseCurrency),
-    };
+      return {
+        total: grouped.reduce((sum, item) => sum + (typeof item._count === "object" ? item._count._all ?? 0 : 0), 0),
+        draft: count(QuotationStatus.DRAFT),
+        sent: count(QuotationStatus.SENT),
+        changesRequested: count(QuotationStatus.CHANGES_REQUESTED),
+        approved: count(QuotationStatus.APPROVED),
+        rejected: count(QuotationStatus.REJECTED),
+        expired: count(QuotationStatus.EXPIRED),
+        cancelled: count(QuotationStatus.CANCELLED),
+        baseCurrency,
+        approvedAmounts,
+        baseCurrencyApprovedAmount: approvedAmounts.find((item) => item.currency === baseCurrency)?.amount ??
+          minorUnitsToMoney(0n, baseCurrency)
+      };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
   }
 
   async get(organizationId: string, quotationId: string): Promise<QuotationWithDetails> {
@@ -296,6 +318,62 @@ export class QuotationsService {
       await this.audit(tx, organizationId, userId, "quotation.updated", quotationId);
       return this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
     });
+  }
+
+  async recalculateTotals(
+    organizationId: string,
+    quotationId: string,
+    userId: string
+  ): Promise<QuotationWithDetails> {
+    return this.prisma.$transaction(async (tx) => {
+      const quotation = await this.findQuotationForRepair(organizationId, quotationId, tx);
+      this.assertQuotationRepairAllowed(quotation);
+      let canonical: QuotationMoneyResult;
+      try {
+        canonical = calculateQuotationMoney(
+          quotation.items.map((item) => ({
+            quantity: item.quantity.toString(),
+            unitPrice: item.unitPrice.toString(),
+            discountType: item.discountType,
+            discountValue: item.discountValue.toString(),
+            taxPercent: item.taxPercent.toString()
+          })),
+          quotation.globalDiscountPercent.toString(),
+          { currency: quotation.currency }
+        );
+      } catch (error) {
+        this.throwQuotationRepairNotPossible(quotation.id, error);
+      }
+
+      await tx.quotation.update({
+        where: { id: quotation.id },
+        data: {
+          subtotal: new Prisma.Decimal(canonical.subtotal),
+          discountTotal: new Prisma.Decimal(canonical.discountTotal),
+          taxTotal: new Prisma.Decimal(canonical.taxTotal),
+          total: new Prisma.Decimal(canonical.total)
+        }
+      });
+      for (const [index, item] of quotation.items.entries()) {
+        const line = canonical.lines[index];
+        if (!line) {
+          this.throwQuotationRepairNotPossible(quotation.id, { field: `items.${index}` });
+        }
+        await tx.quotationItem.update({
+          where: { id: item.id },
+          data: {
+            subtotal: new Prisma.Decimal(line.subtotal),
+            discountTotal: new Prisma.Decimal(line.discountTotal),
+            taxTotal: new Prisma.Decimal(line.taxTotal),
+            total: new Prisma.Decimal(line.total)
+          }
+        });
+      }
+
+      const repaired = this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
+      await this.audit(tx, organizationId, userId, "quotation.money_recalculated", quotationId);
+      return repaired;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async archive(organizationId: string, quotationId: string, userId: string): Promise<void> {
@@ -656,8 +734,54 @@ export class QuotationsService {
   }
 
   private consistentQuotation(quotation: QuotationWithDetails): QuotationWithDetails {
-    calculateConsistentQuotationMoney(quotation);
-    return quotation;
+    try {
+      calculateConsistentQuotationMoney(quotation);
+      return quotation;
+    } catch (error) {
+      if (!(error instanceof ConflictException)) throw error;
+      const response = error.getResponse();
+      if (
+        typeof response === "string" ||
+        !("code" in response) ||
+        response.code !== "QUOTATION_MONEY_MISMATCH"
+      ) throw error;
+      throw new ConflictException({
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        ...("field" in response && typeof response.field === "string" ? { field: response.field } : {}),
+        resourceId: quotation.id,
+        repairable: quotation.status === QuotationStatus.DRAFT && quotation.paidAt === null && quotation.archivedAt === null
+      });
+    }
+  }
+
+  private assertQuotationRepairAllowed(quotation: QuotationWithDetails): void {
+    const field = quotation.archivedAt !== null
+      ? "archivedAt"
+      : quotation.paidAt !== null
+        ? "paidAt"
+        : quotation.status !== QuotationStatus.DRAFT
+          ? "status"
+          : null;
+    if (!field) return;
+    throw new ConflictException({
+      code: "QUOTATION_MONEY_REPAIR_NOT_ALLOWED",
+      message: "Quotation totals cannot be recalculated in the current state.",
+      field,
+      resourceId: quotation.id,
+      repairable: false
+    });
+  }
+
+  private throwQuotationRepairNotPossible(quotationId: string, error: unknown): never {
+    const field = quotationMoneyErrorField(error);
+    throw new ConflictException({
+      code: "QUOTATION_MONEY_REPAIR_NOT_POSSIBLE",
+      message: "Quotation source data cannot be recalculated safely.",
+      ...(field ? { field } : {}),
+      resourceId: quotationId,
+      repairable: false
+    });
   }
 
   private assertTransition(previous: QuotationStatus, next: QuotationStatus): void {
@@ -741,6 +865,25 @@ export class QuotationsService {
     return quotation;
   }
 
+  private async findQuotationForRepair(
+    organizationId: string,
+    quotationId: string,
+    tx: Prisma.TransactionClient
+  ): Promise<QuotationWithDetails> {
+    const quotation = await tx.quotation.findFirst({
+      where: { id: quotationId, organizationId },
+      include: {
+        client: true,
+        items: { orderBy: { sortOrder: "asc" } },
+        history: { orderBy: { createdAt: "asc" } }
+      }
+    });
+    if (!quotation) {
+      throw new NotFoundException("Quotation not found");
+    }
+    return quotation;
+  }
+
   private async nextNumber(organizationId: string, tx: Prisma.TransactionClient): Promise<string> {
     const latest = await tx.quotation.findFirst({ where: { organizationId }, orderBy: { createdAt: "desc" } });
     const latestNumber = latest?.number.replace("QUO-", "");
@@ -771,7 +914,14 @@ export class QuotationsService {
     metadata?: Prisma.InputJsonValue
   ): Promise<unknown> {
     return tx.organizationAuditLog.create({
-      data: { organizationId, actorUserId, action, targetType: "quotation", targetId, metadata }
+      data: {
+        organizationId,
+        actorUserId,
+        action,
+        targetType: "quotation",
+        targetId,
+        ...(metadata === undefined ? {} : { metadata })
+      }
     });
   }
 

@@ -8,12 +8,20 @@ import { PaginatedQuotations, QuotationStatus, QuotationSummary } from "../quota
 import { QuotationsService } from "../quotations/quotations.service";
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
-import { isBackendErrorCode, messageForError } from "../shared/notifications/notification.service";
+import {
+  backendErrorDetails,
+  BackendErrorDetails,
+  isBackendErrorCode,
+  NotificationService,
+  quotationIntegrityMessage
+} from "../shared/notifications/notification.service";
+import { ConfirmationDialogComponent } from "../shared/confirmation-dialog.component";
+import { UiIconComponent } from "../shared/ui-icon.component";
 
 @Component({
   selector: "kaklen-quotation-list",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EmptyStateComponent, StatusBadgeComponent, ConfirmationDialogComponent, UiIconComponent],
   template: `
     <main class="dashboard-shell">
       <section class="dashboard-header">
@@ -77,48 +85,75 @@ import { isBackendErrorCode, messageForError } from "../shared/notifications/not
         </form>
       </section>
 
-      <p class="form-error" *ngIf="error()">{{ error() }}</p>
+      <p class="form-error" *ngIf="error() && !integrityIssue()">{{ error() }}</p>
+      <section class="status-banner warning" *ngIf="integrityIssue()" role="alert">
+        <strong>{{ error() }}</strong>
+        <button type="button" *ngIf="canRepairIntegrityIssue()" (click)="repairConfirmationOpen.set(true)" [disabled]="repairing()">
+          <kaklen-icon name="refresh" />
+          <span>{{ repairing() ? recalculatingTotalsLabel : recalculateTotalsLabel }}</span>
+        </button>
+      </section>
 
-      <section class="list-panel" *ngIf="quotations().items.length > 0; else emptyState">
-        <article class="item-row" *ngFor="let quotation of quotations().items">
-          <div class="entity-heading">
-            <span class="entity-avatar square" aria-hidden="true">Q</span>
-            <div>
-              <strong>{{ quotation.number }} v{{ quotation.version }} · {{ quotation.client.displayName }}</strong>
-              <div class="entity-meta">
-                <kaklen-status-badge [status]="quotation.status" [label]="statusLabel(quotation.status)" />
-                <small>{{ dateLabel(quotation.issueDate) }}</small>
-                <small class="entity-price">{{ moneyLabel(quotation.total, quotation.currency) }}</small>
+      <ng-container *ngIf="!integrityIssue()">
+        <section class="list-panel" *ngIf="quotations().items.length > 0; else emptyState">
+          <article class="item-row" *ngFor="let quotation of quotations().items">
+            <div class="entity-heading">
+              <span class="entity-avatar square" aria-hidden="true">Q</span>
+              <div>
+                <strong>{{ quotation.number }} v{{ quotation.version }} · {{ quotation.client.displayName }}</strong>
+                <div class="entity-meta">
+                  <kaklen-status-badge [status]="quotation.status" [label]="statusLabel(quotation.status)" />
+                  <small>{{ dateLabel(quotation.issueDate) }}</small>
+                  <small class="entity-price">{{ moneyLabel(quotation.total, quotation.currency) }}</small>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="row-actions">
-            <a [routerLink]="['/organizations', organizationId, 'quotations', quotation.id]" i18n="@@viewLink">Ver</a>
-            <a *ngIf="canUpdate() && quotation.status === 'DRAFT'" [routerLink]="['/organizations', organizationId, 'quotations', quotation.id, 'edit']" i18n="@@editLink">Editar</a>
-          </div>
-        </article>
-      </section>
+            <div class="row-actions">
+              <a [routerLink]="['/organizations', organizationId, 'quotations', quotation.id]" i18n="@@viewLink">Ver</a>
+              <a *ngIf="canUpdate() && quotation.status === 'DRAFT'" [routerLink]="['/organizations', organizationId, 'quotations', quotation.id, 'edit']" i18n="@@editLink">Editar</a>
+            </div>
+          </article>
+        </section>
 
-      <ng-template #emptyState>
-        <kaklen-empty-state icon="file-text" [title]="quotationsEmptyTitle" [description]="quotationsEmptyDescription">
-          <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" i18n="@@newQuotationButton">Nueva cotización</a>
-        </kaklen-empty-state>
-      </ng-template>
+        <ng-template #emptyState>
+          <kaklen-empty-state icon="file-text" [title]="quotationsEmptyTitle" [description]="quotationsEmptyDescription">
+            <a *ngIf="canCreate()" class="button-link" [routerLink]="['/organizations', organizationId, 'quotations', 'new']" i18n="@@newQuotationButton">Nueva cotización</a>
+          </kaklen-empty-state>
+        </ng-template>
 
-      <section class="pagination-row" *ngIf="quotations().totalPages > 1">
-        <button type="button" class="secondary" (click)="load(quotations().page - 1)" [disabled]="quotations().page <= 1" i18n="@@previousPageButton">Anterior</button>
-        <span i18n="@@paginationLabel">Página {{ quotations().page }} de {{ quotations().totalPages }}</span>
-        <button type="button" class="secondary" (click)="load(quotations().page + 1)" [disabled]="quotations().page >= quotations().totalPages" i18n="@@nextPageButton">Siguiente</button>
-      </section>
+        <section class="pagination-row" *ngIf="quotations().totalPages > 1">
+          <button type="button" class="secondary" (click)="load(quotations().page - 1)" [disabled]="quotations().page <= 1" i18n="@@previousPageButton">Anterior</button>
+          <span i18n="@@paginationLabel">Página {{ quotations().page }} de {{ quotations().totalPages }}</span>
+          <button type="button" class="secondary" (click)="load(quotations().page + 1)" [disabled]="quotations().page >= quotations().totalPages" i18n="@@nextPageButton">Siguiente</button>
+        </section>
+      </ng-container>
+      <kaklen-confirmation-dialog
+        [open]="repairConfirmationOpen()"
+        [busy]="repairing()"
+        [title]="recalculateTotalsTitle"
+        [description]="recalculateTotalsDescription"
+        [confirmLabel]="recalculateTotalsLabel"
+        tone="primary"
+        icon="refresh"
+        (confirm)="recalculateTotals()"
+        (cancel)="repairConfirmationOpen.set(false)"
+      />
     </main>
   `
 })
 export class QuotationListComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly integrityIssue = signal<BackendErrorDetails | null>(null);
+  readonly repairing = signal(false);
+  readonly repairConfirmationOpen = signal(false);
   readonly filtersOpen = signal(false);
   readonly quotationsEmptyTitle = $localize`:@@quotationsEmptyTitle:Crea tu primera cotización`;
   readonly quotationsEmptyDescription = $localize`:@@quotationsEmpty:Prepara una propuesta y conviértela en un evento cuando el cliente la apruebe.`;
+  readonly recalculateTotalsLabel = $localize`:@@recalculateQuotationTotalsButton:Recalcular totales`;
+  readonly recalculatingTotalsLabel = $localize`:@@recalculatingQuotationTotalsButton:Recalculando...`;
+  readonly recalculateTotalsTitle = $localize`:@@recalculateQuotationTotalsTitle:Recalcular totales de la cotización`;
+  readonly recalculateTotalsDescription = $localize`:@@recalculateQuotationTotalsDescription:Se recalcularán los importes desde los datos fuente de cada línea.`;
   readonly summary = signal<QuotationSummary | null>(null);
   readonly quotations = signal<PaginatedQuotations>({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
   readonly filtersForm = new FormGroup({
@@ -130,7 +165,8 @@ export class QuotationListComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly organizationService: OrganizationService,
-    private readonly quotationsService: QuotationsService
+    private readonly quotationsService: QuotationsService,
+    private readonly notifications: NotificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -151,18 +187,50 @@ export class QuotationListComponent implements OnInit {
     this.loading.set(true);
     this.error.set("");
     try {
-      this.summary.set(await this.quotationsService.summary(this.organizationId));
-      this.quotations.set(await this.quotationsService.list(this.organizationId, { ...this.filtersForm.getRawValue(), page }));
+      const [summary, quotations] = await Promise.all([
+        this.quotationsService.summary(this.organizationId),
+        this.quotationsService.list(this.organizationId, { ...this.filtersForm.getRawValue(), page })
+      ]);
+      this.summary.set(summary);
+      this.quotations.set(quotations);
+      this.integrityIssue.set(null);
+      this.repairConfirmationOpen.set(false);
     } catch (error) {
       if (isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) {
         this.summary.set(null);
         this.quotations.set({ items: [], page, pageSize: 20, total: 0, totalPages: 0 });
-        this.error.set(messageForError(error));
+        const issue = backendErrorDetails(error);
+        this.integrityIssue.set(issue);
+        this.error.set(quotationIntegrityMessage(issue.repairable === true && this.canUpdate()));
       } else {
         this.error.set($localize`:@@quotationsLoadError:No fue posible cargar las cotizaciones.`);
       }
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  canRepairIntegrityIssue(): boolean {
+    const issue = this.integrityIssue();
+    return issue?.repairable === true && Boolean(issue.resourceId) && this.canUpdate();
+  }
+
+  async recalculateTotals(): Promise<void> {
+    const issue = this.integrityIssue();
+    if (this.repairing() || !this.canRepairIntegrityIssue() || !issue?.resourceId) return;
+    this.repairing.set(true);
+    try {
+      await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
+      await this.load(this.quotations().page);
+      if (this.integrityIssue()) return;
+      this.repairConfirmationOpen.set(false);
+      this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
+    } catch (error) {
+      this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+      this.error.set(quotationIntegrityMessage(false));
+      this.notifications.fromError(error);
+    } finally {
+      this.repairing.set(false);
     }
   }
 

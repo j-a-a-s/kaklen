@@ -6,6 +6,7 @@ import {
   currencyFractionDigits,
   currencyStep,
   formatMoney,
+  minorUnitsToMoney,
   moneyToMinorUnits,
   parseMoney,
   validateMoneyPrecision
@@ -61,6 +62,9 @@ test("centralizes currency precision, parsing, formatting and minor units", () =
   assert.equal(parseMoney("-0.00", "USD"), "0.00");
   assert.equal(moneyToMinorUnits("1000", "CLP"), "1000");
   assert.equal(moneyToMinorUnits("10.50", "USD"), "1050");
+  assert.equal(minorUnitsToMoney(1000n, "CLP"), "1000");
+  assert.equal(minorUnitsToMoney("1050", "USD"), "10.50");
+  assert.equal(minorUnitsToMoney("-5", "BRL"), "-0.05");
   assert.equal(formatMoney("59500", "CLP", "es-CL"), "$59.500");
   assert.equal(formatMoney("-0", "CLP", "es-CL"), "$0");
 });

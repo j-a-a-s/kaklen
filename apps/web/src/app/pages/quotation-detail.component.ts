@@ -6,7 +6,14 @@ import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationChangeRequest, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationPublicLink, QuotationsService } from "../quotations/quotations.service";
-import { isBackendErrorCode, messageForError, NotificationService } from "../shared/notifications/notification.service";
+import {
+  backendErrorDetails,
+  BackendErrorDetails,
+  isBackendErrorCode,
+  messageForError,
+  NotificationService,
+  quotationIntegrityMessage
+} from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { RUNTIME_CONFIG } from "../config/runtime-config";
@@ -47,7 +54,14 @@ import { Subscription } from "rxjs";
         </div>
       </section>
 
-      <p class="form-error" *ngIf="error()">{{ error() }}</p>
+      <p class="form-error" *ngIf="error() && !integrityIssue()">{{ error() }}</p>
+      <section class="status-banner warning" *ngIf="integrityIssue()" role="alert">
+        <strong>{{ error() }}</strong>
+        <button type="button" *ngIf="canRepairIntegrityIssue()" (click)="repairConfirmationOpen.set(true)" [disabled]="repairing()">
+          <kaklen-icon name="refresh" />
+          <span>{{ repairing() ? recalculatingTotalsLabel : recalculateTotalsLabel }}</span>
+        </button>
+      </section>
 
       <section class="status-banner warning" *ngIf="quotation()?.status === 'CHANGES_REQUESTED'" role="status">
         <strong i18n="@@quotationChangesRequestedBanner">El cliente solicitó cambios. Revisa el comentario antes de crear una nueva versión.</strong>
@@ -145,6 +159,17 @@ import { Subscription } from "rxjs";
         (confirm)="confirmStatusChange()"
         (cancel)="pendingStatusAction.set(null)"
       />
+      <kaklen-confirmation-dialog
+        [open]="repairConfirmationOpen()"
+        [busy]="repairing()"
+        [title]="recalculateTotalsTitle"
+        [description]="recalculateTotalsDescription"
+        [confirmLabel]="recalculateTotalsLabel"
+        tone="primary"
+        icon="refresh"
+        (confirm)="recalculateTotals()"
+        (cancel)="repairConfirmationOpen.set(false)"
+      />
       <kaklen-quotation-email-dialog *ngIf="commercialEmailEnabled"
         [open]="emailDialogOpen()"
         [busy]="emailSending()"
@@ -179,6 +204,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
     );
   });
   readonly error = signal("");
+  readonly integrityIssue = signal<BackendErrorDetails | null>(null);
+  readonly repairing = signal(false);
+  readonly repairConfirmationOpen = signal(false);
   readonly processing = signal(false);
   readonly downloadingPdf = signal(false);
   readonly emailDialogOpen = signal(false);
@@ -188,6 +216,10 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
   readonly pendingStatusAction = signal<"approve" | "reject" | "cancel" | null>(null);
   readonly downloadPdfLabel = $localize`:@@downloadPdfButton:Descargar PDF`;
   readonly preparingPdfLabel = $localize`:@@preparingPdfMessage:Preparando PDF...`;
+  readonly recalculateTotalsLabel = $localize`:@@recalculateQuotationTotalsButton:Recalcular totales`;
+  readonly recalculatingTotalsLabel = $localize`:@@recalculatingQuotationTotalsButton:Recalculando...`;
+  readonly recalculateTotalsTitle = $localize`:@@recalculateQuotationTotalsTitle:Recalcular totales de la cotización`;
+  readonly recalculateTotalsDescription = $localize`:@@recalculateQuotationTotalsDescription:Se recalcularán los importes desde los datos fuente de cada línea.`;
   organizationId = "";
   quotationId = "";
   private initialQuotationApproved = false;
@@ -260,10 +292,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       }
       this.pendingStatusAction.set(null);
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
-      }
+      this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
     } finally {
       this.processing.set(false);
     }
@@ -277,10 +308,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.notifications.success($localize`:@@quotationNewVersionSuccess:Nueva versión creada.`);
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id, "edit"]);
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
-      }
+      this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
     } finally {
       this.processing.set(false);
     }
@@ -306,10 +336,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(url);
       this.notifications.success($localize`:@@pdfDownloadedSuccess:Cotización descargada.`);
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@pdfDownloadError:No pudimos generar el PDF. Intenta nuevamente.`);
-      }
+      this.error.set($localize`:@@pdfDownloadError:No pudimos generar el PDF. Intenta nuevamente.`);
     } finally {
       this.downloadingPdf.set(false);
     }
@@ -333,10 +362,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       }
       this.notifications.success($localize`:@@secureLinkCreatedSuccess:Enlace seguro creado.`);
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@secureLinkCreateError:No fue posible crear el enlace seguro.`);
-      }
+      this.error.set($localize`:@@secureLinkCreateError:No fue posible crear el enlace seguro.`);
     } finally {
       this.sharing.set(false);
     }
@@ -366,10 +394,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
         this.notifications.info($localize`:@@whatsappPreparedInfo:Mensaje preparado. Confirma el envío en WhatsApp.`);
       }
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@whatsappPrepareError:No fue posible preparar el mensaje de WhatsApp.`);
-      }
+      this.error.set($localize`:@@whatsappPrepareError:No fue posible preparar el mensaje de WhatsApp.`);
     } finally {
       this.sharing.set(false);
     }
@@ -389,10 +416,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.emailDialogOpen.set(false);
       this.notifications.success($localize`:@@quotationEmailSentSuccess:Cotización enviada por email.`);
     } catch (error) {
+      if (this.clearInconsistentFinancialData(error)) return;
       this.notifications.fromError(error);
-      if (!this.clearInconsistentFinancialData(error)) {
-        this.error.set($localize`:@@quotationEmailSendError:No pudimos enviar el correo. La cotización no cambió de estado.`);
-      }
+      this.error.set($localize`:@@quotationEmailSendError:No pudimos enviar el correo. La cotización no cambió de estado.`);
     } finally {
       this.emailSending.set(false);
     }
@@ -413,6 +439,32 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
 
   canCreateVersion(status: QuotationStatus): boolean {
     return status === "SENT" || status === "CHANGES_REQUESTED" || status === "APPROVED" || status === "REJECTED" || status === "CANCELLED";
+  }
+
+  canRepairIntegrityIssue(): boolean {
+    const issue = this.integrityIssue();
+    return issue?.repairable === true && Boolean(issue.resourceId) && this.canUpdate();
+  }
+
+  async recalculateTotals(): Promise<void> {
+    const issue = this.integrityIssue();
+    if (this.repairing() || !this.canRepairIntegrityIssue() || !issue?.resourceId) return;
+    this.repairing.set(true);
+    try {
+      await this.quotationsService.recalculateTotals(this.organizationId, issue.resourceId);
+      await this.load();
+      if (this.integrityIssue() || !this.quotation()) return;
+      this.repairConfirmationOpen.set(false);
+      this.notifications.success($localize`:@@quotationTotalsRecalculatedSuccess:Totales recalculados correctamente.`);
+    } catch (error) {
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.integrityIssue.update((current) => current ? { ...current, repairable: false } : current);
+        this.error.set(quotationIntegrityMessage(false));
+        this.notifications.fromError(error);
+      }
+    } finally {
+      this.repairing.set(false);
+    }
   }
 
   requestStatusChange(action: "approve" | "reject" | "cancel"): void {
@@ -529,12 +581,16 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.quotation.set(quotation);
       this.history.set(history);
       this.changeRequests.set(changeRequests);
+      this.integrityIssue.set(null);
+      this.repairConfirmationOpen.set(false);
       this.scheduleChangeRequestFocus();
     } catch (error) {
       this.quotation.set(null);
       this.history.set([]);
       this.changeRequests.set([]);
-      this.error.set(messageForError(error));
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set(messageForError(error));
+      }
     }
   }
 
@@ -550,13 +606,15 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
 
   private clearInconsistentFinancialData(error: unknown): boolean {
     if (!isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) return false;
+    const issue = backendErrorDetails(error);
     this.quotation.set(null);
     this.history.set([]);
     this.changeRequests.set([]);
     this.publicLink.set(null);
     this.pendingStatusAction.set(null);
     this.emailDialogOpen.set(false);
-    this.error.set(messageForError(error));
+    this.integrityIssue.set(issue);
+    this.error.set(quotationIntegrityMessage(issue.repairable === true && this.canUpdate()));
     return true;
   }
 

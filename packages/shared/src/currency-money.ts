@@ -90,6 +90,29 @@ export function moneyToMinorUnits(
   return (negative ? -units : units).toString();
 }
 
+export function minorUnitsToMoney(
+  value: bigint | string,
+  currency: string,
+  field = "amount"
+): string {
+  const source = typeof value === "bigint" ? value.toString() : value.trim();
+  if (!/^[+-]?\d+$/.test(source)) {
+    throw new MoneyValueError(field, "Minor units must be an integer value");
+  }
+
+  const units = BigInt(source);
+  const fractionDigits = currencyFractionDigits(currency);
+  const negative = units < 0n;
+  const digits = (negative ? -units : units).toString();
+  if (fractionDigits === 0) {
+    return `${negative ? "-" : ""}${digits}`;
+  }
+
+  const padded = digits.padStart(fractionDigits + 1, "0");
+  const decimalIndex = padded.length - fractionDigits;
+  return `${negative ? "-" : ""}${padded.slice(0, decimalIndex)}.${padded.slice(decimalIndex)}`;
+}
+
 export function formatMoney(value: MoneyDecimalInput, currency: string, locale: string): string {
   const normalizedCurrency = normalizeCurrency(currency);
   const fractionDigits = currencyFractionDigits(normalizedCurrency);
