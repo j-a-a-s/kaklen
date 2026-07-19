@@ -7,6 +7,7 @@ const BOTH = Object.freeze(["local", "ci"]);
 
 export const QUALITY_TASKS = Object.freeze([
   defineTask("local-services", "Local services", "node", ["scripts/ensure-quality-services.mjs"], [], ["local"], 90_000),
+  defineTask("commit-message", "Conventional commit message", "pnpm", ["commit:verify"], [], BOTH, 30_000),
   defineTask("architecture", "Architecture check", "pnpm", ["architecture:check"], [], BOTH, 60_000),
   defineTask("quality-scan", "Quality scan", "pnpm", ["quality:scan"], ["architecture"], BOTH, 60_000),
   defineTask("secret-scan", "Secret scan", "pnpm", ["security:scan"], [], BOTH, 60_000),
@@ -61,7 +62,7 @@ export const QUALITY_TASKS = Object.freeze([
 ]);
 
 const COMMON_PROFILE = [
-  "architecture", "quality-scan", "secret-scan", "sast", "sbom", "dependency-audit",
+  "commit-message", "architecture", "quality-scan", "secret-scan", "sast", "sbom", "dependency-audit",
   "prisma-generate", "db-migrate", "db-validate", "migration-verification", "demo-seed", "demo-verify", "db-money",
   "forms-audit", "pdf-money-parity", "lint", "test", "coverage", "build", "api-build-verification",
   "build-es", "build-en", "build-pt-BR", "i18n-server", "mail", "e2e", "accessibility", "docker-api", "scorecard"

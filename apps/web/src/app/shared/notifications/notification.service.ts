@@ -94,13 +94,17 @@ export function messageForError(error: unknown): string {
     CONFLICT: $localize`:@@errorConflict:La operación entra en conflicto con información existente.`,
     DUPLICATE_TAX_ID: $localize`:@@errorDuplicateTaxId:Ya existe un registro con ese RUT.`,
     QUOTATION_INVALID_STATUS: $localize`:@@errorQuotationInvalidStatus:La cotización no permite esa acción en su estado actual.`,
-    QUOTATION_MONEY_MISMATCH: $localize`:@@errorQuotationMoneyMismatch:Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.`,
+    QUOTATION_MONEY_MISMATCH: $localize`:@@errorQuotationMoneyMismatch:Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.`,
     CLP_FRACTION_NOT_ALLOWED: $localize`:@@errorClpFractionNotAllowed:Los montos en pesos chilenos no pueden contener decimales.`,
     MONEY_PRECISION_NOT_ALLOWED: $localize`:@@errorMoneyPrecisionNotAllowed:El monto tiene más decimales de los permitidos para la moneda seleccionada.`,
     EVENT_INVALID_STATUS: $localize`:@@errorEventInvalidStatus:El evento no permite esa acción en su estado actual.`
   };
 
   return messages[code] ?? $localize`:@@errorFallback:No fue posible completar la operación.`;
+}
+
+export function isBackendErrorCode(error: unknown, expectedCode: string): boolean {
+  return backendErrorCode(error) === expectedCode;
 }
 
 function backendErrorCode(error: unknown): string {

@@ -9,10 +9,21 @@ export const CURRENCY_FRACTION_DIGITS = {
 
 export type SupportedCurrency = keyof typeof CURRENCY_FRACTION_DIGITS;
 
+export class MoneyValueError extends RangeError {
+  constructor(readonly field: string, message: string) {
+    super(message);
+    this.name = "MoneyValueError";
+  }
+}
+
 export class MoneyPrecisionError extends RangeError {
   readonly code: "CLP_FRACTION_NOT_ALLOWED" | "MONEY_PRECISION_NOT_ALLOWED";
 
-  constructor(readonly currency: string, readonly fractionDigits: number) {
+  constructor(
+    readonly currency: string,
+    readonly fractionDigits: number,
+    readonly field = "amount"
+  ) {
     const normalizedCurrency = normalizeCurrency(currency);
     super(
       normalizedCurrency === "CLP"
@@ -43,13 +54,17 @@ export function validateMoneyPrecision(value: MoneyDecimalInput, currency: strin
   return fraction.slice(fractionDigits).split("").every((digit) => digit === "0");
 }
 
-export function parseMoney(value: MoneyDecimalInput, currency: string): string {
+export function parseMoney(
+  value: MoneyDecimalInput,
+  currency: string,
+  field = "amount"
+): string {
   const fractionDigits = currencyFractionDigits(currency);
   const source = decimalSource(value);
   const match = /^([+-]?)(\d+)(?:\.(\d+))?$/.exec(source);
-  if (!match) throw new RangeError("Money must be a finite decimal value");
+  if (!match) throw new MoneyValueError(field, "Money must be a finite decimal value");
   if (!validateMoneyPrecision(source, currency)) {
-    throw new MoneyPrecisionError(currency, fractionDigits);
+    throw new MoneyPrecisionError(currency, fractionDigits, field);
   }
 
   const isZero = /^0+$/.test(match[2]) && /^0*$/.test(match[3] ?? "");
@@ -60,9 +75,13 @@ export function parseMoney(value: MoneyDecimalInput, currency: string): string {
   return `${sign}${integer}.${fraction}`;
 }
 
-export function moneyToMinorUnits(value: MoneyDecimalInput, currency: string): string {
+export function moneyToMinorUnits(
+  value: MoneyDecimalInput,
+  currency: string,
+  field = "amount"
+): string {
   const fractionDigits = currencyFractionDigits(currency);
-  const parsed = parseMoney(value, currency);
+  const parsed = parseMoney(value, currency, field);
   const negative = parsed.startsWith("-");
   const unsigned = parsed.replace(/^[+-]/, "");
   const [integer, fraction = ""] = unsigned.split(".");
@@ -107,7 +126,9 @@ export function decimalSource(value: MoneyDecimalInput): string {
 
 function normalizeCurrency(currency: string): string {
   const normalized = currency.trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(normalized)) throw new RangeError("Currency must be a three-letter ISO code");
+  if (!/^[A-Z]{3}$/.test(normalized)) {
+    throw new MoneyValueError("currency", "Currency must be a three-letter ISO code");
+  }
   return normalized;
 }
 

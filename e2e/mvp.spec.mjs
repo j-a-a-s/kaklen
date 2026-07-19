@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { PrismaClient } from "@prisma/client";
+import { currencyFractionDigits, formatMoney, moneyToMinorUnits } from "../packages/shared/dist/index.js";
 import { clearMailpit, waitForMailpitEmail } from "./support/mailpit.mjs";
 
 const apiBase = process.env.E2E_API_BASE_URL ?? "http://localhost:3000";
 const webBase = process.env.E2E_WEB_BASE_URL ?? "http://localhost:4200";
 const mailpitBase = process.env.E2E_MAILPIT_BASE_URL ?? "http://localhost:8025";
+const forwardedFor = `198.51.100.${20 + (process.pid % 200)}`;
 const verificationUrlPattern = /https?:\/\/[^\s"<>]+\/(?:es|en|pt-BR)\/verify-email\?token=[A-Za-z0-9_-]+/;
 
 test.describe.serial("Kaklen MVP core workflow", () => {
@@ -11,6 +14,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
   let api;
   let mailpit;
+  let prisma;
   let accessToken = "";
   let organizationId = "";
   let otherOrganizationId = "";
@@ -20,6 +24,9 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   let publicToken = "";
   let checkoutToken = "";
   let eventId = "";
+  let accountEmail = "";
+  const accountPassword = "KaklenTest123!";
+  let browserLoginSequence = 0;
 
   test.beforeAll(async ({ playwright }, testInfo) => {
     testInfo.setTimeout(180_000);
@@ -27,10 +34,12 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       baseURL: apiBase,
       extraHTTPHeaders: {
         Origin: webBase,
-        "X-Forwarded-For": "198.51.100.51"
+        "X-Forwarded-For": forwardedFor
       }
     });
     mailpit = await playwright.request.newContext({ baseURL: mailpitBase });
+    prisma = new PrismaClient();
+    await prisma.$connect();
     await clearMailpit(mailpit);
     await waitForReady(api);
   });
@@ -38,6 +47,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   test.afterAll(async () => {
     await api?.dispose();
     await mailpit?.dispose();
+    await prisma?.$disconnect();
   });
 
   test("health checks expose build metadata", async () => {
@@ -85,14 +95,13 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
   test("registers pending, verifies, logs in, refreshes, and loads current user", async () => {
     const unique = Date.now();
-    const email = `mvp-${unique}@kaklen.local`;
-    const password = "KaklenTest123!";
+    accountEmail = `mvp-${unique}@kaklen.local`;
     const response = await api.post("/api/auth/register", {
       data: {
-        email,
+        email: accountEmail,
         firstName: "MVP",
         lastName: "Tester",
-        password
+        password: accountPassword
       }
     });
     expect(response.status()).toBe(201);
@@ -102,7 +111,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       message: "Cuenta creada. Revisa tu correo para confirmar tu dirección."
     });
     const delivered = await waitForMailpitEmail(mailpit, {
-      recipient: email,
+      recipient: accountEmail,
       subject: "Confirma tu cuenta de Kaklen",
       urlPattern: verificationUrlPattern
     });
@@ -110,11 +119,13 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     const verification = await api.post("/api/auth/verify-email", { data: { token } });
     expect(verification.status()).toBe(200);
 
-    const login = await api.post("/api/auth/login", { data: { email, password } });
+    const login = await api.post("/api/auth/login", {
+      data: { email: accountEmail, password: accountPassword }
+    });
     expect(login.status()).toBe(200);
     const body = await login.json();
     accessToken = body.accessToken;
-    expect(body.user.email).toBe(email);
+    expect(body.user.email).toBe(accountEmail);
     expect(body.user.locale).toBe("es");
     expect(body.user.emailVerifiedAt).toBeTruthy();
 
@@ -230,6 +241,91 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(update.status()).toBe(200);
   });
 
+  test("rejects persisted CLP and USD parity corruption without leaking totals", async ({ page }) => {
+    await ensureParityContext();
+    const createQuotation = async (currency, unitPrice) => {
+      const response = await authorizedPost(`/organizations/${organizationId}/quotations`, {
+        clientId,
+        issueDate: "2026-07-18",
+        validUntil: "2026-08-31",
+        currency,
+        items: [{
+          type: "CUSTOM",
+          name: `Parity ${currency}`,
+          quantity: "1",
+          unit: "unit",
+          unitPrice,
+          discountType: "NONE",
+          discountValue: "0",
+          taxPercent: "0"
+        }]
+      });
+      expect(response.status()).toBe(201);
+      return response.json();
+    };
+
+    const clp = await createQuotation("CLP", "1000");
+    const corruptClpTotal = (BigInt(clp.total) + 1n).toString();
+    await prisma.quotation.update({ where: { id: clp.id }, data: { total: corruptClpTotal } });
+    try {
+      const detail = await authorizedGet(`/organizations/${organizationId}/quotations/${clp.id}`);
+      expect(detail.status()).toBe(409);
+      expect(await detail.json()).toMatchObject({
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        field: "total"
+      });
+
+      await authenticatePage(page);
+      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
+      await expect(page.getByText(
+        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
+        { exact: true }
+      )).toBeVisible();
+      await expect(page.locator("kaklen-quotation-detail .quotation-line-financial")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Descargar PDF" })).toHaveCount(0);
+      await expect(page.getByRole("link", { name: "Editar" })).toHaveCount(0);
+
+      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
+      await expect(page.getByText(
+        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
+        { exact: true }
+      )).toBeVisible();
+      await expect(page.locator("kaklen-quotation-list .entity-price")).toHaveCount(0);
+      await expect(page.locator("kaklen-quotation-list .item-row")).toHaveCount(0);
+
+      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}/edit`);
+      await expect(page.getByText(
+        "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.",
+        { exact: true }
+      )).toBeVisible();
+      await expect(page.locator("kaklen-quotation-form .quotation-wizard-layout")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Guardar cotización" })).toHaveCount(0);
+    } finally {
+      await prisma.quotation.update({ where: { id: clp.id }, data: { total: clp.total } });
+    }
+
+    const restored = await authorizedGet(`/organizations/${organizationId}/quotations/${clp.id}`);
+    expect(restored.status()).toBe(200);
+    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${clp.id}`);
+    await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
+
+    const usd = await createQuotation("USD", "100.00");
+    await prisma.quotation.update({ where: { id: usd.id }, data: { total: "100.01" } });
+    try {
+      const detail = await authorizedGet(`/organizations/${organizationId}/quotations/${usd.id}`);
+      expect(detail.status()).toBe(409);
+      expect(await detail.json()).toMatchObject({ code: "QUOTATION_MONEY_MISMATCH", field: "total" });
+
+      const isolated = await authorizedGet(`/organizations/${otherOrganizationId}/quotations/${usd.id}`);
+      expect(isolated.status()).toBe(404);
+    } finally {
+      await prisma.quotation.update({ where: { id: usd.id }, data: { total: usd.total } });
+    }
+
+    expect((await authorizedGet(`/organizations/${organizationId}/quotations/${usd.id}`)).status()).toBe(200);
+  });
+
   test("persists and exposes the exact CLP discount fixtures", async () => {
     const issueDate = "2026-07-17";
     const validUntil = "2026-08-31";
@@ -309,6 +405,9 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   });
 
   test("keeps approved quotation KPIs separated by currency", async ({ page }) => {
+    const baselineResponse = await authorizedGet(`/organizations/${organizationId}/quotations/summary`);
+    expect(baselineResponse.status()).toBe(200);
+    const baseline = await baselineResponse.json();
     const approvedFixtures = [
       ["CLP", "100000"],
       ["CLP", "50000"],
@@ -341,15 +440,19 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
     const summary = await authorizedGet(`/organizations/${organizationId}/quotations/summary`);
     expect(summary.status()).toBe(200);
-    expect(await summary.json()).toMatchObject({
+    const summaryBody = await summary.json();
+    const baselineClp = baseline.approvedAmounts.find((item) => item.currency === "CLP");
+    const expectedClpAmount = addMoney(baselineClp?.amount ?? "0", "150000", "CLP");
+    const expectedClpCount = (baselineClp?.quotationCount ?? 0) + 2;
+    expect(summaryBody).toMatchObject({
       baseCurrency: "CLP",
-      baseCurrencyApprovedAmount: "150000",
-      approvedAmounts: [
-        { currency: "CLP", amount: "150000", quotationCount: 2 },
+      baseCurrencyApprovedAmount: expectedClpAmount,
+      approvedAmounts: expect.arrayContaining([
+        { currency: "CLP", amount: expectedClpAmount, quotationCount: expectedClpCount },
         { currency: "BRL", amount: "800.00", quotationCount: 1 },
         { currency: "EUR", amount: "100.50", quotationCount: 1 },
         { currency: "USD", amount: "500.25", quotationCount: 1 }
-      ]
+      ])
     });
     const isolatedSummary = await authorizedGet(`/organizations/${otherOrganizationId}/quotations/summary`);
     expect(isolatedSummary.status()).toBe(200);
@@ -359,10 +462,10 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       approvedAmounts: []
     });
 
-    await page.context().addCookies((await api.storageState()).cookies);
+    await authenticatePage(page);
     await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
     await expect(page.getByText("Aprobado en moneda base", { exact: true })).toBeVisible();
-    await expect(page.getByText("$150.000 CLP", { exact: true })).toBeVisible();
+    await expect(page.getByText(`${formatMoney(expectedClpAmount, "CLP", "es-CL")} CLP`, { exact: true })).toBeVisible();
     await expect(page.getByText("BRL 800,00", { exact: true })).toBeVisible();
     await expect(page.getByText("EUR 100,50", { exact: true })).toBeVisible();
     await expect(page.getByText("USD 500,25", { exact: true })).toBeVisible();
@@ -513,10 +616,10 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       route: `/organizations/${organizationId}/quotations/${quotationId}#change-requests`
     });
 
-    await page.context().addCookies((await api.storageState()).cookies);
+    await authenticatePage(page);
     await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
     await expect(page.locator("#change-requests")).toContainText(changeComment);
-    await expect(page.locator("#change-requests")).toContainText("Versión 1");
+    await expect(page.locator("#change-requests")).toContainText("Versión v1");
     await expect(page.locator("#change-requests")).toContainText("Producto MVP");
     await expect(page.locator("#change-requests small")).toContainText(/Enviada .*\d/);
     await expect(page.locator("#change-requests").getByRole("button", { name: "Crear nueva versión" })).toBeVisible();
@@ -617,7 +720,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
   });
 
   test("renders the public quotation and payment checkout without horizontal overflow", async ({ page }) => {
-    await page.context().addCookies((await api.storageState()).cookies);
+    await authenticatePage(page);
     for (const locale of ["es", "en", "pt-BR"]) {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`${webBase}/${locale}/p/quotations/${publicToken}`);
@@ -638,7 +741,9 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       await page.goto(`${webBase}/es/p/quotations/${publicToken}`);
       await expect(page.locator("kaklen-public-quotation")).toBeVisible();
       await expectNoHorizontalOverflow(page);
-      const financialLabelSizes = await page.locator(".quotation-line-financial dt").evaluateAll((elements) =>
+      const financialLabels = page.locator("kaklen-public-quotation .quotation-line-financial dt");
+      await expect(financialLabels.first()).toBeVisible();
+      const financialLabelSizes = await financialLabels.evaluateAll((elements) =>
         elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize))
       );
       expect(financialLabelSizes.length).toBeGreaterThan(0);
@@ -711,6 +816,80 @@ test.describe.serial("Kaklen MVP core workflow", () => {
 
   async function authorizedGet(path) {
     return api.get(`/api${path}`, { headers: authHeaders() });
+  }
+
+  async function ensureParityContext() {
+    if (accessToken && organizationId && otherOrganizationId && clientId) return;
+    const unique = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    accountEmail = `parity-${unique}@kaklen.local`;
+    const register = await api.post("/api/auth/register", {
+      data: {
+        email: accountEmail,
+        firstName: "Parity",
+        lastName: "Tester",
+        password: accountPassword
+      }
+    });
+    expect(register.status()).toBe(201);
+    const delivered = await waitForMailpitEmail(mailpit, {
+      recipient: accountEmail,
+      subject: "Confirma tu cuenta de Kaklen",
+      urlPattern: verificationUrlPattern
+    });
+    const verificationToken = new URL(delivered.url).searchParams.get("token");
+    expect(verificationToken).toBeTruthy();
+    expect((await api.post("/api/auth/verify-email", { data: { token: verificationToken } })).status()).toBe(200);
+    const login = await api.post("/api/auth/login", {
+      data: { email: accountEmail, password: accountPassword }
+    });
+    expect(login.status()).toBe(200);
+    accessToken = (await login.json()).accessToken;
+
+    const primary = await authorizedPost("/organizations", {
+      name: `Parity Primary ${unique}`,
+      country: "US",
+      currency: "CLP",
+      timezone: "UTC",
+      dateFormat: "dd-MM-yyyy",
+      numberFormat: "es"
+    });
+    expect(primary.status()).toBe(201);
+    organizationId = (await primary.json()).id;
+    const isolated = await authorizedPost("/organizations", {
+      name: `Parity Isolated ${unique}`,
+      country: "US",
+      currency: "CLP",
+      timezone: "UTC",
+      dateFormat: "dd-MM-yyyy",
+      numberFormat: "es"
+    });
+    expect(isolated.status()).toBe(201);
+    otherOrganizationId = (await isolated.json()).id;
+    const client = await authorizedPost(`/organizations/${organizationId}/clients`, {
+      type: "NATURAL_PERSON",
+      status: "ACTIVE",
+      firstName: "Parity",
+      lastName: "Client",
+      email: `client-${unique}@kaklen.local`,
+      taxId: "11.111.111-1",
+      whatsapp: "+56911111111",
+      country: "CL"
+    });
+    expect(client.status()).toBe(201);
+    clientId = (await client.json()).id;
+  }
+
+  async function authenticatePage(page) {
+    browserLoginSequence += 1;
+    const browserForwardedFor = `203.0.113.${20 + ((process.pid + browserLoginSequence) % 200)}`;
+    const login = await page.request.post(`${apiBase}/api/auth/login`, {
+      data: { email: accountEmail, password: accountPassword },
+      headers: {
+        Origin: webBase,
+        "X-Forwarded-For": browserForwardedFor
+      }
+    });
+    expect(login.status()).toBe(200);
   }
 
   async function authorizedPost(path, data) {
@@ -792,4 +971,14 @@ function exactClpFixtures(baseItems) {
       }
     }
   ];
+}
+
+function addMoney(left, right, currency) {
+  const fractionDigits = currencyFractionDigits(currency);
+  const minorUnits = BigInt(moneyToMinorUnits(left, currency)) + BigInt(moneyToMinorUnits(right, currency));
+  if (fractionDigits === 0) return minorUnits.toString();
+  const factor = 10n ** BigInt(fractionDigits);
+  const whole = minorUnits / factor;
+  const fraction = String(minorUnits % factor).padStart(fractionDigits, "0");
+  return `${whole}.${fraction}`;
 }

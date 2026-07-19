@@ -1,10 +1,11 @@
-import { BadRequestException, ArgumentsHost, HttpException, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, ArgumentsHost, ConflictException, HttpException, InternalServerErrorException } from "@nestjs/common";
 import { ApiErrorFilter } from "./api-error.filter";
 
 interface TestBody {
   code: string;
   message: string;
   statusCode: number;
+  field?: string;
 }
 
 interface TestResponse {
@@ -60,6 +61,26 @@ describe("ApiErrorFilter", () => {
       message: "Request failed",
       statusCode: 418
     });
+  });
+
+  it("preserves a structured field without exposing arbitrary exception details", () => {
+    const filter = new ApiErrorFilter();
+    const response = createResponse();
+
+    filter.catch(new ConflictException({
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      field: "items.0.total",
+      persistedValue: "sensitive"
+    }), createHost(response, "en"));
+
+    expect(response.body).toEqual({
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      statusCode: 409,
+      field: "items.0.total"
+    });
+    expect(response.body).not.toHaveProperty("persistedValue");
   });
 
   it("normalizes unexpected errors and internal server errors without exposing stacks", () => {

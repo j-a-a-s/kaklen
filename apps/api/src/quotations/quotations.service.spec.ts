@@ -1,5 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { CatalogItemStatus, CatalogItemType, Prisma, QuotationDiscountType, QuotationItemType, QuotationStatus } from "@prisma/client";
+import { calculateQuotationMoney } from "@kaklen/shared";
+import { assertPersistedQuotationMoneyParity } from "./quotation-money-consistency";
 import { QuotationsService } from "./quotations.service";
 
 type TransitionProbe = {
@@ -322,6 +324,141 @@ describe("QuotationsService", () => {
     const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
 
     await expectMoneyMismatch(realService.get("org-1", "quotation-1"), "items.0.total");
+  });
+
+  it.each([
+    ["subtotal", { subtotal: new Prisma.Decimal(1001) }],
+    ["discountTotal", { discountTotal: new Prisma.Decimal(1) }],
+    ["taxTotal", { taxTotal: new Prisma.Decimal(191) }],
+    ["total", { total: new Prisma.Decimal(1191) }]
+  ])("rejects an inconsistent persisted %s with its exact field", async (field, overrides) => {
+    const prisma = makeQuotationsPrisma({ quotation: quotation(overrides) });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), field);
+  });
+
+  it.each([
+    ["items.0.subtotal", "subtotal", "1001"],
+    ["items.0.discountTotal", "discountTotal", "1"],
+    ["items.0.taxTotal", "taxTotal", "191"],
+    ["items.0.total", "total", "1191"]
+  ])("rejects an inconsistent persisted line field %s", async (expectedField, itemField, value) => {
+    const persisted = quotation();
+    if (itemField === "subtotal") persisted.items[0].subtotal = new Prisma.Decimal(value);
+    if (itemField === "discountTotal") persisted.items[0].discountTotal = new Prisma.Decimal(value);
+    if (itemField === "taxTotal") persisted.items[0].taxTotal = new Prisma.Decimal(value);
+    if (itemField === "total") persisted.items[0].total = new Prisma.Decimal(value);
+    const prisma = makeQuotationsPrisma({ quotation: persisted });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), expectedField);
+  });
+
+  it.each([
+    ["CLP fractional money", "CLP", "1000.5", "items.0.unitPrice"],
+    ["USD over-precision money", "USD", "1000.001", "items.0.unitPrice"],
+    ["invalid quantity format", "CLP", "not-a-decimal", "items.0.quantity"],
+    ["invalid tax percentage format", "CLP", "not-a-percent", "items.0.taxPercent"],
+    ["out-of-range tax percentage", "CLP", "101", "items.0.taxPercent"]
+  ])("normalizes persisted %s to a field-specific conflict", async (_name, currency, value, field) => {
+    const persisted = quotation({ currency });
+    if (field.endsWith("quantity")) persisted.items[0].quantity = decimalValue(value) as unknown as Prisma.Decimal;
+    if (field.endsWith("unitPrice")) persisted.items[0].unitPrice = decimalValue(value) as unknown as Prisma.Decimal;
+    if (field.endsWith("taxPercent")) persisted.items[0].taxPercent = decimalValue(value) as unknown as Prisma.Decimal;
+    const prisma = makeQuotationsPrisma({ quotation: persisted });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), field);
+  });
+
+  it("normalizes an invalid persisted amount format with its exact field", async () => {
+    const persisted = quotation({ total: decimalValue("not-money") });
+    const prisma = makeQuotationsPrisma({ quotation: persisted });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.get("org-1", "quotation-1"), "total");
+  });
+
+  it("normalizes canonical invariant failures without parsing an error message", async () => {
+    const persisted = quotation();
+    const calculated = calculateQuotationMoney(
+      persisted.items.map((line) => ({
+        quantity: line.quantity.toString(),
+        unitPrice: line.unitPrice.toString(),
+        discountType: line.discountType,
+        discountValue: line.discountValue.toString(),
+        taxPercent: line.taxPercent.toString()
+      })),
+      persisted.globalDiscountPercent.toString(),
+      { currency: persisted.currency }
+    );
+    calculated.lines[0].discountTotal = "1";
+
+    await expectMoneyMismatch(
+      Promise.resolve().then(() => assertPersistedQuotationMoneyParity(persisted, calculated)),
+      "items.0.discountTotal"
+    );
+  });
+
+  it("rejects a contradictory list before returning any row", async () => {
+    const corrupt = quotation({ total: new Prisma.Decimal(1191) });
+    const prisma = makeQuotationsPrisma({ listQuotations: [quotation(), corrupt] });
+    const realService = new QuotationsService(prisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+
+    await expectMoneyMismatch(realService.list("org-1", {}), "total");
+  });
+
+  it("guards every public method returning a complete quotation", async () => {
+    const corruptDraft = quotation({ total: new Prisma.Decimal(1191) });
+    const corruptSent = quotation({ status: QuotationStatus.SENT, total: new Prisma.Decimal(1191) });
+    const validCreate = {
+      clientId: "client-1",
+      issueDate: "2026-08-01",
+      validUntil: "2026-08-31",
+      currency: "CLP",
+      items: [item({ unitPrice: 1000, taxPercent: 19 })]
+    };
+    const cases: Array<[string, () => Promise<unknown>]> = [];
+    const draftService = (): QuotationsService => new QuotationsService(
+      makeQuotationsPrisma({ quotation: corruptDraft }) as unknown as ConstructorParameters<typeof QuotationsService>[0],
+      { isCommercialEmailEnabled: () => true, send: jest.fn(async () => undefined) } as unknown as ConstructorParameters<typeof QuotationsService>[1]
+    );
+    const sentService = (): QuotationsService => new QuotationsService(
+      makeQuotationsPrisma({ quotation: corruptSent }) as unknown as ConstructorParameters<typeof QuotationsService>[0]
+    );
+    cases.push(
+      ["create", () => draftService().create("org-1", "user-1", validCreate)],
+      ["get", () => draftService().get("org-1", "quotation-1")],
+      ["update", () => draftService().update("org-1", "quotation-1", "user-1", {})],
+      ["send", () => draftService().send("org-1", "quotation-1", "user-1", {})],
+      ["approve", () => sentService().approve("org-1", "quotation-1", "user-1", {})],
+      ["reject", () => sentService().reject("org-1", "quotation-1", "user-1", {})],
+      ["cancel", () => draftService().cancel("org-1", "quotation-1", "user-1", {})],
+      ["newVersion", () => sentService().newVersion("org-1", "quotation-1", "user-1")],
+      ["sendEmail", () => draftService().sendEmail("org-1", "quotation-1", "user-1", {
+        to: "client@example.com", subject: "Quotation", message: "Review it", locale: "en"
+      })]
+    );
+
+    for (const [method, call] of cases) {
+      await expectMoneyMismatch(call(), "total", method);
+    }
+  });
+
+  it("keeps invalid create and update payloads as bad requests", async () => {
+    const createPrisma = makeQuotationsPrisma();
+    const updatePrisma = makeQuotationsPrisma();
+    const createService = new QuotationsService(createPrisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+    const updateService = new QuotationsService(updatePrisma as unknown as ConstructorParameters<typeof QuotationsService>[0]);
+    const invalidItem = item({ unitPrice: 1000.5 });
+
+    await expect(createService.create("org-1", "user-1", {
+      clientId: "client-1", issueDate: "2026-08-01", validUntil: "2026-08-31", currency: "CLP", items: [invalidItem]
+    })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(updateService.update("org-1", "quotation-1", "user-1", {
+      currency: "CLP", items: [invalidItem]
+    })).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it("keeps quotation detail isolation before validating money", async () => {
@@ -756,6 +893,7 @@ function makeQuotationsPrisma(options: {
   quotation?: unknown;
   organizationCurrency?: string;
   approvedByCurrency?: Array<{ currency: string; amount: string; count: number }>;
+  listQuotations?: unknown[];
 } = {}) {
   const catalogItems = options.catalogItems ?? [catalogItem()];
   const currentQuotation = options.quotation === undefined ? quotation({ status: options.quotationStatus ?? QuotationStatus.DRAFT }) : options.quotation;
@@ -784,7 +922,7 @@ function makeQuotationsPrisma(options: {
         }
         return currentQuotation;
       }),
-      findMany: jest.fn(async () => [quotation()]),
+      findMany: jest.fn(async () => options.listQuotations ?? [quotation()]),
       count: jest.fn(async () => 1),
       groupBy: jest.fn(async ({ by }: { by: string[] }) => by.includes("currency")
         ? (options.approvedByCurrency ?? [
@@ -940,10 +1078,14 @@ function callData(mock: { mock: { calls: unknown[][] } }, callIndex = 0): unknow
   return call?.data;
 }
 
-async function expectMoneyMismatch(result: Promise<unknown>, field: string): Promise<void> {
+function decimalValue(value: string): { toString(): string } {
+  return { toString: () => value };
+}
+
+async function expectMoneyMismatch(result: Promise<unknown>, field: string, context?: string): Promise<void> {
   try {
     await result;
-    fail("Expected quotation money parity validation to fail");
+    fail(`Expected quotation money parity validation to fail${context ? ` for ${context}` : ""}`);
   } catch (error) {
     expect(error).toBeInstanceOf(ConflictException);
     expect((error as ConflictException).getStatus()).toBe(409);

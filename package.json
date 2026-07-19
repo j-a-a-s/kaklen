@@ -21,6 +21,7 @@
     "lint": "turbo run lint",
     "architecture:check": "node scripts/check-architecture.mjs",
     "quality:scan": "node scripts/quality-scan.mjs",
+    "commit:verify": "node scripts/verify-commit-message.mjs",
     "forms:audit": "node scripts/forms-audit.mjs",
     "pdf:verify-money": "node scripts/verify-pdf-money-parity.mjs",
     "scorecard:generate": "node scripts/generate-technical-scorecard.mjs --generate",

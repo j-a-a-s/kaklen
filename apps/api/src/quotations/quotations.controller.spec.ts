@@ -54,10 +54,29 @@ describe("QuotationsController", () => {
     expect(response.send).toHaveBeenCalledWith(Buffer.from("pdf"));
   });
 
-  it("requires quotation read permission for customer change requests", () => {
-    expect(
-      Reflect.getMetadata(REQUIRED_PERMISSIONS_KEY, QuotationsController.prototype.changeRequests)
-    ).toEqual(["quotations.read"]);
+  it("keeps backend RBAC on every quotation endpoint", () => {
+    const permissions = [
+      ["create", "quotations.create"],
+      ["list", "quotations.read"],
+      ["summary", "quotations.read"],
+      ["changeRequests", "quotations.read"],
+      ["get", "quotations.read"],
+      ["update", "quotations.update"],
+      ["archive", "quotations.delete"],
+      ["send", "quotations.send"],
+      ["approve", "quotations.approve"],
+      ["reject", "quotations.reject"],
+      ["cancel", "quotations.send"],
+      ["newVersion", "quotations.update"],
+      ["history", "quotations.read"],
+      ["pdf", "quotations.read"],
+      ["sendEmail", "quotations.send"]
+    ] as const;
+
+    for (const [method, permission] of permissions) {
+      expect(Reflect.getMetadata(REQUIRED_PERMISSIONS_KEY, QuotationsController.prototype[method]))
+        .toEqual([permission]);
+    }
   });
 });
 

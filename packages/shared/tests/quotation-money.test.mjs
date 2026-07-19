@@ -69,10 +69,11 @@ test("rejects fractional CLP money instead of rounding silently", () => {
   const fractional = [
     { quantity: "1", unitPrice: "1000.50", discountType: "NONE", discountValue: "0", taxPercent: "19" }
   ];
-  assert.throws(
-    () => calculateQuotationMoney(fractional, "0", { currency: "CLP" }),
-    /invalid precision for CLP/
-  );
+  assert.throws(() => calculateQuotationMoney(fractional, "0", { currency: "CLP" }), (error) => {
+    assert.equal(error.field, "lines[0].unitPrice");
+    assert.match(error.message, /invalid precision for CLP/);
+    return true;
+  });
   assert.throws(() => parseMoney("1000.50", "CLP"), { code: "CLP_FRACTION_NOT_ALLOWED" });
 });
 
@@ -176,10 +177,11 @@ test("rejects a quotation result that violates a money identity", () => {
   const result = calculateQuotationMoney(clpFixture, "1", { currency: "CLP" });
   const invalid = { ...result, total: "1664774" };
 
-  assert.throws(
-    () => assertQuotationMoneyInvariants(invalid, { currency: "CLP" }),
-    /invariant failed for total/
-  );
+  assert.throws(() => assertQuotationMoneyInvariants(invalid, { currency: "CLP" }), (error) => {
+    assert.equal(error.field, "total");
+    assert.match(error.message, /invariant failed for total/);
+    return true;
+  });
 });
 
 test("distributes residual minor units deterministically", () => {

@@ -38,17 +38,22 @@ export interface PersistedQuotationMoney {
 export function calculateConsistentQuotationMoney(
   source: PersistedQuotationMoney
 ): QuotationMoneyResult {
-  const calculated = calculateQuotationMoney(
-    source.items.map((item) => ({
-      quantity: item.quantity.toString(),
-      unitPrice: item.unitPrice.toString(),
-      discountType: item.discountType,
-      discountValue: item.discountValue.toString(),
-      taxPercent: item.taxPercent.toString()
-    })),
-    source.globalDiscountPercent.toString(),
-    { currency: source.currency }
-  );
+  let calculated: QuotationMoneyResult;
+  try {
+    calculated = calculateQuotationMoney(
+      source.items.map((item) => ({
+        quantity: item.quantity.toString(),
+        unitPrice: item.unitPrice.toString(),
+        discountType: item.discountType,
+        discountValue: item.discountValue.toString(),
+        taxPercent: item.taxPercent.toString()
+      })),
+      source.globalDiscountPercent.toString(),
+      { currency: source.currency }
+    );
+  } catch (error) {
+    throwNormalizedMismatch(error);
+  }
   assertPersistedQuotationMoneyParity(source, calculated);
   return calculated;
 }
@@ -57,33 +62,58 @@ export function assertPersistedQuotationMoneyParity(
   source: PersistedQuotationMoney,
   calculated: QuotationMoneyResult
 ): void {
-  assertQuotationMoneyInvariants(calculated, { currency: source.currency });
+  try {
+    assertQuotationMoneyInvariants(calculated, { currency: source.currency });
 
-  const comparisons: Array<[string, string, DecimalValue]> = [
-    ["subtotal", calculated.subtotal, source.subtotal],
-    ["discountTotal", calculated.discountTotal, source.discountTotal],
-    ["taxTotal", calculated.taxTotal, source.taxTotal],
-    ["total", calculated.total, source.total]
-  ];
-  source.items.forEach((item, index) => {
-    const line = calculated.lines[index];
-    comparisons.push(
-      [`items.${index}.subtotal`, line.subtotal, item.subtotal],
-      [`items.${index}.discountTotal`, line.discountTotal, item.discountTotal],
-      [`items.${index}.taxTotal`, line.taxTotal, item.taxTotal],
-      [`items.${index}.total`, line.total, item.total]
-    );
-  });
-  const mismatch = comparisons.find(([, expected, persisted]) =>
-    moneyToMinorUnits(expected, source.currency) !==
-      moneyToMinorUnits(persisted.toString(), source.currency)
-  );
-  if (mismatch) {
-    logger.error(`Quotation money mismatch field=${mismatch[0]}`);
-    throw new ConflictException({
-      code: "QUOTATION_MONEY_MISMATCH",
-      message: "Quotation totals are inconsistent.",
-      field: mismatch[0]
+    const comparisons: Array<[string, string, DecimalValue]> = [
+      ["subtotal", calculated.subtotal, source.subtotal],
+      ["discountTotal", calculated.discountTotal, source.discountTotal],
+      ["taxTotal", calculated.taxTotal, source.taxTotal],
+      ["total", calculated.total, source.total]
+    ];
+    source.items.forEach((item, index) => {
+      const line = calculated.lines[index];
+      comparisons.push(
+        [`items.${index}.subtotal`, line.subtotal, item.subtotal],
+        [`items.${index}.discountTotal`, line.discountTotal, item.discountTotal],
+        [`items.${index}.taxTotal`, line.taxTotal, item.taxTotal],
+        [`items.${index}.total`, line.total, item.total]
+      );
     });
+    for (const [field, expected, persisted] of comparisons) {
+      if (
+        moneyToMinorUnits(expected, source.currency, field) !==
+        moneyToMinorUnits(persisted.toString(), source.currency, field)
+      ) {
+        throwMismatch(field);
+      }
+    }
+  } catch (error) {
+    throwNormalizedMismatch(error);
   }
+}
+
+function throwNormalizedMismatch(error: unknown): never {
+  if (error instanceof ConflictException) {
+    throw error;
+  }
+  if (error && typeof error === "object" && "field" in error && typeof error.field === "string") {
+    throwMismatch(publicField(error.field));
+  }
+  throw error;
+}
+
+function publicField(field: string): string {
+  const lineField = /^lines\[(\d+)\](?:\.(.+))?$/.exec(field);
+  if (!lineField) return field;
+  return `items.${lineField[1]}${lineField[2] ? `.${lineField[2]}` : ""}`;
+}
+
+function throwMismatch(field: string): never {
+  logger.error(`Quotation money mismatch field=${field}`);
+  throw new ConflictException({
+    code: "QUOTATION_MONEY_MISMATCH",
+    message: "Quotation totals are inconsistent.",
+    field
+  });
 }

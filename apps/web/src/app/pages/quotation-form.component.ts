@@ -10,7 +10,7 @@ import { formatRegionalCurrency } from "../i18n/formatting";
 import { OrganizationService } from "../organizations/organization.service";
 import { QuotationDiscountType, QuotationItemPayload, QuotationItemType } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
-import { NotificationService } from "../shared/notifications/notification.service";
+import { isBackendErrorCode, messageForError, NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { calculateQuotationMoney, parseMoney } from "@kaklen/shared";
@@ -55,7 +55,9 @@ type ItemForm = FormGroup<{
 
       <kaklen-wizard-steps [steps]="wizardSteps" [currentStep]="currentStep()" [ariaLabel]="quotationProgressLabel" />
 
-      <form class="quotation-wizard-layout" [formGroup]="form" (ngSubmit)="save()">
+      <p class="form-error" *ngIf="error()">{{ error() }}</p>
+
+      <form *ngIf="!financialDataBlocked()" class="quotation-wizard-layout" [formGroup]="form" (ngSubmit)="save()">
         <section class="dashboard-panel wizard-panel">
           <kaklen-form-error-summary [form]="form" [attempted]="wizardAttempted()" [scopePaths]="activeStepPaths()" [labels]="fieldLabels" [fieldIds]="fieldIds" [groupErrorFields]="groupErrorFields" [messages]="fieldMessages" />
           <div *ngIf="currentStep() === 1" class="wizard-stage">
@@ -129,7 +131,6 @@ type ItemForm = FormGroup<{
             <p class="verification-note" i18n="@@quotationVerificationNote">Kaklen calculará y verificará automáticamente los totales al guardar.</p>
           </div>
 
-          <p class="form-error" *ngIf="error()">{{ error() }}</p>
           <div class="wizard-actions">
             <button type="button" class="secondary" *ngIf="currentStep() > 1" (click)="previousStep()" i18n="@@backButton">Volver</button>
             <button type="button" *ngIf="currentStep() < 4" (click)="nextStep()" i18n="@@continueButton">Continuar</button>
@@ -162,6 +163,7 @@ type ItemForm = FormGroup<{
 export class QuotationFormComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal("");
+  readonly financialDataBlocked = signal(false);
   readonly submitAttempted = signal(false);
   readonly currentStep = signal(1);
   readonly clients = signal<Client[]>([]);
@@ -254,35 +256,7 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       }
     });
     if (this.quotationId) {
-      const quotation = await this.quotationsService.get(this.organizationId, this.quotationId);
-      this.form.patchValue({
-        clientId: quotation.clientId,
-        issueDate: quotation.issueDate.slice(0, 10),
-        validUntil: quotation.validUntil.slice(0, 10),
-        currency: quotation.currency,
-        globalDiscountPercent: quotation.globalDiscountPercent,
-        notes: quotation.notes ?? "",
-        terms: quotation.terms ?? ""
-      });
-      this.items.clear();
-      quotation.items.forEach((item) =>
-        this.items.push(
-          this.createItem({
-            catalogItemId: item.catalogItemId ?? "",
-            type: item.type,
-            code: item.code ?? "",
-            name: item.name,
-            description: item.description ?? "",
-            quantity: item.quantity,
-            unit: item.unit,
-            unitPrice: item.unitPrice,
-            discountType: item.discountType,
-            discountValue: item.discountValue,
-            taxPercent: item.taxPercent
-          })
-        )
-      );
-      this.onCurrencyChange();
+      await this.loadQuotationForEdit();
     } else {
       this.addItem();
       this.initialQuotationCreated = (await this.assistantService.activation(this.organizationId)).completedSteps.includes("first_quotation_created");
@@ -297,6 +271,7 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
   }
 
   async save(): Promise<void> {
+    if (this.financialDataBlocked()) return;
     this.submitAttempted.set(true);
     this.items.controls.forEach((_item, index) => this.updateDiscountValidators(index));
     if (this.wizardValidation.attemptAll().length > 0) {
@@ -324,7 +299,11 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id]);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@quotationSaveError:No fue posible guardar la cotización.`);
+      if (isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) {
+        this.blockInconsistentFinancialData(error);
+      } else {
+        this.error.set($localize`:@@quotationSaveError:No fue posible guardar la cotización.`);
+      }
     } finally {
       this.loading.set(false);
     }
@@ -495,6 +474,44 @@ export class QuotationFormComponent implements OnInit, OnDestroy {
 
   private async loadCatalog(): Promise<void> {
     this.catalogItems.set((await this.catalogService.list(this.organizationId, { pageSize: 100 })).items);
+  }
+
+  private async loadQuotationForEdit(): Promise<void> {
+    try {
+      const quotation = await this.quotationsService.get(this.organizationId, this.quotationId);
+      this.form.patchValue({
+        clientId: quotation.clientId,
+        issueDate: quotation.issueDate.slice(0, 10),
+        validUntil: quotation.validUntil.slice(0, 10),
+        currency: quotation.currency,
+        globalDiscountPercent: quotation.globalDiscountPercent,
+        notes: quotation.notes ?? "",
+        terms: quotation.terms ?? ""
+      });
+      this.items.clear();
+      quotation.items.forEach((item) => this.items.push(this.createItem({
+        catalogItemId: item.catalogItemId ?? "",
+        type: item.type,
+        code: item.code ?? "",
+        name: item.name,
+        description: item.description ?? "",
+        quantity: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        discountType: item.discountType,
+        discountValue: item.discountValue,
+        taxPercent: item.taxPercent
+      })));
+      this.onCurrencyChange();
+    } catch (error) {
+      this.blockInconsistentFinancialData(error);
+    }
+  }
+
+  private blockInconsistentFinancialData(error: unknown): void {
+    this.financialDataBlocked.set(true);
+    this.items.clear();
+    this.error.set(messageForError(error));
   }
 
   private createItem(value?: Partial<QuotationItemPayload>): ItemForm {

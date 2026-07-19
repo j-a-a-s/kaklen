@@ -146,7 +146,7 @@ const translations = {
     approvedBaseCurrencyLabel: "Approved in base currency",
     approvedOtherAmountsLabel: "Other approved amounts",
     errorMoneyPrecisionNotAllowed: "The amount has more decimal places than the selected currency allows.",
-    errorQuotationMoneyMismatch: "The quotation totals do not match. Save it again before generating the document."
+    errorQuotationMoneyMismatch: "The quotation totals do not match. Recalculate and save it before continuing."
   },
   "pt-BR": {
     changeEmailAction: "Alterar e-mail",
@@ -289,7 +289,7 @@ const translations = {
     approvedBaseCurrencyLabel: "Aprovado na moeda base",
     approvedOtherAmountsLabel: "Outros valores aprovados",
     errorMoneyPrecisionNotAllowed: "O valor tem mais casas decimais do que a moeda selecionada permite.",
-    errorQuotationMoneyMismatch: "Os totais da cotação não conferem. Salve-a novamente antes de gerar o documento."
+    errorQuotationMoneyMismatch: "Os totais da cotação não conferem. Recalcule e salve-a antes de continuar."
   }
 };
 

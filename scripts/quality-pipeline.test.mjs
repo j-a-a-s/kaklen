@@ -13,6 +13,7 @@ import {
 } from "./quality-pipeline-core.mjs";
 
 const requiredCiControls = [
+  "commit-message",
   "architecture",
   "quality-scan",
   "secret-scan",

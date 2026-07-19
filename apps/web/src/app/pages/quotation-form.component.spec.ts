@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { QuotationFormComponent } from "./quotation-form.component";
 import { convertToParamMap } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
@@ -81,6 +82,41 @@ describe("QuotationFormComponent", () => {
     expect(component.form.controls.clientId.value).toBe("");
     component.ngOnDestroy();
     expect(queryParams.observed).toBeFalse();
+  });
+
+  it("blocks edit amounts and actions when persisted parity fails", async () => {
+    const queryParams = new BehaviorSubject(convertToParamMap({}));
+    const quotations = jasmine.createSpyObj("QuotationsService", ["get"]);
+    quotations.get.and.rejectWith(new HttpErrorResponse({
+      status: 409,
+      error: { code: "QUOTATION_MONEY_MISMATCH", message: "Quotation totals are inconsistent.", field: "total" }
+    }));
+    const component = new QuotationFormComponent(
+      {
+        snapshot: { paramMap: convertToParamMap({ organizationId: "organization-a", quotationId: "quotation-a" }) },
+        queryParamMap: queryParams.asObservable()
+      } as never,
+      {} as never,
+      { list: async () => ({ items: [] }) } as never,
+      { list: async () => ({ items: [] }) } as never,
+      {
+        setActiveOrganization: async () => undefined,
+        activeOrganization: () => ({ currency: "CLP" })
+      } as never,
+      quotations,
+      jasmine.createSpyObj("NotificationService", ["success", "fromError"]) as never,
+      {} as never,
+      {} as never
+    );
+
+    await component.ngOnInit();
+
+    expect(component.financialDataBlocked()).toBeTrue();
+    expect(component.items.length).toBe(0);
+    expect(component.error()).toBe(
+      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
+    );
+    component.ngOnDestroy();
   });
 
   for (const fixture of [

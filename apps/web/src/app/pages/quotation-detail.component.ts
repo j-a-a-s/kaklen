@@ -6,7 +6,7 @@ import { LocaleService } from "../i18n/locale.service";
 import { OrganizationService } from "../organizations/organization.service";
 import { Quotation, QuotationChangeRequest, QuotationEmailPayload, QuotationStatus, QuotationStatusHistory } from "../quotations/quotation.models";
 import { QuotationPublicLink, QuotationsService } from "../quotations/quotations.service";
-import { messageForError, NotificationService } from "../shared/notifications/notification.service";
+import { isBackendErrorCode, messageForError, NotificationService } from "../shared/notifications/notification.service";
 import { AssistantService } from "../assistant/assistant.service";
 import { ProductAnalyticsService } from "../assistant/product-analytics.service";
 import { RUNTIME_CONFIG } from "../config/runtime-config";
@@ -261,7 +261,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.pendingStatusAction.set(null);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@quotationStatusError:No fue posible cambiar el estado.`);
+      }
     } finally {
       this.processing.set(false);
     }
@@ -276,7 +278,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       await this.router.navigate(["/organizations", this.organizationId, "quotations", quotation.id, "edit"]);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@quotationVersionError:No fue posible crear una nueva versión.`);
+      }
     } finally {
       this.processing.set(false);
     }
@@ -303,7 +307,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.notifications.success($localize`:@@pdfDownloadedSuccess:Cotización descargada.`);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@pdfDownloadError:No pudimos generar el PDF. Intenta nuevamente.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@pdfDownloadError:No pudimos generar el PDF. Intenta nuevamente.`);
+      }
     } finally {
       this.downloadingPdf.set(false);
     }
@@ -321,10 +327,16 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       );
       this.publicLink.set(link);
       await this.load();
+      if (!this.quotation()) {
+        this.publicLink.set(null);
+        return;
+      }
       this.notifications.success($localize`:@@secureLinkCreatedSuccess:Enlace seguro creado.`);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@secureLinkCreateError:No fue posible crear el enlace seguro.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@secureLinkCreateError:No fue posible crear el enlace seguro.`);
+      }
     } finally {
       this.sharing.set(false);
     }
@@ -355,7 +367,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@whatsappPrepareError:No fue posible preparar el mensaje de WhatsApp.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@whatsappPrepareError:No fue posible preparar el mensaje de WhatsApp.`);
+      }
     } finally {
       this.sharing.set(false);
     }
@@ -376,7 +390,9 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
       this.notifications.success($localize`:@@quotationEmailSentSuccess:Cotización enviada por email.`);
     } catch (error) {
       this.notifications.fromError(error);
-      this.error.set($localize`:@@quotationEmailSendError:No pudimos enviar el correo. La cotización no cambió de estado.`);
+      if (!this.clearInconsistentFinancialData(error)) {
+        this.error.set($localize`:@@quotationEmailSendError:No pudimos enviar el correo. La cotización no cambió de estado.`);
+      }
     } finally {
       this.emailSending.set(false);
     }
@@ -530,6 +546,18 @@ export class QuotationDetailComponent implements OnInit, OnDestroy {
     this.history.set(history);
     this.changeRequests.set(changeRequests);
     this.scheduleChangeRequestFocus();
+  }
+
+  private clearInconsistentFinancialData(error: unknown): boolean {
+    if (!isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) return false;
+    this.quotation.set(null);
+    this.history.set([]);
+    this.changeRequests.set([]);
+    this.publicLink.set(null);
+    this.pendingStatusAction.set(null);
+    this.emailDialogOpen.set(false);
+    this.error.set(messageForError(error));
+    return true;
   }
 
   private scheduleChangeRequestFocus(): void {

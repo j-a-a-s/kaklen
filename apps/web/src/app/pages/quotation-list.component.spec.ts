@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { ActivatedRoute } from "@angular/router";
 import { OrganizationService } from "../organizations/organization.service";
-import { QuotationSummary } from "../quotations/quotation.models";
+import { Quotation, QuotationSummary } from "../quotations/quotation.models";
 import { QuotationsService } from "../quotations/quotations.service";
 import { QuotationListComponent } from "./quotation-list.component";
 
@@ -25,16 +26,44 @@ describe("QuotationListComponent", () => {
     expect(component.baseApprovedAmountLabel(summary)).toBe("$0 CLP");
     expect(component.otherApprovedAmounts(summary)).toEqual([]);
   });
+
+  it("clears previous rows and summary when list parity fails", async () => {
+    const quotationsService = jasmine.createSpyObj<QuotationsService>("QuotationsService", ["summary", "list"]);
+    quotationsService.summary.and.resolveTo(quotationSummary());
+    quotationsService.list.and.rejectWith(moneyMismatchError());
+    const component = createComponent(quotationsService);
+    component.summary.set(quotationSummary());
+    component.quotations.set({ items: [{} as Quotation], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+
+    await component.load(2);
+
+    expect(component.summary()).toBeNull();
+    expect(component.quotations()).toEqual({ items: [], page: 2, pageSize: 20, total: 0, totalPages: 0 });
+    expect(component.error()).toBe(
+      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
+    );
+  });
 });
 
-function createComponent(): QuotationListComponent {
+function createComponent(quotationsService = {} as QuotationsService): QuotationListComponent {
   return new QuotationListComponent(
     {} as ActivatedRoute,
     {
       activeOrganization: () => ({ currency: "CLP", numberFormat: "es" })
     } as unknown as OrganizationService,
-    {} as QuotationsService
+    quotationsService
   );
+}
+
+function moneyMismatchError(): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status: 409,
+    error: {
+      code: "QUOTATION_MONEY_MISMATCH",
+      message: "Quotation totals are inconsistent.",
+      field: "total"
+    }
+  });
 }
 
 function quotationSummary(overrides: Partial<QuotationSummary> = {}): QuotationSummary {

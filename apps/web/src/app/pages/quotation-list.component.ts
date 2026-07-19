@@ -8,6 +8,7 @@ import { PaginatedQuotations, QuotationStatus, QuotationSummary } from "../quota
 import { QuotationsService } from "../quotations/quotations.service";
 import { EmptyStateComponent } from "../shared/empty-state.component";
 import { StatusBadgeComponent } from "../shared/status-badge.component";
+import { isBackendErrorCode, messageForError } from "../shared/notifications/notification.service";
 
 @Component({
   selector: "kaklen-quotation-list",
@@ -152,8 +153,14 @@ export class QuotationListComponent implements OnInit {
     try {
       this.summary.set(await this.quotationsService.summary(this.organizationId));
       this.quotations.set(await this.quotationsService.list(this.organizationId, { ...this.filtersForm.getRawValue(), page }));
-    } catch {
-      this.error.set($localize`:@@quotationsLoadError:No fue posible cargar las cotizaciones.`);
+    } catch (error) {
+      if (isBackendErrorCode(error, "QUOTATION_MONEY_MISMATCH")) {
+        this.summary.set(null);
+        this.quotations.set({ items: [], page, pageSize: 20, total: 0, totalPages: 0 });
+        this.error.set(messageForError(error));
+      } else {
+        this.error.set($localize`:@@quotationsLoadError:No fue posible cargar las cotizaciones.`);
+      }
     } finally {
       this.loading.set(false);
     }

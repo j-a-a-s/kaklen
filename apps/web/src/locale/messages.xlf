@@ -8419,7 +8419,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
-        <source>Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.</source>
+        <source>Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/notifications/notification.service.ts</context>
           <context context-type="linenumber">97</context>

@@ -6,6 +6,7 @@ interface HttpExceptionBody {
   code?: string;
   message?: string | string[];
   statusCode?: number;
+  field?: string;
 }
 
 @Catch()
@@ -20,7 +21,8 @@ export class ApiErrorFilter implements ExceptionFilter {
     const payload: ApiErrorResponse = {
       code: body.code && typeof body.code === "string" ? body.code : codeForStatus(statusCode),
       message: this.messageForBody(body, statusCode),
-      statusCode
+      statusCode,
+      ...(typeof body.field === "string" ? { field: body.field } : {})
     };
 
     response.status(statusCode).json(payload);

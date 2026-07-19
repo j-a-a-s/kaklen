@@ -151,7 +151,7 @@ export class QuotationsService {
       });
       await this.recordStatus(tx, organizationId, quotation.id, null, quotation.status, userId, "quotation.created");
       await this.audit(tx, organizationId, userId, "quotation.created", quotation.id);
-      return this.findQuotation(organizationId, quotation.id, tx);
+      return this.consistentQuotation(await this.findQuotation(organizationId, quotation.id, tx));
     });
   }
 
@@ -169,7 +169,13 @@ export class QuotationsService {
       }),
       this.prisma.quotation.count({ where })
     ]);
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    return {
+      items: items.map((quotation) => this.consistentQuotation(quotation)),
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize)
+    };
   }
 
   async summary(organizationId: string): Promise<QuotationSummary> {
@@ -223,8 +229,7 @@ export class QuotationsService {
 
   async get(organizationId: string, quotationId: string): Promise<QuotationWithDetails> {
     const quotation = await this.findQuotation(organizationId, quotationId, this.prisma);
-    calculateConsistentQuotationMoney(quotation);
-    return quotation;
+    return this.consistentQuotation(quotation);
   }
 
   async update(
@@ -289,7 +294,7 @@ export class QuotationsService {
         }
       });
       await this.audit(tx, organizationId, userId, "quotation.updated", quotationId);
-      return this.findQuotation(organizationId, quotationId, tx);
+      return this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
     });
   }
 
@@ -319,6 +324,7 @@ export class QuotationsService {
 
   async newVersion(organizationId: string, quotationId: string, userId: string): Promise<QuotationWithDetails> {
     const existing = await this.findQuotation(organizationId, quotationId, this.prisma);
+    this.consistentQuotation(existing);
     const versionableStatuses: QuotationStatus[] = [
       QuotationStatus.APPROVED,
       QuotationStatus.REJECTED,
@@ -376,7 +382,7 @@ export class QuotationsService {
       });
       await this.recordStatus(tx, organizationId, quotation.id, null, QuotationStatus.DRAFT, userId, "quotation.version.created");
       await this.audit(tx, organizationId, userId, "quotation.version.created", quotation.id);
-      return this.findQuotation(organizationId, quotation.id, tx);
+      return this.consistentQuotation(await this.findQuotation(organizationId, quotation.id, tx));
     });
   }
 
@@ -438,7 +444,7 @@ export class QuotationsService {
 
   async pdfDocument(organizationId: string, quotationId: string, locale: string): Promise<QuotationPdfDocument> {
     const quotation = await this.findQuotation(organizationId, quotationId, this.prisma, true);
-    return this.renderPdfDocument(quotation, locale);
+    return this.renderPdfDocument(this.consistentQuotation(quotation), locale);
   }
 
   async sendEmail(
@@ -448,6 +454,7 @@ export class QuotationsService {
     dto: SendQuotationEmailDto
   ): Promise<QuotationWithDetails> {
     const quotation = await this.findQuotation(organizationId, quotationId, this.prisma, true);
+    this.consistentQuotation(quotation);
     if (!this.mailService?.isCommercialEmailEnabled()) {
       throw new ServiceUnavailableException({
         code: "COMMERCIAL_EMAIL_DISABLED",
@@ -495,7 +502,7 @@ export class QuotationsService {
       );
       const recipientDomain = dto.to.trim().toLowerCase().split("@")[1] ?? "unknown";
       await this.audit(tx, organizationId, userId, "quotation.email.sent", quotationId, { recipientDomain });
-      return this.findQuotation(organizationId, quotationId, tx);
+      return this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
     });
   }
 
@@ -630,6 +637,7 @@ export class QuotationsService {
     note?: string
   ): Promise<QuotationWithDetails> {
     const existing = await this.findQuotation(organizationId, quotationId, this.prisma);
+    this.consistentQuotation(existing);
     this.assertTransition(existing.status, nextStatus);
     return this.prisma.$transaction(async (tx) => {
       await tx.quotation.update({
@@ -643,8 +651,13 @@ export class QuotationsService {
       });
       await this.recordStatus(tx, organizationId, quotationId, existing.status, nextStatus, userId, note);
       await this.audit(tx, organizationId, userId, `quotation.${nextStatus.toLowerCase()}`, quotationId);
-      return this.findQuotation(organizationId, quotationId, tx);
+      return this.consistentQuotation(await this.findQuotation(organizationId, quotationId, tx));
     });
+  }
+
+  private consistentQuotation(quotation: QuotationWithDetails): QuotationWithDetails {
+    calculateConsistentQuotationMoney(quotation);
+    return quotation;
   }
 
   private assertTransition(previous: QuotationStatus, next: QuotationStatus): void {

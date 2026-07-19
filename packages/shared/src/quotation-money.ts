@@ -4,6 +4,13 @@ import type { MoneyDecimalInput } from "./currency-money.js";
 export type QuotationDecimalInput = MoneyDecimalInput;
 export type SharedQuotationDiscountType = "NONE" | "PERCENTAGE" | "FIXED";
 
+export class QuotationMoneyError extends RangeError {
+  constructor(readonly field: string, message: string) {
+    super(message);
+    this.name = "QuotationMoneyError";
+  }
+}
+
 export interface QuotationMoneyLineInput {
   quantity: QuotationDecimalInput;
   unitPrice: QuotationDecimalInput;
@@ -166,7 +173,8 @@ function prepareLine(
 
   if (discountType === "NONE") {
     if (discountValue !== 0n) {
-      throw new RangeError(`lines[${index}].discountValue must be zero when discountType is NONE`);
+      const field = `lines[${index}].discountValue`;
+      throw new QuotationMoneyError(field, `${field} must be zero when discountType is NONE`);
     }
   } else if (discountType === "PERCENTAGE") {
     assertBetween(discountValue, 0n, PERCENT_DENOMINATOR, `lines[${index}].discountValue`);
@@ -175,7 +183,8 @@ function prepareLine(
     assertBetween(discountValue, 0n, subtotal, `lines[${index}].discountValue`);
     lineDiscount = discountValue;
   } else {
-    throw new RangeError(`lines[${index}].discountType is not supported`);
+    const field = `lines[${index}].discountType`;
+    throw new QuotationMoneyError(field, `${field} is not supported`);
   }
 
   return {
@@ -249,7 +258,7 @@ function parseScaled(value: QuotationDecimalInput, scale: number, field: string)
   const source = decimalSource(value);
   const match = /^([+-]?)(\d+)(?:\.(\d+))?$/.exec(source);
   if (!match) {
-    throw new RangeError(`${field} must be a finite decimal value`);
+    throw new QuotationMoneyError(field, `${field} must be a finite decimal value`);
   }
 
   const sign = match[1] === "-" ? -1n : 1n;
@@ -268,14 +277,14 @@ function parseAmount(value: string, scale: number, field: string): bigint {
   const source = decimalSource(value);
   const fraction = source.split(".")[1] ?? "";
   if (fraction.length > scale) {
-    throw new RangeError(`${field} has more fractional digits than the currency supports`);
+    throw new QuotationMoneyError(field, `${field} has more fractional digits than the currency supports`);
   }
   return parseScaled(source, scale, field);
 }
 
 function assertAmountIdentity(actual: bigint, expected: bigint, field: string): void {
   if (actual !== expected) {
-    throw new RangeError(`Quotation money invariant failed for ${field}`);
+    throw new QuotationMoneyError(field, `Quotation money invariant failed for ${field}`);
   }
 }
 
@@ -295,7 +304,7 @@ function formatScaledMoney(minorUnits: bigint, scale: number): string {
 
 function assertMoneyPrecision(value: QuotationDecimalInput, currency: string, field: string): void {
   if (!validateMoneyPrecision(value, currency)) {
-    const error = new MoneyPrecisionError(currency, currencyFractionDigits(currency));
+    const error = new MoneyPrecisionError(currency, currencyFractionDigits(currency), field);
     error.message = `${field} has invalid precision for ${currency.toUpperCase()}`;
     throw error;
   }
@@ -311,6 +320,6 @@ function compareBigInt(left: bigint, right: bigint): number {
 
 function assertBetween(value: bigint, minimum: bigint, maximum: bigint, field: string): void {
   if (value < minimum || value > maximum) {
-    throw new RangeError(`${field} is outside the supported range`);
+    throw new QuotationMoneyError(field, `${field} is outside the supported range`);
   }
 }

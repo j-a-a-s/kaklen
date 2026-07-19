@@ -73,12 +73,38 @@ describe("QuotationDetailComponent", () => {
     await context.component.ngOnInit();
 
     expect(context.component.error()).toBe(
-      "Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento."
+      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
     );
     expect(context.component.quotation()).toBeNull();
     expect(context.component.calculatedAmounts()).toBeNull();
     expect(context.component.history()).toEqual([]);
     expect(context.component.changeRequests()).toEqual([]);
+    context.component.ngOnDestroy();
+  });
+
+  it("clears detail and financial actions when a status response reports a mismatch", async () => {
+    const context = createContext(null);
+    await context.component.ngOnInit();
+    context.component.pendingStatusAction.set("approve");
+    context.quotations.changeStatus.and.rejectWith(new HttpErrorResponse({
+      status: 409,
+      error: {
+        code: "QUOTATION_MONEY_MISMATCH",
+        message: "Quotation totals are inconsistent.",
+        field: "items.0.total"
+      }
+    }));
+
+    await context.component.changeStatus("approve");
+
+    expect(context.component.quotation()).toBeNull();
+    expect(context.component.calculatedAmounts()).toBeNull();
+    expect(context.component.history()).toEqual([]);
+    expect(context.component.changeRequests()).toEqual([]);
+    expect(context.component.pendingStatusAction()).toBeNull();
+    expect(context.component.error()).toBe(
+      "Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar."
+    );
     context.component.ngOnDestroy();
   });
 });

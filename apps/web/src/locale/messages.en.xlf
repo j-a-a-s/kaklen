@@ -3523,8 +3523,8 @@
         <target>The quotation does not allow that action in its current status.</target>
       </trans-unit>
       <trans-unit id="errorQuotationMoneyMismatch" datatype="html">
-        <source>Los totales de la cotización no coinciden. Vuelve a guardarla antes de generar el documento.</source>
-        <target>The quotation totals do not match. Save it again before generating the document.</target>
+        <source>Los totales de la cotización no coinciden. Debes recalcularla y guardarla antes de continuar.</source>
+        <target>The quotation totals do not match. Recalculate and save it before continuing.</target>
       </trans-unit>
       <trans-unit id="errorClpFractionNotAllowed" datatype="html">
         <source>Los montos en pesos chilenos no pueden contener decimales.</source>
