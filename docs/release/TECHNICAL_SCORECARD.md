@@ -7,9 +7,9 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 
 | Metric | Current value |
 | --- | ---: |
-| Statements coverage | 97.0% |
-| Branches coverage | 85.8% |
-| Functions coverage | 94.2% |
+| Statements coverage | 96.9% |
+| Branches coverage | 85.9% |
+| Functions coverage | 94.3% |
 | Lines coverage | 97.3% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |

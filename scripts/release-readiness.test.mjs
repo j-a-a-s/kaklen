@@ -62,6 +62,11 @@ test("CI exposes one canonical quality check without repeating graph tasks", () 
   assert.match(ci, /postgres:16-alpine/);
   assert.match(ci, /redis:7-alpine/);
   assert.match(ci, /axllent\/mailpit:v1\.23/);
+  assert.match(ci, /workflow_dispatch:/);
+  assert.match(ci, /fetch-depth: 0/);
+  assert.match(ci, /COMMIT_RANGE:/);
+  assert.match(ci, /github\.event\.before/);
+  assert.match(ci, /github\.event\.pull_request\.base\.sha/);
   assert.match(ci, /pnpm quality:gate:ci/);
   for (const repeated of ["pnpm security:scan", "pnpm lint", "pnpm test", "pnpm build", "pnpm e2e"]) {
     assert.doesNotMatch(ci, new RegExp(repeated));
