@@ -114,7 +114,6 @@ export {
   isValidInternationalPhone,
   sanitizeInput,
   sanitizeHTML,
-  sanitizeSQL,
   maskEmail,
   maskPhone,
   maskRUT,
@@ -129,4 +128,3 @@ export {
 export * from "./quotation-money.js";
 export * from "./currency-money.js";
 export * from "./country-business-policy.js";
-
