@@ -69,8 +69,7 @@ const RESEND_VERIFICATION_MESSAGE =
   "Si la cuenta requiere confirmación, enviaremos un nuevo correo.";
 export const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=4$JHvJNhZYTo7VQWem3+scvQ$hawKgBESxfffwFVQHFH+JH3DXKuka28o63sinL6cHCE";
-const ARGON2ID_HASH_PATTERN =
-  /^\$argon2id\$v=19\$m=([1-9]\d*),t=([1-9]\d*),p=([1-9]\d*)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
+const ARGON2ID_HASH_PATTERN = /^\$argon2id\$v=19\$([^$]+)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
 const ARGON2_MEMORY_MIN_KIB = 8_192;
 const ARGON2_MEMORY_MAX_KIB = 1_048_576;
 const ARGON2_TIME_MIN = 1;
@@ -103,15 +102,17 @@ export function isSupportedArgon2idHash(hash: string): boolean {
     return false;
   }
 
-  const memory = Number(match[1]);
-  const time = Number(match[2]);
-  const parallelism = Number(match[3]);
+  const parameters = parseArgon2Parameters(match[1]);
+  if (!parameters) {
+    return false;
+  }
+
   return (
-    isIntegerWithin(memory, ARGON2_MEMORY_MIN_KIB, ARGON2_MEMORY_MAX_KIB) &&
-    isIntegerWithin(time, ARGON2_TIME_MIN, ARGON2_TIME_MAX) &&
-    isIntegerWithin(parallelism, ARGON2_PARALLELISM_MIN, ARGON2_PARALLELISM_MAX) &&
-    isCanonicalUnpaddedBase64(match[4]) &&
-    isCanonicalUnpaddedBase64(match[5])
+    isIntegerWithin(parameters.memory, ARGON2_MEMORY_MIN_KIB, ARGON2_MEMORY_MAX_KIB) &&
+    isIntegerWithin(parameters.time, ARGON2_TIME_MIN, ARGON2_TIME_MAX) &&
+    isIntegerWithin(parameters.parallelism, ARGON2_PARALLELISM_MIN, ARGON2_PARALLELISM_MAX) &&
+    isCanonicalUnpaddedBase64(match[2]) &&
+    isCanonicalUnpaddedBase64(match[3])
   );
 }
 
@@ -141,6 +142,36 @@ function isCanonicalUnpaddedBase64(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function parseArgon2Parameters(
+  value: string | undefined
+): { memory: number; time: number; parallelism: number } | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Map<string, number>();
+  for (const part of value.split(",")) {
+    const match = /^(m|t|p)=([1-9]\d*)$/.exec(part);
+    if (!match || parsed.has(match[1])) {
+      return null;
+    }
+    parsed.set(match[1], Number(match[2]));
+  }
+
+  const memory = parsed.get("m");
+  const time = parsed.get("t");
+  const parallelism = parsed.get("p");
+  if (
+    parsed.size !== 3 ||
+    memory === undefined ||
+    time === undefined ||
+    parallelism === undefined
+  ) {
+    return null;
+  }
+  return { memory, time, parallelism };
 }
 
 function isIntegerWithin(value: number, minimum: number, maximum: number): boolean {

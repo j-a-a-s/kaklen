@@ -449,6 +449,15 @@ describe("AuthService", () => {
     ).resolves.toBe(true);
   });
 
+  it("accepts valid Argon2id parameters independently of their encoded order", () => {
+    expect(
+      isSupportedArgon2idHash(DUMMY_PASSWORD_HASH.replace("m=65536,t=3,p=4", "m=65536,p=4,t=3"))
+    ).toBe(true);
+    expect(
+      isSupportedArgon2idHash(DUMMY_PASSWORD_HASH.replace("m=65536,t=3,p=4", "m=65536,m=65536,p=4"))
+    ).toBe(false);
+  });
+
   it("runs Argon2 against a supported stored hash for an incorrect password", async () => {
     const verify = jest.fn(async () => false);
     const storedHash = DUMMY_PASSWORD_HASH.replace("JHvJ", "KHvJ");
