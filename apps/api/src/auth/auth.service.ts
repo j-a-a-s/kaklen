@@ -18,6 +18,7 @@ import {
 } from "@prisma/client";
 import { createHash, randomBytes } from "node:crypto";
 import * as argon2 from "argon2";
+import { PasswordService } from "@kokecore/auth";
 import { readAuthConfig } from "@kaklen/config";
 import {
   PASSWORD_MIN_LENGTH,
@@ -77,6 +78,20 @@ const ARGON2_TIME_MAX = 10;
 const ARGON2_PARALLELISM_MIN = 1;
 const ARGON2_PARALLELISM_MAX = 16;
 const ARGON2_HASH_MAX_LENGTH = 1_024;
+const passwordService = new PasswordService({
+  jwtAccessSecret: "unused",
+  jwtRefreshSecret: "unused",
+  jwtAccessExpiresSeconds: 900,
+  jwtRefreshExpiresSeconds: 604800,
+  passwordMinLength: PASSWORD_MIN_LENGTH,
+  passwordRequireUppercase: false,
+  passwordRequireLowercase: false,
+  passwordRequireNumbers: false,
+  passwordRequireSpecialChars: false,
+  maxSessionsPerUser: 0,
+  sessionTimeoutMinutes: 0,
+  mfaEnabled: false
+});
 
 export function isSupportedArgon2idHash(hash: string): boolean {
   if (hash.length === 0 || hash.length > ARGON2_HASH_MAX_LENGTH) {
@@ -738,7 +753,7 @@ export class AuthService {
   }
 
   private hashSecret(secret: string): Promise<string> {
-    return argon2.hash(secret, { type: argon2.argon2id });
+    return passwordService.hashPassword(secret);
   }
 
   private hashResetToken(token: string): string {

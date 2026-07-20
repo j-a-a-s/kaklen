@@ -1,4 +1,5 @@
 import { OrganizationRole } from "@prisma/client";
+import { roleHasPermissions as kokecoreRoleHasPermissions, Role } from "@kokecore/rbac";
 
 export const PERMISSIONS = [
   "organization.read",
@@ -87,6 +88,5 @@ export function roleHasPermissions(
   role: OrganizationRole,
   requiredPermissions: readonly Permission[]
 ): boolean {
-  const permissions = permissionsForRole(role);
-  return requiredPermissions.every((permission) => permissions.includes(permission));
+  return kokecoreRoleHasPermissions(role as Role, requiredPermissions);
 }
