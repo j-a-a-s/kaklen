@@ -92,18 +92,11 @@ test.describe.serial("secure password recovery with real Mailpit delivery", () =
     expect(rawToken).toBeTruthy();
     const user = await prisma.user.findUnique({ where: { email: recoveryEmail } });
     expect(user).not.toBeNull();
-    const storedToken = await prisma.passwordResetToken.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" }
-    });
+    const { storedToken, audit } = await waitForPersistedDelivery(prisma, user.id);
     expect(storedToken?.sentAt).toBeInstanceOf(Date);
     expect(storedToken?.revokedAt).toBeNull();
     expect(storedToken?.tokenHash).not.toBe(rawToken);
     expect(JSON.stringify(storedToken)).not.toContain(rawToken);
-    const audit = await prisma.authAuditLog.findFirst({
-      where: { userId: user.id, event: "password_reset_requested", success: true },
-      orderBy: { createdAt: "desc" }
-    });
     if (!audit || !audit.metadata || typeof audit.metadata !== "object") {
       throw new Error("Password reset delivery audit was not persisted");
     }
@@ -194,6 +187,36 @@ async function waitForResetEmail(mailpit, email) {
       { message: `password reset email for ${email}`, timeout: 15_000, intervals: [100, 250, 500] }
     )
     .toBe(true);
+  return result;
+}
+
+async function waitForPersistedDelivery(prisma, userId) {
+  let result = null;
+  await expect
+    .poll(
+      async () => {
+        const [storedToken, audit] = await Promise.all([
+          prisma.passwordResetToken.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "desc" }
+          }),
+          prisma.authAuditLog.findFirst({
+            where: { userId, event: "password_reset_requested", success: true },
+            orderBy: { createdAt: "desc" }
+          })
+        ]);
+        if (!(storedToken?.sentAt instanceof Date) || !audit?.metadata) return false;
+        result = { storedToken, audit };
+        return true;
+      },
+      {
+        message: "password reset delivery persistence",
+        timeout: 15_000,
+        intervals: [100, 250, 500]
+      }
+    )
+    .toBe(true);
+  if (!result) throw new Error("Password reset delivery was not persisted");
   return result;
 }
 
