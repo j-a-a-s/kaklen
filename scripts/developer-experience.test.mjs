@@ -119,11 +119,30 @@ test("onboarding documentation exposes one canonical path", () => {
 
 test("Dependabot groups compatible updates and keeps majors separate", () => {
   const dependabot = readFileSync(new URL(".github/dependabot.yml", repositoryRoot), "utf8");
+  const policy = readFileSync(new URL("docs/governance/DEPENDENCY_UPDATES.md", repositoryRoot), "utf8");
+  assert.equal((dependabot.match(/interval: weekly/g) ?? []).length, 3);
   assert.equal((dependabot.match(/timezone: America\/Santiago/g) ?? []).length, 3);
   assert.equal((dependabot.match(/target-branch: main/g) ?? []).length, 3);
-  assert.match(dependabot, /runtime-minor-patch:/);
-  assert.match(dependabot, /development-minor-patch:/);
+  assert.deepEqual(
+    [...dependabot.matchAll(/open-pull-requests-limit: (\d+)/g)].map((match) => Number(match[1])),
+    [5, 3, 3]
+  );
+  for (const group of [
+    "runtime-minor-patch",
+    "development-minor-patch",
+    "actions-minor-patch",
+    "images-minor-patch"
+  ]) {
+    const groupConfig = dependabotGroup(dependabot, group);
+    assert.match(groupConfig, /update-types:\s*\n\s*- minor\s*\n\s*- patch/);
+    assert.doesNotMatch(groupConfig, /- major/);
+  }
   assert.doesNotMatch(dependabot, /update-types:\s*\n\s*- major/);
+  assert.doesNotMatch(dependabot, /auto-?merge|automerge/i);
+  assert.match(policy, /Frecuencia semanal/);
+  assert.match(policy, /cinco para pnpm, tres para GitHub Actions/);
+  assert.match(policy, /major separadas en todos los ecosistemas/);
+  assert.match(policy, /Sin auto-merge/);
 });
 
 function runStart(args) {
@@ -141,4 +160,17 @@ function listApiTests(testRegex) {
   );
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.trim().split("\n").filter(Boolean);
+}
+
+function dependabotGroup(content, name) {
+  const marker = `      ${name}:`;
+  const start = content.indexOf(marker);
+  assert.notEqual(start, -1, name);
+  const remainder = content.slice(start + marker.length);
+  const boundaries = [
+    remainder.search(/\n {6}[a-z][a-z0-9-]+:\s*\n/),
+    remainder.search(/\n {2}- package-ecosystem:/)
+  ].filter((index) => index >= 0);
+  const end = boundaries.length > 0 ? Math.min(...boundaries) : remainder.length;
+  return remainder.slice(0, end);
 }

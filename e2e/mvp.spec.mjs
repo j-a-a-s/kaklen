@@ -773,17 +773,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     expect(await provider.json()).toMatchObject({ status: "IN_REVIEW", whatsapp: "+56911111111" });
   });
 
-  test("renders the public quotation and payment checkout without horizontal overflow", async ({ page }) => {
-    await authenticatePage(page);
-    const viewports = [
-      { width: 320, height: 568 },
-      { width: 390, height: 844 },
-      { width: 768, height: 1024 },
-      { width: 820, height: 1180 },
-      { width: 1366, height: 768 },
-      { width: 1440, height: 900 },
-      { width: 1920, height: 1080 }
-    ];
+  test("renders the localized public quotation without horizontal overflow", async ({ page }) => {
+    const viewports = responsiveViewports();
 
     for (const locale of ["es", "en", "pt-BR"]) {
       await page.setViewportSize({ width: 1440, height: 900 });
@@ -805,18 +796,22 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       expect(financialLabelSizes.length).toBeGreaterThan(0);
       expect(financialLabelSizes.every((size) => size >= 11)).toBe(true);
     }
+  });
 
-    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
+  test("renders the internal quotation detail without horizontal overflow", async ({ page }) => {
+    await authenticatePage(page, `/organizations/${organizationId}/quotations/${quotationId}`);
     await expect(page.locator("kaklen-quotation-detail")).toBeVisible({ timeout: 30_000 });
-    for (const viewport of viewports) {
+    for (const viewport of responsiveViewports()) {
       await page.setViewportSize(viewport);
       await expect(page.locator("kaklen-quotation-detail .quotation-line-financial").first()).toBeVisible();
       await expectNoHorizontalOverflow(page);
     }
+  });
 
+  test("renders the payment checkout without horizontal overflow", async ({ page }) => {
     await page.goto(`${webBase}/es/p/payments/${checkoutToken}`);
     await expect(page.locator("kaklen-payment-checkout")).toBeVisible();
-    for (const viewport of viewports) {
+    for (const viewport of responsiveViewports()) {
       await page.setViewportSize(viewport);
       await expectNoHorizontalOverflow(page);
     }
@@ -1017,6 +1012,18 @@ async function expectNoHorizontalOverflow(page) {
     scrollWidth: document.documentElement.scrollWidth
   }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+}
+
+function responsiveViewports() {
+  return [
+    { width: 320, height: 568 },
+    { width: 390, height: 844 },
+    { width: 768, height: 1024 },
+    { width: 820, height: 1180 },
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 }
+  ];
 }
 
 function exactClpFixtures(baseItems) {

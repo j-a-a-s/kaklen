@@ -10,6 +10,11 @@ pnpm install
 pnpm run setup
 ```
 
+`.env.example` es el bootstrap local mínimo generado desde el
+[manifiesto ambiental](../configuration/environment-variables.json). El contrato
+completo para despliegues está en `.env.production.example`; no copies valores
+locales conocidos a producción.
+
 El setup comprueba Docker, compara `DATABASE_URL` con el contenedor PostgreSQL
 activo, valida autenticación y base, genera Prisma Client, aplica migraciones y
 verifica tablas. Nunca corrige `.env` sin confirmación.
@@ -81,5 +86,7 @@ pnpm start
 `clean:dev` conserva `.env`, `node_modules`, datos de PostgreSQL y volúmenes
 Docker. No uses `git reset --hard` como mecanismo de limpieza.
 
-La referencia de configuración está en
-[Environment Variables](../configuration/ENVIRONMENT_VARIABLES.md).
+La referencia generada de configuración está en
+[Environment Variables](../configuration/ENVIRONMENT_VARIABLES.md). Para
+comprobar que código, ejemplos y documentación siguen sincronizados, ejecuta
+`pnpm env:verify`.

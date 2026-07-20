@@ -9,6 +9,7 @@ Este índice es la entrada central a la documentación mantenida del repositorio
 - [Entorno local](development/LOCAL_ENVIRONMENT.md)
 - [Solución de problemas](development/TROUBLESHOOTING.md)
 - [Variables de entorno](configuration/ENVIRONMENT_VARIABLES.md)
+- [Manifiesto ambiental](configuration/environment-variables.json)
 - [Guía de contribución](../CONTRIBUTING.md)
 
 ## Arquitectura y decisiones

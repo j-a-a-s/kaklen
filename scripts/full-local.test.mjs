@@ -108,8 +108,8 @@ test("CORS local origin remains explicit with credentials enabled", () => {
   assert.match(config, /env\.AUTH_ALLOWED_ORIGINS \?\? LOCAL_ORIGIN/);
   assert.match(main, /origin: config\.corsAllowedOrigins/);
   assert.match(main, /credentials: true/);
-  assert.match(envExample, /AUTH_ALLOWED_ORIGINS="http:\/\/localhost:4200"/);
-  assert.doesNotMatch(envExample, /AUTH_ALLOWED_ORIGINS="\*"/);
+  assert.match(envExample, /^AUTH_ALLOWED_ORIGINS=http:\/\/localhost:4200$/m);
+  assert.doesNotMatch(envExample, /^AUTH_ALLOWED_ORIGINS=\*$/m);
 });
 
 test("runtime config for full local points to localhost API", () => {
@@ -118,7 +118,7 @@ test("runtime config for full local points to localhost API", () => {
 
   assert.match(script, /PUBLIC_API_BASE_URL: apiBaseUrl/);
   assert.match(script, /const apiBaseUrl = `http:\/\/localhost:\$\{apiPort\}\/api`/);
-  assert.match(envExample, /PUBLIC_API_BASE_URL=http:\/\/localhost:3000\/api/);
+  assert.doesNotMatch(envExample, /^PUBLIC_API_BASE_URL=/m);
 });
 
 function readText(path) {

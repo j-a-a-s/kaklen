@@ -6,7 +6,7 @@
 
 | Profile | Purpose | Environment |
 | --- | --- | --- |
-| `pnpm check` | Arquitectura, scans estáticos, formularios, dinero, lint y tests sin servicios | local |
+| `pnpm check` | Contratos ambiental y documental, arquitectura, scans estáticos, formularios, dinero, lint y tests unitarios | local |
 | `pnpm quality:gate` | Validación local completa y servicios Docker | local |
 | `pnpm quality:gate:ci` | Check canónico con servicios provistos por Actions | CI |
 | `pnpm release:check` | Evidencia local previa a tag | local |
@@ -15,13 +15,16 @@
 Los perfiles seleccionan tareas; ninguno ejecuta otro perfil. El resolver topológico garantiza una ejecución máxima por key y respeta todas las dependencias.
 
 El perfil `check` excluye Docker, migraciones, E2E, builds localizados, mutation
-testing y evidencia externa. Escribe `artifacts/check.json` y
+testing, pruebas de integración y evidencia externa. No comprueba disponibilidad
+de PostgreSQL, Redis ni Mailpit. Escribe `artifacts/check.json` y
 `artifacts/check.log`; los demás perfiles conservan
 `artifacts/quality-gate.json` y `artifacts/quality-gate.log`.
 
 ## Artifact Reuse
 
-- `test` ejecuta Jest API con cobertura; `test:coverage` valida el summary existente.
+- `test:unit` aísla las suites unitarias usadas por `check`; `test` conserva la
+  suite completa de API con cobertura para Quality Gate y `test:coverage` valida
+  el summary existente.
 - `build:es`, `build:en` y `build:pt-BR` se ejecutan una vez; `verify:i18n-server` valida esos outputs.
 - E2E reutiliza Prisma, packages y builds localizados después de verificar que existen.
 - La suite E2E completa incluye accesibilidad y escribe `artifacts/e2e-result.json`; el control de accesibilidad valida esa evidencia.

@@ -26,7 +26,7 @@ test("discovery covers code, bracket access, package scripts, workflows, and Doc
   write(
     root,
     "src/config.mjs",
-    ["process", ".env", ".CODE_VALUE; ", "env", "[\"BRACKET_VALUE\"];"] .join("")
+    ["process", ".env", ".CODE_VALUE; ", "env", "[\"BRACKET_VALUE\"];"].join("")
   );
   write(root, "package.json", JSON.stringify({ scripts: { start: "PACKAGE_VALUE=1 node app" } }));
   write(root, ".github/workflows/check.yml", "env:\n  WORKFLOW_VALUE: yes\n");

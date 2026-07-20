@@ -7,10 +7,14 @@ política de calidad del repositorio.
 
 - Frecuencia semanal, los lunes a las `09:00` en `America/Santiago`.
 - Branch objetivo: `main`.
+- Límite de pull requests abiertos: cinco para pnpm, tres para GitHub Actions y
+  tres para imágenes Docker.
 - Actualizaciones npm minor y patch agrupadas por dependencias de runtime o de
   desarrollo.
-- Actualizaciones major separadas para conservar una revisión explícita.
-- GitHub Actions e imágenes Docker agrupadas por ecosistema.
+- Actualizaciones minor y patch de GitHub Actions e imágenes Docker agrupadas
+  por ecosistema.
+- Actualizaciones major separadas en todos los ecosistemas para conservar una
+  revisión explícita.
 - Sin auto-merge.
 
 La agrupación reduce ruido; no convierte una actualización en aprobación. Los
