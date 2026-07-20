@@ -68,11 +68,12 @@ pnpm config:rollback:verify -- --kokecore-source /path/to/kokecore
 
 Successful rehearsal on 2026-07-20:
 
-- Kaklen integration checkout: `0f9bebd49f49a8a1aa5633e09b19bad181760134`
-- KOKE CORE checkout retained: `d689656766c7fa3c7e4a824a0db8ab562ddab84c`
+- Kaklen rehearsal source: `49487f30fa5dc454c1c93b6a8ad9787c9df71afb`
+- Kaklen packaged integration under test: `0f9bebd49f49a8a1aa5633e09b19bad181760134`
+- KOKE CORE checkout retained: `b1f4e5515ad3406a9ba53e226f2fed6293b4fdfa`
 - Config package restored from: `9d74f7f39bdf3bce027dd97ec7d0d203950b26fd`
-- Script tests: `224/224`; Web: `105/105`; API: `513/513`
-- Build: `4/4`; architecture: `373` source files; high-confidence secrets: `0`
+- Script tests: `228/228`; Web: `105/105`; API: `513/513`
+- Build: `4/4`; architecture: `375` source files; high-confidence secrets: `0`
 - Final result: `KAKLEN_CONFIG_ROLLBACK_PASSED`
 
 The rehearsal restores only the four Kaklen Config integration files and the old
