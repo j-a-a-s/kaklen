@@ -61,7 +61,7 @@ For a safe rehearsal that performs those steps in temporary clones and removes
 them at the end:
 
 ```bash
-KOKECORE_SOURCE_PATH=/path/to/kokecore pnpm config:rollback:verify
+pnpm config:rollback:verify -- --kokecore-source /path/to/kokecore
 ```
 
 ## Validation evidence

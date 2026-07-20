@@ -5,6 +5,7 @@ import {
   CONFIG_ROLLBACK_PATHS,
   KAKLEN_PRE_CONFIG_SHA,
   KOKECORE_PRE_CONFIG_SHA,
+  parseRollbackArguments,
   validateRestoredConfigDependency
 } from "./verify-config-rollback.mjs";
 
@@ -48,4 +49,13 @@ test("rejects an incomplete rollback or residual tarball", () => {
   );
   assert.ok(errors.some((error) => error.includes("API Config dependency")));
   assert.ok(errors.some((error) => error.includes("tarball remains")));
+});
+
+test("parses explicit rollback paths without adding environment variables", () => {
+  assert.deepEqual(
+    parseRollbackArguments(["--", "--kokecore-source", "/tmp/kokecore", "--timeout-ms", "120000"]),
+    { kokecoreSource: "/tmp/kokecore", timeoutMs: 120000 }
+  );
+  assert.throws(() => parseRollbackArguments(["--timeout-ms", "0"]), /positive integer/);
+  assert.throws(() => parseRollbackArguments(["--unknown"]), /Unknown rollback option/);
 });

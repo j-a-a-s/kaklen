@@ -66,8 +66,12 @@ export function validateRestoredConfigDependency(apiManifest, configManifest, lo
 
 export function verifyConfigRollback({
   kaklenSource = process.cwd(),
-  kokecoreSource = process.env.KOKECORE_SOURCE_PATH ?? resolve(process.cwd(), "..", "kokecore")
+  kokecoreSource = resolve(process.cwd(), "..", "kokecore"),
+  timeoutMs = 900_000
 } = {}) {
+  const timeout = validateTimeout(timeoutMs);
+  const execute = (command, args, cwd) => run(command, args, cwd, timeout);
+  const readCommand = (command, args, cwd) => capture(command, args, cwd, timeout);
   const kaklenRepository = resolve(kaklenSource);
   const kokecoreRepository = resolve(kokecoreSource);
   const temporaryRoot = mkdtempSync(join(tmpdir(), "kaklen-config-rollback-"));
@@ -77,12 +81,16 @@ export function verifyConfigRollback({
   try {
     assertRepository(kaklenRepository, "Kaklen source");
     assertRepository(kokecoreRepository, "KOKE CORE source");
-    run("git", ["clone", "--quiet", "--no-local", kaklenRepository, kaklenRoot], temporaryRoot);
-    run("git", ["clone", "--quiet", "--no-local", kokecoreRepository, kokecoreRoot], temporaryRoot);
-    const currentKokecoreSha = capture("git", ["rev-parse", "HEAD"], kokecoreRoot).trim();
+    execute("git", ["clone", "--quiet", "--no-local", kaklenRepository, kaklenRoot], temporaryRoot);
+    execute(
+      "git",
+      ["clone", "--quiet", "--no-local", kokecoreRepository, kokecoreRoot],
+      temporaryRoot
+    );
+    const currentKokecoreSha = readCommand("git", ["rev-parse", "HEAD"], kokecoreRoot).trim();
 
-    restoreConfigFiles(kaklenRoot);
-    restoreKokecoreConfigPackage(kokecoreRoot);
+    restoreConfigFiles(kaklenRoot, readCommand);
+    restoreKokecoreConfigPackage(kokecoreRoot, readCommand);
     rmSync(join(kaklenRoot, "packages", "config", "test"), { recursive: true, force: true });
     rmSync(join(kaklenRoot, "vendor", "kokecore", "config"), {
       recursive: true,
@@ -90,13 +98,13 @@ export function verifyConfigRollback({
     });
     validateRestoredCheckout(kaklenRoot);
 
-    run("corepack", ["pnpm", "install", "--frozen-lockfile"], kokecoreRoot);
+    execute("corepack", ["pnpm", "install", "--frozen-lockfile"], kokecoreRoot);
     for (const packageName of KOKECORE_PACKAGES) {
-      run("corepack", ["pnpm", "--filter", packageName, "build"], kokecoreRoot);
+      execute("corepack", ["pnpm", "--filter", packageName, "build"], kokecoreRoot);
     }
-    run("pnpm", ["install", "--frozen-lockfile"], kaklenRoot);
-    run("pnpm", ["prisma:generate"], kaklenRoot);
-    for (const args of ROLLBACK_VALIDATIONS) run("pnpm", args, kaklenRoot);
+    execute("pnpm", ["install", "--frozen-lockfile"], kaklenRoot);
+    execute("pnpm", ["prisma:generate"], kaklenRoot);
+    for (const args of ROLLBACK_VALIDATIONS) execute("pnpm", args, kaklenRoot);
 
     console.log("KAKLEN_CONFIG_ROLLBACK_PASSED");
     console.log(`Kaklen restored from: ${KAKLEN_PRE_CONFIG_SHA}`);
@@ -108,11 +116,11 @@ export function verifyConfigRollback({
   }
 }
 
-function restoreKokecoreConfigPackage(kokecoreRoot) {
+function restoreKokecoreConfigPackage(kokecoreRoot, readCommand) {
   const configRoot = join(kokecoreRoot, "packages", "config");
   rmSync(configRoot, { recursive: true, force: true });
 
-  const paths = capture(
+  const paths = readCommand(
     "git",
     ["ls-tree", "-r", "--name-only", KOKECORE_PRE_CONFIG_SHA, "packages/config"],
     kokecoreRoot
@@ -127,18 +135,18 @@ function restoreKokecoreConfigPackage(kokecoreRoot) {
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(
       target,
-      capture("git", ["show", `${KOKECORE_PRE_CONFIG_SHA}:${path}`], kokecoreRoot)
+      readCommand("git", ["show", `${KOKECORE_PRE_CONFIG_SHA}:${path}`], kokecoreRoot)
     );
   }
   writeFileSync(
     join(kokecoreRoot, "pnpm-lock.yaml"),
-    capture("git", ["show", `${KOKECORE_PRE_CONFIG_SHA}:pnpm-lock.yaml`], kokecoreRoot)
+    readCommand("git", ["show", `${KOKECORE_PRE_CONFIG_SHA}:pnpm-lock.yaml`], kokecoreRoot)
   );
 }
 
-function restoreConfigFiles(kaklenRoot) {
+function restoreConfigFiles(kaklenRoot, readCommand) {
   for (const path of CONFIG_ROLLBACK_PATHS) {
-    const content = capture("git", ["show", `${KAKLEN_PRE_CONFIG_SHA}:${path}`], kaklenRoot);
+    const content = readCommand("git", ["show", `${KAKLEN_PRE_CONFIG_SHA}:${path}`], kaklenRoot);
     writeFileSync(join(kaklenRoot, path), content);
   }
 }
@@ -161,12 +169,12 @@ function assertRepository(path, label) {
   }
 }
 
-function capture(command, args, cwd) {
+function capture(command, args, cwd, timeout) {
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
     env: process.env,
-    timeout: commandTimeout()
+    timeout
   });
   if (result.error || result.status !== 0) {
     throw new Error(
@@ -176,13 +184,13 @@ function capture(command, args, cwd) {
   return result.stdout;
 }
 
-function run(command, args, cwd) {
+function run(command, args, cwd, timeout) {
   console.log(`\n> ${command} ${args.join(" ")}`);
   const result = spawnSync(command, args, {
     cwd,
     env: process.env,
     stdio: "inherit",
-    timeout: commandTimeout(),
+    timeout,
     killSignal: "SIGTERM"
   });
   if (result.error || result.status !== 0) {
@@ -192,14 +200,38 @@ function run(command, args, cwd) {
   }
 }
 
-function commandTimeout() {
-  const timeout = Number(process.env.KAKLEN_CONFIG_ROLLBACK_TIMEOUT_MS ?? 900_000);
+function validateTimeout(value) {
+  const timeout = Number(value);
   if (!Number.isInteger(timeout) || timeout <= 0) {
-    throw new Error("KAKLEN_CONFIG_ROLLBACK_TIMEOUT_MS must be a positive integer.");
+    throw new Error("--timeout-ms must be a positive integer.");
   }
   return timeout;
 }
 
+export function parseRollbackArguments(args) {
+  const options = {};
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === "--") continue;
+    if (argument === "--kokecore-source") {
+      const value = args[index + 1];
+      if (!value) throw new Error("--kokecore-source requires a path.");
+      options.kokecoreSource = value;
+      index += 1;
+      continue;
+    }
+    if (argument === "--timeout-ms") {
+      const value = args[index + 1];
+      if (!value) throw new Error("--timeout-ms requires a value.");
+      options.timeoutMs = validateTimeout(value);
+      index += 1;
+      continue;
+    }
+    throw new Error(`Unknown rollback option: ${argument}`);
+  }
+  return options;
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  verifyConfigRollback();
+  verifyConfigRollback(parseRollbackArguments(process.argv.slice(2)));
 }
