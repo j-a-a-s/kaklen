@@ -1,5 +1,7 @@
-import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from "@nestjs/common";
+import { Injectable, type OnModuleDestroy, type OnModuleInit } from "@nestjs/common";
 import { Worker } from "bullmq";
+import { observeWorker } from "../common/infrastructure-observability";
+import { SafeOperationalLogger } from "../common/safe-operational-logger";
 import { RedisService } from "../redis/redis.service";
 import { AuthDeliveryProcessor } from "./auth-delivery.processor";
 import {
@@ -10,7 +12,7 @@ import {
 
 @Injectable()
 export class AuthDeliveryWorker implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(AuthDeliveryWorker.name);
+  private readonly operationalLogger = new SafeOperationalLogger("auth-delivery-worker");
   private worker?: Worker<AuthDeliveryJobData, void, AuthDeliveryJobName>;
 
   constructor(
@@ -28,11 +30,7 @@ export class AuthDeliveryWorker implements OnModuleInit, OnModuleDestroy {
         concurrency: 4
       }
     );
-    this.worker.on("error", (error: Error) => {
-      this.logger.error(
-        JSON.stringify({ event: "auth_delivery_worker_error", error: error.name })
-      );
-    });
+    observeWorker(this.worker, this.operationalLogger);
   }
 
   async onModuleDestroy(): Promise<void> {

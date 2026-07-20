@@ -1,7 +1,15 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger
+} from "@nestjs/common";
 import { Response } from "express";
 import { ApiErrorResponse, codeForStatus } from "./error-codes";
 import { RateLimitExceededException } from "./rate-limit-exceptions";
+import { SafeOperationalLogger } from "./safe-operational-logger";
 
 interface HttpExceptionBody {
   code?: string;
@@ -14,6 +22,13 @@ interface HttpExceptionBody {
 
 @Catch()
 export class ApiErrorFilter implements ExceptionFilter {
+  constructor(
+    private readonly operationalLogger = new SafeOperationalLogger(
+      "api-error-filter",
+      new Logger(ApiErrorFilter.name)
+    )
+  ) {}
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
     const statusCode =
@@ -32,6 +47,9 @@ export class ApiErrorFilter implements ExceptionFilter {
 
     if (exception instanceof RateLimitExceededException) {
       response.setHeader("Retry-After", String(exception.retryAfterSeconds));
+    }
+    if (!(exception instanceof HttpException)) {
+      this.operationalLogger.write("error", "unhandled_error", { error: exception });
     }
 
     response.status(statusCode).json(payload);

@@ -1,10 +1,12 @@
 import { Controller, Get, HttpStatus, Res } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { SkipThrottle } from "@nestjs/throttler";
 import type { Response } from "express";
 import type { HealthResponse } from "@kaklen/shared";
 import { HealthService } from "./health.service";
 
 @ApiTags("health")
+@SkipThrottle()
 @Controller("health")
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}

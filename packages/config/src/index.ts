@@ -328,6 +328,12 @@ export function readRedisConfig(env: Record<string, string | undefined>): RedisC
     throw new Error("REDIS_URL must use redis or rediss");
   }
   if (isProduction) {
+    if (parsedUrl.protocol !== "rediss:") {
+      throw new Error("REDIS_URL must use rediss in production");
+    }
+    if (isForbiddenProductionRedisHost(parsedUrl.hostname)) {
+      throw new Error("REDIS_URL must not target localhost or loopback in production");
+    }
     assertCryptographicSecret("RATE_LIMIT_HASH_SECRET", rateLimitHashSecret);
   }
 
@@ -337,6 +343,25 @@ export function readRedisConfig(env: Record<string, string | undefined>): RedisC
     rateLimitPrefix: "kaklen:rate-limit",
     authDeliveryPrefix: "kaklen:auth-delivery"
   };
+}
+
+function isForbiddenProductionRedisHost(hostname: string): boolean {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized === "::1" ||
+    normalized === "0.0.0.0"
+  ) {
+    return true;
+  }
+
+  const ipv4Parts = normalized.split(".");
+  return (
+    ipv4Parts.length === 4 &&
+    ipv4Parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255) &&
+    Number(ipv4Parts[0]) === 127
+  );
 }
 
 export function validateRuntimeEnvironment(

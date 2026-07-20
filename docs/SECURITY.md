@@ -21,7 +21,7 @@ The committed `.env.example` contains only development defaults. Production star
 
 The NestJS API explicitly denies framing, enables MIME sniffing protection, uses a `no-referrer` policy, and enables one-year HSTS with subdomains only in production. Credentialed CORS uses an explicit origin, method, request-header, response-header, and preflight-cache contract. Swagger is always disabled in production.
 
-Production origins must use HTTPS and cannot contain localhost, loopback addresses, wildcards, `null`, credentials, paths, queries, or fragments. `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and `REDIS_URL` are mandatory. The production `DATABASE_URL` must also include `sslmode=require` so Prisma cannot fall back to an unencrypted PostgreSQL connection.
+Production origins must use HTTPS and cannot contain localhost, loopback addresses, wildcards, `null`, credentials, paths, queries, or fragments. `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and `REDIS_URL` are mandatory. The production `DATABASE_URL` must also include `sslmode=require` so Prisma cannot fall back to an unencrypted PostgreSQL connection. Production Redis must use `rediss://` and a managed, non-loopback endpoint; local `redis://` remains valid only outside production.
 
 Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The frontend must translate user-facing errors from stable `code` values instead of relying on backend message text.
 
@@ -35,9 +35,11 @@ Locale preferences are allow-listed to `es`, `en`, and `pt-BR` on the API. The f
 - Registration creates no session. Login, refresh, JWT guards, and password recovery require `emailVerifiedAt` in addition to `User.status = ACTIVE`.
 - Email verification tokens are random, stored only as SHA-256 hashes, expire, are single-use, and are rotated on resend. SMTP failure revokes the undelivered token while preserving the pending account.
 - `JwtAuthGuard` compares the JWT session version with the current user version.
+- A global 100-request-per-minute policy protects API routes by route and IP through atomic Redis counters. Authentication routes with dedicated distributed policies remain excluded from the global counter, refresh/logout use 20 requests per minute, and health endpoints remain unthrottled.
 - Limits by IP, normalized email, and token use atomic Redis counters. Keys contain HMAC-SHA256 identifiers, fixed-window TTLs are not extended per request, and backend failure returns a stable 503 without an in-memory fallback.
 - Password reset and verification resend requests enqueue durable BullMQ jobs. Workers perform account lookup, token rotation, SMTP delivery, auditing, and at most three exponential-backoff attempts.
-- Login always performs one Argon2id verification. Missing accounts use a precomputed dummy hash, so account lookup does not create an obvious password-hash timing branch.
+- Login validates persisted Argon2id PHC data before verification. Missing accounts and malformed hashes verify only a precomputed dummy hash and return the same generic 401; operational Argon2 failures propagate as sanitized 500 responses.
+- Redis and BullMQ lifecycle events use structured, deduplicated operational logs containing only event, component, safe error name/code, state, and timestamp.
 
 See [Email Verification](auth/EMAIL_VERIFICATION.md) and [Password Recovery](auth/PASSWORD_RECOVERY.md) for the complete flows and environment configuration.
 

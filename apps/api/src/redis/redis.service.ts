@@ -1,16 +1,19 @@
 import { Injectable, type BeforeApplicationShutdown } from "@nestjs/common";
 import { readRedisConfig, type RedisConfig } from "@kaklen/config";
 import Redis, { type RedisOptions } from "ioredis";
+import { observeRedis } from "../common/infrastructure-observability";
+import { SafeOperationalLogger } from "../common/safe-operational-logger";
 
 @Injectable()
 export class RedisService implements BeforeApplicationShutdown {
   readonly config: RedisConfig;
   readonly client: Redis;
+  private readonly operationalLogger = new SafeOperationalLogger("redis");
 
   constructor() {
     this.config = readRedisConfig(process.env);
     this.client = new Redis(this.config.url, this.commandOptions());
-    this.client.on("error", () => undefined);
+    observeRedis(this.client, this.operationalLogger);
   }
 
   workerOptions(): RedisOptions {

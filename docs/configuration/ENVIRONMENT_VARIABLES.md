@@ -48,7 +48,7 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | scripts | API base URL written into public web runtime config. |
 | `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, scripts | Public environment label exposed by web and health metadata. |
 | `RATE_LIMIT_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for distributed rate-limit identifiers. |
-| `REDIS_URL` | runtime | development, test, production, ci | production | secret | none | api, workflow | Redis connection URL for distributed limits and BullMQ. |
+| `REDIS_URL` | runtime | development, test, production, ci | production | secret | none | api, workflow | Redis connection URL for distributed limits and BullMQ; production requires rediss:// on a non-loopback managed endpoint. |
 | `SESSION_IDLE_SECONDS` | runtime | development, test, production, ci | no | non-secret | `300` | scripts | Frontend idle-session timeout in seconds. |
 | `SESSION_WARNING_SECONDS` | runtime | development, test, production, ci | no | non-secret | `240` | scripts | Frontend idle warning threshold in seconds. |
 | `SWAGGER_ENABLED` | runtime | development, test, production, ci | no | non-secret | `true` | api, workflow | Enables Swagger outside production; production always disables it. |

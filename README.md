@@ -63,8 +63,8 @@ GitHub Actions. Los perfiles y artefactos están descritos en
 | Metric | Current value |
 | --- | ---: |
 | Statements | 96.8% |
-| Branches | 85.9% |
-| Functions | 94.5% |
+| Branches | 86.3% |
+| Functions | 94.7% |
 | Lines | 97.2% |
 | Local Quality | 10/10 |
 | Production Readiness local | 4/4 |

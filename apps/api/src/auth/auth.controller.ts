@@ -24,7 +24,7 @@ import {
   ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
-import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { SkipThrottle, Throttle } from "@nestjs/throttler";
 import type { Request, Response } from "express";
 import { readAuthConfig } from "@kaklen/config";
 import { AuthService } from "./auth.service";
@@ -44,7 +44,6 @@ const REFRESH_COOKIE_NAME = "kaklen_refresh_token";
 
 @ApiTags("auth")
 @Controller("auth")
-@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

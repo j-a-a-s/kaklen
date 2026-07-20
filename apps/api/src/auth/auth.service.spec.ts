@@ -13,7 +13,12 @@ import {
   UserStatus
 } from "@prisma/client";
 import * as argon2 from "argon2";
-import { DUMMY_PASSWORD_HASH, AuthService, verifyLoginPassword } from "./auth.service";
+import {
+  DUMMY_PASSWORD_HASH,
+  AuthService,
+  isSupportedArgon2idHash,
+  verifyLoginPassword
+} from "./auth.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import type { AuthenticatedRequest } from "./auth.types";
 import { MailDeliveryError, type EmailVerificationRequest } from "../notifications/mail.service";
@@ -430,30 +435,70 @@ describe("AuthService", () => {
     expect(verify).toHaveBeenCalledWith(DUMMY_PASSWORD_HASH, "wrong-password");
   });
 
-  it("runs Argon2 against the stored hash for an incorrect password", async () => {
-    const verify = jest.fn(async () => false);
+  it("accepts and verifies a real supported Argon2id hash", async () => {
+    const hash = await argon2.hash("correct-password", {
+      type: argon2.argon2id,
+      memoryCost: 8_192,
+      timeCost: 1,
+      parallelism: 1
+    });
 
+    expect(isSupportedArgon2idHash(hash)).toBe(true);
     await expect(
-      verifyLoginPassword({ passwordHash: "stored-argon2-hash" }, "wrong-password", verify)
-    ).resolves.toBe(false);
-
-    expect(verify).toHaveBeenCalledWith("stored-argon2-hash", "wrong-password");
+      verifyLoginPassword({ passwordHash: hash }, "correct-password")
+    ).resolves.toBe(true);
   });
 
-  it("uses the dummy hash after a malformed persisted hash", async () => {
-    const verify = jest
-      .fn<Promise<boolean>, [string, string]>()
-      .mockRejectedValueOnce(new Error("Invalid Argon2 hash"))
-      .mockResolvedValueOnce(false);
+  it("runs Argon2 against a supported stored hash for an incorrect password", async () => {
+    const verify = jest.fn(async () => false);
+    const storedHash = DUMMY_PASSWORD_HASH.replace("JHvJ", "KHvJ");
+
+    await expect(
+      verifyLoginPassword({ passwordHash: storedHash }, "wrong-password", verify)
+    ).resolves.toBe(false);
+
+    expect(verify).toHaveBeenCalledWith(storedHash, "wrong-password");
+  });
+
+  it.each([
+    ["empty", ""],
+    ["arbitrary text", "stored-argon2-hash"],
+    ["truncated PHC", "$argon2id$v=19$m=65536,t=3,p=4$c2FsdA"],
+    ["wrong version", "$argon2id$v=16$m=65536,t=3,p=4$c2FsdA$ZGlnZXN0"],
+    ["memory below bound", "$argon2id$v=19$m=4096,t=3,p=4$c2FsdA$ZGlnZXN0"],
+    ["time above bound", "$argon2id$v=19$m=65536,t=11,p=4$c2FsdA$ZGlnZXN0"],
+    ["parallelism above bound", "$argon2id$v=19$m=65536,t=3,p=17$c2FsdA$ZGlnZXN0"],
+    ["invalid salt Base64", "$argon2id$v=19$m=65536,t=3,p=4$c2Fsd*E$ZGlnZXN0"],
+    ["invalid digest Base64", "$argon2id$v=19$m=65536,t=3,p=4$c2FsdA$ZGlnZXN*"],
+    ["extra PHC segment", "$argon2id$v=19$m=65536,t=3,p=4$c2FsdA$ZGlnZXN0$extra"]
+  ])("rejects a malformed persisted hash with %s", (_case, hash) => {
+    expect(isSupportedArgon2idHash(hash)).toBe(false);
+  });
+
+  it("uses only the dummy hash when the persisted hash is malformed", async () => {
+    const verify = jest.fn(async () => false);
 
     await expect(
       verifyLoginPassword({ passwordHash: "malformed-hash" }, "wrong-password", verify)
     ).resolves.toBe(false);
 
-    expect(verify.mock.calls).toEqual([
-      ["malformed-hash", "wrong-password"],
-      [DUMMY_PASSWORD_HASH, "wrong-password"]
-    ]);
+    expect(verify.mock.calls).toEqual([[DUMMY_PASSWORD_HASH, "wrong-password"]]);
+  });
+
+  it("propagates an operational Argon2 verification failure", async () => {
+    const failure = Object.assign(new Error("native verifier unavailable"), {
+      code: "ARGON2_NATIVE_FAILURE"
+    });
+    const verify = jest.fn<Promise<boolean>, [string, string]>().mockRejectedValue(failure);
+
+    await expect(
+      verifyLoginPassword(
+        { passwordHash: DUMMY_PASSWORD_HASH },
+        "correct-password",
+        verify
+      )
+    ).rejects.toBe(failure);
+    expect(verify).toHaveBeenCalledTimes(1);
   });
 
   it("returns the same generic 401 for a malformed persisted password hash", async () => {

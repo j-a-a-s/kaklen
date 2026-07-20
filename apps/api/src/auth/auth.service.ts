@@ -68,36 +68,68 @@ const RESEND_VERIFICATION_MESSAGE =
   "Si la cuenta requiere confirmación, enviaremos un nuevo correo.";
 export const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=4$JHvJNhZYTo7VQWem3+scvQ$hawKgBESxfffwFVQHFH+JH3DXKuka28o63sinL6cHCE";
+const ARGON2ID_HASH_PATTERN =
+  /^\$argon2id\$v=19\$m=([1-9]\d*),t=([1-9]\d*),p=([1-9]\d*)\$([A-Za-z0-9+/]+)\$([A-Za-z0-9+/]+)$/;
+const ARGON2_MEMORY_MIN_KIB = 8_192;
+const ARGON2_MEMORY_MAX_KIB = 1_048_576;
+const ARGON2_TIME_MIN = 1;
+const ARGON2_TIME_MAX = 10;
+const ARGON2_PARALLELISM_MIN = 1;
+const ARGON2_PARALLELISM_MAX = 16;
+const ARGON2_HASH_MAX_LENGTH = 1_024;
+
+export function isSupportedArgon2idHash(hash: string): boolean {
+  if (hash.length === 0 || hash.length > ARGON2_HASH_MAX_LENGTH) {
+    return false;
+  }
+
+  const match = ARGON2ID_HASH_PATTERN.exec(hash);
+  if (!match) {
+    return false;
+  }
+
+  const memory = Number(match[1]);
+  const time = Number(match[2]);
+  const parallelism = Number(match[3]);
+  return (
+    isIntegerWithin(memory, ARGON2_MEMORY_MIN_KIB, ARGON2_MEMORY_MAX_KIB) &&
+    isIntegerWithin(time, ARGON2_TIME_MIN, ARGON2_TIME_MAX) &&
+    isIntegerWithin(parallelism, ARGON2_PARALLELISM_MIN, ARGON2_PARALLELISM_MAX) &&
+    isCanonicalUnpaddedBase64(match[4]) &&
+    isCanonicalUnpaddedBase64(match[5])
+  );
+}
 
 export async function verifyLoginPassword(
   user: Pick<User, "passwordHash"> | null,
   password: string,
   verify: (hash: string, plain: string) => Promise<boolean> = argon2.verify
 ): Promise<boolean> {
-  const result = await verifyPasswordHash(
-    user?.passwordHash ?? DUMMY_PASSWORD_HASH,
-    password,
-    verify
-  );
-  if (result !== null) {
-    return result;
+  if (!user || !isSupportedArgon2idHash(user.passwordHash)) {
+    await verify(DUMMY_PASSWORD_HASH, password);
+    return false;
   }
-  if (user) {
-    await verifyPasswordHash(DUMMY_PASSWORD_HASH, password, verify);
-  }
-  return false;
+
+  return verify(user.passwordHash, password);
 }
 
-async function verifyPasswordHash(
-  hash: string,
-  password: string,
-  verify: (hash: string, plain: string) => Promise<boolean>
-): Promise<boolean | null> {
-  try {
-    return await verify(hash, password);
-  } catch {
-    return null;
+function isCanonicalUnpaddedBase64(value: string): boolean {
+  if (value.length === 0 || value.length % 4 === 1) {
+    return false;
   }
+  try {
+    const decoded = Buffer.from(value, "base64");
+    return (
+      decoded.length > 0 &&
+      decoded.toString("base64").replace(/=+$/, "") === value
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isIntegerWithin(value: number, minimum: number, maximum: number): boolean {
+  return Number.isSafeInteger(value) && value >= minimum && value <= maximum;
 }
 
 @Injectable()

@@ -1,6 +1,8 @@
-import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import { Injectable, type OnModuleDestroy } from "@nestjs/common";
 import { Queue } from "bullmq";
+import { observeQueue } from "../common/infrastructure-observability";
 import { AuthDeliveryUnavailableException } from "../common/rate-limit-exceptions";
+import { SafeOperationalLogger } from "../common/safe-operational-logger";
 import { RedisService } from "../redis/redis.service";
 import { DistributedRateLimitService } from "../security/distributed-rate-limit.service";
 import type { AuthRequestContext } from "./auth.types";
@@ -12,7 +14,7 @@ import {
 
 @Injectable()
 export class AuthDeliveryQueueService implements OnModuleDestroy {
-  private readonly logger = new Logger(AuthDeliveryQueueService.name);
+  private readonly operationalLogger = new SafeOperationalLogger("auth-delivery-queue");
   private readonly queue: Queue<AuthDeliveryJobData, void, AuthDeliveryJobName>;
 
   constructor(
@@ -29,11 +31,7 @@ export class AuthDeliveryQueueService implements OnModuleDestroy {
         removeOnFail: true
       }
     });
-    this.queue.on("error", (error: Error) => {
-      this.logger.error(
-        JSON.stringify({ event: "auth_delivery_queue_error", error: error.name })
-      );
-    });
+    observeQueue(this.queue, this.operationalLogger);
   }
 
   enqueuePasswordReset(email: string, context: AuthRequestContext): Promise<void> {

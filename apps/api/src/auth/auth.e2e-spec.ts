@@ -378,8 +378,13 @@ describe("Auth E2E", () => {
       .post("/api/auth/login")
       .send({ email: "ada@example.com", password: "correct-password" })
       .expect(200);
+    const redis = app.get(RedisService);
+    const globalThrottleKeys = await redis.client.keys(
+      `${redis.config.rateLimitPrefix}:throttler:*`
+    );
     expect(login.body.accessToken).toEqual(expect.any(String));
     expect(login.headers["set-cookie"][0]).toContain("HttpOnly");
+    expect(globalThrottleKeys).toEqual([]);
   });
 
   it("resends generically, revokes the previous token, and accepts only the newest token", async () => {

@@ -1,5 +1,6 @@
 import { Global, Module } from "@nestjs/common";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { RateLimitModule } from "./rate-limit.module";
 import { RedisThrottlerStorage } from "./redis-throttler.storage";
 
@@ -15,6 +16,12 @@ import { RedisThrottlerStorage } from "./redis-throttler.storage";
         throttlers: [{ ttl: 60_000, limit: 100 }]
       })
     })
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
   exports: [RateLimitModule, ThrottlerModule]
 })

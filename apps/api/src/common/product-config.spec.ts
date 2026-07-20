@@ -1,4 +1,4 @@
-import { validateRuntimeEnvironment } from "@kaklen/config";
+import { readRedisConfig, validateRuntimeEnvironment } from "@kaklen/config";
 
 const SECRETS = {
   access: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -132,6 +132,72 @@ describe("production runtime configuration", () => {
     expect(config.redis.url).toBe("redis://localhost:6379");
     expect(config.api.swaggerEnabled).toBe(true);
   });
+
+  it("accepts a managed production rediss URL with credentials and a database", () => {
+    const config = readRedisConfig({
+      NODE_ENV: "production",
+      REDIS_URL: "rediss://cache-user:managed-password@cache.example:6380/4",
+      RATE_LIMIT_HASH_SECRET: SECRETS.rateLimit
+    });
+
+    expect(config.url).toBe(
+      "rediss://cache-user:managed-password@cache.example:6380/4"
+    );
+  });
+
+  it("rejects unencrypted Redis in production without echoing the URL", () => {
+    const redisUrl = "redis://cache-user:managed-password@cache.example:6379/4";
+
+    expect(() =>
+      readRedisConfig({
+        NODE_ENV: "production",
+        REDIS_URL: redisUrl,
+        RATE_LIMIT_HASH_SECRET: SECRETS.rateLimit
+      })
+    ).toThrow("REDIS_URL must use rediss in production");
+
+    try {
+      readRedisConfig({
+        NODE_ENV: "production",
+        REDIS_URL: redisUrl,
+        RATE_LIMIT_HASH_SECRET: SECRETS.rateLimit
+      });
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).not.toContain(redisUrl);
+      expect((error as Error).message).not.toContain("managed-password");
+    }
+  });
+
+  it.each([
+    "rediss://localhost:6379",
+    "rediss://cache.localhost:6379",
+    "rediss://127.0.0.1:6379",
+    "rediss://127.42.0.8:6379",
+    "rediss://[::1]:6379",
+    "rediss://0.0.0.0:6379"
+  ])("rejects a production loopback Redis endpoint", (redisUrl) => {
+    expect(() =>
+      readRedisConfig({
+        NODE_ENV: "production",
+        REDIS_URL: redisUrl,
+        RATE_LIMIT_HASH_SECRET: SECRETS.rateLimit
+      })
+    ).toThrow("localhost or loopback");
+  });
+
+  it.each(["redis://localhost:6379/1", "rediss://cache.example:6380/2"])(
+    "allows redis and rediss endpoints outside production",
+    (redisUrl) => {
+      expect(
+        readRedisConfig({
+          NODE_ENV: "development",
+          REDIS_URL: redisUrl,
+          RATE_LIMIT_HASH_SECRET: "local-rate-limit-secret"
+        }).url
+      ).toBe(redisUrl);
+    }
+  );
 });
 
 function productionEnvironment(

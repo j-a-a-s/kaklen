@@ -1,6 +1,7 @@
 import { BadRequestException, ArgumentsHost, ConflictException, HttpException, InternalServerErrorException } from "@nestjs/common";
 import { ApiErrorFilter } from "./api-error.filter";
 import { RateLimitExceededException } from "./rate-limit-exceptions";
+import { SafeOperationalLogger, type OperationalLogSink } from "./safe-operational-logger";
 
 interface TestBody {
   code: string;
@@ -132,6 +133,41 @@ describe("ApiErrorFilter", () => {
     expect(explicit.body?.message).toBe("Internal Server Error");
   });
 
+  it("logs operational failures without password, email, hash, message, or stack", () => {
+    const messages: string[] = [];
+    const sink = collectingSink(messages);
+    const logger = new SafeOperationalLogger(
+      "api-error-filter",
+      sink,
+      () => Date.parse("2026-07-19T12:00:00.000Z")
+    );
+    const filter = new ApiErrorFilter(logger);
+    const response = createResponse();
+    const error = Object.assign(
+      new Error("password=private email=ada@example.com hash=$argon2id$private"),
+      { code: "ARGON2_NATIVE_FAILURE", token: "private-token" }
+    );
+
+    filter.catch(error, createHost(response, "en"));
+
+    expect(response.body).toEqual({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Internal server error",
+      statusCode: 500
+    });
+    expect(messages).toHaveLength(1);
+    expect(JSON.parse(messages[0] ?? "{}")).toEqual({
+      event: "unhandled_error",
+      component: "api-error-filter",
+      errorName: "Error",
+      errorCode: "ARGON2_NATIVE_FAILURE",
+      timestamp: "2026-07-19T12:00:00.000Z"
+    });
+    expect(messages.join(" ")).not.toMatch(
+      /password|ada@example\.com|argon2id|private-token|native verifier unavailable/i
+    );
+  });
+
   it("normalizes string exception bodies and empty validation arrays", () => {
     const filter = new ApiErrorFilter();
     const stringBody = createResponse();
@@ -178,6 +214,14 @@ function createResponse(): TestResponse {
     setHeader(name: string, value: string) {
       this.headers = { ...this.headers, [name]: value };
     }
+  };
+}
+
+function collectingSink(messages: string[]): OperationalLogSink {
+  return {
+    log: (message) => messages.push(message),
+    warn: (message) => messages.push(message),
+    error: (message) => messages.push(message)
   };
 }
 
