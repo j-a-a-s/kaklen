@@ -323,7 +323,12 @@ test.describe.serial("Kaklen assisted product journey", () => {
 
 async function resumeDemoSession(page, cookies) {
   await page.context().addCookies(cookies);
+  const refreshResponsePromise = page.waitForResponse(
+    (response) => response.url() === `${apiBase}/api/auth/refresh` && response.request().method() === "POST",
+    { timeout: 30_000 }
+  );
   await page.goto(`${webBase}/es/dashboard`);
+  expect((await refreshResponsePromise).status()).toBe(200);
   await expect(page).toHaveURL(/\/es\/dashboard$/);
   await expect(page.locator("kaklen-dashboard")).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("kaklen.activeOrganizationId"))).not.toBeNull();

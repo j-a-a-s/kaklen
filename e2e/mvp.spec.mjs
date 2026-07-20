@@ -288,9 +288,8 @@ test.describe.serial("Kaklen MVP core workflow", () => {
         repairable: true
       });
 
-      await authenticatePage(page);
-      await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
-      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible({ timeout: 30_000 });
+      await authenticatePage(page, `/organizations/${organizationId}/quotations`);
+      await expect(page.getByText("Detectamos una inconsistencia financiera.", { exact: true })).toBeVisible();
       await expect(page.locator("kaklen-quotation-list .entity-price")).toHaveCount(0);
       await expect(page.locator("kaklen-quotation-list .item-row")).toHaveCount(0);
 
@@ -519,8 +518,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       approvedAmounts: []
     });
 
-    await authenticatePage(page);
-    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations`);
+    await authenticatePage(page, `/organizations/${organizationId}/quotations`);
     await expect(page.getByText("Aprobado en moneda base", { exact: true })).toBeVisible();
     await expect(page.getByText(`${formatMoney(expectedClpAmount, "CLP", "es-CL")} CLP`, { exact: true })).toBeVisible();
     await expect(page.getByText("BRL 800,00", { exact: true })).toBeVisible();
@@ -673,8 +671,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       route: `/organizations/${organizationId}/quotations/${quotationId}#change-requests`
     });
 
-    await authenticatePage(page);
-    await page.goto(`${webBase}/es/organizations/${organizationId}/quotations/${quotationId}`);
+    await authenticatePage(page, `/organizations/${organizationId}/quotations/${quotationId}`);
     await expect(page.locator("#change-requests")).toContainText(changeComment);
     await expect(page.locator("#change-requests")).toContainText("Versión v1");
     await expect(page.locator("#change-requests")).toContainText("Producto MVP");
@@ -946,7 +943,7 @@ test.describe.serial("Kaklen MVP core workflow", () => {
     clientId = (await client.json()).id;
   }
 
-  async function authenticatePage(page) {
+  async function authenticatePage(page, route = "/dashboard") {
     browserLoginSequence += 1;
     const browserForwardedFor = `203.0.113.${20 + ((process.pid + browserLoginSequence) % 200)}`;
     const login = await page.request.post(`${apiBase}/api/auth/login`, {
@@ -957,6 +954,12 @@ test.describe.serial("Kaklen MVP core workflow", () => {
       }
     });
     expect(login.status()).toBe(200);
+    const refreshResponsePromise = page.waitForResponse(
+      (response) => response.url() === `${apiBase}/api/auth/refresh` && response.request().method() === "POST",
+      { timeout: 30_000 }
+    );
+    await page.goto(`${webBase}/es${route}`);
+    expect((await refreshResponsePromise).status()).toBe(200);
   }
 
   async function authorizedPost(path, data) {
