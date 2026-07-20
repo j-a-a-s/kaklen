@@ -76,3 +76,13 @@ test("quality gate includes every mandatory assisted-product control", () => {
   assert.match(read("scripts/quality-pipeline.mjs"), /QUALITY GATE PASSED/);
   assert.match(read("scripts/quality-pipeline.mjs"), /QUALITY GATE FAILED/);
 });
+
+test("authenticated E2E navigation waits for session responses without fixed sleeps", () => {
+  const assistedJourney = read("e2e/assisted-product.spec.mjs");
+  const coreJourney = read("e2e/mvp.spec.mjs");
+
+  assert.match(assistedJourney, /waitForResponse\([\s\S]*\/api\/auth\/refresh/);
+  assert.match(assistedJourney, /waitForResponse\([\s\S]*\/api\/auth\/logout/);
+  assert.match(coreJourney, /waitForResponse\([\s\S]*\/api\/auth\/refresh/);
+  assert.doesNotMatch(`${assistedJourney}\n${coreJourney}`, /waitForTimeout|new Promise[^;]+setTimeout/);
+});
