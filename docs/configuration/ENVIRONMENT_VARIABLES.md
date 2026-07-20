@@ -1,93 +1,111 @@
 # Variables de entorno
 
-`.env.example` es el contrato canónico para desarrollo local. Copia el archivo a
-`.env`, modifica solo lo necesario y nunca versiones `.env` ni credenciales
-reales.
+Este documento se genera desde `environment-variables.json` mediante `pnpm env:update`.
+El manifiesto es la única fuente de clasificación, obligatoriedad y consumidores.
 
-## Persistencia e infraestructura
+## Runtime productivo
 
-| Variable | Valor local | Propósito |
-| --- | --- | --- |
-| `DATABASE_URL` | `postgresql://kaklen:***@localhost:5432/kaklen_dev?schema=public` | Conexión Prisma; la contraseña completa solo vive en `.env.example` y `.env`. |
-| `DATABASE_SSL` | `false` | Exige TLS para PostgreSQL cuando es `true`; producción también requiere `sslmode=require` en `DATABASE_URL`. |
-| `POSTGRES_PORT` | `5432` | Puerto publicado por Docker Compose. |
-| `REDIS_PORT` | `6379` | Puerto publicado de Redis. |
-| `REDIS_URL` | `redis://localhost:6379` | Conexión para límites y colas. |
-| `AWS_REGION` | `us-east-1` | Región del runtime AWS. |
-| `AWS_S3_BUCKET` | `kaklen-local` | Bucket de archivos. |
-| `AWS_S3_ENDPOINT` | vacío | Endpoint S3 compatible opcional. |
-| `AWS_CLOUDFRONT_DOMAIN` | vacío | Dominio CDN opcional. |
+| Variable | Alcance | Ambientes | Obligatoria | Tipo | Default | Consumidores | Descripción |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `API_PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, scripts, workflow | Fallback API port used by runtime and local orchestration. |
+| `APP_PUBLIC_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Public web origin used to build verification, recovery and portal links. |
+| `APP_VERSION` | runtime | development, test, production, ci | production | non-secret | `0.1.0` | api, scripts | Application version exposed by runtime config and health endpoints. |
+| `APP_WEB_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api | Primary web origin used by organization invitations. |
+| `AUTH_ALLOWED_ORIGINS` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Comma-separated origin allow-list for refresh and logout requests. |
+| `AUTH_EMAIL_ENABLED` | runtime | development, test, production, ci | no | non-secret | `true` | api, workflow | Enables transactional authentication email delivery. |
+| `AWS_CLOUDFRONT_DOMAIN` | runtime | development, test, production, ci | no | non-secret | none | api | Optional CloudFront domain used for public object delivery. |
+| `AWS_REGION` | runtime | development, test, production, ci | production | non-secret | `us-east-1` | api, workflow | AWS region used by the S3 client. |
+| `AWS_S3_BUCKET` | runtime | development, test, production, ci | production | non-secret | `kaklen-local` | api, workflow | S3 bucket that stores application objects. |
+| `AWS_S3_ENDPOINT` | runtime | development, test, production, ci | no | non-secret | none | api | Optional S3-compatible endpoint override. |
+| `BUILD_TIME` | runtime | development, test, production, ci | no | non-secret | none | api, scripts | ISO timestamp embedded in runtime metadata. |
+| `COMMERCIAL_EMAIL_ENABLED` | runtime | development, test, production, ci | no | non-secret | `false` | api, scripts, workflow | Enables commercial email capabilities independently from auth email. |
+| `COMMIT_SHA` | runtime | development, test, production, ci | production | non-secret | `local` | api, scripts, workflow | Source revision exposed by runtime metadata. |
+| `COOKIE_SECURE` | runtime | development, test, production, ci | production | non-secret | `false` | api, workflow | Requires HTTPS-only authentication cookies. |
+| `CORS_ALLOWED_ORIGINS` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Comma-separated CORS origin allow-list. |
+| `DATABASE_SSL` | runtime | development, test, production, ci | production | non-secret | `false` | api, scripts, workflow | Enforces TLS for PostgreSQL and requires sslmode=require in production. |
+| `DATABASE_URL` | runtime | development, test, production, ci | production | secret | none | api, scripts, workflow | Prisma PostgreSQL connection URL. |
+| `EMAIL_VERIFICATION_EXPIRES_MINUTES` | runtime | development, test, production, ci | no | non-secret | `1440` | api, scripts | Email-verification token lifetime in minutes. |
+| `JWT_ACCESS_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `900` | api | Access-token lifetime in seconds. |
+| `JWT_ACCESS_SECRET` | runtime | development, test, production, ci | production | secret | none | api, scripts, workflow | Cryptographic secret used to sign access tokens. |
+| `JWT_REFRESH_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `604800` | api | Refresh-token lifetime in seconds. |
+| `JWT_REFRESH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, scripts, workflow | Independent cryptographic secret used for refresh tokens. |
+| `LOG_LEVEL` | runtime | development, test, production, ci | no | non-secret | `debug` | api, scripts | Structured API logging threshold. |
+| `MAIL_CONNECTION_TIMEOUT_MS` | runtime | development, test, production, ci | no | non-secret | `5000` | api | SMTP connection timeout in milliseconds. |
+| `MAIL_FROM` | runtime | development, test, production, ci | production | non-secret | `Kaklen <no-reply@kaklen.local>` | api, scripts, workflow | Sender identity for application email. |
+| `MAIL_GREETING_TIMEOUT_MS` | runtime | development, test, production, ci | no | non-secret | `5000` | api | SMTP greeting timeout in milliseconds. |
+| `MAIL_HOST` | runtime | development, test, production, ci | production | non-secret | `localhost` | api, scripts, workflow | SMTP server hostname. |
+| `MAIL_PASSWORD` | runtime | development, test, production, ci | no | secret | none | api | Optional SMTP password paired with MAIL_USER. |
+| `MAIL_PORT` | runtime | development, test, production, ci | no | non-secret | `1025` | api, scripts, workflow | SMTP server port. |
+| `MAIL_SECURE` | runtime | development, test, production, ci | no | non-secret | `false` | api, scripts, workflow | Enables implicit TLS for SMTP. |
+| `MAIL_SOCKET_TIMEOUT_MS` | runtime | development, test, production, ci | no | non-secret | `10000` | api | SMTP socket timeout in milliseconds. |
+| `MAIL_USER` | runtime | development, test, production, ci | no | non-secret | none | api | Optional SMTP username paired with MAIL_PASSWORD. |
+| `NODE_ENV` | runtime | development, test, production, ci | production | non-secret | `development` | api, docker, scripts, workflow | Node runtime environment selector. |
+| `ORGANIZATION_INVITATION_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `259200` | api | Organization invitation lifetime in seconds. |
+| `PASSWORD_RESET_EXPIRES_MINUTES` | runtime | development, test, production, ci | no | non-secret | `30` | api, scripts | Password-reset token lifetime in minutes. |
+| `PAYMENT_GATEWAY` | runtime | development, test, production, ci | no | non-secret | `sandbox` | api, workflow | Configured payment gateway mode. |
+| `PAYMENT_SANDBOX_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | Cryptographic secret for sandbox payment callbacks. |
+| `PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, docker, scripts, workflow | Primary API listening port. |
+| `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | scripts | API base URL written into public web runtime config. |
+| `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, scripts | Public environment label exposed by web and health metadata. |
+| `RATE_LIMIT_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for distributed rate-limit identifiers. |
+| `REDIS_URL` | runtime | development, test, production, ci | production | secret | none | api, workflow | Redis connection URL for distributed limits and BullMQ. |
+| `SESSION_IDLE_SECONDS` | runtime | development, test, production, ci | no | non-secret | `300` | scripts | Frontend idle-session timeout in seconds. |
+| `SESSION_WARNING_SECONDS` | runtime | development, test, production, ci | no | non-secret | `240` | scripts | Frontend idle warning threshold in seconds. |
+| `SWAGGER_ENABLED` | runtime | development, test, production, ci | no | non-secret | `true` | api, workflow | Enables Swagger outside production; production always disables it. |
+| `TRUST_PROXY` | runtime | development, test, production, ci | no | non-secret | `false` | api | Enables trusted proxy handling for the deployed topology. |
+| `WHATSAPP_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for WhatsApp operational identifiers. |
+| `WHATSAPP_MODE` | runtime | development, test, production, ci | no | non-secret | `manual` | api, workflow | Selects manual or provider-backed WhatsApp delivery. |
 
-## Aplicación y red
+## Desarrollo local
 
-| Variable | Valor local | Propósito |
-| --- | --- | --- |
-| `PORT` | `3000` | Puerto de escucha de NestJS. |
-| `API_PORT` | `3000` | Puerto que usan los orquestadores locales. |
-| `WEB_PORT` | `4200` | Puerto de la web local. |
-| `NODE_ENV` | `development` | Perfil de ejecución. |
-| `APP_VERSION` | `0.1.0` | Versión visible en runtime config y health. |
-| `COMMIT_SHA` | `local` | Revisión del build. |
-| `BUILD_TIME` | vacío | Fecha ISO del build; se genera cuando corresponde. |
-| `PUBLIC_API_BASE_URL` | `http://localhost:3000/api` | Base URL consumida por Angular. |
-| `PUBLIC_APP_ENVIRONMENT` | `development` | Etiqueta pública del entorno web. |
-| `APP_WEB_URL` | `http://localhost:4200` | Origen principal de la web. |
-| `APP_PUBLIC_URL` | `http://localhost:4200` | URL usada en enlaces públicos. |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Allow-list CORS, separada por comas. |
-| `AUTH_ALLOWED_ORIGINS` | `http://localhost:4200` | Allow-list para refresh y logout. |
-| `TRUST_PROXY` | `false` | Confía en proxy solo cuando la topología lo requiere. |
-| `LOG_LEVEL` | `debug` | Nivel de logs estructurados. |
-| `SWAGGER_ENABLED` | `true` | Habilita Swagger fuera de producción. |
+| Variable | Alcance | Ambientes | Obligatoria | Tipo | Default | Consumidores | Descripción |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `AWS_DEFAULT_REGION` | development | development, test, ci | no | non-secret | `us-east-1` | docker | Region passed to the local LocalStack container. |
+| `KAKLEN_CONFIRM_DB_RESET` | development | development, test | no | non-secret | none | scripts | Explicit confirmation phrase for destructive local database reset. |
+| `MAILPIT_SMTP_PORT` | development | development, test, ci | no | non-secret | `1025` | api, docker, scripts, workflow | Published SMTP port for local Mailpit. |
+| `MAILPIT_WEB_PORT` | development | development, test, ci | no | non-secret | `8025` | docker, scripts, workflow | Published HTTP port for local Mailpit. |
+| `POSTGRES_DB` | development | development, test, ci | no | non-secret | `kaklen_dev` | docker, scripts, workflow | Database created by local and CI PostgreSQL containers. |
+| `POSTGRES_PASSWORD` | development | development, test, ci | no | secret | none | docker, scripts, workflow | Known local PostgreSQL container password. |
+| `POSTGRES_PORT` | development | development, test, ci | no | non-secret | `5432` | api, docker, scripts | Published local PostgreSQL port. |
+| `POSTGRES_USER` | development | development, test, ci | no | non-secret | `kaklen` | docker, scripts, workflow | User created by local and CI PostgreSQL containers. |
+| `REDIS_PORT` | development | development, test, ci | no | non-secret | `6379` | api, docker, scripts, workflow | Published Redis port for local and CI services. |
+| `SERVICES` | development | development, test, ci | no | non-secret | `s3` | docker | LocalStack service allow-list. |
+| `WEB_DIST_ROOT` | development | development, test, ci | no | non-secret | `apps/web/dist/web` | scripts | Localized Angular build root served by development tooling. |
+| `WEB_PORT` | development | development, test, ci | no | non-secret | `4200` | scripts, workflow | Localized frontend development port. |
 
-## Autenticación y sesión
+## Testing
 
-| Variable | Valor local | Propósito |
-| --- | --- | --- |
-| `JWT_ACCESS_SECRET` | placeholder local | Firma de access tokens. |
-| `JWT_REFRESH_SECRET` | placeholder local | Derivación de refresh tokens. |
-| `JWT_ACCESS_EXPIRES_SECONDS` | `900` | Vida del access token. |
-| `JWT_REFRESH_EXPIRES_SECONDS` | `604800` | Vida del refresh token. |
-| `COOKIE_SECURE` | `false` | Exige HTTPS para cookies cuando es `true`. |
-| `RATE_LIMIT_HASH_SECRET` | placeholder local | HMAC de identificadores de rate limiting. |
-| `PASSWORD_RESET_EXPIRES_MINUTES` | `30` | Vencimiento de recuperación. |
-| `EMAIL_VERIFICATION_EXPIRES_MINUTES` | `1440` | Vencimiento de confirmación. |
-| `ORGANIZATION_INVITATION_EXPIRES_SECONDS` | `259200` | Vencimiento de invitaciones. |
-| `SESSION_IDLE_SECONDS` | `300` | Cierre por inactividad. |
-| `SESSION_WARNING_SECONDS` | `240` | Momento de advertencia previa. |
-| `AUTH_EMAIL_ENABLED` | `true` | Habilita correo transaccional de autenticación. |
-| `COMMERCIAL_EMAIL_ENABLED` | `false` | Habilita correo comercial. |
+| Variable | Alcance | Ambientes | Obligatoria | Tipo | Default | Consumidores | Descripción |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `CHROME_BIN` | test | development, test, ci | no | non-secret | none | scripts | Optional Chrome or Chromium executable for Angular unit tests. |
+| `E2E_API_BASE_URL` | test | test, ci | no | non-secret | `http://localhost:3000` | scripts | API origin used by Playwright journeys. |
+| `E2E_COMMAND_TIMEOUT_MS` | test | test, ci | no | non-secret | `300000` | scripts | Maximum duration for E2E setup commands. |
+| `E2E_FORCE_TIMEOUT_MS` | test | test, ci | no | non-secret | `2000` | scripts | Grace period before force-stopping E2E child processes. |
+| `E2E_MAILPIT_BASE_URL` | test | test, ci | no | non-secret | `http://localhost:8025` | scripts | Mailpit HTTP origin used by email E2E tests. |
+| `E2E_SHUTDOWN_TIMEOUT_MS` | test | test, ci | no | non-secret | `5000` | scripts | Graceful shutdown timeout for E2E services. |
+| `E2E_STARTUP_TIMEOUT_MS` | test | test, ci | no | non-secret | `120000` | scripts | Health-check timeout while starting E2E services. |
+| `E2E_WEB_BASE_URL` | test | test, ci | no | non-secret | `http://localhost:4200` | scripts | Localized web origin used by Playwright journeys. |
+| `E2E_WEB_REQUEST_LOGS` | test | test, ci | no | non-secret | `false` | scripts | Enables per-request diagnostics in the localized E2E server. |
 
-Los secretos de producción deben ser independientes, aleatorios y cumplir la
-validación descrita en [Security](../SECURITY.md). Los orígenes con cookies no
-admiten wildcard.
+## CI e internas
 
-## Correo local
-
-| Variable | Valor local | Propósito |
-| --- | --- | --- |
-| `MAILPIT_SMTP_PORT` | `1025` | Puerto SMTP de Mailpit. |
-| `MAILPIT_WEB_PORT` | `8025` | Interfaz web de Mailpit. |
-| `MAIL_FROM` | `Kaklen <no-reply@kaklen.local>` | Remitente predeterminado. |
-| `MAIL_HOST` | `localhost` | Host SMTP para la API ejecutada en el host. |
-| `MAIL_PORT` | `1025` | Puerto SMTP. |
-| `MAIL_SECURE` | `false` | TLS implícito SMTP. |
-| `MAIL_USER` | vacío | Usuario SMTP opcional. |
-| `MAIL_PASSWORD` | vacío | Contraseña SMTP opcional. |
-| `MAIL_CONNECTION_TIMEOUT_MS` | `5000` | Timeout de conexión. |
-| `MAIL_GREETING_TIMEOUT_MS` | `5000` | Timeout de saludo SMTP. |
-| `MAIL_SOCKET_TIMEOUT_MS` | `10000` | Timeout del socket SMTP. |
-
-Dentro de Docker, `MAIL_HOST` debe apuntar al nombre del servicio `mailpit`.
-
-## Integraciones
-
-| Variable | Valor local | Propósito |
-| --- | --- | --- |
-| `WHATSAPP_MODE` | `manual` | Selecciona el flujo de WhatsApp local. |
-| `WHATSAPP_HASH_SECRET` | placeholder local | HMAC de datos operativos de WhatsApp. |
-| `PAYMENT_GATEWAY` | `sandbox` | Selecciona el gateway configurado. |
-| `PAYMENT_SANDBOX_SECRET` | placeholder local | Firma del sandbox de pagos. |
-
-Las variables internas de CI y reutilización de artefactos no forman parte del
-contrato de configuración manual; los scripts las establecen durante cada
-pipeline.
+| Variable | Alcance | Ambientes | Obligatoria | Tipo | Default | Consumidores | Descripción |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `ACCESSIBILITY_REUSE_E2E` | internal | test, ci | no | non-secret | `false` | scripts | Reuses complete E2E accessibility evidence inside the canonical pipeline. |
+| `API_TEST_WITH_COVERAGE` | internal | test, ci | no | non-secret | `false` | scripts | Enables API coverage during the full workspace test task. |
+| `APP_ENVIRONMENT` | internal | development, test, ci | no | non-secret | none | scripts | Legacy safety signal inspected only by demo-data protection. |
+| `AWS_STAGING_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming AWS staging validation. |
+| `CI` | ci | test, ci | no | non-secret | `false` | api, docker, scripts | Standard continuous-integration execution signal. |
+| `COMMIT_RANGE` | ci | ci | no | non-secret | `HEAD` | scripts, workflow | Git range checked by conventional-commit verification. |
+| `COVERAGE_REUSE` | internal | test, ci | no | non-secret | `false` | scripts | Reuses coverage generated by the canonical workspace test task. |
+| `DB_SKIP_PRISMA_GENERATE` | internal | test, ci | no | non-secret | `false` | scripts | Skips duplicate Prisma generation in the canonical pipeline. |
+| `E2E_REUSE_ARTIFACTS` | internal | test, ci | no | non-secret | `false` | scripts | Reuses builds produced earlier by the quality graph. |
+| `I18N_SKIP_BUILD` | internal | test, ci | no | non-secret | `false` | scripts | Reuses localized builds during server verification. |
+| `MAIL_REUSE_CONFIG_BUILD` | internal | test, ci | no | non-secret | `false` | scripts | Reuses compiled configuration during SMTP verification. |
+| `MIGRATION_REUSE_DEMO_VERIFICATION` | internal | test, ci | no | non-secret | `false` | scripts | Delegates demo verification to its canonical pipeline task. |
+| `MIGRATION_REUSE_PRISMA_CLIENT` | internal | test, ci | no | non-secret | `false` | scripts | Reuses the Prisma Client during isolated migration replay. |
+| `NG_CLI_ANALYTICS` | internal | development, test, ci | no | non-secret | `false` | scripts | Disables Angular CLI analytics in local commands. |
+| `PATH` | internal | production, ci | no | non-secret | none | docker | Container executable search path. |
+| `PNPM_HOME` | internal | production, ci | no | non-secret | `/pnpm` | docker | pnpm installation path in the API build image. |
+| `PRODUCTION_PAYMENT_GATEWAY_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming the production payment gateway. |
+| `REAL_WHATSAPP_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming real WhatsApp delivery. |

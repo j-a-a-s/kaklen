@@ -14,7 +14,7 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
 | Prisma migrations | 18 |
-| Canonical pipeline tasks | 30 |
+| Canonical pipeline tasks | 32 |
 
 ## Local Quality
 
@@ -24,7 +24,7 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 | AST form contract | PASS | `artifacts/forms-audit.json` |
 | Migration history | PASS | `18 migration directories` |
 | Unique quality tasks | PASS | `scripts/quality-pipeline-core.mjs` |
-| Canonical CI controls | PASS | `30 required tasks` |
+| Canonical CI controls | PASS | `32 required tasks` |
 | PDF monetary parity | PASS | `pdf-money-parity` |
 | Localized builds and routing | PASS | `es, en, pt-BR` |
 | End-to-end workflow | PASS | `artifacts/e2e-result.json` |

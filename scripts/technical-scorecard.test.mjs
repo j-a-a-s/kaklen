@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { resolveProfile } from "./quality-pipeline-core.mjs";
 import {
   assertScorecardCurrent,
+  assertReadmeScorecardCurrent,
   collectTechnicalScorecard,
+  renderReadmeScorecardSummary,
   renderTechnicalScorecard
 } from "./technical-scorecard-core.mjs";
 
@@ -74,6 +76,28 @@ test("sub-tenth coverage differences produce the same versioned scorecard", () =
   ciScorecard.metrics.coverage.branches = 85.81;
 
   assert.equal(renderTechnicalScorecard(localScorecard), renderTechnicalScorecard(ciScorecard));
+});
+
+test("README exposes the quality badge, scorecard link, and generated summary", () => {
+  const readme = readFileSync("README.md", "utf8");
+  assert.match(
+    readme,
+    /\[!\[Kaklen Quality Gate\]\(https:\/\/github\.com\/j-a-a-s\/kaklen\/actions\/workflows\/ci\.yml\/badge\.svg\?branch=main\)\]\(https:\/\/github\.com\/j-a-a-s\/kaklen\/actions\/workflows\/ci\.yml\)/
+  );
+  assert.match(readme, /\[Technical Scorecard\]\(docs\/release\/TECHNICAL_SCORECARD\.md\)/);
+  assert.match(readme, /<!-- scorecard-summary:start -->[\s\S]*<!-- scorecard-summary:end -->/);
+});
+
+test("README scorecard summary is deterministic and rejects drift", () => {
+  const scorecard = collectTechnicalScorecard({ root: createEvidenceFixture(), env: {} });
+  const summary = renderReadmeScorecardSummary(scorecard);
+  assert.match(summary, /\| Statements \| 96\.0% \|/);
+  assert.match(summary, /\| Local Quality \| 10\/10 \|/);
+  assert.doesNotThrow(() => assertReadmeScorecardCurrent(scorecard, `before\n${summary}\nafter\n`));
+  assert.throws(
+    () => assertReadmeScorecardCurrent(scorecard, `before\n${summary.replace("96.0%", "95.0%")}\nafter\n`),
+    /stale/
+  );
 });
 
 function createEvidenceFixture({ omittedTask = null, scorecardStatus = "passed" } = {}) {

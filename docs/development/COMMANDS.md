@@ -35,12 +35,14 @@ desarrollo seleccionado.
 
 `pnpm check` usa el grafo de calidad existente y ejecuta, en orden topológico:
 
-1. arquitectura;
-2. quality scan;
-3. auditoría de formularios;
-4. paridad monetaria de PDF;
-5. lint;
-6. tests unitarios y del workspace con cobertura de API.
+1. contrato ambiental;
+2. contrato documental;
+3. arquitectura;
+4. quality scan;
+5. auditoría de formularios;
+6. paridad monetaria de PDF;
+7. lint;
+8. tests unitarios del workspace, sin integración ni cobertura.
 
 El perfil no inicia Docker, no aplica migraciones y no ejecuta E2E, builds
 localizados, mutation testing ni evidencia externa. Sus resultados se escriben

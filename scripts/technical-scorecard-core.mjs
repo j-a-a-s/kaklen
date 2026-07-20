@@ -8,6 +8,8 @@ export const EXTERNAL_VALIDATION_KEYS = Object.freeze([
   "REAL_WHATSAPP_VALIDATED",
   "PRODUCTION_PAYMENT_GATEWAY_VALIDATED"
 ]);
+export const README_SCORECARD_START = "<!-- scorecard-summary:start -->";
+export const README_SCORECARD_END = "<!-- scorecard-summary:end -->";
 
 const SECURITY_TASKS = ["secret-scan", "sast", "sbom", "dependency-audit"];
 const LOCALIZED_TASKS = ["build-es", "build-en", "build-pt-BR", "i18n-server"];
@@ -154,6 +156,40 @@ export function renderTechnicalScorecard(scorecard) {
 
 export function assertScorecardCurrent(expected, actual) {
   if (expected !== actual) throw new Error("TECHNICAL_SCORECARD.md is stale. Run pnpm scorecard:update.");
+}
+
+export function renderReadmeScorecardSummary(scorecard) {
+  const coverage = scorecard.metrics.coverage;
+  return [
+    README_SCORECARD_START,
+    "| Metric | Current value |",
+    "| --- | ---: |",
+    `| Statements | ${formatPercent(coverage.statements)} |`,
+    `| Branches | ${formatPercent(coverage.branches)} |`,
+    `| Functions | ${formatPercent(coverage.functions)} |`,
+    `| Lines | ${formatPercent(coverage.lines)} |`,
+    `| Local Quality | ${scorecard.sections.localQuality.met}/${scorecard.sections.localQuality.total} |`,
+    `| Production Readiness local | ${scorecard.sections.productionReadiness.met}/${scorecard.sections.productionReadiness.total} |`,
+    README_SCORECARD_END
+  ].join("\n");
+}
+
+export function replaceReadmeScorecardSummary(readme, summary) {
+  const start = readme.indexOf(README_SCORECARD_START);
+  const end = readme.indexOf(README_SCORECARD_END);
+  if (start < 0 || end < start || readme.indexOf(README_SCORECARD_START, start + 1) >= 0) {
+    throw new Error("README.md must contain one scorecard summary block.");
+  }
+  return `${readme.slice(0, start)}${summary}${readme.slice(end + README_SCORECARD_END.length)}`;
+}
+
+export function assertReadmeScorecardCurrent(scorecard, readme) {
+  const expected = renderReadmeScorecardSummary(scorecard);
+  const start = readme.indexOf(README_SCORECARD_START);
+  const end = readme.indexOf(README_SCORECARD_END);
+  if (start < 0 || end < start) throw new Error("README.md scorecard summary is missing.");
+  const actual = readme.slice(start, end + README_SCORECARD_END.length);
+  if (actual !== expected) throw new Error("README.md scorecard summary is stale. Run pnpm scorecard:update.");
 }
 
 function criterion(id, label, met, evidence) {

@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import {
+  API_INTEGRATION_TEST_REGEX,
+  API_UNIT_TEST_REGEX,
+  resolveApiTestMode
+} from "./api-test-contract.mjs";
 import { parseStartArguments, startHelp } from "./start-command.mjs";
 
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -54,9 +59,36 @@ test("root scripts expose the four public commands and retain compatibility alia
   assert.equal(packageJson.scripts.check, "node scripts/quality-pipeline.mjs check");
   assert.equal(packageJson.scripts["quality:gate"], "node scripts/quality-pipeline.mjs quality:gate");
   assert.equal(packageJson.scripts["release:check:strict"], "node scripts/quality-pipeline.mjs release:check:strict");
+  assert.equal(packageJson.scripts["test:unit"], "node --test scripts/*.test.mjs && turbo run test:unit");
 
   for (const alias of ["dev:fresh", "dev:i18n", "dev:full:i18n", "lint", "test", "build"]) {
     assert.equal(typeof packageJson.scripts[alias], "string", alias);
+  }
+});
+
+test("API test modes classify unit and integration suites explicitly", () => {
+  assert.deepEqual(resolveApiTestMode(["--unit"]), {
+    mode: "unit",
+    testRegex: API_UNIT_TEST_REGEX,
+    passthrough: []
+  });
+  assert.deepEqual(resolveApiTestMode(["--integration"]), {
+    mode: "integration",
+    testRegex: API_INTEGRATION_TEST_REGEX,
+    passthrough: []
+  });
+  assert.throws(() => resolveApiTestMode(["--unit", "--integration"]), /either/);
+
+  const unitTests = listApiTests(API_UNIT_TEST_REGEX);
+  const integrationTests = listApiTests(API_INTEGRATION_TEST_REGEX);
+  assert.ok(unitTests.length > 0);
+  assert.ok(integrationTests.length > 0);
+  for (const path of unitTests) {
+    assert.match(path, /\.spec\.ts$/);
+    assert.doesNotMatch(path, /\.integration\.spec\.ts$|\.e2e-spec\.ts$/);
+  }
+  for (const path of integrationTests) {
+    assert.match(path, /\.integration\.spec\.ts$|\.e2e-spec\.ts$/);
   }
 });
 
@@ -85,45 +117,6 @@ test("onboarding documentation exposes one canonical path", () => {
   }
 });
 
-test("canonical documentation contains no broken local links", () => {
-  const documents = [
-    "README.md",
-    "INSTALL.md",
-    "CONTRIBUTING.md",
-    "docs/README.md",
-    "docs/START_HERE.md",
-    "docs/development/COMMANDS.md",
-    "docs/development/LOCAL_ENVIRONMENT.md",
-    "docs/development/TROUBLESHOOTING.md",
-    "docs/configuration/ENVIRONMENT_VARIABLES.md",
-    "docs/governance/DEPENDENCY_UPDATES.md"
-  ];
-  for (const document of documents) {
-    const documentUrl = new URL(document, repositoryRoot);
-    const markdown = readFileSync(documentUrl, "utf8");
-    for (const match of markdown.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
-      const target = match[1].split("#")[0];
-      if (!target || /^(?:https?:|mailto:)/.test(target)) continue;
-      assert.equal(existsSync(new URL(target, documentUrl)), true, `${document} -> ${target}`);
-    }
-  }
-});
-
-test("every public local environment variable is documented", () => {
-  const example = readFileSync(new URL(".env.example", repositoryRoot), "utf8");
-  const documentation = readFileSync(
-    new URL("docs/configuration/ENVIRONMENT_VARIABLES.md", repositoryRoot),
-    "utf8"
-  );
-  const keys = example
-    .split("\n")
-    .filter((line) => line && !line.startsWith("#"))
-    .map((line) => line.slice(0, line.indexOf("=")));
-  for (const key of keys) {
-    assert.equal(documentation.includes(`\`${key}\``), true, key);
-  }
-});
-
 test("Dependabot groups compatible updates and keeps majors separate", () => {
   const dependabot = readFileSync(new URL(".github/dependabot.yml", repositoryRoot), "utf8");
   assert.equal((dependabot.match(/timezone: America\/Santiago/g) ?? []).length, 3);
@@ -138,4 +131,14 @@ function runStart(args) {
     cwd: repositoryRoot,
     encoding: "utf8"
   });
+}
+
+function listApiTests(testRegex) {
+  const result = spawnSync(
+    "pnpm",
+    ["--dir", "apps/api", "exec", "jest", "--listTests", "--runInBand", "--testRegex", testRegex],
+    { cwd: repositoryRoot, encoding: "utf8" }
+  );
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim().split("\n").filter(Boolean);
 }

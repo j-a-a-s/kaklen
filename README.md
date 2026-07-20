@@ -1,5 +1,7 @@
 # Kaklen
 
+[![Kaklen Quality Gate](https://github.com/j-a-a-s/kaklen/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/j-a-a-s/kaklen/actions/workflows/ci.yml)
+
 Kaklen es un monorepo para operaciones comerciales y de eventos, construido con
 Angular 20, NestJS 11, Prisma, PostgreSQL y Turborepo.
 
@@ -56,6 +58,20 @@ vez, falla rápido y solo termina correctamente cuando imprime
 `QUALITY GATE PASSED`. CI ejecuta el mismo grafo con el perfil preparado para
 GitHub Actions. Los perfiles y artefactos están descritos en
 [Quality Pipeline](docs/testing/QUALITY_PIPELINE.md).
+
+<!-- scorecard-summary:start -->
+| Metric | Current value |
+| --- | ---: |
+| Statements | 96.8% |
+| Branches | 85.9% |
+| Functions | 94.5% |
+| Lines | 97.2% |
+| Local Quality | 10/10 |
+| Production Readiness local | 4/4 |
+<!-- scorecard-summary:end -->
+
+Consulta la evidencia y los criterios en el
+[Technical Scorecard](docs/release/TECHNICAL_SCORECARD.md).
 
 ## Documentación
 

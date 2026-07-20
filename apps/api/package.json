@@ -9,6 +9,8 @@
     "dev": "pnpm run clean && DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} nest start --watch",
     "start": "node ../../scripts/verify-api-build.mjs --files-only && DATABASE_URL=${DATABASE_URL:-postgresql://kaklen:kaklen_dev_password@localhost:${POSTGRES_PORT:-5432}/kaklen_dev?schema=public} node dist/main.js",
     "test": "node ../../scripts/run-api-tests.mjs",
+    "test:unit": "node ../../scripts/run-api-tests.mjs --unit",
+    "test:integration": "node ../../scripts/run-api-tests.mjs --integration",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

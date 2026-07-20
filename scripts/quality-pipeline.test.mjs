@@ -14,6 +14,8 @@ import {
 
 const requiredCiControls = [
   "commit-message",
+  "environment-contract",
+  "docs-contract",
   "architecture",
   "quality-scan",
   "secret-scan",
@@ -117,15 +119,18 @@ test("profiles select local and CI environments without nesting profiles", () =>
 test("check is the fast service-free workspace profile", () => {
   const keys = resolveProfile("check").tasks.map((task) => task.key);
   assert.deepEqual(keys, [
+    "environment-contract",
+    "docs-contract",
     "architecture",
     "quality-scan",
     "forms-audit",
     "pdf-money-parity",
     "lint",
-    "test"
+    "test-unit"
   ]);
   for (const excluded of [
     "local-services",
+    "test",
     "db-migrate",
     "e2e",
     "build-es",
