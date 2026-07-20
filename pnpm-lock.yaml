@@ -45,6 +45,30 @@ importers:
       '@kaklen/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@kokecore/auth':
+        specifier: link:../../../kokecore/packages/auth
+        version: link:../../../kokecore/packages/auth
+      '@kokecore/calendar':
+        specifier: link:../../../kokecore/packages/calendar
+        version: link:../../../kokecore/packages/calendar
+      '@kokecore/config':
+        specifier: link:../../../kokecore/packages/config
+        version: link:../../../kokecore/packages/config
+      '@kokecore/errors':
+        specifier: link:../../../kokecore/packages/errors
+        version: link:../../../kokecore/packages/errors
+      '@kokecore/logging':
+        specifier: link:../../../kokecore/packages/logging
+        version: link:../../../kokecore/packages/logging
+      '@kokecore/rbac':
+        specifier: link:../../../kokecore/packages/rbac
+        version: link:../../../kokecore/packages/rbac
+      '@kokecore/storage':
+        specifier: link:../../../kokecore/packages/storage
+        version: link:../../../kokecore/packages/storage
+      '@kokecore/validation':
+        specifier: link:../../../kokecore/packages/validation
+        version: link:../../../kokecore/packages/validation
       '@nestjs/common':
         specifier: ^11.1.3
         version: 11.1.28(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -226,12 +250,20 @@ importers:
         version: 5.9.3
 
   packages/config:
+    dependencies:
+      '@kokecore/config':
+        specifier: link:../../../kokecore/packages/config
+        version: link:../../../kokecore/packages/config
     devDependencies:
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
 
   packages/shared:
+    dependencies:
+      '@kokecore/validation':
+        specifier: link:../../../kokecore/packages/validation
+        version: link:../../../kokecore/packages/validation
     devDependencies:
       typescript:
         specifier: ^5.8.3

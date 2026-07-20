@@ -608,3 +608,6 @@ function isLocalOrLoopbackHost(hostname: string): boolean {
     /^127(?:\.\d{1,3}){3}$/.test(normalized)
   );
 }
+
+export { readRuntimeConfig as readKokecoreRuntimeConfig } from "@kokecore/config";
+export type { RuntimeEnvironmentConfig as KokecoreRuntimeEnvironmentConfig } from "@kokecore/config";

@@ -19,6 +19,9 @@
     "test:unit": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "@kokecore/config": "link:../../../kokecore/packages/config"
+  },
   "devDependencies": {
     "typescript": "^5.8.3"
   }

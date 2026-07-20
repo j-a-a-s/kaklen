@@ -29,6 +29,9 @@
     "test:unit": "pnpm run build && node --test tests/*.test.mjs",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "@kokecore/validation": "link:../../../kokecore/packages/validation"
+  },
   "devDependencies": {
     "typescript": "^5.8.3"
   }

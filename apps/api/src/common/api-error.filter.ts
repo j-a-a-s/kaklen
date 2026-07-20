@@ -10,6 +10,10 @@ import { Response } from "express";
 import { ApiErrorResponse, codeForStatus } from "./error-codes";
 import { RateLimitExceededException } from "./rate-limit-exceptions";
 import { SafeOperationalLogger } from "./safe-operational-logger";
+import {
+  KokecoreError,
+  RateLimitExceededException as KokecoreRateLimitExceededException
+} from "@kokecore/errors";
 
 interface HttpExceptionBody {
   code?: string;
@@ -31,6 +35,23 @@ export class ApiErrorFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
+
+    if (exception instanceof KokecoreError) {
+      const body = exception.toJSON();
+      response.status(body.statusCode).json({
+        code: body.code,
+        message: body.message,
+        statusCode: body.statusCode,
+        ...(typeof body.field === "string" ? { field: body.field } : {}),
+        ...(typeof body.resourceId === "string" ? { resourceId: body.resourceId } : {}),
+        ...(typeof body.repairable === "boolean" ? { repairable: body.repairable } : {})
+      });
+      if (exception instanceof KokecoreRateLimitExceededException) {
+        response.setHeader("Retry-After", String(exception.retryAfterSeconds));
+      }
+      return;
+    }
+
     const statusCode =
       exception instanceof HttpException
         ? exception.getStatus()
