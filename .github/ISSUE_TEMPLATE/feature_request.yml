@@ -1,0 +1,46 @@
+name: Feature request
+description: Propose a product or developer-experience improvement for evaluation.
+title: "proposal: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggestions are welcome for evaluation. Do not include secrets, tokens, personal data, or private customer information.
+        Security vulnerabilities must be reported privately at https://github.com/j-a-a-s/kaklen/security/advisories/new.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user or operational need without prescribing implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Explain the expected result and who benefits.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment and context
+      description: Include the affected workflow, environment, and non-sensitive examples.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe current workarounds or other outcomes considered.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: This request contains no secrets, tokens, personal data, or public vulnerability details.
+          required: true

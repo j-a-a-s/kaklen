@@ -11,6 +11,8 @@ Este índice es la entrada central a la documentación mantenida del repositorio
 - [Variables de entorno](configuration/ENVIRONMENT_VARIABLES.md)
 - [Manifiesto ambiental](configuration/environment-variables.json)
 - [Guía de contribución](../CONTRIBUTING.md)
+- [Licencia propietaria](../LICENSE)
+- [Aviso de propiedad](../NOTICE.md)
 
 ## Arquitectura y decisiones
 
@@ -58,3 +60,11 @@ Este índice es la entrada central a la documentación mantenida del repositorio
 - [Checklist del primer tag](release/FIRST_TAG_CHECKLIST.md)
 - [Scorecard técnico](release/TECHNICAL_SCORECARD.md)
 - [Actualizaciones de dependencias](governance/DEPENDENCY_UPDATES.md)
+
+## Gobernanza
+
+- [Gobernanza del proyecto](governance/PROJECT_GOVERNANCE.md)
+- [Propiedad y contribuciones](governance/OWNERSHIP_AND_CONTRIBUTIONS.md)
+- [Metadata canónica del repositorio](governance/repository-governance.json)
+- [Política de seguridad privada](../SECURITY.md)
+- [Código de conducta](../CODE_OF_CONDUCT.md)

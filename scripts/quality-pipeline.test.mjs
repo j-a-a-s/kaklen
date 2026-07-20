@@ -16,6 +16,7 @@ const requiredCiControls = [
   "commit-message",
   "environment-contract",
   "docs-contract",
+  "governance",
   "architecture",
   "quality-scan",
   "secret-scan",
@@ -121,6 +122,7 @@ test("check is the fast service-free workspace profile", () => {
   assert.deepEqual(keys, [
     "environment-contract",
     "docs-contract",
+    "governance",
     "architecture",
     "quality-scan",
     "forms-audit",

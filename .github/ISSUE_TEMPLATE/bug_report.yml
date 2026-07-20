@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible Kaklen defect without sensitive information.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, tokens, personal data, or private customer information.
+        Security vulnerabilities must be reported privately at https://github.com/j-a-a-s/kaklen/security/advisories/new.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem
+      description: Describe the observed behavior and its impact.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide deterministic steps and the smallest safe reproduction.
+      placeholder: |
+        1. Start...
+        2. Open...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain what should happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, browser, Node.js, pnpm, locale, and relevant non-secret configuration.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: This report contains no secrets, tokens, personal data, or public exploit details.
+          required: true

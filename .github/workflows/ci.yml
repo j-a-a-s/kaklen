@@ -116,6 +116,11 @@ jobs:
           COMMIT_RANGE: ${{ github.event_name == 'push' && format('{0}..{1}', github.event.before, github.sha) || github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || 'HEAD' }}
         run: pnpm quality:gate:ci
 
+      - name: Repository Governance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm governance:remote:verify
+
       - name: Upload quality evidence
         if: always()
         uses: actions/upload-artifact@v4

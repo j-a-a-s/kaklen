@@ -1,0 +1,20 @@
+{
+  "repository": "j-a-a-s/kaklen",
+  "visibility": "public",
+  "defaultBranch": "main",
+  "ownership": "proprietary-source-visible",
+  "description": "Plataforma SaaS multiempresa para cotizaciones, eventos, clientes, proveedores y servicios profesionales.",
+  "homepage": null,
+  "topics": [
+    "angular",
+    "nestjs",
+    "typescript",
+    "prisma",
+    "postgresql",
+    "saas",
+    "event-management",
+    "quotation-management",
+    "chile"
+  ],
+  "privateVulnerabilityReporting": true
+}

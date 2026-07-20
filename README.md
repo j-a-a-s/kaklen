@@ -80,6 +80,8 @@ Consulta la evidencia y los criterios en el
 - [Entorno local](docs/development/LOCAL_ENVIRONMENT.md)
 - [Solución de problemas](docs/development/TROUBLESHOOTING.md)
 - [Variables de entorno](docs/configuration/ENVIRONMENT_VARIABLES.md)
+- [Gobernanza del proyecto](docs/governance/PROJECT_GOVERNANCE.md)
+- [Propiedad y contribuciones](docs/governance/OWNERSHIP_AND_CONTRIBUTIONS.md)
 - [Gobierno de dependencias](docs/governance/DEPENDENCY_UPDATES.md)
 - [Contribución](CONTRIBUTING.md)
 
@@ -89,3 +91,7 @@ Los seeds crean cuentas y datos de demostración exclusivamente para desarrollo
 local. Sus credenciales son públicas, no deben reutilizarse fuera de un entorno
 local y nunca deben convertirse en secretos reales. Consulta
 [Demo Accounts](docs/testing/DEMO_ACCOUNTS.md).
+
+## Licencia
+
+Kaklen es software propietario. Consulta [LICENSE](LICENSE).

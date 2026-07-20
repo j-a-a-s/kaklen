@@ -1,0 +1,9 @@
+* @j-a-a-s
+/.github/ @j-a-a-s
+/apps/api/src/auth/ @j-a-a-s
+/apps/api/src/security/ @j-a-a-s
+/packages/config/ @j-a-a-s
+/prisma/ @j-a-a-s
+/docs/governance/ @j-a-a-s
+/LICENSE @j-a-a-s
+/SECURITY.md @j-a-a-s

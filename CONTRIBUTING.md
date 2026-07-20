@@ -1,5 +1,18 @@
 # Contributing
 
+## Authorization and Ownership
+
+Issues and suggestions may be submitted for evaluation. External pull requests
+that contain code require prior written authorization from `j-a-a-s`. Code is
+not accepted without an approved contribution agreement, and the author must
+own every right needed to submit it.
+
+No contribution changes Kaklen's proprietary license or grants additional rights
+over the project. Unauthorized code contributions are closed without integration.
+Read [Project Governance](docs/governance/PROJECT_GOVERNANCE.md),
+[Ownership and Contributions](docs/governance/OWNERSHIP_AND_CONTRIBUTIONS.md),
+and [LICENSE](LICENSE) before participating.
+
 ## Development Flow
 
 1. Prepare the repository with [Start Here](docs/START_HERE.md).
@@ -41,6 +54,7 @@ docs(scope): update documentation
 
 Every pull request should include:
 
+- Confirmation of prior written authorization when it contains external code.
 - What changed.
 - How it was validated.
 - Any migration or environment impact.

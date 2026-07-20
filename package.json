@@ -2,6 +2,7 @@
   "name": "kaklen",
   "version": "0.1.0",
   "private": true,
+  "license": "UNLICENSED",
   "packageManager": "pnpm@9.15.4",
   "engines": {
     "node": ">=22 <25",
@@ -28,6 +29,8 @@
     "env:verify": "node scripts/verify-environment-contract.mjs",
     "env:update": "node scripts/update-environment-contract.mjs",
     "docs:verify": "node scripts/verify-documentation.mjs",
+    "governance:verify": "node scripts/verify-governance.mjs",
+    "governance:remote:verify": "node scripts/verify-repository-governance.mjs",
     "commit:verify": "node scripts/verify-commit-message.mjs",
     "forms:audit": "node scripts/forms-audit.mjs",
     "pdf:verify-money": "node scripts/verify-pdf-money-parity.mjs",
