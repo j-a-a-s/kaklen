@@ -18,7 +18,6 @@
     "@aws-sdk/client-s3": "^3.940.0",
     "@kokecore/auth": "link:../../../kokecore/packages/auth",
     "@kokecore/calendar": "link:../../../kokecore/packages/calendar",
-    "@kokecore/config": "link:../../../kokecore/packages/config",
     "@kokecore/errors": "link:../../../kokecore/packages/errors",
     "@kokecore/logging": "link:../../../kokecore/packages/logging",
     "@kokecore/rbac": "link:../../../kokecore/packages/rbac",

@@ -22,6 +22,7 @@
     "test:integration": "pnpm --filter @kaklen/api test:integration",
     "test:coverage": "node scripts/test-coverage.mjs",
     "test:mutation:critical": "node scripts/test-mutation-critical.mjs",
+    "typecheck": "pnpm lint",
     "accessibility:test": "node scripts/run-accessibility.mjs",
     "lint": "turbo run lint",
     "architecture:check": "node scripts/check-architecture.mjs",

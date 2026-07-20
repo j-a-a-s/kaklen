@@ -1,3 +1,10 @@
+import {
+  coerceBoolean,
+  coerceInteger,
+  coerceStringList,
+  normalizeOptionalString
+} from "@kokecore/config";
+
 export interface ApiConfig {
   nodeEnv: "development" | "test" | "production";
   port: number;
@@ -378,11 +385,12 @@ export function validateRuntimeEnvironment(
 }
 
 function parseTimeout(value: string | undefined, fallback: number, key: string): number {
-  const parsed = Number(value ?? fallback);
-  if (!Number.isInteger(parsed) || parsed < 100 || parsed > 120000) {
-    throw new Error(`${key} must be an integer between 100 and 120000`);
-  }
-  return parsed;
+  return coerceInteger(value, {
+    key,
+    defaultValue: fallback,
+    minimum: 100,
+    maximum: 120000
+  });
 }
 
 function parseStrictBoolean(
@@ -390,17 +398,12 @@ function parseStrictBoolean(
   fallback: boolean,
   key: string
 ): boolean {
-  if (value === undefined) {
-    return fallback;
-  }
-  const normalized = value.trim().toLowerCase();
-  if (["1", "true", "yes"].includes(normalized)) {
-    return true;
-  }
-  if (["0", "false", "no"].includes(normalized)) {
-    return false;
-  }
-  throw new Error(`${key} must be a boolean`);
+  return coerceBoolean(value, {
+    key,
+    defaultValue: fallback,
+    trueValues: ["1", "true", "yes"],
+    falseValues: ["0", "false", "no"]
+  });
 }
 
 function parseNodeEnv(value: string | undefined): ApiConfig["nodeEnv"] {
@@ -425,10 +428,7 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
 }
 
 function parseList(value: string): string[] {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
+  return coerceStringList(value);
 }
 
 function requireString(
@@ -445,8 +445,7 @@ function requireString(
 }
 
 function optionalString(value: string | undefined): string | undefined {
-  const cleaned = value?.trim();
-  return cleaned ? cleaned : undefined;
+  return normalizeOptionalString(value);
 }
 
 export function readAuthConfig(env: Record<string, string | undefined>): AuthConfig {
@@ -608,6 +607,3 @@ function isLocalOrLoopbackHost(hostname: string): boolean {
     /^127(?:\.\d{1,3}){3}$/.test(normalized)
   );
 }
-
-export { readRuntimeConfig as readKokecoreRuntimeConfig } from "@kokecore/config";
-export type { RuntimeEnvironmentConfig as KokecoreRuntimeEnvironmentConfig } from "@kokecore/config";

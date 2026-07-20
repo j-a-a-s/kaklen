@@ -51,9 +51,6 @@ importers:
       '@kokecore/calendar':
         specifier: link:../../../kokecore/packages/calendar
         version: link:../../../kokecore/packages/calendar
-      '@kokecore/config':
-        specifier: link:../../../kokecore/packages/config
-        version: link:../../../kokecore/packages/config
       '@kokecore/errors':
         specifier: link:../../../kokecore/packages/errors
         version: link:../../../kokecore/packages/errors
@@ -252,8 +249,8 @@ importers:
   packages/config:
     dependencies:
       '@kokecore/config':
-        specifier: link:../../../kokecore/packages/config
-        version: link:../../../kokecore/packages/config
+        specifier: file:../../vendor/kokecore/config/kokecore-config-0.2.0.tgz
+        version: file:vendor/kokecore/config/kokecore-config-0.2.0.tgz
     devDependencies:
       typescript:
         specifier: ^5.8.3
@@ -1229,6 +1226,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@kokecore/config@file:vendor/kokecore/config/kokecore-config-0.2.0.tgz':
+    resolution: {integrity: sha512-oyrxddTw14gETN9wxGbjtUfKFop9wTpWRGnq7/yTNF60J4OnLIGRGeUdwlM7PmyTOSAyl55fRURONoxex6V7zg==, tarball: file:vendor/kokecore/config/kokecore-config-0.2.0.tgz}
+    version: 0.2.0
+    engines: {node: '>=22 <25', pnpm: '>=8 <10'}
 
   '@listr2/prompt-adapter-inquirer@3.0.1':
     resolution: {integrity: sha512-3XFmGwm3u6ioREG+ynAQB7FoxfajgQnMhIu8wC5eo/Lsih4aKDg0VuIMGaOsYn7hJSJagSeaD4K8yfpkEoDEmA==}
@@ -6379,6 +6381,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@kokecore/config@file:vendor/kokecore/config/kokecore-config-0.2.0.tgz': {}
 
   '@listr2/prompt-adapter-inquirer@3.0.1(@inquirer/prompts@7.8.2(@types/node@22.20.1))(@types/node@22.20.1)(listr2@9.0.1)':
     dependencies:
