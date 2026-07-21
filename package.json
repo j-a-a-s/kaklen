@@ -66,7 +66,6 @@
     "verify:full-local": "node scripts/verify-full-local.mjs",
     "mail:verify": "node scripts/run-mail-verify.mjs",
     "security:scan": "node scripts/scan-secrets.mjs",
-    "config:rollback:verify": "node scripts/verify-config-rollback.mjs",
     "release:check": "node scripts/quality-pipeline.mjs release:check",
     "release:check:strict": "node scripts/quality-pipeline.mjs release:check:strict",
     "dependency:audit": "node scripts/dependency-audit.mjs",
