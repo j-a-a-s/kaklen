@@ -42,6 +42,7 @@ const requiredCiControls = [
   "e2e",
   "accessibility",
   "docker-api",
+  "docker-web",
   "scorecard"
 ];
 
@@ -154,7 +155,8 @@ test("check is the fast service-free workspace profile", () => {
     "build-pt-BR",
     "mutation-critical",
     "external-readiness",
-    "docker-api"
+    "docker-api",
+    "docker-web"
   ]) {
     assert.equal(keys.includes(excluded), false, excluded);
   }
@@ -169,6 +171,13 @@ test("quality gate does not invoke release check", () => {
 test("CI profile contains every required canonical control", () => {
   const keys = new Set(resolveProfile("quality:gate:ci").tasks.map((task) => task.key));
   for (const key of requiredCiControls) assert.equal(keys.has(key), true, key);
+});
+
+test("coverage mode invalidates and restores the cached test artifact", () => {
+  const turbo = JSON.parse(readFileSync("turbo.json", "utf8"));
+  assert.ok(turbo.tasks["@kaklen/api#test"].env.includes("API_TEST_WITH_COVERAGE"));
+  assert.ok(turbo.tasks["@kaklen/api#test"].outputs.includes("coverage/**"));
+  assert.deepEqual(turbo.tasks.test.outputs, []);
 });
 
 test("failure artifacts redact database URLs and credential values", async () => {

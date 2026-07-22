@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-07-22T05:07:04Z",
+  "kaklen": {
+    "commit": "bf17b37eb534ee4e48621df52368fb78ec03ae28",
+    "submoduleCommit": "b0025e737d94a1dae4be2f8f71dcdcfea72c695f",
+    "cleanClone": "PASS",
+    "frozenInstall": "PASS",
+    "prismaGenerate": "PASS",
+    "migrations": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "tests": "PASS",
+    "qualityGate": "PASS",
+    "apiBuild": "PASS",
+    "webBuildEs": "PASS",
+    "webBuildEn": "PASS",
+    "webBuildPtBr": "PASS",
+    "dockerApi": "PASS",
+    "dockerWeb": "PASS"
+  },
+  "kokecore": {
+    "commit": "96b7632e3affb4138773cc95b9f7b42a9d5365a7",
+    "cleanClone": "PASS",
+    "frozenInstall": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "tests": "PASS",
+    "build": "PASS",
+    "package": "PASS",
+    "packedConsumer": "PASS",
+    "deepImportRejection": "PASS",
+    "securityScan": "PASS"
+  },
+  "openFindings": [],
+  "p0Open": 0,
+  "p1Open": 0,
+  "result": "PASS"
+}

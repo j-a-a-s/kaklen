@@ -11,7 +11,8 @@ apps/web/public/runtime-config.json
 coverage
 playwright-report
 test-results
-artifacts
+artifacts/*
+!artifacts/final-hardening-validation.json
 .artifacts/
 *.log
 *.tsbuildinfo

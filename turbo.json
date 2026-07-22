@@ -24,6 +24,11 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "@kaklen/api#test": {
+      "dependsOn": ["^build"],
+      "env": ["API_TEST_WITH_COVERAGE"],
+      "outputs": ["coverage/**"]
+    },
     "test:unit": {
       "dependsOn": ["^build"],
       "outputs": []

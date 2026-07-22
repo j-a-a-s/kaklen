@@ -63,7 +63,12 @@ export function collectTechnicalScorecard({ root = process.cwd(), env = process.
 
   const productionCriteria = [
     criterion("database", "Database replay and demo dataset", taskPassed("migration-verification") && taskPassed("demo-verify"), "quality gate"),
-    criterion("runtime", "Production API and container build", taskPassed("api-build-verification") && taskPassed("docker-api"), "quality gate"),
+    criterion(
+      "runtime",
+      "Production API and web container builds",
+      taskPassed("api-build-verification") && taskPassed("docker-api") && taskPassed("docker-web"),
+      "quality gate"
+    ),
     criterion("localized-web", "Localized web delivery", i18nPassed, "artifacts/i18n-server.json"),
     criterion("critical-workflow", "Critical browser workflow", e2ePassed && accessibilityPassed, "artifacts/e2e-result.json")
   ];
