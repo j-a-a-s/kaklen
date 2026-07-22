@@ -12,10 +12,11 @@ const mutants = [
   },
   {
     name: "Quotation percentage discounts above 100% are rejected",
-    file: "apps/api/src/quotations/quotations.service.ts",
-    find: "discountType === QuotationDiscountType.PERCENTAGE && discountValue.gt(100)",
-    replace: "discountType === QuotationDiscountType.PERCENTAGE && discountValue.gt(1000)",
-    specs: ["quotations.service.spec.ts"]
+    file: "packages/shared/src/quotation-money.ts",
+    find: "assertBetween(discountValue, 0n, PERCENT_DENOMINATOR, `lines[${index}].discountValue`);",
+    replace: "assertBetween(discountValue, 0n, PERCENT_DENOMINATOR * 10n, `lines[${index}].discountValue`);",
+    workspace: "@kaklen/shared",
+    specs: ["quotation-money.test.mjs"]
   },
   {
     name: "Event dates must end strictly after start",
@@ -67,7 +68,7 @@ try {
     }
 
     writeFileSync(mutant.file, original.replace(mutant.find, mutant.replace));
-    const result = await runFocusedTests(mutant.specs);
+    const result = await runFocusedTests(mutant.workspace ?? "@kaklen/api", mutant.specs);
     writeFileSync(mutant.file, original);
 
     if (result.ok) {
@@ -95,9 +96,9 @@ function restoreAll() {
   }
 }
 
-function runFocusedTests(specs) {
+function runFocusedTests(workspace, specs) {
   return new Promise((resolveRun) => {
-    const child = spawn("pnpm", ["--filter", "@kaklen/api", "test", "--", ...specs], {
+    const child = spawn("pnpm", ["--filter", workspace, "test", "--", ...specs], {
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
       env: process.env
