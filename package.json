@@ -81,7 +81,7 @@
     "@prisma/client": "^6.11.1"
   },
   "devDependencies": {
-    "@angular/compiler": "^20.0.5",
+    "@angular/compiler": "^22.0.7",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@typescript-eslint/eslint-plugin": "^8.64.0",
