@@ -20,7 +20,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@kokecore/config": "link:../../../kokecore/packages/config"
+    "@kokecore/config": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

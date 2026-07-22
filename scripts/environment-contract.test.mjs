@@ -31,6 +31,7 @@ test("discovery covers code, bracket access, package scripts, workflows, and Doc
   write(root, "package.json", JSON.stringify({ scripts: { start: "PACKAGE_VALUE=1 node app" } }));
   write(root, ".github/workflows/check.yml", "env:\n  WORKFLOW_VALUE: yes\n");
   write(root, "Dockerfile", "ENV DOCKER_VALUE=enabled\n");
+  write(root, "vendor/kokecore/script.mjs", ["process", ".env", ".VENDORED_ONLY;\n"].join(""));
 
   const result = discoverEnvironmentVariables(root);
   assert.deepEqual(

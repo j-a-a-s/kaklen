@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "vendor/kokecore/packages/*"
 
 onlyBuiltDependencies:
   - "@parcel/watcher"

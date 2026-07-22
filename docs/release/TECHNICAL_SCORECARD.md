@@ -7,10 +7,10 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 
 | Metric | Current value |
 | --- | ---: |
-| Statements coverage | 96.8% |
-| Branches coverage | 86.3% |
+| Statements coverage | 96.6% |
+| Branches coverage | 85.7% |
 | Functions coverage | 94.7% |
-| Lines coverage | 97.2% |
+| Lines coverage | 97.0% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
 | Prisma migrations | 18 |

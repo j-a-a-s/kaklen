@@ -13,13 +13,17 @@ ejecutan desde la raíz del repositorio.
 ## Instalación
 
 ```bash
-git clone git@github.com:j-a-a-s/kaklen.git
+git clone --recurse-submodules git@github.com:j-a-a-s/kaklen.git
 cd kaklen
 cp .env.example .env
 pnpm install
 pnpm run setup
 pnpm start
 ```
+
+Si el repositorio ya existía antes de incorporar KOKE CORE, ejecuta una vez
+`git submodule update --init --recursive`. El gitlink versionado fija el commit
+permitido; una actualización del submódulo requiere su propia revisión.
 
 `pnpm run setup` valida una conexión real a PostgreSQL, genera Prisma Client,
 aplica migraciones y verifica las tablas. No modifica `.env` automáticamente.

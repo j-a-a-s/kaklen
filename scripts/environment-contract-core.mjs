@@ -18,7 +18,8 @@ const IGNORED_DIRECTORIES = new Set([
   "out-tsc",
   "playwright-report",
   "reports",
-  "test-results"
+  "test-results",
+  "vendor"
 ]);
 const CODE_EXTENSIONS = new Set([".cjs", ".js", ".mjs", ".ts"]);
 const WORKFLOW_EXTENSIONS = new Set([".yaml", ".yml"]);

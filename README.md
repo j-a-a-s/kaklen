@@ -15,7 +15,7 @@ Angular 20, NestJS 11, Prisma, PostgreSQL y Turborepo.
 ## Inicio rápido
 
 ```bash
-git clone git@github.com:j-a-a-s/kaklen.git
+git clone --recurse-submodules git@github.com:j-a-a-s/kaklen.git
 cd kaklen
 cp .env.example .env
 pnpm install
@@ -62,10 +62,10 @@ GitHub Actions. Los perfiles y artefactos están descritos en
 <!-- scorecard-summary:start -->
 | Metric | Current value |
 | --- | ---: |
-| Statements | 96.8% |
-| Branches | 86.3% |
+| Statements | 96.6% |
+| Branches | 85.7% |
 | Functions | 94.7% |
-| Lines | 97.2% |
+| Lines | 97.0% |
 | Local Quality | 10/10 |
 | Production Readiness local | 4/4 |
 <!-- scorecard-summary:end -->

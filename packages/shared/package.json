@@ -30,7 +30,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@kokecore/validation": "link:../../../kokecore/packages/validation"
+    "@kokecore/validation": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

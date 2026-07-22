@@ -17,6 +17,14 @@ COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/shared/package.json packages/shared/package.json
+COPY vendor/kokecore/packages/auth/package.json vendor/kokecore/packages/auth/package.json
+COPY vendor/kokecore/packages/calendar/package.json vendor/kokecore/packages/calendar/package.json
+COPY vendor/kokecore/packages/config/package.json vendor/kokecore/packages/config/package.json
+COPY vendor/kokecore/packages/errors/package.json vendor/kokecore/packages/errors/package.json
+COPY vendor/kokecore/packages/logging/package.json vendor/kokecore/packages/logging/package.json
+COPY vendor/kokecore/packages/rbac/package.json vendor/kokecore/packages/rbac/package.json
+COPY vendor/kokecore/packages/storage/package.json vendor/kokecore/packages/storage/package.json
+COPY vendor/kokecore/packages/validation/package.json vendor/kokecore/packages/validation/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
@@ -24,6 +32,8 @@ COPY apps apps
 COPY packages packages
 COPY prisma prisma
 COPY scripts scripts
+COPY vendor/kokecore/packages vendor/kokecore/packages
+COPY vendor/kokecore/tsconfig.base.json vendor/kokecore/tsconfig.base.json
 RUN pnpm prisma:generate
 RUN pnpm build
 RUN CI=true pnpm prune --prod
@@ -51,6 +61,22 @@ COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/package.json ./pa
 COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=kaklen:kaklen /app/packages/shared/runtime ./packages/shared/runtime
 COPY --from=builder --chown=kaklen:kaklen /app/prisma ./prisma
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/auth/package.json ./vendor/kokecore/packages/auth/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/auth/dist ./vendor/kokecore/packages/auth/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/calendar/package.json ./vendor/kokecore/packages/calendar/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/calendar/dist ./vendor/kokecore/packages/calendar/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/config/package.json ./vendor/kokecore/packages/config/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/config/dist ./vendor/kokecore/packages/config/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/errors/package.json ./vendor/kokecore/packages/errors/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/errors/dist ./vendor/kokecore/packages/errors/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/logging/package.json ./vendor/kokecore/packages/logging/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/logging/dist ./vendor/kokecore/packages/logging/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/rbac/package.json ./vendor/kokecore/packages/rbac/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/rbac/dist ./vendor/kokecore/packages/rbac/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/storage/package.json ./vendor/kokecore/packages/storage/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/storage/dist ./vendor/kokecore/packages/storage/dist
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/validation/package.json ./vendor/kokecore/packages/validation/package.json
+COPY --from=builder --chown=kaklen:kaklen /app/vendor/kokecore/packages/validation/dist ./vendor/kokecore/packages/validation/dist
 
 USER kaklen
 EXPOSE 3000
