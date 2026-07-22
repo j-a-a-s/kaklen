@@ -33,6 +33,7 @@ test("discovery covers code, bracket access, package scripts, workflows, and Doc
   write(root, "Dockerfile", "ENV DOCKER_VALUE=enabled\n");
   write(root, "vendor/kokecore/script.mjs", ["process", ".env", ".VENDORED_ONLY;\n"].join(""));
   write(root, ".artifacts/restore.sh", "LOCAL_BACKUP_ONLY=value\n");
+  write(root, "infra/staging/.terraform/provider.mjs", ["process", ".env", ".TERRAFORM_BINARY_ONLY;\n"].join(""));
 
   const result = discoverEnvironmentVariables(root);
   assert.deepEqual(

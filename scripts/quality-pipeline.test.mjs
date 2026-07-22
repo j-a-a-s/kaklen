@@ -173,6 +173,14 @@ test("CI profile contains every required canonical control", () => {
   for (const key of requiredCiControls) assert.equal(keys.has(key), true, key);
 });
 
+test("Docker controls allow a cold dependency install and localized builds", () => {
+  for (const key of ["docker-api", "docker-web"]) {
+    const task = QUALITY_TASKS.find((candidate) => candidate.key === key);
+    assert.ok(task, key);
+    assert.ok(task.timeout >= 900_000, `${key} must allow at least 15 minutes`);
+  }
+});
+
 test("coverage mode invalidates and restores the cached test artifact", () => {
   const turbo = JSON.parse(readFileSync("turbo.json", "utf8"));
   assert.ok(turbo.tasks["@kaklen/api#test"].env.includes("API_TEST_WITH_COVERAGE"));
