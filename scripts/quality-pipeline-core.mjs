@@ -29,7 +29,7 @@ export const QUALITY_TASKS = Object.freeze([
   defineTask("db-money", "CLP money precision", "pnpm", ["db:verify:money"], ["demo-seed"], BOTH, 120_000),
   defineTask("forms-audit", "Form standardization", "pnpm", ["forms:audit"], [], BOTH, 90_000, ["artifacts/forms-audit.json"]),
   defineTask("pdf-money-parity", "PDF money parity", "pnpm", ["pdf:verify-money"], [], BOTH, 60_000),
-  defineTask("lint", "Workspace lint", "pnpm", ["lint"], ["forms-audit", "pdf-money-parity"], BOTH, 180_000),
+  defineTask("lint", "Workspace lint", "pnpm", ["lint"], ["prisma-generate", "forms-audit", "pdf-money-parity"], BOTH, 180_000),
   defineTask("test-unit", "Workspace unit tests", "pnpm", ["test:unit"], ["lint"], BOTH, 360_000),
   defineTask("test", "Workspace tests with API coverage", "pnpm", ["test"], ["lint"], BOTH, 360_000, [], true, {
     API_TEST_WITH_COVERAGE: "true"

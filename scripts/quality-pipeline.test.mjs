@@ -127,6 +127,7 @@ test("check is the fast service-free workspace profile", () => {
     "quality-scan",
     "forms-audit",
     "pdf-money-parity",
+    "prisma-generate",
     "lint",
     "test-unit"
   ]);
