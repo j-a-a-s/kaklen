@@ -52,6 +52,7 @@ export const QUALITY_TASKS = Object.freeze([
     ACCESSIBILITY_REUSE_E2E: "true"
   }),
   defineTask("docker-api", "API Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/api/Dockerfile", "-t", "kaklen-api:quality", "."], ["build"], BOTH, 600_000),
+  defineTask("docker-web", "Web Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/web/Dockerfile", "-t", "kaklen-web:quality", "."], ["build-es", "build-en", "build-pt-BR"], BOTH, 600_000),
   defineTask("mutation-critical", "Critical mutation tests", "pnpm", ["test:mutation:critical"], ["coverage"], BOTH, 180_000),
   defineTask("external-readiness", "External production readiness", "node", ["scripts/verify-external-readiness.mjs"], [], BOTH, 30_000),
   defineTask(
@@ -59,7 +60,7 @@ export const QUALITY_TASKS = Object.freeze([
     "Technical scorecard",
     "pnpm",
     ["scorecard:verify"],
-    ["coverage", "forms-audit", "migration-verification", "sast", "i18n-server", "accessibility", "docker-api"],
+    ["coverage", "forms-audit", "migration-verification", "sast", "i18n-server", "accessibility", "docker-api", "docker-web"],
     BOTH,
     60_000,
     ["artifacts/technical-scorecard.json", "docs/release/TECHNICAL_SCORECARD.md"]
@@ -70,7 +71,7 @@ const COMMON_PROFILE = [
   "commit-message", "environment-contract", "docs-contract", "governance", "architecture", "quality-scan", "secret-scan", "sast", "sbom", "dependency-audit",
   "prisma-generate", "db-migrate", "db-validate", "migration-verification", "demo-seed", "demo-verify", "db-money",
   "forms-audit", "pdf-money-parity", "lint", "test", "coverage", "build", "api-build-verification",
-  "build-es", "build-en", "build-pt-BR", "i18n-server", "mail", "e2e", "accessibility", "docker-api", "scorecard"
+  "build-es", "build-en", "build-pt-BR", "i18n-server", "mail", "e2e", "accessibility", "docker-api", "docker-web", "scorecard"
 ];
 
 export const QUALITY_PROFILES = Object.freeze({

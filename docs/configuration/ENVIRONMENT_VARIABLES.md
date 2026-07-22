@@ -9,7 +9,7 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `API_PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, scripts, workflow | Fallback API port used by runtime and local orchestration. |
 | `APP_PUBLIC_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Public web origin used to build verification, recovery and portal links. |
-| `APP_VERSION` | runtime | development, test, production, ci | production | non-secret | `0.1.0` | api, scripts | Application version exposed by runtime config and health endpoints. |
+| `APP_VERSION` | runtime | development, test, production, ci | production | non-secret | `0.1.0` | api, docker, scripts | Application version exposed by runtime config and health endpoints. |
 | `APP_WEB_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api | Primary web origin used by organization invitations. |
 | `AUTH_ALLOWED_ORIGINS` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Comma-separated origin allow-list for refresh and logout requests. |
 | `AUTH_EMAIL_ENABLED` | runtime | development, test, production, ci | no | non-secret | `true` | api, workflow | Enables transactional authentication email delivery. |
@@ -17,9 +17,9 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `AWS_REGION` | runtime | development, test, production, ci | production | non-secret | `us-east-1` | api, workflow | AWS region used by the S3 client. |
 | `AWS_S3_BUCKET` | runtime | development, test, production, ci | production | non-secret | `kaklen-local` | api, workflow | S3 bucket that stores application objects. |
 | `AWS_S3_ENDPOINT` | runtime | development, test, production, ci | no | non-secret | none | api | Optional S3-compatible endpoint override. |
-| `BUILD_TIME` | runtime | development, test, production, ci | no | non-secret | none | api, scripts | ISO timestamp embedded in runtime metadata. |
+| `BUILD_TIME` | runtime | development, test, production, ci | no | non-secret | none | api, docker, scripts | ISO timestamp embedded in runtime metadata. |
 | `COMMERCIAL_EMAIL_ENABLED` | runtime | development, test, production, ci | no | non-secret | `false` | api, scripts, workflow | Enables commercial email capabilities independently from auth email. |
-| `COMMIT_SHA` | runtime | development, test, production, ci | production | non-secret | `local` | api, scripts, workflow | Source revision exposed by runtime metadata. |
+| `COMMIT_SHA` | runtime | development, test, production, ci | production | non-secret | `local` | api, docker, scripts, workflow | Source revision exposed by runtime metadata. |
 | `COOKIE_SECURE` | runtime | development, test, production, ci | production | non-secret | `false` | api, workflow | Requires HTTPS-only authentication cookies. |
 | `CORS_ALLOWED_ORIGINS` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4200` | api, scripts, workflow | Comma-separated CORS origin allow-list. |
 | `DATABASE_SSL` | runtime | development, test, production, ci | production | non-secret | `false` | api, scripts, workflow | Enforces TLS for PostgreSQL and requires sslmode=require in production. |
@@ -45,14 +45,16 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `PAYMENT_GATEWAY` | runtime | development, test, production, ci | no | non-secret | `sandbox` | api, workflow | Configured payment gateway mode. |
 | `PAYMENT_SANDBOX_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | Cryptographic secret for sandbox payment callbacks. |
 | `PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, docker, scripts, workflow | Primary API listening port. |
-| `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | scripts | API base URL written into public web runtime config. |
-| `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, scripts | Public environment label exposed by web and health metadata. |
+| `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | docker, scripts | API base URL written into public web runtime config. |
+| `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, docker, scripts | Public environment label exposed by web and health metadata. |
 | `RATE_LIMIT_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for distributed rate-limit identifiers. |
 | `REDIS_URL` | runtime | development, test, production, ci | production | secret | none | api, workflow | Redis connection URL for distributed limits and BullMQ; production requires rediss:// on a non-loopback managed endpoint. |
 | `SESSION_IDLE_SECONDS` | runtime | development, test, production, ci | no | non-secret | `300` | scripts | Frontend idle-session timeout in seconds. |
 | `SESSION_WARNING_SECONDS` | runtime | development, test, production, ci | no | non-secret | `240` | scripts | Frontend idle warning threshold in seconds. |
 | `SWAGGER_ENABLED` | runtime | development, test, production, ci | no | non-secret | `true` | api, workflow | Enables Swagger outside production; production always disables it. |
 | `TRUST_PROXY` | runtime | development, test, production, ci | no | non-secret | `false` | api | Enables trusted proxy handling for the deployed topology. |
+| `WEB_DIST_ROOT` | runtime | development, test, production, ci | no | non-secret | `apps/web/dist/web` | docker, scripts | Localized Angular build root served by web runtime tooling. |
+| `WEB_PORT` | runtime | development, test, production, ci | no | non-secret | `4200` | docker, scripts, workflow | Localized frontend runtime port. |
 | `WHATSAPP_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for WhatsApp operational identifiers. |
 | `WHATSAPP_MODE` | runtime | development, test, production, ci | no | non-secret | `manual` | api, workflow | Selects manual or provider-backed WhatsApp delivery. |
 
@@ -70,8 +72,6 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `POSTGRES_USER` | development | development, test, ci | no | non-secret | `kaklen` | docker, scripts, workflow | User created by local and CI PostgreSQL containers. |
 | `REDIS_PORT` | development | development, test, ci | no | non-secret | `6379` | api, docker, scripts, workflow | Published Redis port for local and CI services. |
 | `SERVICES` | development | development, test, ci | no | non-secret | `s3` | docker | LocalStack service allow-list. |
-| `WEB_DIST_ROOT` | development | development, test, ci | no | non-secret | `apps/web/dist/web` | scripts | Localized Angular build root served by development tooling. |
-| `WEB_PORT` | development | development, test, ci | no | non-secret | `4200` | scripts, workflow | Localized frontend development port. |
 
 ## Testing
 
