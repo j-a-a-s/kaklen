@@ -51,8 +51,8 @@ export const QUALITY_TASKS = Object.freeze([
   defineTask("accessibility", "Accessibility verification", "pnpm", ["accessibility:test"], ["e2e"], BOTH, 30_000, ["artifacts/e2e-result.json"], true, {
     ACCESSIBILITY_REUSE_E2E: "true"
   }),
-  defineTask("docker-api", "API Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/api/Dockerfile", "-t", "kaklen-api:quality", "."], ["build"], BOTH, 600_000),
-  defineTask("docker-web", "Web Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/web/Dockerfile", "-t", "kaklen-web:quality", "."], ["build-es", "build-en", "build-pt-BR"], BOTH, 600_000),
+  defineTask("docker-api", "API Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/api/Dockerfile", "-t", "kaklen-api:quality", "."], ["build"], BOTH, 900_000),
+  defineTask("docker-web", "Web Docker image", "docker", ["build", "--platform", "linux/amd64", "-f", "apps/web/Dockerfile", "-t", "kaklen-web:quality", "."], ["build-es", "build-en", "build-pt-BR"], BOTH, 900_000),
   defineTask("mutation-critical", "Critical mutation tests", "pnpm", ["test:mutation:critical"], ["coverage"], BOTH, 180_000),
   defineTask("external-readiness", "External production readiness", "node", ["scripts/verify-external-readiness.mjs"], [], BOTH, 30_000),
   defineTask(

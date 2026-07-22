@@ -80,6 +80,7 @@ Consulta la evidencia y los criterios en el
 - [Entorno local](docs/development/LOCAL_ENVIRONMENT.md)
 - [Solución de problemas](docs/development/TROUBLESHOOTING.md)
 - [Variables de entorno](docs/configuration/ENVIRONMENT_VARIABLES.md)
+- [Infraestructura AWS staging](infra/README.md)
 - [Gobernanza del proyecto](docs/governance/PROJECT_GOVERNANCE.md)
 - [Propiedad y contribuciones](docs/governance/OWNERSHIP_AND_CONTRIBUTIONS.md)
 - [Gobierno de dependencias](docs/governance/DEPENDENCY_UPDATES.md)

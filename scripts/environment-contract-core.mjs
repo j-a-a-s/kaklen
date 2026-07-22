@@ -11,6 +11,7 @@ const CONSUMERS = new Set(["api", "web", "scripts", "workflow", "docker"]);
 const IGNORED_DIRECTORIES = new Set([
   ".artifacts",
   ".git",
+  ".terraform",
   ".turbo",
   "artifacts",
   "coverage",

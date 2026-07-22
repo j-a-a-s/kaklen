@@ -4,6 +4,8 @@
 
 AWS staging real is not validated in this environment. Therefore AWS cannot score 10/10 and `pnpm release:check:strict` must remain blocked unless `AWS_STAGING_VALIDATED=true` is set by a real staging run with evidence.
 
+Sprint 4A provides a credential-free Terraform plan and static security evidence. This validates configuration, not resource creation or external service behavior. See the [Terraform staging runbook](TERRAFORM_STAGING.md).
+
 ## Required Infrastructure
 
 - VPC with public/private subnets.
@@ -17,6 +19,8 @@ AWS staging real is not validated in this environment. Therefore AWS cannot scor
 - Secrets Manager entries for database, JWT and refresh secrets.
 - CloudWatch logs and alarms.
 - Migration job or documented deployment step.
+- WAF on the frontend and API entry points.
+- Private VPC endpoints for ECR, Logs, Secrets Manager and S3.
 
 ## Validation Checklist
 

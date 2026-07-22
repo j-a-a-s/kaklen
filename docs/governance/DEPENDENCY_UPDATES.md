@@ -1,18 +1,18 @@
 # Actualizaciones de dependencias
 
-Dependabot mantiene pnpm, GitHub Actions e imágenes Docker sin modificar la
-política de calidad del repositorio.
+Dependabot mantiene pnpm, GitHub Actions, imágenes Docker y el provider
+Terraform sin modificar la política de calidad del repositorio.
 
 ## Política automática
 
 - Frecuencia semanal, los lunes a las `09:00` en `America/Santiago`.
 - Branch objetivo: `main`.
-- Límite de pull requests abiertos: cinco para pnpm, tres para GitHub Actions y
-  tres para imágenes Docker.
+- Límite de pull requests abiertos: cinco para pnpm; tres para GitHub Actions,
+  Docker y Terraform.
 - Actualizaciones npm minor y patch agrupadas por dependencias de runtime o de
   desarrollo.
 - Actualizaciones minor y patch de GitHub Actions e imágenes Docker agrupadas
-  por ecosistema.
+  por ecosistema. Terraform actualiza el provider fijado desde el root staging.
 - Actualizaciones major separadas en todos los ecosistemas para conservar una
   revisión explícita.
 - Sin auto-merge.

@@ -120,13 +120,14 @@ test("onboarding documentation exposes one canonical path", () => {
 test("Dependabot groups compatible updates and keeps majors separate", () => {
   const dependabot = readFileSync(new URL(".github/dependabot.yml", repositoryRoot), "utf8");
   const policy = readFileSync(new URL("docs/governance/DEPENDENCY_UPDATES.md", repositoryRoot), "utf8");
-  assert.equal((dependabot.match(/interval: weekly/g) ?? []).length, 3);
-  assert.equal((dependabot.match(/timezone: America\/Santiago/g) ?? []).length, 3);
-  assert.equal((dependabot.match(/target-branch: main/g) ?? []).length, 3);
+  assert.equal((dependabot.match(/interval: weekly/g) ?? []).length, 4);
+  assert.equal((dependabot.match(/timezone: America\/Santiago/g) ?? []).length, 4);
+  assert.equal((dependabot.match(/target-branch: main/g) ?? []).length, 4);
   assert.deepEqual(
     [...dependabot.matchAll(/open-pull-requests-limit: (\d+)/g)].map((match) => Number(match[1])),
-    [5, 3, 3]
+    [5, 3, 3, 3]
   );
+  assert.match(dependabot, /package-ecosystem: terraform\s*\n\s*directory: \/infra\/environments\/staging/);
   for (const group of [
     "runtime-minor-patch",
     "development-minor-patch",
@@ -140,7 +141,7 @@ test("Dependabot groups compatible updates and keeps majors separate", () => {
   assert.doesNotMatch(dependabot, /update-types:\s*\n\s*- major/);
   assert.doesNotMatch(dependabot, /auto-?merge|automerge/i);
   assert.match(policy, /Frecuencia semanal/);
-  assert.match(policy, /cinco para pnpm, tres para GitHub Actions/);
+  assert.match(policy, /cinco para pnpm; tres para GitHub Actions,\s+Docker y Terraform/);
   assert.match(policy, /major separadas en todos los ecosistemas/);
   assert.match(policy, /Sin auto-merge/);
 });
