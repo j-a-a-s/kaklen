@@ -12,6 +12,7 @@ coverage
 playwright-report
 test-results
 artifacts
+.artifacts/
 *.log
 *.tsbuildinfo
 .DS_Store
