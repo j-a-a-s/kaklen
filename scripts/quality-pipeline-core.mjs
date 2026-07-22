@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { readDatabaseUrl } from "./local-db-utils.mjs";
 
 const BOTH = Object.freeze(["local", "ci"]);
 
@@ -145,6 +146,7 @@ export function validateTaskGraph(tasks = QUALITY_TASKS, profiles = QUALITY_PROF
 
 export async function runQualityPipeline(options) {
   const profile = resolveProfile(options.profile, options.profiles, options.tasks);
+  const executionEnv = resolveQualityEnvironment(profile.environment, options.env ?? process.env);
   const execute = options.execute ?? executeTask;
   const now = options.now ?? (() => Date.now());
   const isoNow = options.isoNow ?? (() => new Date().toISOString());
@@ -173,7 +175,7 @@ export async function runQualityPipeline(options) {
     persist();
     options.onTaskStart?.(task);
     const taskStarted = now();
-    const result = await execute(task, { ...process.env, ...task.env });
+    const result = await execute(task, { ...executionEnv, ...task.env });
     record.durationMs = Math.max(0, now() - taskStarted);
     record.exitCode = result.exitCode ?? null;
     record.signal = result.signal ?? null;
@@ -197,6 +199,14 @@ export async function runQualityPipeline(options) {
   artifact.durationMs = Math.max(0, now() - startedMs);
   persist();
   return { artifact, failure: null };
+}
+
+export function resolveQualityEnvironment(profileEnvironment, env = {}) {
+  const resolved = { ...env };
+  if (profileEnvironment === "local" && !resolved.DATABASE_URL) {
+    resolved.DATABASE_URL = readDatabaseUrl(resolved);
+  }
+  return resolved;
 }
 
 export function defineTask(key, label, command, args, dependencies, environments, timeout, artifacts = [], required = true, env = {}) {

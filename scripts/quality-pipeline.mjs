@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { runQualityPipeline } from "./quality-pipeline-core.mjs";
+import { loadLocalEnv } from "./local-db-utils.mjs";
+import { resolveProfile, runQualityPipeline } from "./quality-pipeline-core.mjs";
 
 const profile = process.argv[2] ?? "quality:gate";
+const profileDefinition = resolveProfile(profile);
 const artifactName = profile === "check" ? "check" : "quality-gate";
 const logPath = resolve(`artifacts/${artifactName}.log`);
 mkdirSync(dirname(logPath), { recursive: true });
@@ -12,6 +14,7 @@ console.log(`KAKLEN QUALITY PIPELINE\nProfile: ${profile}`);
 
 const result = await runQualityPipeline({
   profile,
+  env: profileDefinition.environment === "local" ? loadLocalEnv() : process.env,
   artifactPath: `artifacts/${artifactName}.json`,
   onTaskStart: (task) => {
     appendFileSync(logPath, `start ${task.key}\n`);

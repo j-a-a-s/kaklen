@@ -8,6 +8,7 @@ import {
   QUALITY_PROFILES,
   QUALITY_TASKS,
   resolveProfile,
+  resolveQualityEnvironment,
   runQualityPipeline,
   validateTaskGraph
 } from "./quality-pipeline-core.mjs";
@@ -115,6 +116,18 @@ test("profiles select local and CI environments without nesting profiles", () =>
     assert.equal(task.args.some((argument) => Object.hasOwn(QUALITY_PROFILES, argument)), false);
   }
   validateTaskGraph();
+});
+
+test("local profiles receive the documented database default while CI fails closed", () => {
+  assert.equal(
+    resolveQualityEnvironment("local", {}).DATABASE_URL,
+    "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public"
+  );
+  assert.equal(resolveQualityEnvironment("ci", {}).DATABASE_URL, undefined);
+  assert.equal(
+    resolveQualityEnvironment("local", { DATABASE_URL: "postgresql://custom/database" }).DATABASE_URL,
+    "postgresql://custom/database"
+  );
 });
 
 test("check is the fast service-free workspace profile", () => {
