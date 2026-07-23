@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { infrastructureCommands, REPO_ROOT, terraformDirectories } from "./infra-runner-core.mjs";
+import {
+  InfrastructureCommandError,
+  infrastructureCommands,
+  REPO_ROOT,
+  runInfrastructureSteps,
+  terraformDirectories,
+} from "./infra-runner-core.mjs";
 import { evaluateSecuritySources, verifyInfrastructureSecurity } from "./verify-infrastructure-security.mjs";
 import { verifyInfrastructureEnvironmentContract } from "./verify-infrastructure-environment-contract.mjs";
 import { evaluateTrivyReport } from "./evaluate-infrastructure-trivy.mjs";
@@ -14,6 +21,50 @@ test("infrastructure command interface executes real tools", () => {
   assert.ok(infrastructureCommands("security").some((step) => step.command === "trivy"));
   assert.ok(infrastructureCommands("plan:staging").some((step) => step.args.includes("plan")));
   assert.throws(() => infrastructureCommands("deploy"), /Unknown infrastructure command/);
+});
+
+test("infrastructure runner returns an exit code and removes temporary plans", async () => {
+  const root = mkdtempSync(resolve(tmpdir(), "kaklen-infra-runner-"));
+  const planPath = resolve(root, "staging.tfplan");
+  writeFileSync(planPath, "temporary plan");
+
+  const result = await runInfrastructureSteps([
+    {
+      args: ["-e", "process.exit(0)"],
+      command: process.execPath,
+      cwd: root,
+      phase: "fixture-success",
+      timeoutMs: 2_000,
+    },
+  ], {
+    action: "plan:staging",
+    root,
+    temporaryFiles: [planPath],
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(existsSync(planPath), false);
+});
+
+test("infrastructure timeout fails and terminates the command", async () => {
+  const root = mkdtempSync(resolve(tmpdir(), "kaklen-infra-timeout-"));
+  await assert.rejects(
+    runInfrastructureSteps([
+      {
+        args: ["-e", 'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)'],
+        command: process.execPath,
+        cwd: root,
+        phase: "fixture-timeout",
+        timeoutMs: 100,
+      },
+    ], { action: "plan:staging", root }),
+    (error) => {
+      assert.ok(error instanceof InfrastructureCommandError);
+      assert.equal(error.exitCode, 124);
+      assert.equal(error.timedOut, true);
+      return true;
+    },
+  );
 });
 
 test("a clean-clone lint generates Prisma Client first", () => {

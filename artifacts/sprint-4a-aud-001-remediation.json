@@ -1,0 +1,125 @@
+{
+  "findingId": "AUD-001",
+  "severity": "P1",
+  "originalMergeCommit": "4dffa9251a929b491b8e2cdd257666e75d73ed88",
+  "rootCause": "The original lifecycle code could wait indefinitely, while Quality Gate service ownership also relied on one shared mutable state file and inferred that an unavailable service was newly created even when Docker Compose reused a pre-existing container.",
+  "affectedCommands": [
+    "pnpm infra:plan:staging",
+    "pnpm quality:gate"
+  ],
+  "before": {
+    "source": "DEVIN_POST_MERGE_AUDIT.md lines 40-51",
+    "terminated": false,
+    "exitCode": null
+  },
+  "after": {
+    "infraPlanTerminated": true,
+    "infraPlanExitCode": 0,
+    "infraPlanDurationMs": 8515,
+    "qualityGateTerminated": true,
+    "qualityGateExitCode": 0,
+    "qualityGateDurationMs": 319646
+  },
+  "runs": {
+    "infraPlan": [
+      {
+        "run": 1,
+        "startedAt": "2026-07-23T04:02:46.137Z",
+        "finishedAt": "2026-07-23T04:02:54.652Z",
+        "durationMs": 8515,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      },
+      {
+        "run": 2,
+        "startedAt": "2026-07-23T04:03:09.961Z",
+        "finishedAt": "2026-07-23T04:03:17.516Z",
+        "durationMs": 7555,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      },
+      {
+        "run": 3,
+        "startedAt": "2026-07-23T04:03:28.316Z",
+        "finishedAt": "2026-07-23T04:03:35.869Z",
+        "durationMs": 7553,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      }
+    ],
+    "qualityGate": [
+      {
+        "run": 1,
+        "startedAt": "2026-07-23T04:28:06.383Z",
+        "finishedAt": "2026-07-23T04:32:58.334Z",
+        "durationMs": 291951,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "orphanContainers": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      },
+      {
+        "run": 2,
+        "startedAt": "2026-07-23T04:33:19.673Z",
+        "finishedAt": "2026-07-23T04:38:33.982Z",
+        "durationMs": 314309,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "orphanContainers": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      },
+      {
+        "run": 3,
+        "startedAt": "2026-07-23T04:39:06.300Z",
+        "finishedAt": "2026-07-23T04:44:25.946Z",
+        "durationMs": 319646,
+        "exitCode": 0,
+        "timedOut": false,
+        "orphanProcesses": 0,
+        "orphanContainers": 0,
+        "dockerUnchanged": true,
+        "portsUnchanged": true
+      }
+    ]
+  },
+  "behavioralTests": {
+    "verifiedAt": "2026-07-23T04:46:09Z",
+    "focusedPassed": 62,
+    "focusedFailed": 0,
+    "focusedSkipped": 1,
+    "qualityServicesPassed": 26,
+    "scriptPassed": 273,
+    "scriptFailed": 0,
+    "scriptSkipped": 1,
+    "detachedGrandchildVerified": false,
+    "detachedGrandchildLimitation": "The current macOS execution context does not expose detached-process inspection; the fixture is skipped instead of claiming coverage.",
+    "postTestOrphanProcesses": 0
+  },
+  "concurrencySafe": true,
+  "activeRunProtected": true,
+  "staleLockRecovery": true,
+  "preexistingContainersPreserved": true,
+  "ownedContainersRemoved": true,
+  "stateSchemaValidated": true,
+  "concurrentRunTestsPassed": 6,
+  "ownershipTestsPassed": 4,
+  "stateValidationTestsPassed": 7,
+  "signalCleanupTestsPassed": 6,
+  "cleanupVerified": true,
+  "orphanProcesses": 0,
+  "orphanContainers": 0,
+  "result": "READY_FOR_DEVIN_REAUDIT"
+}

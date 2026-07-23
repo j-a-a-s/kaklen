@@ -16,7 +16,7 @@ import {
 test("repository environment contract is complete and generated without drift", () => {
   const result = auditEnvironmentContract();
   assert.deepEqual(result.errors, []);
-  assert.equal(result.manifest.variables.length, 88);
+  assert.equal(result.manifest.variables.length, 93);
   assert.equal(result.manifest.variables.filter((item) => item.localExample).length, 11);
   assert.equal(result.manifest.variables.filter((item) => item.productionExample).length, 48);
 });
