@@ -7,6 +7,7 @@ export const CLEAN_DEV_TARGETS = [
   "apps/web/.angular",
   "apps/web/dist",
   "apps/web/out-tsc",
+  "apps/marketing/dist",
   "apps/api/dist",
   "packages/config/dist",
   "packages/shared/dist",

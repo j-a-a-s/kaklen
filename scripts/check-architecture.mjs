@@ -3,7 +3,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, extname, relative, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
-const sourceRoots = ["apps/api/src", "apps/web/src", "packages/config/src", "packages/shared/src", "scripts"];
+const sourceRoots = [
+  "apps/api/src",
+  "apps/marketing",
+  "apps/web/src",
+  "packages/config/src",
+  "packages/shared/src",
+  "scripts"
+];
 const workspaceImports = new Map([
   ["@kaklen/config", "packages/config/src/index.ts"],
   ["@kaklen/shared", "packages/shared/src/index.ts"]
@@ -67,15 +74,28 @@ function resolveImport(fromFile, specifier) {
   if (workspaceImports.has(specifier)) {
     return resolve(workspaceImports.get(specifier));
   }
-  if (!specifier.startsWith(".")) {
+  let base;
+  if (specifier.startsWith("@/") && fromFile.startsWith("apps/marketing/")) {
+    base = resolve("apps/marketing", specifier.slice(2));
+  } else if (specifier.startsWith(".")) {
+    base = resolve(dirname(fromFile), specifier);
+  } else {
     return null;
   }
-  const base = resolve(dirname(fromFile), specifier);
   const candidates = [];
   if (extname(base)) {
     candidates.push(base);
   } else {
-    candidates.push(`${base}.ts`, `${base}.mjs`, `${base}.js`, resolve(base, "index.ts"), resolve(base, "index.mjs"), resolve(base, "index.js"));
+    candidates.push(
+      `${base}.ts`,
+      `${base}.tsx`,
+      `${base}.mjs`,
+      `${base}.js`,
+      resolve(base, "index.ts"),
+      resolve(base, "index.tsx"),
+      resolve(base, "index.mjs"),
+      resolve(base, "index.js")
+    );
   }
   return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }

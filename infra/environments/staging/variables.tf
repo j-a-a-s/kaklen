@@ -204,6 +204,16 @@ variable "app_public_url" {
   }
 }
 
+variable "marketing_public_url" {
+  description = "Public marketing site origin."
+  type        = string
+
+  validation {
+    condition     = can(regex("^https://[^/]+$", var.marketing_public_url))
+    error_message = "marketing_public_url must be an HTTPS origin without a path."
+  }
+}
+
 variable "app_web_url" {
   description = "Primary web origin used by invitations."
   type        = string
@@ -329,6 +339,16 @@ variable "mail_from" {
   description = "Staging transactional email sender."
   type        = string
   default     = "Kaklen <no-reply@example.invalid>"
+}
+
+variable "lead_notification_email" {
+  description = "Internal recipient for new marketing lead notifications."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$", var.lead_notification_email))
+    error_message = "lead_notification_email must be a valid email address."
+  }
 }
 
 variable "smtp_egress_cidrs" {

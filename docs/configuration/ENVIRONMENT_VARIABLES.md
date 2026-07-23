@@ -29,6 +29,7 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `JWT_ACCESS_SECRET` | runtime | development, test, production, ci | production | secret | none | api, scripts, workflow | Cryptographic secret used to sign access tokens. |
 | `JWT_REFRESH_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `604800` | api | Refresh-token lifetime in seconds. |
 | `JWT_REFRESH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, scripts, workflow | Independent cryptographic secret used for refresh tokens. |
+| `LEAD_NOTIFICATION_EMAIL` | runtime | development, test, production, ci | production | non-secret | `leads@kaklen.local` | api | Internal recipient notified whenever the marketing site captures a new lead. |
 | `LOG_LEVEL` | runtime | development, test, production, ci | no | non-secret | `debug` | api, scripts | Structured API logging threshold. |
 | `MAIL_CONNECTION_TIMEOUT_MS` | runtime | development, test, production, ci | no | non-secret | `5000` | api | SMTP connection timeout in milliseconds. |
 | `MAIL_FROM` | runtime | development, test, production, ci | production | non-secret | `Kaklen <no-reply@kaklen.local>` | api, scripts, workflow | Sender identity for application email. |
@@ -39,14 +40,19 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `MAIL_SECURE` | runtime | development, test, production, ci | no | non-secret | `false` | api, scripts, workflow | Enables implicit TLS for SMTP. |
 | `MAIL_SOCKET_TIMEOUT_MS` | runtime | development, test, production, ci | no | non-secret | `10000` | api | SMTP socket timeout in milliseconds. |
 | `MAIL_USER` | runtime | development, test, production, ci | no | non-secret | none | api | Optional SMTP username paired with MAIL_PASSWORD. |
-| `NODE_ENV` | runtime | development, test, production, ci | production | non-secret | `development` | api, docker, scripts, workflow | Node runtime environment selector. |
+| `MARKETING_PORT` | runtime | development, test, production, ci | no | non-secret | `4300` | scripts | Port used by the marketing site's dev and start scripts. |
+| `MARKETING_SITE_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4300` | api | Public origin of the marketing site; used for outbound links in lead notifications. |
+| `NEXT_PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:3000/api` | web | Public API base URL embedded in the marketing build. |
+| `NEXT_PUBLIC_INSTAGRAM_URL` | runtime | development, test, production, ci | no | non-secret | `https://instagram.com/kaklen.cl` | web | Public Instagram profile linked by the marketing site. |
+| `NEXT_PUBLIC_SITE_URL` | runtime | development, test, production, ci | production | non-secret | `http://localhost:4300` | web | Canonical public origin embedded in marketing metadata and JSON-LD. |
+| `NODE_ENV` | runtime | development, test, production, ci | production | non-secret | `development` | api, web, docker, scripts, workflow | Node runtime environment selector. |
 | `ORGANIZATION_INVITATION_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `259200` | api | Organization invitation lifetime in seconds. |
 | `PASSWORD_RESET_EXPIRES_MINUTES` | runtime | development, test, production, ci | no | non-secret | `30` | api, scripts | Password-reset token lifetime in minutes. |
 | `PAYMENT_GATEWAY` | runtime | development, test, production, ci | no | non-secret | `sandbox` | api, workflow | Configured payment gateway mode. |
 | `PAYMENT_SANDBOX_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | Cryptographic secret for sandbox payment callbacks. |
 | `PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, docker, scripts, workflow | Primary API listening port. |
 | `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | docker, scripts | API base URL written into public web runtime config. |
-| `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, docker, scripts | Public environment label exposed by web and health metadata. |
+| `PUBLIC_APP_ENVIRONMENT` | runtime | development, test, production, ci | no | non-secret | `development` | api, web, docker, scripts | Public environment label exposed by web and health metadata. |
 | `RATE_LIMIT_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for distributed rate-limit identifiers. |
 | `REDIS_URL` | runtime | development, test, production, ci | production | secret | none | api, workflow | Redis connection URL for distributed limits and BullMQ; production requires rediss:// on a non-loopback managed endpoint. |
 | `SESSION_IDLE_SECONDS` | runtime | development, test, production, ci | no | non-secret | `300` | scripts | Frontend idle-session timeout in seconds. |

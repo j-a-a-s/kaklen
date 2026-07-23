@@ -88,7 +88,7 @@ test("infrastructure workflow watches every infrastructure control script", () =
 test("AWS environment mapping remains synchronized and protects secret destinations", () => {
   const { result } = verifyInfrastructureEnvironmentContract({ writeArtifact: false });
   assert.equal(result.status, "PASS", result.errors.join("\n"));
-  assert.equal(result.canonicalVariables, 50);
+  assert.equal(result.canonicalVariables, 56);
 });
 
 test("infrastructure structural security invariants pass", () => {

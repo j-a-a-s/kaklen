@@ -109,6 +109,17 @@ async function inspectSchema(connectionString, name) {
       [name]
     );
     const indexes = await client.query("SELECT indexname FROM pg_indexes WHERE schemaname = $1 ORDER BY indexname", [name]);
+    const foreignKeys = await client.query(
+      `SELECT tc.table_name, tc.constraint_name, rc.delete_rule, rc.update_rule
+       FROM information_schema.table_constraints tc
+       JOIN information_schema.referential_constraints rc
+         ON rc.constraint_schema = tc.constraint_schema
+        AND rc.constraint_name = tc.constraint_name
+       WHERE tc.table_schema = $1
+         AND tc.constraint_type = 'FOREIGN KEY'
+       ORDER BY tc.table_name, tc.constraint_name`,
+      [name]
+    );
     const migrations = await client.query(
       `SELECT migration_name, finished_at, rolled_back_at FROM ${quoteIdentifier(name)}."_prisma_migrations" ORDER BY started_at`
     );
@@ -116,6 +127,12 @@ async function inspectSchema(connectionString, name) {
       tables: tables.rows.map((row) => String(row.table_name)),
       columns: columns.rows.map((row) => ({ table: String(row.table_name), column: String(row.column_name) })),
       indexes: indexes.rows.map((row) => String(row.indexname)),
+      foreignKeys: foreignKeys.rows.map((row) => ({
+        table: String(row.table_name),
+        constraint: String(row.constraint_name),
+        deleteRule: String(row.delete_rule),
+        updateRule: String(row.update_rule)
+      })),
       migrations: migrations.rows.map((row) => ({
         name: String(row.migration_name),
         finished: row.finished_at !== null,

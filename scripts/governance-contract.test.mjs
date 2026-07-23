@@ -23,7 +23,7 @@ test("the repository satisfies the complete local governance contract", () => {
   const result = verifyGovernanceContract(ROOT);
 
   assert.deepEqual(result.errors, []);
-  assert.equal(result.packageCount, 5);
+  assert.equal(result.packageCount, 6);
 });
 
 test("the proprietary license must match byte for byte", () => {

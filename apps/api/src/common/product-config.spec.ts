@@ -23,7 +23,9 @@ describe("production runtime configuration", () => {
     "WHATSAPP_HASH_SECRET",
     "PAYMENT_SANDBOX_SECRET",
     "RATE_LIMIT_HASH_SECRET",
-    "REDIS_URL"
+    "REDIS_URL",
+    "LEAD_NOTIFICATION_EMAIL",
+    "MARKETING_SITE_URL"
   ])("rejects a missing production value for %s", (key) => {
     expect(() =>
       validateRuntimeEnvironment(productionEnvironment({ [key]: undefined }))
@@ -95,7 +97,8 @@ describe("production runtime configuration", () => {
     "APP_PUBLIC_URL",
     "APP_WEB_URL",
     "CORS_ALLOWED_ORIGINS",
-    "AUTH_ALLOWED_ORIGINS"
+    "AUTH_ALLOWED_ORIGINS",
+    "MARKETING_SITE_URL"
   ])("requires an explicit HTTPS origin in %s", (key) => {
     expect(() =>
       validateRuntimeEnvironment(productionEnvironment({ [key]: undefined }))
@@ -105,6 +108,25 @@ describe("production runtime configuration", () => {
         productionEnvironment({ [key]: "http://app.kaklen.test" })
       )
     ).toThrow(`${key} must use https`);
+  });
+
+  it("rejects an invalid lead notification recipient", () => {
+    expect(() =>
+      validateRuntimeEnvironment(
+        productionEnvironment({ LEAD_NOTIFICATION_EMAIL: "not-an-email" })
+      )
+    ).toThrow("LEAD_NOTIFICATION_EMAIL must be a valid email address");
+  });
+
+  it.each([
+    "https://user:pass@kaklen.test",
+    "https://kaklen.test/marketing",
+    "https://kaklen.test?campaign=alpha",
+    "ftp://kaklen.test"
+  ])("rejects an unsafe marketing site origin: %s", (siteUrl) => {
+    expect(() =>
+      validateRuntimeEnvironment(productionEnvironment({ MARKETING_SITE_URL: siteUrl }))
+    ).toThrow(/MARKETING_SITE_URL/u);
   });
 
   it.each([
@@ -224,6 +246,8 @@ function productionEnvironment(
     PAYMENT_SANDBOX_SECRET: SECRETS.payment,
     RATE_LIMIT_HASH_SECRET: SECRETS.rateLimit,
     REDIS_URL: "rediss://cache.kaklen.test",
+    LEAD_NOTIFICATION_EMAIL: "leads@kaklen.test",
+    MARKETING_SITE_URL: "https://kaklen.test",
     ...overrides
   };
 }

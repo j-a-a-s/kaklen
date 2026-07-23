@@ -66,6 +66,28 @@ describe("HTTP production hardening", () => {
     expect(response.headers["access-control-max-age"]).toBe("86400");
     await app.close();
   });
+
+  it("allows the configured marketing origin and rejects an arbitrary origin", async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [SecurityProbeModule] }).compile();
+    const app = moduleRef.createNestApplication();
+    configureHttpSecurity(app, apiConfig("test"));
+    await app.init();
+
+    const marketing = await request(app.getHttpServer())
+      .options("/api/auth/login")
+      .set("Origin", "http://localhost:4300")
+      .set("Access-Control-Request-Method", "POST")
+      .expect(204);
+    const attacker = await request(app.getHttpServer())
+      .options("/api/auth/login")
+      .set("Origin", "https://attacker.example")
+      .set("Access-Control-Request-Method", "POST")
+      .expect(204);
+
+    expect(marketing.headers["access-control-allow-origin"]).toBe("http://localhost:4300");
+    expect(attacker.headers["access-control-allow-origin"]).toBeUndefined();
+    await app.close();
+  });
 });
 
 function apiConfig(nodeEnv: ApiConfig["nodeEnv"]): ApiConfig {
@@ -77,7 +99,7 @@ function apiConfig(nodeEnv: ApiConfig["nodeEnv"]): ApiConfig {
     appVersion: "0.1.0",
     commitSha: "test",
     buildTime: "2026-07-19T00:00:00.000Z",
-    corsAllowedOrigins: ["http://localhost:4200"],
+    corsAllowedOrigins: ["http://localhost:4200", "http://localhost:4300"],
     awsRegion: "us-east-1",
     awsS3Bucket: "test",
     logLevel: "error",

@@ -6,6 +6,7 @@ Kaklen is a pnpm workspace managed by Turborepo. The foundation separates runtim
 
 - `apps/api`: NestJS 11 API. It exposes `/api/health`, serves Swagger at `/docs` outside production, enables explicit Helmet/CORS policies, and uses Prisma for database access.
 - `apps/web`: Angular 20 application served on port `4200` in development.
+- `apps/marketing`: Next.js 15 corporate/marketing site for Kaklen (kaklen.cl), served on port `4300` in development. It submits leads to `POST /api/leads` on `apps/api`; it does not access PostgreSQL, WhatsApp, or email directly.
 - `packages/shared`: Shared TypeScript contracts and constants used by apps.
 - `packages/config`: Configuration helpers and runtime defaults.
 - `prisma`: Prisma schema and migrations for PostgreSQL.
@@ -97,6 +98,17 @@ resolution:
 The organization creator becomes `OWNER`. Invitations expire after the
 configured `ORGANIZATION_INVITATION_EXPIRES_SECONDS` value, which defaults to
 72 hours locally.
+
+## Marketing Leads
+
+`POST /api/leads` is a public, rate-limited endpoint (`ThrottlerGuard`, 5 requests/minute) that
+`apps/marketing` submits to. It persists a `Lead` and an auditable `LeadEvent` trail, normalizes the
+phone number to E.164 via `@kaklen/shared` (`normalizeInternationalPhone`, backed by
+`@kokecore/validation`), notifies the internal team through the existing `MailService`, and — only if
+`whatsappConsent` is true — sends a welcome message through the same `WhatsAppProvider` abstraction
+used by the quotation flow. Until a real WhatsApp Business Cloud API adapter is configured
+(`WHATSAPP_MODE=provider`), it records a pending manual follow-up and never reports an automatic
+delivery, matching the existing behavior for quotation notifications.
 
 ## Build Strategy
 

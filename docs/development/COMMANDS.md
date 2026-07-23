@@ -24,7 +24,7 @@ pnpm start --help
 
 | Invocación | Implementación reutilizada | Uso |
 | --- | --- | --- |
-| Sin flags | `dev:fresh` | API y web base para desarrollo diario. |
+| Sin flags | `dev:fresh` | API, web base y sitio de marketing para desarrollo diario. |
 | `--mode=i18n` | `dev:i18n` | Solo builds localizados `es`, `en` y `pt-BR`. |
 | `--mode=full` | `dev:full:i18n` | API, infraestructura local y los tres builds localizados. |
 

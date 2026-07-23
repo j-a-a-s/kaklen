@@ -72,18 +72,58 @@ test("reports missing critical tables, columns, and indexes", () => {
   const expected = {
     tables: ["User"],
     columns: { User: ["authVersion"] },
-    indexes: ["User_email_key"]
+    indexes: ["User_email_key"],
+    foreignKeys: [
+      {
+        table: "User",
+        constraint: "User_owner_fkey",
+        deleteRule: "RESTRICT",
+        updateRule: "CASCADE"
+      }
+    ]
   };
-  assert.deepEqual(findCriticalStructureIssues({ tables: [], columns: [], indexes: [] }, expected), [
+  assert.deepEqual(findCriticalStructureIssues({ tables: [], columns: [], indexes: [], foreignKeys: [] }, expected), [
     "falta tabla User",
     "falta columna User.authVersion",
-    "falta índice User_email_key"
+    "falta índice User_email_key",
+    "falta clave foránea User.User_owner_fkey"
   ]);
   assert.deepEqual(
     findCriticalStructureIssues(
-      { tables: ["User"], columns: [{ table: "User", column: "authVersion" }], indexes: ["User_email_key"] },
+      {
+        tables: ["User"],
+        columns: [{ table: "User", column: "authVersion" }],
+        indexes: ["User_email_key"],
+        foreignKeys: [
+          {
+            table: "User",
+            constraint: "User_owner_fkey",
+            deleteRule: "RESTRICT",
+            updateRule: "CASCADE"
+          }
+        ]
+      },
       expected
     ),
     []
+  );
+  assert.deepEqual(
+    findCriticalStructureIssues(
+      {
+        tables: ["User"],
+        columns: [{ table: "User", column: "authVersion" }],
+        indexes: ["User_email_key"],
+        foreignKeys: [
+          {
+            table: "User",
+            constraint: "User_owner_fkey",
+            deleteRule: "CASCADE",
+            updateRule: "CASCADE"
+          }
+        ]
+      },
+      expected
+    ),
+    ["reglas inválidas en User.User_owner_fkey: delete=CASCADE, update=CASCADE"]
   );
 });

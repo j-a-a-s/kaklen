@@ -42,9 +42,9 @@ históricos siguen disponibles y están documentados en
 ## Arquitectura resumida
 
 ```text
-Angular Web -> NestJS API -> Prisma Client -> PostgreSQL 16
-                         -> Redis / BullMQ
-                         -> SMTP / Mailpit
+Angular Web --------> NestJS API -> Prisma Client -> PostgreSQL 16
+Next.js Marketing --/           -> Redis / BullMQ
+                                -> SMTP / Mailpit
 ```
 
 El workspace separa aplicaciones en `apps/`, contratos y configuración

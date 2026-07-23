@@ -342,7 +342,7 @@ function collect(content, pattern, path, consumer, variables) {
 
 function consumerForPath(path) {
   if (path.startsWith("apps/api/") || path.startsWith("packages/config/")) return "api";
-  if (path.startsWith("apps/web/")) return "web";
+  if (path.startsWith("apps/web/") || path.startsWith("apps/marketing/")) return "web";
   if (path.startsWith(".github/")) return "workflow";
   if (path.includes("Dockerfile") || path.startsWith("docker-compose.")) return "docker";
   return "scripts";

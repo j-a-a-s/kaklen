@@ -29,6 +29,8 @@ export const ERROR_CODES = {
   emailVerificationTokenExpired: "EMAIL_VERIFICATION_TOKEN_EXPIRED",
   emailVerificationTokenUsed: "EMAIL_VERIFICATION_TOKEN_USED",
   emailVerificationTokenRevoked: "EMAIL_VERIFICATION_TOKEN_REVOKED",
+  leadPhoneInvalid: "LEAD_PHONE_INVALID",
+  privacyConsentRequired: "PRIVACY_CONSENT_REQUIRED",
   tooManyRequests: "TOO_MANY_REQUESTS",
   rateLimitBackendUnavailable: "RATE_LIMIT_BACKEND_UNAVAILABLE",
   authDeliveryUnavailable: "AUTH_DELIVERY_UNAVAILABLE",
