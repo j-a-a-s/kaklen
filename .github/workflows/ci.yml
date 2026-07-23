@@ -137,6 +137,7 @@ jobs:
             artifacts/i18n-server.json
             artifacts/sbom.cdx.json
             artifacts/command-diagnostics
+            artifacts/quality-services
             apps/api/coverage
             playwright-report
             test-results

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -13,7 +13,6 @@ import {
   runQualityPipeline,
   validateTaskGraph
 } from "./quality-pipeline-core.mjs";
-import { cleanupQualityServices } from "./quality-services-core.mjs";
 
 const requiredCiControls = [
   "commit-message",
@@ -146,29 +145,6 @@ test("pipeline cleanup runs after a required task failure", async () => {
   assert.equal(result.failure?.exitCode, 9);
   assert.equal(cleanupCalls, 1);
   assert.equal(result.artifact.cleanup.status, "passed");
-});
-
-test("quality service cleanup removes only containers owned by the run", async () => {
-  const directory = mkdtempSync(join(tmpdir(), "kaklen-quality-services-"));
-  const statePath = join(directory, "state.json");
-  writeFileSync(statePath, JSON.stringify({
-    containerIds: { postgres: "container-1" },
-    runId: "quality-run",
-    startedServices: ["postgres"],
-  }));
-  const calls = [];
-
-  const result = await cleanupQualityServices({
-    env: {},
-    expectedRunId: "quality-run",
-    readContainerId: () => "container-1",
-    run: async (command, args) => calls.push([command, ...args]),
-    statePath,
-  });
-
-  assert.deepEqual(result.removedServices, ["postgres"]);
-  assert.deepEqual(calls, [["docker", "compose", "rm", "--force", "--stop", "postgres"]]);
-  assert.equal(existsSync(statePath), false);
 });
 
 test("task exit code is preserved", async () => {

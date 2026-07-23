@@ -13,6 +13,8 @@ on:
       - "package.json"
       - "scripts/infra*.mjs"
       - "scripts/process-supervisor*.mjs"
+      - "scripts/quality-pipeline*.mjs"
+      - "scripts/quality-services*.mjs"
       - "scripts/*infrastructure*.mjs"
       - "scripts/infrastructure.test.mjs"
       - "scripts/verify-infrastructure-*.mjs"
@@ -32,6 +34,8 @@ on:
       - "package.json"
       - "scripts/infra*.mjs"
       - "scripts/process-supervisor*.mjs"
+      - "scripts/quality-pipeline*.mjs"
+      - "scripts/quality-services*.mjs"
       - "scripts/*infrastructure*.mjs"
       - "scripts/infrastructure.test.mjs"
       - "scripts/verify-infrastructure-*.mjs"
@@ -97,7 +101,7 @@ jobs:
           cache: true
 
       - name: Command termination regression tests
-        run: node --test scripts/process-supervisor.test.mjs scripts/infrastructure.test.mjs
+        run: node --test scripts/process-supervisor.test.mjs scripts/infrastructure.test.mjs scripts/quality-pipeline.test.mjs scripts/quality-services.test.mjs
 
       - name: Terraform formatting
         run: pnpm infra:fmt
@@ -134,5 +138,6 @@ jobs:
             artifacts/infrastructure-security.json
             artifacts/sprint-4a-infrastructure-validation.json
             artifacts/sprint-4a-aud-001-remediation.json
+            artifacts/quality-services
             .artifacts/infra/staging-plan.txt
             .artifacts/infra/diagnostics

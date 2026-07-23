@@ -1,9 +1,14 @@
 #!/usr/bin/env node
-import { cleanupQualityServices } from "./quality-services-core.mjs";
+import {
+  cleanupQualityServices,
+  readQualityGateLock,
+} from "./quality-services-core.mjs";
 
 try {
+  const runId = process.env.QUALITY_RUN_ID;
+  readQualityGateLock({ expectedRunId: runId });
   const result = await cleanupQualityServices({
-    expectedRunId: process.env.QUALITY_RUN_ID,
+    expectedRunId: runId,
   });
   console.log(`Quality services cleanup: ${result.removedServices.length} container(s) removed.`);
 } catch (error) {

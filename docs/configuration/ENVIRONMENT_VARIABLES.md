@@ -113,6 +113,5 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `PATH` | internal | production, ci | no | non-secret | none | docker | Container executable search path. |
 | `PNPM_HOME` | internal | production, ci | no | non-secret | `/pnpm` | docker | pnpm installation path in the API build image. |
 | `PRODUCTION_PAYMENT_GATEWAY_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming the production payment gateway. |
-| `QUALITY_RUN_ID` | internal | development, test, ci | no | non-secret | none | scripts | Ephemeral identifier used to prove ownership of local services started by a quality run. |
-| `QUALITY_SERVICES_STATE_PATH` | internal | development, test, ci | no | non-secret | `artifacts/quality-services-state.json` | scripts | Ephemeral state file used to remove only Docker containers owned by a quality run. |
+| `QUALITY_RUN_ID` | internal | development, test, ci | no | non-secret | none | scripts | Internally generated identifier used to isolate the lock, state, and container ownership of one local quality run. |
 | `REAL_WHATSAPP_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming real WhatsApp delivery. |
