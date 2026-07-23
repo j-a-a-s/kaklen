@@ -1,7 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "repository": "j-a-a-s/kaklen",
-  "certifiedCodeSha": "3e984d44010273b45f239902b6ae384115061866",
+  "certifiedCodeSha": "8b72d85cc7dd72e4bc9a338247be3c47c86f46a8",
+  "certifiedAtUtc": "2026-07-23T20:20:27Z",
   "finalMainShaSource": "git rev-parse HEAD",
   "pr32": "merged",
   "uniqueMarketingLeadSlice": "integrated",
@@ -29,8 +30,37 @@
     "change": 0,
     "destroy": 0
   },
-  "qualityGate": "pending-final-run",
-  "cleanClone": "pending-final-run",
-  "remoteCi": "pending-final-run",
-  "status": "certification-in-progress"
+  "qualityGate": {
+    "status": "pass",
+    "result": "QUALITY GATE PASSED",
+    "environment": "clean-clone",
+    "durationMs": 581826
+  },
+  "cleanClone": {
+    "status": "pass",
+    "headSha": "8b72d85cc7dd72e4bc9a338247be3c47c86f46a8",
+    "kokecoreSha": "b0025e737d94a1dae4be2f8f71dcdcfea72c695f",
+    "frozenLockfileInstall": "pass",
+    "check": "pass",
+    "qualityGate": "pass"
+  },
+  "remoteCi": {
+    "status": "pass",
+    "headSha": "8b72d85cc7dd72e4bc9a338247be3c47c86f46a8",
+    "workflows": [
+      {
+        "name": "Kaklen Quality Gate",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/j-a-a-s/kaklen/actions/runs/30040534716"
+      },
+      {
+        "name": "Kaklen Infrastructure",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/j-a-a-s/kaklen/actions/runs/30040534750"
+      }
+    ]
+  },
+  "status": "certified"
 }

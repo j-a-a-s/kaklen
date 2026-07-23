@@ -3,8 +3,8 @@
 ## Estado
 
 La consolidación integra el trabajo válido descubierto, conserva historial y deja trazabilidad de cada
-decisión. El estado final solo puede declararse después de que el Quality Gate, el clon limpio y el CI
-remoto pasen sobre el `main` resultante.
+decisión. El Quality Gate, el clon limpio y el CI remoto pasaron sobre el mismo código certificado en
+`main`.
 
 ## SHAs e integraciones
 
@@ -15,6 +15,9 @@ remoto pasen sobre el `main` resultante.
 | Merge PR #32 | `ed2a1c0311c7b7303bf248a0eeed9a3f5b879027` | Fusionado |
 | Marketing y leads | `1044b578099bce3345fbe4c4c5f64494384f62c1` | Integrado |
 | Merge local de Marketing | `3e984d44010273b45f239902b6ae384115061866` | Integrado en `main` |
+| Build Docker reproducible | `d379eeb` | Corregido y probado |
+| Lock atómico del Quality Gate | `bf3fdcb` | Corregido y probado con concurrencia |
+| Scorecard sincronizado | `8b72d85` | Código certificado |
 | Kokecore fijado | `b0025e737d94a1dae4be2f8f71dcdcfea72c695f` | Sin cambios |
 
 El trabajo de Marketing existía como cambios no confirmados sobre una rama cuyo HEAD ya estaba
@@ -84,9 +87,15 @@ con cero vulnerabilidades high/critical. El secret scan, SAST y SBOM pasaron.
 - Trivy 0.72.0: dos hallazgos de diseño aceptados y documentados; cero hallazgos bloqueantes.
 - Plan staging: 96 altas, 0 cambios y 0 destrucciones.
 - Build de 13 paquetes, incluido Next.js sin acceso a fuentes remotas.
+- Clon limpio con submódulos: instalación frozen, `pnpm check` y `pnpm quality:gate` pasaron.
+- Quality Gate limpio: `QUALITY GATE PASSED` en 581.826 ms.
+- E2E: 37/37 recorridos Playwright.
+- Docker API y Web: imágenes `linux/amd64` construidas correctamente.
+- CI remoto del SHA `8b72d85cc7dd72e4bc9a338247be3c47c86f46a8`: Quality Gate e
+  Infrastructure completados con `success`.
 
 Los binarios temporales de infraestructura se compararon contra checksums oficiales antes de usarse.
-La ejecución final del Quality Gate, el clon limpio y el CI remoto se registran en
+La evidencia estructurada del Quality Gate, el clon limpio y el CI remoto se registra en
 `artifacts/final-repository-consolidation.json`.
 
 ## Conflictos y eliminaciones
