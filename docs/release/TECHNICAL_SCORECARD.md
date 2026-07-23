@@ -7,13 +7,13 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 
 | Metric | Current value |
 | --- | ---: |
-| Statements coverage | 96.6% |
-| Branches coverage | 85.7% |
-| Functions coverage | 94.7% |
-| Lines coverage | 97.0% |
+| Statements coverage | 96.7% |
+| Branches coverage | 85.5% |
+| Functions coverage | 94.8% |
+| Lines coverage | 97.1% |
 | Audited forms | 25 |
 | Audited controls | 137 (input: 91, select: 36, textarea: 10) |
-| Prisma migrations | 18 |
+| Prisma migrations | 20 |
 | Canonical pipeline tasks | 34 |
 
 ## Local Quality
@@ -22,7 +22,7 @@ Los porcentajes versionados se redondean a una decimal para mantener el document
 | --- | --- | --- |
 | Coverage thresholds | PASS | `apps/api/coverage/coverage-summary.json` |
 | AST form contract | PASS | `artifacts/forms-audit.json` |
-| Migration history | PASS | `18 migration directories` |
+| Migration history | PASS | `20 migration directories` |
 | Unique quality tasks | PASS | `scripts/quality-pipeline-core.mjs` |
 | Canonical CI controls | PASS | `34 required tasks` |
 | PDF monetary parity | PASS | `pdf-money-parity` |
