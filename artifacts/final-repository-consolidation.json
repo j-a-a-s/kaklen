@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "repository": "j-a-a-s/kaklen",
+  "certifiedCodeSha": "3e984d44010273b45f239902b6ae384115061866",
+  "finalMainShaSource": "git rev-parse HEAD",
+  "pr32": "merged",
+  "uniqueMarketingLeadSlice": "integrated",
+  "openPullRequests": 0,
+  "remoteBranchesBesidesMain": 0,
+  "localBranchesBesidesMain": 0,
+  "extraWorktrees": 0,
+  "obsoleteDirectoriesConfirmed": 0,
+  "unitTests": "pass",
+  "ethicalHackingTests": "pass",
+  "dependencyAudit": {
+    "packages": 1355,
+    "high": 0,
+    "critical": 0
+  },
+  "secretScan": "pass",
+  "sast": "pass",
+  "sbom": "pass",
+  "terraformFormat": "pass",
+  "terraformValidate": "pass",
+  "terraformLint": "pass",
+  "terraformSecurity": "pass",
+  "terraformPlan": {
+    "add": 96,
+    "change": 0,
+    "destroy": 0
+  },
+  "qualityGate": "pending-final-run",
+  "cleanClone": "pending-final-run",
+  "remoteCi": "pending-final-run",
+  "status": "certification-in-progress"
+}

@@ -65,6 +65,7 @@ Este índice es la entrada central a la documentación mantenida del repositorio
 - [Rollback](aws/ROLLBACK.md)
 - [Checklist del primer tag](release/FIRST_TAG_CHECKLIST.md)
 - [Scorecard técnico](release/TECHNICAL_SCORECARD.md)
+- [Consolidación final del repositorio](release/FINAL_REPOSITORY_CONSOLIDATION.md)
 - [Remediación de Sprint 4A AUD-001](release/SPRINT_4A_AUD_001_REMEDIATION.md)
 - [Actualizaciones de dependencias](governance/DEPENDENCY_UPDATES.md)
 

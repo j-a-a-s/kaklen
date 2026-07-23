@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "repository": "j-a-a-s/kaklen",
+  "capturedAtUtc": "2026-07-23T17:45:00Z",
+  "initialMainSha": "4dffa9251a929b491b8e2cdd257666e75d73ed88",
+  "pr32": {
+    "number": 32,
+    "expectedHeadSha": "49cb20d7a627cc3b8163b31b2e0235b7301e30e7",
+    "mergeCommitSha": "ed2a1c0311c7b7303bf248a0eeed9a3f5b879027",
+    "classification": "B",
+    "result": "merged"
+  },
+  "uniqueWorkingTree": {
+    "sourceBranch": "fix/sprint-4a-aud-001-command-termination",
+    "classification": "B",
+    "integrationCommitSha": "1044b578099bce3345fbe4c4c5f64494384f62c1",
+    "mergeCommitSha": "3e984d44010273b45f239902b6ae384115061866",
+    "backupTag": "archive/pre-consolidation-marketing-leads-20260723",
+    "result": "integrated"
+  },
+  "branches": [
+    {
+      "name": "feature/auth",
+      "classification": "A",
+      "headSha": "88f6ec19383485781f6d0cd2e61541b026cb31e4",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/aws-staging-infrastructure",
+      "classification": "A",
+      "headSha": "2dd1fb393b848596b6beb9a9135b7151a82212f0",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/catalog",
+      "classification": "A",
+      "headSha": "c8b25e266775088871a3630d11b23817f5f4c163",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/crm-clients",
+      "classification": "A",
+      "headSha": "591faeb148ccfdf1d02f946df87582ae429fcc20",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/foundation",
+      "classification": "A",
+      "headSha": "677e07d500048b8ceb625502ee69e8d2b137a05c",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/i18n-foundation",
+      "classification": "A",
+      "headSha": "5116199a9592357a47dbb913e9b3e0a7031e3435",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/organizations-rbac",
+      "classification": "A",
+      "headSha": "4fb8815f0e0911445ffb01548a266bd6215e8624",
+      "result": "deleted-after-ancestor-verification"
+    },
+    {
+      "name": "feature/quotations",
+      "classification": "A",
+      "headSha": "bfa554553b2c7e0c3256858776c994bcaea1c669",
+      "result": "deleted-after-ancestor-verification"
+    }
+  ],
+  "dependabotPullRequests": [
+    {
+      "number": 31,
+      "head": "dependabot/npm_and_yarn/main/angular/common-22.0.8",
+      "classification": "D",
+      "reason": "Partial Angular 22 migration on Angular 20; Quality Gate failed.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 30,
+      "head": "dependabot/npm_and_yarn/main/lucide-angular-1.0.0",
+      "classification": "D",
+      "reason": "Unapproved isolated major dependency upgrade without product code.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 29,
+      "head": "dependabot/npm_and_yarn/main/angular/compiler-22.0.8",
+      "classification": "D",
+      "reason": "Partial Angular 22 migration on Angular 20; Quality Gate failed.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 28,
+      "head": "dependabot/npm_and_yarn/main/runtime-minor-patch-d4dcd73e22",
+      "classification": "D",
+      "reason": "Grouped runtime change crosses compatibility boundaries and contains no product code.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 24,
+      "head": "dependabot/npm_and_yarn/main/typescript-7.0.2",
+      "classification": "D",
+      "reason": "Conflicting TypeScript major migration; Quality Gate failed.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 20,
+      "head": "dependabot/github_actions/main/actions/setup-node-7",
+      "classification": "D",
+      "reason": "Isolated workflow major upgrade; Quality Gate failed.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 9,
+      "head": "dependabot/github_actions/pnpm/action-setup-6",
+      "classification": "D",
+      "reason": "Isolated workflow major upgrade deferred to a coordinated pinned-action change.",
+      "result": "closed-and-branch-deleted"
+    },
+    {
+      "number": 7,
+      "head": "dependabot/github_actions/actions/checkout-7",
+      "classification": "D",
+      "reason": "Isolated workflow major upgrade deferred to a coordinated pinned-action change.",
+      "result": "closed-and-branch-deleted"
+    }
+  ],
+  "directories": {
+    "active": [
+      ".github",
+      "apps",
+      "artifacts",
+      "docs",
+      "e2e",
+      "infra",
+      "packages",
+      "prisma",
+      "scripts",
+      "vendor"
+    ],
+    "generatedIgnored": [
+      ".artifacts",
+      ".turbo",
+      "coverage",
+      "dist",
+      "node_modules",
+      "out-tsc",
+      "playwright-report",
+      "test-results"
+    ],
+    "retainedHistorical": [
+      {
+        "path": "infra/aws",
+        "reason": "Marked historical documentation that points to the executable Terraform source of truth."
+      }
+    ],
+    "obsoleteConfirmed": []
+  },
+  "trackedGeneratedFiles": [],
+  "unknownBranches": [],
+  "unknownDirectories": []
+}
