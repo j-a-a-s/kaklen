@@ -31,6 +31,7 @@ aplica migraciones y verifica las tablas. No modifica `.env` automáticamente.
 Al finalizar, abre:
 
 - Web: `http://localhost:4200`
+- Sitio de marketing: `http://localhost:4300`
 - API health: `http://localhost:3000/api/health`
 - Swagger: `http://localhost:3000/docs`
 - Mailpit: `http://localhost:8025`
@@ -55,6 +56,10 @@ Preparar release → pnpm release:check:strict
 Para trabajar con los tres builds de idioma y la API usa
 `pnpm start --mode=full`. La referencia completa está en
 [Commands](development/COMMANDS.md).
+
+El inicio predeterminado también levanta `apps/marketing` en el puerto `4300`.
+Sus variables públicas se configuran en el `.env` raíz y se validan mediante
+`pnpm env:verify`.
 
 ## Datos demo
 

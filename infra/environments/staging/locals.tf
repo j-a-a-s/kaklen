@@ -31,11 +31,12 @@ locals {
     COMMERCIAL_EMAIL_ENABLED                = "false"
     COMMIT_SHA                              = var.commit_sha
     COOKIE_SECURE                           = "true"
-    CORS_ALLOWED_ORIGINS                    = var.app_public_url
+    CORS_ALLOWED_ORIGINS                    = join(",", [var.app_public_url, var.marketing_public_url])
     DATABASE_SSL                            = "true"
     EMAIL_VERIFICATION_EXPIRES_MINUTES      = "1440"
     JWT_ACCESS_EXPIRES_SECONDS              = "900"
     JWT_REFRESH_EXPIRES_SECONDS             = "604800"
+    LEAD_NOTIFICATION_EMAIL                 = var.lead_notification_email
     LOG_LEVEL                               = "info"
     MAIL_CONNECTION_TIMEOUT_MS              = "5000"
     MAIL_FROM                               = var.mail_from
@@ -44,6 +45,7 @@ locals {
     MAIL_PORT                               = tostring(var.mail_port)
     MAIL_SECURE                             = "false"
     MAIL_SOCKET_TIMEOUT_MS                  = "10000"
+    MARKETING_SITE_URL                      = var.marketing_public_url
     NODE_ENV                                = "production"
     ORGANIZATION_INVITATION_EXPIRES_SECONDS = "259200"
     PASSWORD_RESET_EXPIRES_MINUTES          = "30"

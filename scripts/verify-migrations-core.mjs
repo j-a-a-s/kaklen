@@ -18,7 +18,9 @@ export const CRITICAL_DATABASE_STRUCTURE = Object.freeze({
     "PaymentRefund",
     "PaymentReceipt",
     "ProviderProfile",
-    "ProviderAnalyticsEvent"
+    "ProviderAnalyticsEvent",
+    "Lead",
+    "LeadEvent"
   ],
   columns: {
     User: ["authVersion", "emailVerifiedAt"],
@@ -43,7 +45,17 @@ export const CRITICAL_DATABASE_STRUCTURE = Object.freeze({
     PaymentRefund: ["paymentId", "amount", "status"],
     PaymentReceipt: ["paymentId", "receiptNumber"],
     ProviderProfile: ["organizationId", "sourceClientId", "status", "consentAt"],
-    ProviderAnalyticsEvent: ["organizationId", "profileId", "event"]
+    ProviderAnalyticsEvent: ["organizationId", "profileId", "event"],
+    Lead: [
+      "privacyConsent",
+      "whatsappConsent",
+      "consentTextVersion",
+      "consentRecordedAt",
+      "consentIpHash",
+      "userAgentHash",
+      "whatsappStatus"
+    ],
+    LeadEvent: ["leadId", "eventType", "metadata"]
   },
   indexes: [
     "EmailVerificationToken_tokenHash_key",
@@ -55,7 +67,17 @@ export const CRITICAL_DATABASE_STRUCTURE = Object.freeze({
     "PaymentWebhookEvent_providerEventId_key",
     "PaymentReceipt_paymentId_key",
     "ProviderProfile_organizationId_sourceClientId_key",
-    "ProviderProfile_organizationId_status_idx"
+    "ProviderProfile_organizationId_status_idx",
+    "Lead_createdAt_idx",
+    "LeadEvent_leadId_idx"
+  ],
+  foreignKeys: [
+    {
+      table: "LeadEvent",
+      constraint: "LeadEvent_leadId_fkey",
+      deleteRule: "RESTRICT",
+      updateRule: "CASCADE"
+    }
   ]
 });
 
@@ -133,6 +155,12 @@ export function findCriticalStructureIssues(snapshot, expected = CRITICAL_DATABA
   const tableNames = new Set(snapshot.tables);
   const indexNames = new Set(snapshot.indexes);
   const columnNames = new Set(snapshot.columns.map(({ table, column }) => `${table}.${column}`));
+  const foreignKeys = new Map(
+    (snapshot.foreignKeys ?? []).map((foreignKey) => [
+      `${foreignKey.table}.${foreignKey.constraint}`,
+      foreignKey
+    ])
+  );
   const issues = [];
 
   for (const table of expected.tables) {
@@ -150,6 +178,22 @@ export function findCriticalStructureIssues(snapshot, expected = CRITICAL_DATABA
   for (const index of expected.indexes) {
     if (!indexNames.has(index)) {
       issues.push(`falta índice ${index}`);
+    }
+  }
+  for (const expectedForeignKey of expected.foreignKeys ?? []) {
+    const key = `${expectedForeignKey.table}.${expectedForeignKey.constraint}`;
+    const actual = foreignKeys.get(key);
+    if (!actual) {
+      issues.push(`falta clave foránea ${key}`);
+      continue;
+    }
+    if (
+      actual.deleteRule !== expectedForeignKey.deleteRule ||
+      actual.updateRule !== expectedForeignKey.updateRule
+    ) {
+      issues.push(
+        `reglas inválidas en ${key}: delete=${actual.deleteRule}, update=${actual.updateRule}`
+      );
     }
   }
 

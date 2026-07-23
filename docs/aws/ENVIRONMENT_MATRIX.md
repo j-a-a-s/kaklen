@@ -19,7 +19,7 @@ Run `pnpm infra:validate` to detect contract drift. Secret values are never rend
 | `COMMERCIAL_EMAIL_ENABLED` | runtime | no | staging policy | Terraform root module | yes | plain environment | runtime-config | Disabled until external commercial email validation exists. |
 | `COMMIT_SHA` | runtime | no | var.commit_sha | release pipeline | no | plain environment | runtime-config | Immutable source revision. |
 | `COOKIE_SECURE` | runtime | no | staging security policy | Terraform root module | yes | plain environment | not used | Always true in AWS staging. |
-| `CORS_ALLOWED_ORIGINS` | runtime | no | var.app_public_url | platform operator | no | plain environment | not used | Exact credentialed frontend origin. |
+| `CORS_ALLOWED_ORIGINS` | runtime | no | join of var.app_public_url and var.marketing_public_url | platform operator | no | plain environment | not used | Exact allow-list for the authenticated web and public marketing origins; credentials never use a wildcard. |
 | `DATABASE_SSL` | runtime | no | staging security policy | Terraform root module | yes | plain environment | not used | RDS parameter group also enforces TLS. |
 | `DATABASE_URL` | runtime | yes | Secrets Manager application secret | platform operator after RDS creation | no | secret reference | prohibited | Composed out of band with sslmode=require; the value never enters Terraform state. |
 | `EMAIL_VERIFICATION_EXPIRES_MINUTES` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | Transactional token lifetime. |
@@ -27,6 +27,7 @@ Run `pnpm infra:validate` to detect contract drift. Secret values are never rend
 | `JWT_ACCESS_SECRET` | runtime | yes | Secrets Manager application secret | secret-generation procedure | no | secret reference | prohibited | Independent random signing value populated out of band. |
 | `JWT_REFRESH_EXPIRES_SECONDS` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | Seven-day refresh token lifetime. |
 | `JWT_REFRESH_SECRET` | runtime | yes | Secrets Manager application secret | secret-generation procedure | no | secret reference | prohibited | Independent from the access-token secret. |
+| `LEAD_NOTIFICATION_EMAIL` | runtime | no | var.lead_notification_email | email operator | no | plain environment | not used | Internal recipient for public lead notifications; contains no customer data. |
 | `LOG_LEVEL` | runtime | no | staging observability policy | Terraform root module | yes | plain environment | not used | Information-level structured logging. |
 | `MAIL_CONNECTION_TIMEOUT_MS` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | SMTP connection timeout. |
 | `MAIL_FROM` | runtime | no | var.mail_from | email operator | no | plain environment | not used | Must be verified with the selected provider before service enablement. |
@@ -37,6 +38,11 @@ Run `pnpm infra:validate` to detect contract drift. Secret values are never rend
 | `MAIL_SECURE` | runtime | no | staging SMTP policy | Terraform root module | yes | plain environment | not used | Port 587 upgrades with STARTTLS rather than implicit TLS. |
 | `MAIL_SOCKET_TIMEOUT_MS` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | SMTP socket timeout. |
 | `MAIL_USER` | runtime | no | optional email provider identity | email operator | no | not injected | not used | Add together with MAIL_PASSWORD when provider authentication requires it. |
+| `MARKETING_PORT` | runtime | no | marketing runtime policy | marketing deployment pipeline | no | not injected | marketing runtime | Not used by the API ECS task; defaults to 4300 for local or standalone marketing runtime. |
+| `MARKETING_SITE_URL` | runtime | no | var.marketing_public_url | platform operator | no | plain environment | marketing origin | Canonical origin associated with public lead capture. |
+| `NEXT_PUBLIC_API_BASE_URL` | runtime | no | var.api_public_url plus /api | marketing deployment pipeline | no | not injected | marketing build | Public API base embedded in the marketing bundle and CSP. |
+| `NEXT_PUBLIC_INSTAGRAM_URL` | runtime | no | marketing release configuration | marketing deployment pipeline | no | not injected | marketing build | Public social profile only; never contains credentials. |
+| `NEXT_PUBLIC_SITE_URL` | runtime | no | var.marketing_public_url | marketing deployment pipeline | no | not injected | marketing build | Canonical marketing origin embedded in metadata and JSON-LD. |
 | `NODE_ENV` | runtime | no | staging runtime policy | Terraform root module | yes | plain environment | not used | Always production inside the AWS runtime. |
 | `ORGANIZATION_INVITATION_EXPIRES_SECONDS` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | Organization invitation lifetime. |
 | `PASSWORD_RESET_EXPIRES_MINUTES` | runtime | no | application default policy | Terraform root module | yes | plain environment | not used | Password recovery token lifetime. |

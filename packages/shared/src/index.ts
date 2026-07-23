@@ -112,6 +112,7 @@ export {
   isValidEmail,
   isValidURL,
   isValidInternationalPhone,
+  normalizeInternationalPhone as normalizePhoneToE164,
   sanitizeInput,
   sanitizeHTML,
   maskEmail,

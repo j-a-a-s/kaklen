@@ -15,6 +15,7 @@ import { WhatsAppModule } from "./whatsapp/whatsapp.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { ProviderProfilesModule } from "./provider-profiles/provider-profiles.module";
 import { DistributedThrottlingModule } from "./security/distributed-throttling.module";
+import { LeadsModule } from "./leads/leads.module";
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { DistributedThrottlingModule } from "./security/distributed-throttling.m
     QuotationPortalModule,
     WhatsAppModule,
     PaymentsModule,
-    ProviderProfilesModule
+    ProviderProfilesModule,
+    LeadsModule
   ]
 })
 export class AppModule {}

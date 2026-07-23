@@ -10,7 +10,7 @@ import {
   type NotificationLocale
 } from "./templates";
 
-export type MailType = "email_verification" | "password_reset" | "quotation";
+export type MailType = "email_verification" | "password_reset" | "quotation" | "lead_notification";
 
 export interface MailMessage {
   mailType: MailType;

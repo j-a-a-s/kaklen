@@ -21,6 +21,7 @@ Este índice es la entrada central a la documentación mantenida del repositorio
 - [Decisiones](DECISIONS.md)
 - [Seguridad](SECURITY.md)
 - [Threat model](security/THREAT_MODEL.md)
+- [Seguridad del canal público de leads](security/MARKETING_LEAD_SECURITY.md)
 
 ## Desarrollo de producto
 

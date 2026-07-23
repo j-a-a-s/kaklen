@@ -16,9 +16,9 @@ import {
 test("repository environment contract is complete and generated without drift", () => {
   const result = auditEnvironmentContract();
   assert.deepEqual(result.errors, []);
-  assert.equal(result.manifest.variables.length, 93);
-  assert.equal(result.manifest.variables.filter((item) => item.localExample).length, 11);
-  assert.equal(result.manifest.variables.filter((item) => item.productionExample).length, 48);
+  assert.equal(result.manifest.variables.length, 99);
+  assert.equal(result.manifest.variables.filter((item) => item.localExample).length, 18);
+  assert.equal(result.manifest.variables.filter((item) => item.productionExample).length, 54);
 });
 
 test("discovery covers code, bracket access, package scripts, workflows, and Docker", () => {

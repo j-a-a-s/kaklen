@@ -1,0 +1,35 @@
+{
+  "name": "@kaklen/marketing",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p ${MARKETING_PORT:-4300}",
+    "build": "next build",
+    "start": "next start -p ${MARKETING_PORT:-4300}",
+    "lint": "tsc --noEmit",
+    "test": "node --test lib/*.test.mjs && jest --config jest.config.cjs --runInBand",
+    "test:unit": "pnpm test"
+  },
+  "dependencies": {
+    "@kaklen/shared": "workspace:*",
+    "next": "^15.1.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "zod": "^3.24.1",
+    "@hookform/resolvers": "^3.9.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "jest": "^30.0.3",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  }
+}

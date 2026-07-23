@@ -17,7 +17,7 @@ import {
   ApiOperation,
   ApiTags
 } from "@nestjs/swagger";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { OrganizationAccessGuard } from "../organizations/organization-access.guard";
 import { OrganizationRequest } from "../organizations/organization.types";
@@ -60,8 +60,11 @@ export class QuotationPortalAdminController {
   }
 }
 
+// ThrottlerGuard is already registered globally as APP_GUARD (see
+// security/distributed-throttling.module.ts) — applying it again here via
+// @UseGuards would run canActivate() twice per request and silently halve
+// the @Throttle limits below.
 @ApiTags("quotation-portal")
-@UseGuards(ThrottlerGuard)
 @Controller("portal/quotations/:publicToken")
 export class PublicQuotationPortalController {
   constructor(private readonly portal: QuotationPortalService) {}

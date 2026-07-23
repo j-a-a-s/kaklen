@@ -876,3 +876,79 @@ enum ProviderAnalyticsEventType {
   PROVIDER_SIGNUP_STARTED
   PROVIDER_PROFILE_COMPLETED
 }
+
+model Lead {
+  id                 String              @id @default(uuid())
+  firstName          String
+  lastName           String
+  email              String
+  phoneCountryCode   String
+  phoneE164          String
+  company            String?
+  position           String?
+  country            String?
+  interestType       LeadInterest
+  message            String
+  privacyConsent     Boolean
+  whatsappConsent    Boolean
+  consentTextVersion String
+  consentRecordedAt  DateTime
+  consentIpHash      String?
+  userAgentHash      String?
+  source             String              @default("kaklen-marketing")
+  utmSource          String?
+  utmMedium          String?
+  utmCampaign        String?
+  utmContent         String?
+  landingPage        String?
+  referrer           String?
+  status             LeadStatus          @default(NEW)
+  whatsappStatus     LeadWhatsAppStatus?
+  whatsappSentAt     DateTime?
+  whatsappError      String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  events             LeadEvent[]
+
+  @@index([email])
+  @@index([phoneE164])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LeadEvent {
+  id        String   @id @default(uuid())
+  leadId    String
+  eventType String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Restrict)
+
+  @@index([leadId])
+}
+
+enum LeadInterest {
+  ADVISORY
+  KAKLEN
+  PLATFORM_DEVELOPMENT
+  DIGITAL_TRANSFORMATION
+  INVESTMENT_PARTNERSHIP
+  KAPIAR
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  OPPORTUNITY
+  CLOSED_WON
+  CLOSED_LOST
+  ARCHIVED
+}
+
+enum LeadWhatsAppStatus {
+  PENDING
+  SENT
+  FAILED
+}

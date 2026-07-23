@@ -13,12 +13,13 @@ enable_ecs_service     = false
 application_bucket_name = "replace-me-kaklen-staging-application"
 web_bucket_name         = "replace-me-kaklen-staging-web"
 
-app_public_url = "https://staging.example.invalid"
-app_web_url    = "https://staging.example.invalid"
-api_public_url = "https://api.staging.example.invalid"
-app_version    = "0.1.0"
-commit_sha     = "replace-with-git-sha"
-build_time     = ""
+app_public_url       = "https://staging.example.invalid"
+app_web_url          = "https://staging.example.invalid"
+api_public_url       = "https://api.staging.example.invalid"
+marketing_public_url = "https://marketing.staging.example.invalid"
+app_version          = "0.1.0"
+commit_sha           = "replace-with-git-sha"
+build_time           = ""
 
 cloudfront_aliases         = []
 cloudfront_certificate_arn = null
@@ -31,5 +32,6 @@ redis_num_cache_clusters              = 1
 enable_sns_alerts                     = false
 
 # Populate SMTP provider CIDRs before enabling transactional email from staging.
-smtp_egress_cidrs = []
+lead_notification_email = "leads@example.invalid"
+smtp_egress_cidrs        = []
 approved_https_egress_cidrs = []

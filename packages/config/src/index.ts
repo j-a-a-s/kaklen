@@ -37,6 +37,11 @@ export interface OrganizationConfig {
   appWebUrl: string;
 }
 
+export interface MarketingConfig {
+  leadNotificationEmail: string;
+  siteUrl: string;
+}
+
 export interface PasswordRecoveryConfig {
   appPublicUrl: string;
   expiresMinutes: number;
@@ -75,6 +80,7 @@ export interface RuntimeEnvironmentConfig {
   passwordRecovery: PasswordRecoveryConfig;
   productIntegrations: ProductIntegrationsConfig;
   redis: RedisConfig;
+  marketing: MarketingConfig;
 }
 
 const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
@@ -155,6 +161,39 @@ export function readOrganizationConfig(env: Record<string, string | undefined>):
   return {
     organizationInvitationExpiresSeconds,
     appWebUrl
+  };
+}
+
+export function readMarketingConfig(env: Record<string, string | undefined>): MarketingConfig {
+  const isProduction = parseNodeEnv(env.NODE_ENV) === "production";
+  const leadNotificationEmail = requireString(
+    env,
+    "LEAD_NOTIFICATION_EMAIL",
+    isProduction,
+    "leads@kaklen.local"
+  );
+  const siteUrl = requireString(env, "MARKETING_SITE_URL", isProduction, "http://localhost:4300");
+
+  const parsedSiteUrl = new URL(siteUrl);
+  if (!["http:", "https:"].includes(parsedSiteUrl.protocol)) {
+    throw new Error("MARKETING_SITE_URL must use http or https");
+  }
+  if (parsedSiteUrl.username || parsedSiteUrl.password) {
+    throw new Error("MARKETING_SITE_URL must not contain embedded credentials");
+  }
+  if (parsedSiteUrl.pathname !== "/" || parsedSiteUrl.search || parsedSiteUrl.hash) {
+    throw new Error("MARKETING_SITE_URL must be an origin without path, query, or fragment");
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(leadNotificationEmail)) {
+    throw new Error("LEAD_NOTIFICATION_EMAIL must be a valid email address");
+  }
+  if (isProduction) {
+    assertProductionOrigin("MARKETING_SITE_URL", parsedSiteUrl.toString());
+  }
+
+  return {
+    leadNotificationEmail,
+    siteUrl: parsedSiteUrl.origin
   };
 }
 
@@ -380,8 +419,9 @@ export function validateRuntimeEnvironment(
   const passwordRecovery = readPasswordRecoveryConfig(env);
   const productIntegrations = readProductIntegrationsConfig(env);
   const redis = readRedisConfig(env);
+  const marketing = readMarketingConfig(env);
 
-  return { api, auth, organization, passwordRecovery, productIntegrations, redis };
+  return { api, auth, organization, passwordRecovery, productIntegrations, redis, marketing };
 }
 
 function parseTimeout(value: string | undefined, fallback: number, key: string): number {

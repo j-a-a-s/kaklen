@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-950: #061428;
+  --color-navy-900: #0a1c38;
+  --color-navy-800: #102c54;
+  --color-navy-700: #163b6e;
+  --color-blue-700: #144fa8;
+  --color-blue-600: #1c63c4;
+  --color-blue-500: #2f8fff;
+  --color-cyan-400: #52b9ff;
+  --color-ink-900: #0d1420;
+  --color-gray-50: #f7f9fc;
+  --color-gray-100: #eef2f7;
+  --color-gray-200: #dfe6ee;
+  --color-gray-400: #8491a6;
+  --color-gray-600: #526074;
+  --color-gray-700: #344054;
+
+  --font-display: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-drift: drift 22s linear infinite;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-120px, -80px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-gray-50);
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--color-blue-500);
+  color: white;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.container-kaklen {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (min-width: 768px) {
+  .container-kaklen {
+    padding-inline: 40px;
+  }
+}
+
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transition: right 0.25s ease;
+}
+
+.link-underline:hover::after {
+  right: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan-400);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
