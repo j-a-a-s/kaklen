@@ -14,6 +14,7 @@ RUN apt-get update \
 FROM build-base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
+COPY apps/marketing/package.json apps/marketing/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/shared/package.json packages/shared/package.json
@@ -25,7 +26,8 @@ COPY vendor/kokecore/packages/logging/package.json vendor/kokecore/packages/logg
 COPY vendor/kokecore/packages/rbac/package.json vendor/kokecore/packages/rbac/package.json
 COPY vendor/kokecore/packages/storage/package.json vendor/kokecore/packages/storage/package.json
 COPY vendor/kokecore/packages/validation/package.json vendor/kokecore/packages/validation/package.json
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=kaklen-pnpm-store,target=/pnpm/store,sharing=locked \
+  pnpm install --store-dir=/pnpm/store --frozen-lockfile
 
 FROM deps AS builder
 COPY apps apps

@@ -46,9 +46,19 @@ test("api clean removes the complete dist directory", () => {
 
 test("API Docker builder includes the scripts required by workspace builds", () => {
   const dockerfile = readText("apps/api/Dockerfile");
+  const marketingManifestIndex = dockerfile.indexOf(
+    "COPY apps/marketing/package.json apps/marketing/package.json",
+  );
+  const installIndex = dockerfile.indexOf("pnpm install --store-dir=/pnpm/store --frozen-lockfile");
   const scriptsCopyIndex = dockerfile.indexOf("COPY scripts scripts");
   const buildIndex = dockerfile.indexOf("RUN pnpm build");
 
+  assert.ok(marketingManifestIndex > 0);
+  assert.ok(installIndex > marketingManifestIndex);
+  assert.match(
+    dockerfile,
+    /--mount=type=cache,id=kaklen-pnpm-store,target=\/pnpm\/store,sharing=locked/,
+  );
   assert.ok(scriptsCopyIndex > 0);
   assert.ok(buildIndex > scriptsCopyIndex);
 });

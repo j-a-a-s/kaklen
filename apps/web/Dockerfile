@@ -20,7 +20,8 @@ COPY vendor/kokecore/packages/logging/package.json vendor/kokecore/packages/logg
 COPY vendor/kokecore/packages/rbac/package.json vendor/kokecore/packages/rbac/package.json
 COPY vendor/kokecore/packages/storage/package.json vendor/kokecore/packages/storage/package.json
 COPY vendor/kokecore/packages/validation/package.json vendor/kokecore/packages/validation/package.json
-RUN pnpm install --frozen-lockfile --filter @kaklen/web...
+RUN --mount=type=cache,id=kaklen-pnpm-store,target=/pnpm/store,sharing=locked \
+  pnpm install --store-dir=/pnpm/store --frozen-lockfile --filter @kaklen/web...
 
 FROM deps AS builder
 ARG APP_VERSION=0.1.0

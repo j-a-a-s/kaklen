@@ -6,6 +6,14 @@ import { resolveProfile } from "./quality-pipeline-core.mjs";
 const dockerfile = readFileSync("apps/web/Dockerfile", "utf8");
 
 test("web Docker image builds and serves every localized Angular application", () => {
+  assert.match(
+    dockerfile,
+    /--mount=type=cache,id=kaklen-pnpm-store,target=\/pnpm\/store,sharing=locked/,
+  );
+  assert.match(
+    dockerfile,
+    /pnpm install --store-dir=\/pnpm\/store --frozen-lockfile --filter @kaklen\/web\.\.\./,
+  );
   assert.match(dockerfile, /pnpm --filter @kokecore\/validation build/);
   assert.match(dockerfile, /pnpm --filter @kaklen\/shared build/);
   assert.match(dockerfile, /pnpm --filter @kaklen\/web build:es/);
