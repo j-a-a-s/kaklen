@@ -85,14 +85,17 @@ as the primary fix.
 ## Behavioral Tests
 
 The tests execute real child processes instead of checking log text only. They
-cover a successful child, non-zero exit propagation, a parent and detached
-grandchild that ignore `SIGTERM`, timeout exit code 124, `SIGKILL` escalation,
-cleanup on failure, temporary plan removal, and owned-container cleanup.
+cover a successful child, non-zero exit propagation, a parent and grandchild
+that ignore `SIGTERM`, a detached grandchild when operating-system process
+inspection is available, timeout exit code 124, `SIGKILL` escalation, cleanup
+on failure, temporary plan removal, and owned-container cleanup. The portable
+fixture verifies liveness with signal 0 instead of interpreting a denied `ps`
+call as proof that a process exited.
 
 | Suite | Result |
 | --- | --- |
-| Focused AUD-001 tests | PASS, 32 of 32 |
-| All repository script tests | PASS, 248 of 248 |
+| Focused AUD-001 tests | PASS, 33 of 33 |
+| All repository script tests | PASS, 249 of 249 |
 | Workspace tests | PASS, including API 513 of 513 and web 105 of 105 |
 
 ## Three Consecutive Clean-Clone Runs
@@ -143,7 +146,8 @@ builds, and Docker images.
 After every post-fix run, process inspection found zero descendants and Docker
 inspection found zero containers owned by the command. The three pre-existing
 developer services remained unchanged. Port snapshots were identical before
-and after all six runs.
+and after all six runs. A final process-table inspection after both the focused
+and complete script suites also found zero hung fixtures.
 
 External provider registries, Docker registries, and cold builds can still be
 slow or unavailable. They now fail with bounded duration, a non-zero code, and

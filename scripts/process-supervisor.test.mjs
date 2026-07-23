@@ -6,6 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   activeProcessCount,
+  isProcessAlive,
   runSupervisedProcess,
 } from "./process-supervisor.mjs";
 
@@ -24,12 +25,37 @@ test("supervised process returns the child exit code", async () => {
 });
 
 test("timeout kills a child process tree that ignores SIGTERM", async () => {
+  const result = await runHungTreeFixture({ detachedGrandchild: false });
+
+  assert.equal(result.exitCode, 124);
+  assert.equal(result.timedOut, true);
+  assert.equal(result.cleanupExecuted, true);
+  assert.equal(activeProcessCount(), 0);
+  assert.match(result.log, /\[START\].*durationMs=/);
+  assert.match(result.log, /\[TIMEOUT\].*durationMs=/);
+  assert.match(result.log, /\[CLEANUP\].*durationMs=/);
+  assert.match(result.log, /\[FAIL\].*durationMs=/);
+});
+
+test(
+  "timeout discovers and kills a detached grandchild",
+  { skip: !processTreeInspectionAvailable() },
+  async () => {
+    const result = await runHungTreeFixture({ detachedGrandchild: true });
+
+    assert.equal(result.exitCode, 124);
+    assert.equal(result.timedOut, true);
+    assert.equal(result.cleanupExecuted, true);
+    assert.equal(activeProcessCount(), 0);
+  },
+);
+
+async function runHungTreeFixture({ detachedGrandchild }) {
   const directory = mkdtempSync(join(tmpdir(), "kaklen-supervisor-"));
   const logPath = join(directory, "timeout.log");
-  const marker = `kaklen-hung-child-${process.pid}-${Date.now()}`;
   const childSource = [
     'const { spawn } = require("node:child_process");',
-    `const child = spawn(process.execPath, ["-e", ${JSON.stringify(`const marker = "${marker}"; process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)`)}], { detached: true, stdio: "ignore" });`,
+    `const child = spawn(process.execPath, ["-e", ${JSON.stringify('process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)')}], { detached: ${detachedGrandchild}, stdio: "ignore" });`,
     "console.log(child.pid);",
     'process.on("SIGTERM", () => {});',
     "setInterval(() => {}, 1000);",
@@ -47,19 +73,11 @@ test("timeout kills a child process tree that ignores SIGTERM", async () => {
   });
   const descendantPid = Number(result.stdout.trim());
 
-  assert.equal(result.exitCode, 124);
-  assert.equal(result.timedOut, true);
-  assert.equal(result.cleanupExecuted, true);
   assert.ok(Number.isInteger(descendantPid) && descendantPid > 0);
-  await waitFor(() => !processMatches(descendantPid, marker), 5_000);
-  assert.equal(processMatches(descendantPid, marker), false);
-  assert.equal(activeProcessCount(), 0);
-  const log = readFileSync(logPath, "utf8");
-  assert.match(log, /\[START\].*durationMs=/);
-  assert.match(log, /\[TIMEOUT\].*durationMs=/);
-  assert.match(log, /\[CLEANUP\].*durationMs=/);
-  assert.match(log, /\[FAIL\].*durationMs=/);
-});
+  await waitFor(() => !isProcessAlive(descendantPid), 5_000);
+  assert.equal(isProcessAlive(descendantPid), false);
+  return { ...result, log: readFileSync(logPath, "utf8") };
+}
 
 test("cleanup callback runs when the child fails", async () => {
   let cleanupCalls = 0;
@@ -87,10 +105,10 @@ async function waitFor(check, timeoutMs) {
   }
 }
 
-function processMatches(pid, marker) {
-  const result = spawnSync("ps", ["-o", "command=", "-p", String(pid)], {
+function processTreeInspectionAvailable() {
+  const result = spawnSync("ps", ["-axo", "pid=,ppid=,pgid="], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"],
   });
-  return result.status === 0 && result.stdout.includes(marker);
+  return result.status === 0 && result.stdout.trim().length > 0;
 }

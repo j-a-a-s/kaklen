@@ -95,6 +95,15 @@
       }
     ]
   },
+  "behavioralTests": {
+    "verifiedAt": "2026-07-23T02:52:40Z",
+    "focusedPassed": 33,
+    "focusedFailed": 0,
+    "scriptPassed": 249,
+    "scriptFailed": 0,
+    "detachedGrandchildVerified": true,
+    "postTestOrphanProcesses": 0
+  },
   "cleanupVerified": true,
   "orphanProcesses": 0,
   "orphanContainers": 0,
