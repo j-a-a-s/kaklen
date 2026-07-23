@@ -1,39 +1,43 @@
-import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runSupervisedProcess } from "./process-supervisor.mjs";
 
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const STAGING_ROOT = resolve(REPO_ROOT, "infra/environments/staging");
 
-export function infrastructureCommands(action, root = REPO_ROOT) {
+export function infrastructureCommands(action, root = REPO_ROOT, env = process.env) {
   const stagingRoot = resolve(root, "infra/environments/staging");
   const configPath = resolve(root, ".tflint.hcl");
   const tfvarsPath = resolve(stagingRoot, "terraform.tfvars.example");
   const planPath = resolve(root, ".artifacts/infra/staging.tfplan");
+  const timeout = infrastructureTimeouts(env);
 
   switch (action) {
     case "fmt":
-      return [{ command: "terraform", args: ["fmt", "-check", "-recursive", resolve(root, "infra")], cwd: root }];
+      return [step("terraform-fmt", "terraform", ["fmt", "-check", "-recursive", resolve(root, "infra")], root, timeout.step)];
     case "validate":
       return [
-        { command: "node", args: ["scripts/verify-infrastructure-environment-contract.mjs"], cwd: root },
-        { command: "terraform", args: ["init", "-backend=false", "-input=false"], cwd: stagingRoot },
-        { command: "terraform", args: ["validate", "-no-color"], cwd: stagingRoot }
+        step("environment-contract", "node", ["scripts/verify-infrastructure-environment-contract.mjs"], root, timeout.step),
+        step("terraform-init-validation", "terraform", ["init", "-backend=false", "-input=false"], stagingRoot, timeout.init),
+        step("terraform-validate", "terraform", ["validate", "-no-color"], stagingRoot, timeout.step)
       ];
     case "lint":
       return [
-        { command: "tflint", args: ["--init", `--config=${configPath}`], cwd: root },
+        step("tflint-init", "tflint", ["--init", `--config=${configPath}`], root, timeout.init),
         ...terraformDirectories(resolve(root, "infra")).map((directory) => ({
+          phase: `tflint-${directory.split("/").at(-1)}`,
           command: "tflint",
           args: [`--config=${configPath}`, `--chdir=${directory}`],
-          cwd: root
+          cwd: root,
+          timeoutMs: timeout.step
         }))
       ];
     case "security":
       return [
-        { command: "node", args: ["scripts/verify-infrastructure-security.mjs"], cwd: root },
+        step("infrastructure-security-contract", "node", ["scripts/verify-infrastructure-security.mjs"], root, timeout.step),
         {
+          phase: "trivy-infrastructure",
           command: "trivy",
           args: [
             "config",
@@ -47,25 +51,30 @@ export function infrastructureCommands(action, root = REPO_ROOT) {
             tfvarsPath,
             resolve(root, "infra")
           ],
-          cwd: root
+          cwd: root,
+          timeoutMs: timeout.security
         },
-        { command: "node", args: ["scripts/evaluate-infrastructure-trivy.mjs"], cwd: root }
+        step("trivy-evaluation", "node", ["scripts/evaluate-infrastructure-trivy.mjs"], root, timeout.step)
       ];
     case "plan:staging":
       return [
-        { command: "terraform", args: ["init", "-reconfigure", "-input=false"], cwd: stagingRoot },
-        { command: "terraform", args: ["validate", "-no-color"], cwd: stagingRoot },
+        step("terraform-init-staging", "terraform", ["init", "-backend=false", "-input=false"], stagingRoot, timeout.init),
+        step("terraform-validate-staging", "terraform", ["validate", "-no-color"], stagingRoot, timeout.step),
         {
+          phase: "terraform-plan-staging",
           command: "terraform",
           args: ["plan", "-input=false", "-lock=false", "-refresh=false", "-no-color", `-var-file=${tfvarsPath}`, `-out=${planPath}`],
           cwd: stagingRoot,
-          env: offlineAwsEnvironment()
+          env: offlineAwsEnvironment(),
+          timeoutMs: timeout.plan
         },
         {
+          phase: "terraform-show-staging",
           command: "terraform",
           args: ["show", "-no-color", planPath],
           cwd: stagingRoot,
-          capturePath: resolve(root, ".artifacts/infra/staging-plan.txt")
+          capturePath: resolve(root, ".artifacts/infra/staging-plan.txt"),
+          timeoutMs: timeout.step
         }
       ];
     default:
@@ -73,29 +82,92 @@ export function infrastructureCommands(action, root = REPO_ROOT) {
   }
 }
 
-export function runInfrastructureCommand(action, options = {}) {
+export async function runInfrastructureCommand(action, options = {}) {
   const root = options.root ?? REPO_ROOT;
-  const commands = infrastructureCommands(action, root);
+  const env = options.env ?? process.env;
+  const commands = infrastructureCommands(action, root, env);
+  const temporaryFiles = action === "plan:staging"
+    ? [resolve(root, ".artifacts/infra/staging.tfplan")]
+    : [];
+
+  return runInfrastructureSteps(commands, {
+    ...options,
+    action,
+    env,
+    root,
+    temporaryFiles,
+  });
+}
+
+export async function runInfrastructureSteps(commands, options = {}) {
+  const root = options.root ?? REPO_ROOT;
+  const action = options.action ?? "custom";
+  const env = options.env ?? process.env;
+  const execute = options.execute ?? runSupervisedProcess;
+  const startedAt = Date.now();
+  const results = [];
+  const diagnosticsRoot = resolve(root, ".artifacts/infra/diagnostics");
   mkdirSync(resolve(root, ".artifacts/infra"), { recursive: true });
 
-  for (const step of commands) {
-    const result = spawnSync(step.command, step.args, {
-      cwd: step.cwd,
-      env: { ...process.env, ...step.env },
-      encoding: step.capturePath ? "utf8" : undefined,
-      stdio: step.capturePath ? ["ignore", "pipe", "inherit"] : "inherit"
-    });
-    if (result.error) {
-      throw new Error(`${step.command} is unavailable: ${result.error.message}`);
+  try {
+    for (let index = 0; index < commands.length; index += 1) {
+      const commandStep = commands[index];
+      const phase = `infra:${action}:${commandStep.phase ?? `${commandStep.command}-${index + 1}`}`;
+      const result = await execute({
+        abortSignal: options.abortSignal,
+        args: commandStep.args,
+        captureStdout: Boolean(commandStep.capturePath),
+        command: commandStep.command,
+        cwd: commandStep.cwd,
+        env: {
+          ...env,
+          ...nonInteractiveEnvironment(),
+          ...commandStep.env,
+        },
+        logPath: resolve(diagnosticsRoot, `${String(index + 1).padStart(2, "0")}-${safeName(commandStep.phase ?? commandStep.command)}.log`),
+        phase,
+        teeStdout: !commandStep.capturePath,
+        timeoutMs: commandStep.timeoutMs,
+      });
+      results.push(result);
+
+      if (result.exitCode !== 0 || result.signal) {
+        throw new InfrastructureCommandError(
+          `${commandStep.command} ${commandStep.args.join(" ")} failed: ${result.cause}.`,
+          result,
+        );
+      }
+      if (commandStep.capturePath) {
+        mkdirSync(dirname(commandStep.capturePath), { recursive: true });
+        writeFileSync(commandStep.capturePath, result.stdout);
+        console.log(`Plan evidence written to ${commandStep.capturePath}`);
+      }
     }
-    if (result.status !== 0) {
-      throw new Error(`${step.command} ${step.args.join(" ")} failed with exit code ${result.status ?? 1}.`);
+  } finally {
+    let removed = 0;
+    for (const temporaryFile of options.temporaryFiles ?? []) {
+      if (existsSync(temporaryFile)) {
+        rmSync(temporaryFile, { force: true });
+        removed += 1;
+      }
     }
-    if (step.capturePath) {
-      mkdirSync(dirname(step.capturePath), { recursive: true });
-      writeFileSync(step.capturePath, result.stdout ?? "");
-      console.log(`✓ Plan evidence written to ${step.capturePath}`);
-    }
+    console.log(`[CLEANUP] infra:${action} durationMs=${Date.now() - startedAt} temporaryFilesRemoved=${removed}`);
+  }
+
+  return {
+    durationMs: Date.now() - startedAt,
+    exitCode: 0,
+    results,
+  };
+}
+
+export class InfrastructureCommandError extends Error {
+  constructor(message, result) {
+    super(message);
+    this.name = "InfrastructureCommandError";
+    this.exitCode = result.exitCode ?? 1;
+    this.signal = result.signal ?? null;
+    this.timedOut = result.timedOut;
   }
 }
 
@@ -120,4 +192,39 @@ function offlineAwsEnvironment() {
     AWS_SESSION_TOKEN: "offline-validation",
     AWS_EC2_METADATA_DISABLED: "true"
   };
+}
+
+function step(phase, command, args, cwd, timeoutMs) {
+  return { phase, command, args, cwd, timeoutMs };
+}
+
+function infrastructureTimeouts(env) {
+  const stepTimeout = timeoutValue(env.INFRA_STEP_TIMEOUT_MS, 300_000, "INFRA_STEP_TIMEOUT_MS");
+  return {
+    init: timeoutValue(env.INFRA_INIT_TIMEOUT_MS, 600_000, "INFRA_INIT_TIMEOUT_MS"),
+    plan: timeoutValue(env.INFRA_PLAN_TIMEOUT_MS, 300_000, "INFRA_PLAN_TIMEOUT_MS"),
+    security: timeoutValue(env.INFRA_SECURITY_TIMEOUT_MS, 300_000, "INFRA_SECURITY_TIMEOUT_MS"),
+    step: stepTimeout,
+  };
+}
+
+function timeoutValue(value, fallback, name) {
+  if (value === undefined || value === "") return fallback;
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  return parsed;
+}
+
+function nonInteractiveEnvironment() {
+  return {
+    CHECKPOINT_DISABLE: "1",
+    TF_IN_AUTOMATION: "true",
+    TF_INPUT: "0",
+  };
+}
+
+function safeName(value) {
+  return value.replace(/[^a-zA-Z0-9._-]+/g, "-");
 }

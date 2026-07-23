@@ -12,12 +12,15 @@ on:
       - ".tflint.hcl"
       - "package.json"
       - "scripts/infra*.mjs"
+      - "scripts/process-supervisor*.mjs"
       - "scripts/*infrastructure*.mjs"
       - "scripts/infrastructure.test.mjs"
       - "scripts/verify-infrastructure-*.mjs"
       - "docs/aws/**"
       - "docs/release/SPRINT_4A_INFRASTRUCTURE_VALIDATION.md"
+      - "docs/release/SPRINT_4A_AUD_001_REMEDIATION.md"
       - "artifacts/sprint-4a-infrastructure-validation.json"
+      - "artifacts/sprint-4a-aud-001-remediation.json"
   push:
     branches:
       - main
@@ -28,12 +31,15 @@ on:
       - ".tflint.hcl"
       - "package.json"
       - "scripts/infra*.mjs"
+      - "scripts/process-supervisor*.mjs"
       - "scripts/*infrastructure*.mjs"
       - "scripts/infrastructure.test.mjs"
       - "scripts/verify-infrastructure-*.mjs"
       - "docs/aws/**"
       - "docs/release/SPRINT_4A_INFRASTRUCTURE_VALIDATION.md"
+      - "docs/release/SPRINT_4A_AUD_001_REMEDIATION.md"
       - "artifacts/sprint-4a-infrastructure-validation.json"
+      - "artifacts/sprint-4a-aud-001-remediation.json"
 
 permissions:
   contents: read
@@ -47,6 +53,11 @@ jobs:
     name: Terraform staging validation
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      INFRA_INIT_TIMEOUT_MS: "600000"
+      INFRA_PLAN_TIMEOUT_MS: "300000"
+      INFRA_SECURITY_TIMEOUT_MS: "300000"
+      INFRA_STEP_TIMEOUT_MS: "300000"
 
     steps:
       - name: Checkout recursively
@@ -85,6 +96,9 @@ jobs:
           version: v0.72.0
           cache: true
 
+      - name: Command termination regression tests
+        run: node --test scripts/process-supervisor.test.mjs scripts/infrastructure.test.mjs
+
       - name: Terraform formatting
         run: pnpm infra:fmt
 
@@ -119,4 +133,6 @@ jobs:
             artifacts/infrastructure-environment-contract.json
             artifacts/infrastructure-security.json
             artifacts/sprint-4a-infrastructure-validation.json
+            artifacts/sprint-4a-aud-001-remediation.json
             .artifacts/infra/staging-plan.txt
+            .artifacts/infra/diagnostics

@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
   defineTask,
+  executeQualityTask,
   QUALITY_PROFILES,
   QUALITY_TASKS,
   resolveProfile,
@@ -12,6 +13,7 @@ import {
   runQualityPipeline,
   validateTaskGraph
 } from "./quality-pipeline-core.mjs";
+import { cleanupQualityServices } from "./quality-services-core.mjs";
 
 const requiredCiControls = [
   "commit-message",
@@ -80,6 +82,93 @@ test("required failure stops later tasks immediately", async () => {
   });
   assert.deepEqual(executed, ["first", "second"]);
   assert.equal(result.artifact.tasks[2].status, "skipped");
+});
+
+test("quality task returns an exit code on success", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "kaklen-quality-exit-"));
+  const task = defineTask(
+    "exit-fixture",
+    "Exit fixture",
+    process.execPath,
+    ["-e", "process.exit(0)"],
+    [],
+    ["ci"],
+    2_000,
+  );
+  const result = await executeQualityTask(task, process.env, {
+    forceSettleMs: 500,
+    gracePeriodMs: 100,
+    logDirectory: directory,
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.signal, null);
+  assert.equal(result.cleanupExecuted, true);
+});
+
+test("quality task timeout fails instead of waiting indefinitely", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "kaklen-quality-timeout-"));
+  const task = defineTask(
+    "timeout-fixture",
+    "Timeout fixture",
+    process.execPath,
+    ["-e", 'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)'],
+    [],
+    ["ci"],
+    100,
+  );
+  const result = await executeQualityTask(task, process.env, {
+    forceSettleMs: 500,
+    gracePeriodMs: 100,
+    logDirectory: directory,
+  });
+
+  assert.equal(result.exitCode, 124);
+  assert.equal(result.timedOut, true);
+  assert.equal(result.cleanupExecuted, true);
+});
+
+test("pipeline cleanup runs after a required task failure", async () => {
+  const { tasks, profiles } = fixtureGraph();
+  let cleanupCalls = 0;
+  const result = await runQualityPipeline({
+    cleanup: async () => {
+      cleanupCalls += 1;
+      return { removedServices: [] };
+    },
+    execute: async () => ({ exitCode: 9, signal: null }),
+    profile: "controlled",
+    profiles,
+    tasks,
+    writeArtifact: false,
+  });
+
+  assert.equal(result.failure?.exitCode, 9);
+  assert.equal(cleanupCalls, 1);
+  assert.equal(result.artifact.cleanup.status, "passed");
+});
+
+test("quality service cleanup removes only containers owned by the run", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "kaklen-quality-services-"));
+  const statePath = join(directory, "state.json");
+  writeFileSync(statePath, JSON.stringify({
+    containerIds: { postgres: "container-1" },
+    runId: "quality-run",
+    startedServices: ["postgres"],
+  }));
+  const calls = [];
+
+  const result = await cleanupQualityServices({
+    env: {},
+    expectedRunId: "quality-run",
+    readContainerId: () => "container-1",
+    run: async (command, args) => calls.push([command, ...args]),
+    statePath,
+  });
+
+  assert.deepEqual(result.removedServices, ["postgres"]);
+  assert.deepEqual(calls, [["docker", "compose", "rm", "--force", "--stop", "postgres"]]);
+  assert.equal(existsSync(statePath), false);
 });
 
 test("task exit code is preserved", async () => {

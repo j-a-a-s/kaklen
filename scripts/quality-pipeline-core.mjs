@@ -1,8 +1,8 @@
-import { spawn } from "node:child_process";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { readDatabaseUrl } from "./local-db-utils.mjs";
+import { runSupervisedProcess } from "./process-supervisor.mjs";
 
 const BOTH = Object.freeze(["local", "ci"]);
 
@@ -148,7 +148,7 @@ export function validateTaskGraph(tasks = QUALITY_TASKS, profiles = QUALITY_PROF
 export async function runQualityPipeline(options) {
   const profile = resolveProfile(options.profile, options.profiles, options.tasks);
   const executionEnv = resolveQualityEnvironment(profile.environment, options.env ?? process.env);
-  const execute = options.execute ?? executeTask;
+  const execute = options.execute ?? executeQualityTask;
   const now = options.now ?? (() => Date.now());
   const isoNow = options.isoNow ?? (() => new Date().toISOString());
   const artifactPath = resolve(options.artifactPath ?? "artifacts/quality-gate.json");
@@ -160,7 +160,17 @@ export async function runQualityPipeline(options) {
     finishedAt: null,
     durationMs: 0,
     commitSha: options.commitSha ?? currentCommitSha(),
-    tasks: profile.tasks.map((task) => ({ key: task.key, status: "pending", durationMs: 0, exitCode: null, signal: null }))
+    cleanup: { status: options.cleanup ? "pending" : "not-needed", durationMs: 0, cause: null },
+    tasks: profile.tasks.map((task) => ({
+      key: task.key,
+      status: "pending",
+      durationMs: 0,
+      exitCode: null,
+      signal: null,
+      timedOut: false,
+      cleanupExecuted: false,
+      orphanProcessesTerminated: 0
+    }))
   };
   const persist = () => {
     if (options.writeArtifact === false) return;
@@ -168,38 +178,95 @@ export async function runQualityPipeline(options) {
     writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`);
   };
   persist();
+  let failure = null;
 
   for (let index = 0; index < profile.tasks.length; index += 1) {
     const task = profile.tasks[index];
     const record = artifact.tasks[index];
+    if (options.abortSignal?.aborted) {
+      for (let pending = index; pending < artifact.tasks.length; pending += 1) artifact.tasks[pending].status = "skipped";
+      failure = {
+        key: task.key,
+        cause: `cancelled by ${String(options.abortSignal.reason ?? "signal")}`,
+        exitCode: 1,
+        signal: String(options.abortSignal.reason ?? "SIGTERM"),
+        timedOut: false
+      };
+      break;
+    }
     record.status = "running";
     persist();
     options.onTaskStart?.(task);
     const taskStarted = now();
-    const result = await execute(task, { ...executionEnv, ...task.env });
+    let result;
+    try {
+      result = await execute(task, { ...executionEnv, ...task.env }, {
+        abortSignal: options.abortSignal,
+        logDirectory: options.logDirectory ?? "artifacts/command-diagnostics"
+      });
+    } catch (error) {
+      result = {
+        exitCode: 1,
+        signal: null,
+        cause: error instanceof Error ? error.message : String(error),
+        timedOut: false,
+        cleanupExecuted: false,
+        orphanProcessesTerminated: 0
+      };
+    }
     record.durationMs = Math.max(0, now() - taskStarted);
     record.exitCode = result.exitCode ?? null;
     record.signal = result.signal ?? null;
+    record.timedOut = result.timedOut === true;
+    record.cleanupExecuted = result.cleanupExecuted === true;
+    record.orphanProcessesTerminated = result.orphanProcessesTerminated ?? 0;
     record.status = result.exitCode === 0 && !result.signal ? "passed" : "failed";
     options.onTaskFinish?.(task, record);
 
     if (record.status === "failed" && task.required) {
       for (let pending = index + 1; pending < artifact.tasks.length; pending += 1) artifact.tasks[pending].status = "skipped";
-      artifact.status = "failed";
-      artifact.failure = { key: task.key, cause: sanitizeCause(result.cause ?? failureCause(record)) };
-      artifact.finishedAt = isoNow();
-      artifact.durationMs = Math.max(0, now() - startedMs);
-      persist();
-      return { artifact, failure: artifact.failure };
+      failure = {
+        key: task.key,
+        cause: sanitizeCause(result.cause ?? failureCause(record)),
+        exitCode: record.exitCode,
+        signal: record.signal,
+        timedOut: record.timedOut
+      };
+      break;
     }
     persist();
   }
 
-  artifact.status = "passed";
+  if (options.cleanup) {
+    const cleanupStarted = now();
+    artifact.cleanup.status = "running";
+    persist();
+    options.onCleanupStart?.();
+    try {
+      const cleanupResult = await options.cleanup();
+      artifact.cleanup.status = "passed";
+      artifact.cleanup.result = cleanupResult ?? null;
+    } catch (error) {
+      artifact.cleanup.status = "failed";
+      artifact.cleanup.cause = sanitizeCause(error instanceof Error ? error.message : String(error));
+      failure ??= {
+        key: "cleanup",
+        cause: artifact.cleanup.cause,
+        exitCode: 1,
+        signal: null,
+        timedOut: false
+      };
+    }
+    artifact.cleanup.durationMs = Math.max(0, now() - cleanupStarted);
+    options.onCleanupFinish?.(artifact.cleanup);
+  }
+
+  artifact.status = failure ? "failed" : "passed";
+  if (failure) artifact.failure = failure;
   artifact.finishedAt = isoNow();
   artifact.durationMs = Math.max(0, now() - startedMs);
   persist();
-  return { artifact, failure: null };
+  return { artifact, failure };
 }
 
 export function resolveQualityEnvironment(profileEnvironment, env = {}) {
@@ -214,27 +281,17 @@ export function defineTask(key, label, command, args, dependencies, environments
   return Object.freeze({ key, label, command, args, dependencies, environments, timeout, artifacts, required, env });
 }
 
-function executeTask(task, env) {
-  return new Promise((resolveTask) => {
-    let settled = false;
-    let timedOut = false;
-    const child = spawn(task.command, task.args, { stdio: "inherit", shell: false, env });
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill("SIGTERM");
-    }, task.timeout);
-    const finish = (result) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolveTask(result);
-    };
-    child.once("error", (error) => finish({ exitCode: 1, signal: null, cause: error.message }));
-    child.once("exit", (code, signal) => finish({
-      exitCode: code,
-      signal,
-      cause: timedOut ? `timeout after ${task.timeout} ms` : signal ? `signal ${signal}` : `exit ${code ?? 1}`
-    }));
+export function executeQualityTask(task, env, context = {}) {
+  return runSupervisedProcess({
+    abortSignal: context.abortSignal,
+    args: task.args,
+    command: task.command,
+    env,
+    forceSettleMs: context.forceSettleMs ?? 2_000,
+    gracePeriodMs: context.gracePeriodMs ?? (task.key === "e2e" ? 15_000 : 5_000),
+    logPath: resolve(context.logDirectory ?? "artifacts/command-diagnostics", `quality-${task.key}.log`),
+    phase: `quality:${task.key}`,
+    timeoutMs: task.timeout
   });
 }
 

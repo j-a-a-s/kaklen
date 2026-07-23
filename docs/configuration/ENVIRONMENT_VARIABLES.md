@@ -102,6 +102,10 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `E2E_REUSE_ARTIFACTS` | internal | test, ci | no | non-secret | `false` | scripts | Reuses builds produced earlier by the quality graph. |
 | `GH_TOKEN` | internal | ci | no | secret | none | scripts, workflow | GitHub Actions token used to verify repository governance metadata. |
 | `I18N_SKIP_BUILD` | internal | test, ci | no | non-secret | `false` | scripts | Reuses localized builds during server verification. |
+| `INFRA_INIT_TIMEOUT_MS` | internal | development, test, ci | no | non-secret | `600000` | scripts, workflow | Secondary timeout for Terraform and TFLint initialization steps. |
+| `INFRA_PLAN_TIMEOUT_MS` | internal | development, test, ci | no | non-secret | `300000` | scripts, workflow | Secondary timeout for the credential-free Terraform staging plan. |
+| `INFRA_SECURITY_TIMEOUT_MS` | internal | development, test, ci | no | non-secret | `300000` | scripts, workflow | Secondary timeout for infrastructure security scanning. |
+| `INFRA_STEP_TIMEOUT_MS` | internal | development, test, ci | no | non-secret | `300000` | scripts, workflow | Default secondary timeout for supervised infrastructure steps. |
 | `MAIL_REUSE_CONFIG_BUILD` | internal | test, ci | no | non-secret | `false` | scripts | Reuses compiled configuration during SMTP verification. |
 | `MIGRATION_REUSE_DEMO_VERIFICATION` | internal | test, ci | no | non-secret | `false` | scripts | Delegates demo verification to its canonical pipeline task. |
 | `MIGRATION_REUSE_PRISMA_CLIENT` | internal | test, ci | no | non-secret | `false` | scripts | Reuses the Prisma Client during isolated migration replay. |
@@ -109,4 +113,6 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `PATH` | internal | production, ci | no | non-secret | none | docker | Container executable search path. |
 | `PNPM_HOME` | internal | production, ci | no | non-secret | `/pnpm` | docker | pnpm installation path in the API build image. |
 | `PRODUCTION_PAYMENT_GATEWAY_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming the production payment gateway. |
+| `QUALITY_RUN_ID` | internal | development, test, ci | no | non-secret | none | scripts | Ephemeral identifier used to prove ownership of local services started by a quality run. |
+| `QUALITY_SERVICES_STATE_PATH` | internal | development, test, ci | no | non-secret | `artifacts/quality-services-state.json` | scripts | Ephemeral state file used to remove only Docker containers owned by a quality run. |
 | `REAL_WHATSAPP_VALIDATED` | ci | ci | no | non-secret | `false` | scripts | External evidence flag confirming real WhatsApp delivery. |
