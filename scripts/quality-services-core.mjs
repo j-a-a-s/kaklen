@@ -1,10 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import {
-  closeSync,
   existsSync,
+  linkSync,
   mkdirSync,
-  openSync,
   readFileSync,
   readdirSync,
   renameSync,
@@ -86,7 +85,13 @@ export function acquireQualityGateLock(options = {}) {
       if (error?.code !== "EEXIST") throw error;
     }
 
-    const existing = readQualityGateLock({ lockPath });
+    let existing;
+    try {
+      existing = readQualityGateLock({ lockPath });
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
     assertRecoverableLock(existing, { isPidAlive, ownerHostname });
     try {
       createExclusiveJson(recoveryLockPath, record);
@@ -99,17 +104,24 @@ export function acquireQualityGateLock(options = {}) {
     let acquisitionError = null;
     try {
       if (existsSync(lockPath)) {
-        const current = readQualityGateLock({ lockPath });
-        assertRecoverableLock(current, { isPidAlive, ownerHostname });
-        const stalePath = `${lockPath}.stale-${Date.now()}-${randomBytes(4).toString("hex")}`;
-        renameSync(lockPath, stalePath);
-        staleLocks.push(stalePath);
-        onDiagnostic({
-          phase: "quality:stale-lock",
-          runId: current.runId,
-          pid: current.pid,
-          stalePath,
-        });
+        let current;
+        try {
+          current = readQualityGateLock({ lockPath });
+        } catch (error) {
+          if (error?.code !== "ENOENT") throw error;
+        }
+        if (current) {
+          assertRecoverableLock(current, { isPidAlive, ownerHostname });
+          const stalePath = `${lockPath}.stale-${Date.now()}-${randomBytes(4).toString("hex")}`;
+          renameSync(lockPath, stalePath);
+          staleLocks.push(stalePath);
+          onDiagnostic({
+            phase: "quality:stale-lock",
+            runId: current.runId,
+            pid: current.pid,
+            stalePath,
+          });
+        }
       }
       createExclusiveJson(lockPath, record);
       acquiredLease = createQualityGateLease({ lockPath, record, staleLocks });
@@ -195,9 +207,15 @@ export async function withQualityGateLock(options, callback) {
 export function readQualityGateLock(options = {}) {
   const lockPath = resolve(options.lockPath ?? QUALITY_GATE_LOCK_PATH);
   if (!existsSync(lockPath)) {
-    throw new Error(`Quality Gate lock does not exist at ${lockPath}.`);
+    throw createMissingLockError(lockPath);
   }
-  const lock = parseJsonFile(lockPath, "Quality Gate lock");
+  let lock;
+  try {
+    lock = parseJsonFile(lockPath, "Quality Gate lock");
+  } catch (error) {
+    if (error?.code === "ENOENT") throw createMissingLockError(lockPath);
+    throw error;
+  }
   validateQualityGateLock(lock);
   if (options.expectedRunId && lock.runId !== validateQualityRunId(options.expectedRunId)) {
     throw new Error(
@@ -568,7 +586,13 @@ function recoverAbandonedLockCoordinator({
   recoveryLockPath,
 }) {
   if (!existsSync(recoveryLockPath)) return;
-  const coordinator = readQualityGateLock({ lockPath: recoveryLockPath });
+  let coordinator;
+  try {
+    coordinator = readQualityGateLock({ lockPath: recoveryLockPath });
+  } catch (error) {
+    if (error?.code === "ENOENT") return;
+    throw error;
+  }
   if (coordinator.hostname !== ownerHostname) {
     throw new Error(
       `Quality Gate lock recovery belongs to host ${coordinator.hostname}; ownership cannot be verified locally.`,
@@ -707,19 +731,19 @@ function persistState(statePath, state, options = {}) {
 }
 
 function createExclusiveJson(path, value) {
-  let descriptor;
-  let failure = null;
+  const candidatePath = resolve(
+    dirname(path),
+    `.${basename(path)}.candidate-${process.pid}-${randomBytes(6).toString("hex")}`,
+  );
   try {
-    descriptor = openSync(path, "wx", 0o600);
-    writeFileSync(descriptor, `${JSON.stringify(value, null, 2)}\n`);
-  } catch (error) {
-    failure = error;
+    writeFileSync(
+      candidatePath,
+      `${JSON.stringify(value, null, 2)}\n`,
+      { flag: "wx", mode: 0o600 },
+    );
+    linkSync(candidatePath, path);
   } finally {
-    if (descriptor !== undefined) closeSync(descriptor);
-  }
-  if (failure) {
-    if (descriptor !== undefined) rmSync(path, { force: true });
-    throw failure;
+    rmSync(candidatePath, { force: true });
   }
 }
 
@@ -727,10 +751,17 @@ function parseJsonFile(path, label) {
   let parsed;
   try {
     parsed = JSON.parse(readFileSync(path, "utf8"));
-  } catch {
+  } catch (error) {
+    if (error?.code === "ENOENT") throw error;
     throw new Error(`${label} is not valid JSON; destructive cleanup is blocked.`);
   }
   return parsed;
+}
+
+function createMissingLockError(lockPath) {
+  const error = new Error(`Quality Gate lock does not exist at ${lockPath}.`);
+  error.code = "ENOENT";
+  return error;
 }
 
 function assertPlainObject(value, label) {
