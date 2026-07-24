@@ -672,10 +672,11 @@ export class AuthService {
     password: string,
     identity: Pick<User, "email" | "firstName" | "lastName">
   ): void {
-    if (password.length < PASSWORD_MIN_LENGTH) {
+    const validation = passwordService.validatePassword(password);
+    if (!validation.valid) {
       throw this.passwordException(
         ERROR_CODES.passwordPolicy,
-        `Password must contain at least ${PASSWORD_MIN_LENGTH} characters`
+        validation.errors[0] ?? `Password must contain at least ${PASSWORD_MIN_LENGTH} characters`
       );
     }
 
