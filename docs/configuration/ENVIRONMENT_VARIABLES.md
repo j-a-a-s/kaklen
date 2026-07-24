@@ -48,7 +48,7 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `NODE_ENV` | runtime | development, test, production, ci | production | non-secret | `development` | api, web, docker, scripts, workflow | Node runtime environment selector. |
 | `ORGANIZATION_INVITATION_EXPIRES_SECONDS` | runtime | development, test, production, ci | no | non-secret | `259200` | api | Organization invitation lifetime in seconds. |
 | `PASSWORD_RESET_EXPIRES_MINUTES` | runtime | development, test, production, ci | no | non-secret | `30` | api, scripts | Password-reset token lifetime in minutes. |
-| `PAYMENT_GATEWAY` | runtime | development, test, production, ci | no | non-secret | `sandbox` | api, workflow | Configured payment gateway mode. |
+| `PAYMENT_GATEWAY` | runtime | development, test, production, ci | no | non-secret | `sandbox` | api, scripts, workflow | Configured payment gateway mode. |
 | `PAYMENT_SANDBOX_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | Cryptographic secret for sandbox payment callbacks. |
 | `PORT` | runtime | development, test, production, ci | no | non-secret | `3000` | api, docker, scripts, workflow | Primary API listening port. |
 | `PUBLIC_API_BASE_URL` | runtime | development, test, production, ci | no | non-secret | `http://localhost:3000/api` | docker, scripts | API base URL written into public web runtime config. |
@@ -62,7 +62,7 @@ El manifiesto es la única fuente de clasificación, obligatoriedad y consumidor
 | `WEB_DIST_ROOT` | runtime | development, test, production, ci | no | non-secret | `apps/web/dist/web` | docker, scripts | Localized Angular build root served by web runtime tooling. |
 | `WEB_PORT` | runtime | development, test, production, ci | no | non-secret | `4200` | docker, scripts, workflow | Localized frontend runtime port. |
 | `WHATSAPP_HASH_SECRET` | runtime | development, test, production, ci | production | secret | none | api, workflow | HMAC secret for WhatsApp operational identifiers. |
-| `WHATSAPP_MODE` | runtime | development, test, production, ci | no | non-secret | `manual` | api, workflow | Selects manual or provider-backed WhatsApp delivery. |
+| `WHATSAPP_MODE` | runtime | development, test, production, ci | no | non-secret | `manual` | api, scripts, workflow | Selects manual or provider-backed WhatsApp delivery. |
 
 ## Desarrollo local
 
