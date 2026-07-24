@@ -17,6 +17,7 @@ artifacts/*
 !artifacts/sprint-4a-aud-001-remediation.json
 !artifacts/final-consolidation-inventory.json
 !artifacts/final-repository-consolidation.json
+!artifacts/production-readiness-gap-report.json
 .artifacts/
 **/.terraform/*
 *.tfstate

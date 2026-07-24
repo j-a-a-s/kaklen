@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "codeCertified": true,
+  "certifiedCodeSha": "8b72d85cc7dd72e4bc9a338247be3c47c86f46a8",
+  "awsStagingValidated": false,
+  "transactionalEmailValidated": false,
+  "whatsappProviderValidated": false,
+  "productionPaymentValidated": false,
+  "backupRestoreDrillValidated": false,
+  "rollbackDrillValidated": false,
+  "productionReleaseBlocked": true,
+  "kokecorePinnedSha": "b0025e737d94a1dae4be2f8f71dcdcfea72c695f",
+  "kokecoreCurrentMainObserved": "18af47a05112eb1a4ae30b0004277f015dd27dd4",
+  "ownerDecisionsPending": [
+    "Lead retention period (DATA_RETENTION_AND_DELETION.md)",
+    "LeadEvent audit trail retention period (DATA_RETENTION_AND_DELETION.md)",
+    "User account inactive retention period (DATA_RETENTION_AND_DELETION.md)",
+    "Commercial data retention period (DATA_RETENTION_AND_DELETION.md)",
+    "Payment records retention period — requires local tax/legal counsel (DATA_RETENTION_AND_DELETION.md)",
+    "Backup rotation period (DATA_RETENTION_AND_DELETION.md)",
+    "Data subject request response deadline (DATA_RETENTION_AND_DELETION.md)",
+    "Legal exceptions to deletion requests (DATA_RETENTION_AND_DELETION.md)",
+    "Responsible person for each retention category (DATA_RETENTION_AND_DELETION.md)",
+    "Transactional email provider selection (TRANSACTIONAL_EMAIL_RUNBOOK.md)",
+    "Sender domain selection (TRANSACTIONAL_EMAIL_RUNBOOK.md)",
+    "SMTP credential rotation frequency (TRANSACTIONAL_EMAIL_RUNBOOK.md)"
+  ],
+  "blockingGaps": [
+    "AWS staging not yet deployed",
+    "Transactional email provider not selected",
+    "WhatsApp provider integration not started",
+    "Payment gateway not configured",
+    "Backup restore drill not executed",
+    "Rollback drill not executed"
+  ]
+}
