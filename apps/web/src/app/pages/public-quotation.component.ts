@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { ActivatedRoute } from "@angular/router";
 import { formatMoney } from "@kaklen/shared";
 import type { MoneyDecimalInput } from "@kaklen/shared";
+import { RUNTIME_CONFIG } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import { PublicQuotationStatus, PublicQuotationView } from "../portal/quotation-portal.models";
 import { ProviderProfilePayload, QuotationPortalService } from "../portal/quotation-portal.service";
@@ -86,7 +87,8 @@ import { MoneyInputDirective } from "../shared/forms/money-input.directive";
             <p i18n="@@quotationDecisionDescription">Puedes solicitar ajustes o continuar con la aprobación y el pago seguro.</p>
           </div>
           <button *ngIf="data.actions.canRequestChanges" type="button" class="secondary" (click)="changesOpen.set(!changesOpen())"><kaklen-icon name="message-circle" /><span i18n="@@requestChangesButton">Solicitar cambios</span></button>
-          <button *ngIf="data.actions.canApproveAndPay" type="button" class="success" [disabled]="processing()" (click)="approveAndPay()"><kaklen-icon name="check-circle" /><span i18n="@@approveAndPayButton">Aprobar y pagar</span></button>
+          <button *ngIf="data.actions.canApproveAndPay && paymentsEnabled()" type="button" class="success" [disabled]="processing()" (click)="approveAndPay()"><kaklen-icon name="check-circle" /><span i18n="@@approveAndPayButton">Aprobar y pagar</span></button>
+          <p *ngIf="data.actions.canApproveAndPay && !paymentsEnabled()" class="portal-alert warning" role="note" i18n="@@paymentsUnavailableNote">El pago en línea no está disponible en este momento. Contáctanos para coordinar el pago de esta cotización.</p>
         </section>
 
         <section class="portal-band" *ngIf="changesOpen() && data.actions.canRequestChanges">
@@ -213,8 +215,13 @@ export class PublicQuotationComponent implements OnInit {
     }
   }
 
+  /** Read live (not cached) so a test can flip RUNTIME_CONFIG.paymentsMode before rendering. */
+  paymentsEnabled(): boolean {
+    return RUNTIME_CONFIG.paymentsMode !== "disabled";
+  }
+
   async approveAndPay(): Promise<void> {
-    if (this.processing()) return;
+    if (this.processing() || !this.paymentsEnabled()) return;
     this.processing.set(true);
     this.error.set("");
     try {

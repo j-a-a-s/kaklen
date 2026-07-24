@@ -150,11 +150,50 @@ describe("PaymentsService", () => {
       }
     }
   });
+
+  describe("with PAYMENT_GATEWAY=disabled (no gateway wired)", () => {
+    it("rejects creating a payment intent with a stable code and no internal detail", async () => {
+      const prisma = makePrisma();
+      const service = makeService(prisma, null);
+
+      await expect(service.createPublicIntent("public-token", {
+        idempotencyKey: "11111111-1111-4111-8111-111111111111",
+        locale: "es"
+      })).rejects.toMatchObject({
+        response: { code: "PAYMENT_PROVIDER_NOT_CONFIGURED" }
+      });
+      expect(prisma.payment.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("rejects completing a sandbox payment", async () => {
+      const service = makeService(makePrisma(), null);
+
+      await expect(service.completeSandbox("a".repeat(43), { outcome: "PAID" }))
+        .rejects.toMatchObject({ response: { code: "PAYMENT_PROVIDER_NOT_CONFIGURED" } });
+    });
+
+    it("rejects processing a webhook", async () => {
+      const service = makeService(makePrisma(), null);
+
+      await expect(service.processWebhook(webhook(), "any-signature"))
+        .rejects.toMatchObject({ response: { code: "PAYMENT_PROVIDER_NOT_CONFIGURED" } });
+    });
+
+    it("rejects cancelling and refunding an existing payment", async () => {
+      const service = makeService(makePrisma(), null);
+
+      await expect(service.cancel("org-1", "payment-1"))
+        .rejects.toMatchObject({ response: { code: "PAYMENT_PROVIDER_NOT_CONFIGURED" } });
+      await expect(service.refund("org-1", "payment-1", { amount: 100 }))
+        .rejects.toMatchObject({ response: { code: "PAYMENT_PROVIDER_NOT_CONFIGURED" } });
+    });
+
+  });
 });
 
 function makeService(
   prisma: ReturnType<typeof makePrisma>,
-  gateway: jest.Mocked<PaymentGateway>,
+  gateway: jest.Mocked<PaymentGateway> | null,
   options: { quotationStatus?: QuotationStatus } = {}
 ): PaymentsService {
   return new PaymentsService(

@@ -41,3 +41,27 @@ export interface PaymentGateway {
 }
 
 export const PAYMENT_GATEWAY = Symbol("PAYMENT_GATEWAY");
+
+export type PaymentGatewayMode = "disabled" | "sandbox" | "provider";
+
+/**
+ * Resolves the concrete gateway to bind to PAYMENT_GATEWAY given the
+ * configured mode. Called from a Nest factory provider (see
+ * payments.module.ts), so a thrown error here aborts application bootstrap —
+ * "provider" mode fails fast because no real adapter is registered in this
+ * codebase yet. When one is added, wire it in here alongside "sandbox".
+ */
+export function resolvePaymentGateway(
+  mode: PaymentGatewayMode,
+  sandboxGateway: PaymentGateway
+): PaymentGateway | null {
+  if (mode === "sandbox") {
+    return sandboxGateway;
+  }
+  if (mode === "disabled") {
+    return null;
+  }
+  throw new Error(
+    "PAYMENT_GATEWAY=provider has no registered adapter yet. Register a real PaymentGateway implementation before enabling provider mode."
+  );
+}

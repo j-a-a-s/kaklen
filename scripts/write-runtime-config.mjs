@@ -5,6 +5,9 @@ import { createBuildInfo } from "./build-info.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+const PAYMENTS_MODES = ["disabled", "sandbox", "provider"];
+const WHATSAPP_MODES = ["manual", "provider"];
+
 export function createRuntimeConfig() {
   const buildInfo = createBuildInfo();
   return {
@@ -15,8 +18,24 @@ export function createRuntimeConfig() {
     buildTime: buildInfo.buildTime,
     sessionIdleSeconds: readPositiveInteger(process.env.SESSION_IDLE_SECONDS, 300),
     sessionWarningSeconds: readPositiveInteger(process.env.SESSION_WARNING_SECONDS, 240),
-    commercialEmailEnabled: process.env.COMMERCIAL_EMAIL_ENABLED === "true"
+    commercialEmailEnabled: process.env.COMMERCIAL_EMAIL_ENABLED === "true",
+    // Public, non-sensitive capability flags — mirrors the same modes and
+    // production-safe default (readProductIntegrationsConfig in
+    // packages/config) so the built frontend never advertises a payment or
+    // WhatsApp capability the API isn't actually offering.
+    paymentsMode: readMode(process.env.PAYMENT_GATEWAY, PAYMENTS_MODES, buildInfo.environment === "production" ? "disabled" : "sandbox", "PAYMENT_GATEWAY"),
+    whatsappMode: readMode(process.env.WHATSAPP_MODE, WHATSAPP_MODES, "manual", "WHATSAPP_MODE")
   };
+}
+
+function readMode(value, allowed, fallback, key) {
+  if (value === undefined) {
+    return fallback;
+  }
+  if (!allowed.includes(value)) {
+    throw new Error(`${key} must be one of: ${allowed.join(", ")}`);
+  }
+  return value;
 }
 
 function readPositiveInteger(value, fallback) {

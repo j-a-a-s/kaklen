@@ -88,5 +88,8 @@ export interface PublicPaymentCheckout {
   payment: { status: string; amount: string; currency: string; createdAt: string };
   quotation: { number: string; version: number; clientName: string };
   organization: { name: string };
+  /** Live gateway mode, not this payment's history — decides which actions the checkout page may offer right now. */
+  mode: "disabled" | "sandbox" | "provider";
+  /** @deprecated use `mode === "sandbox"` — kept for backward compatibility with existing consumers. */
   sandbox: boolean;
 }

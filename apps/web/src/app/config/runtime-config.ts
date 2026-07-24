@@ -1,3 +1,6 @@
+export type PaymentsCapabilityMode = "disabled" | "sandbox" | "provider";
+export type WhatsAppCapabilityMode = "manual" | "provider";
+
 export interface RuntimeConfig {
   apiBaseUrl: string;
   environment: string;
@@ -7,6 +10,8 @@ export interface RuntimeConfig {
   sessionIdleSeconds: number;
   sessionWarningSeconds: number;
   commercialEmailEnabled: boolean;
+  paymentsMode: PaymentsCapabilityMode;
+  whatsappMode: WhatsAppCapabilityMode;
 }
 
 interface RuntimeGlobal {
@@ -23,7 +28,9 @@ export const RUNTIME_CONFIG: RuntimeConfig = {
   buildTime: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.buildTime ?? "",
   sessionIdleSeconds: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.sessionIdleSeconds ?? 300,
   sessionWarningSeconds: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.sessionWarningSeconds ?? 240,
-  commercialEmailEnabled: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.commercialEmailEnabled ?? false
+  commercialEmailEnabled: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.commercialEmailEnabled ?? false,
+  paymentsMode: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.paymentsMode ?? "sandbox",
+  whatsappMode: runtimeGlobal.__KAKLEN_RUNTIME_CONFIG__?.whatsappMode ?? "manual"
 };
 
 export const API_BASE_URL = RUNTIME_CONFIG.apiBaseUrl.replace(/\/+$/, "");
@@ -51,6 +58,8 @@ export async function fetchRuntimeConfig(cacheKey = Date.now().toString()): Prom
     buildTime: body.buildTime ?? RUNTIME_CONFIG.buildTime,
     sessionIdleSeconds: body.sessionIdleSeconds ?? RUNTIME_CONFIG.sessionIdleSeconds,
     sessionWarningSeconds: body.sessionWarningSeconds ?? RUNTIME_CONFIG.sessionWarningSeconds,
-    commercialEmailEnabled: body.commercialEmailEnabled ?? RUNTIME_CONFIG.commercialEmailEnabled
+    commercialEmailEnabled: body.commercialEmailEnabled ?? RUNTIME_CONFIG.commercialEmailEnabled,
+    paymentsMode: body.paymentsMode ?? RUNTIME_CONFIG.paymentsMode,
+    whatsappMode: body.whatsappMode ?? RUNTIME_CONFIG.whatsappMode
   };
 }

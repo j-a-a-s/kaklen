@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   ServiceUnavailableException,
   UnauthorizedException
 } from "@nestjs/common";
@@ -15,7 +16,7 @@ import {
   Prisma,
   QuotationStatus
 } from "@prisma/client";
-import { readPasswordRecoveryConfig } from "@kaklen/config";
+import { readPasswordRecoveryConfig, readProductIntegrationsConfig } from "@kaklen/config";
 import { createHash, randomBytes } from "node:crypto";
 import { InAppNotificationsService } from "../in-app-notifications/in-app-notifications.service";
 import { serializeMoney } from "../common/money-validation";
@@ -36,19 +37,20 @@ export interface PublicPaymentIntent {
 @Injectable()
 export class PaymentsService {
   private readonly appPublicUrl = readPasswordRecoveryConfig(process.env).appPublicUrl;
+  private readonly config = readProductIntegrationsConfig(process.env);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly portal: QuotationPortalService,
     private readonly notifications: InAppNotificationsService,
-    @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway
+    @Optional() @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway | null
   ) {}
 
   async createPublicIntent(
     publicToken: string,
     dto: CreatePublicPaymentDto
   ): Promise<PublicPaymentIntent> {
-    this.assertSandboxAvailable();
+    const gateway = this.requireGateway();
     const resolved = await this.portal.resolve(publicToken, true);
     const quotation = resolved.quotation;
     calculateConsistentQuotationMoney(quotation);
@@ -80,7 +82,7 @@ export class PaymentsService {
       return this.rotateCheckout(existing, dto.locale ?? "es");
     }
 
-    const intent = await this.gateway.createPaymentIntent({
+    const intent = await gateway.createPaymentIntent({
       amount: serializeMoney(quotation.total.toString(), quotation.currency),
       currency: quotation.currency,
       reference: `${quotation.number}-v${quotation.version}`
@@ -167,12 +169,17 @@ export class PaymentsService {
         clientName: payment.quotation.client.displayName
       },
       organization: { name: payment.organization.name },
-      sandbox: true
+      // `mode` reflects the live gateway configuration, not this specific
+      // payment's history — it tells the frontend whether to offer the
+      // sandbox "simulate payment" actions right now. `sandbox` is kept
+      // alongside it for existing consumers.
+      mode: this.config.paymentGateway,
+      sandbox: this.config.paymentGateway === "sandbox"
     };
   }
 
   async completeSandbox(checkoutToken: string, dto: CompleteSandboxPaymentDto) {
-    this.assertSandboxAvailable();
+    const gateway = this.requireGateway();
     const payment = await this.findByCheckoutToken(checkoutToken);
     if (
       payment.status !== PaymentStatus.PENDING &&
@@ -181,7 +188,7 @@ export class PaymentsService {
     ) {
       return { status: payment.status };
     }
-    const webhook = this.gateway.createSignedWebhook(
+    const webhook = gateway.createSignedWebhook(
       payment.externalReference,
       dto.outcome,
       serializeMoney(payment.amount.toString(), payment.currency),
@@ -191,13 +198,14 @@ export class PaymentsService {
   }
 
   async processWebhook(payload: PaymentWebhookPayload, signature: string) {
+    const gateway = this.requireGateway();
     const payment = await this.prisma.payment.findUnique({
       where: { externalReference: payload.externalReference }
     });
     if (!payment) {
       throw new NotFoundException({ code: "PAYMENT_NOT_FOUND", message: "Payment not found" });
     }
-    const signatureValid = this.gateway.verifyWebhookSignature(payload, signature);
+    const signatureValid = gateway.verifyWebhookSignature(payload, signature);
     if (!signatureValid) {
       await this.recordWebhook(payment, payload, false, null);
       throw new UnauthorizedException({
@@ -283,6 +291,7 @@ export class PaymentsService {
   }
 
   async cancel(organizationId: string, paymentId: string): Promise<Payment> {
+    const gateway = this.requireGateway();
     const payment = await this.get(organizationId, paymentId);
     if (
       payment.status !== PaymentStatus.PENDING &&
@@ -290,7 +299,7 @@ export class PaymentsService {
     ) {
       throw new BadRequestException({ code: "PAYMENT_CANNOT_CANCEL", message: "Payment cannot be cancelled" });
     }
-    await this.gateway.cancel(payment.externalReference);
+    await gateway.cancel(payment.externalReference);
     return this.prisma.payment.update({
       where: { id: payment.id },
       data: { status: PaymentStatus.CANCELLED, cancelledAt: new Date() }
@@ -298,6 +307,7 @@ export class PaymentsService {
   }
 
   async refund(organizationId: string, paymentId: string, dto: RefundPaymentDto): Promise<Payment> {
+    const gateway = this.requireGateway();
     const payment = await this.get(organizationId, paymentId);
     const amount = new Prisma.Decimal(dto.amount);
     const serializedAmount = serializeMoney(amount.toString(), payment.currency);
@@ -305,7 +315,7 @@ export class PaymentsService {
       throw new BadRequestException({ code: "PAYMENT_CANNOT_REFUND", message: "Refund is not valid" });
     }
     const fullRefund = amount.equals(payment.amount);
-    await this.gateway.refund(payment.externalReference, serializedAmount, payment.currency);
+    await gateway.refund(payment.externalReference, serializedAmount, payment.currency);
     return this.prisma.$transaction(async (tx) => {
       await tx.paymentRefund.create({
         data: {
@@ -365,13 +375,31 @@ export class PaymentsService {
     });
   }
 
-  private assertSandboxAvailable(): void {
-    if (process.env.NODE_ENV === "production") {
+  /**
+   * Returns the active gateway or fails closed with a stable, generic code —
+   * never leaks which mode is configured or why. Two layers, deliberately:
+   * (1) the primary check is "was a gateway actually wired" (true whenever
+   * PAYMENT_GATEWAY=disabled, and whenever provider mode had no adapter —
+   * see payments.module.ts's factory, which never binds a gateway in that
+   * case); (2) a defense-in-depth check that sandbox can never be reached
+   * while NODE_ENV=production, even if something upstream mis-wired it —
+   * readProductIntegrationsConfig already refuses to boot with that
+   * combination, so this should be unreachable in practice.
+   */
+  private requireGateway(): PaymentGateway {
+    if (process.env.NODE_ENV === "production" && this.config.paymentGateway === "sandbox") {
       throw new ServiceUnavailableException({
         code: "PAYMENT_PROVIDER_NOT_CONFIGURED",
-        message: "A production payment provider is not configured"
+        message: "Payments are not available in this environment"
       });
     }
+    if (!this.gateway) {
+      throw new ServiceUnavailableException({
+        code: "PAYMENT_PROVIDER_NOT_CONFIGURED",
+        message: "Payments are not available in this environment"
+      });
+    }
+    return this.gateway;
   }
 
   private recordWebhook(

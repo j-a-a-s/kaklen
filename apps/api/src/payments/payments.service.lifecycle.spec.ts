@@ -175,11 +175,37 @@ describe("PaymentsService lifecycle", () => {
       .resolves.toEqual({ status: PaymentStatus.PROCESSING, duplicate: false });
     expect(processingNotifications.notifyOrganization).not.toHaveBeenCalled();
   });
+
+  it("still allows reading an existing payment's status when the gateway is disabled (no gateway call needed)", async () => {
+    const service = makeService(makePrisma(), null, makeNotifications());
+
+    await expect(service.get("org-1", "payment-1")).resolves.toMatchObject({ id: "payment-1" });
+  });
+
+  it("reflects a disabled gateway on the public checkout view instead of claiming sandbox", async () => {
+    const previousGateway = process.env.PAYMENT_GATEWAY;
+    try {
+      process.env.PAYMENT_GATEWAY = "disabled";
+      const token = "a".repeat(43);
+      const service = makeService(makePrisma(), null, makeNotifications());
+
+      await expect(service.checkout(token)).resolves.toMatchObject({
+        mode: "disabled",
+        sandbox: false
+      });
+    } finally {
+      if (previousGateway === undefined) {
+        delete process.env.PAYMENT_GATEWAY;
+      } else {
+        process.env.PAYMENT_GATEWAY = previousGateway;
+      }
+    }
+  });
 });
 
 function makeService(
   prisma: ReturnType<typeof makePrisma>,
-  gateway: jest.Mocked<PaymentGateway>,
+  gateway: jest.Mocked<PaymentGateway> | null,
   notifications: ReturnType<typeof makeNotifications>,
   quotationStatus: QuotationStatus = QuotationStatus.APPROVED
 ): PaymentsService {

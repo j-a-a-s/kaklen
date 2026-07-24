@@ -15,14 +15,15 @@ import { formatMoney } from "@kaklen/shared";
     <main class="checkout-shell">
       <section class="checkout-panel" *ngIf="checkout() as data">
         <p class="eyebrow">{{ data.organization.name }}</p>
-        <h1 i18n="@@sandboxPaymentTitle">Pago seguro de prueba</h1>
+        <h1 i18n="@@paymentTitle">Pago de tu cotización</h1>
         <p><span i18n="@@quotationLabel">Cotización</span> {{ data.quotation.number }} v{{ data.quotation.version }}</p>
         <div class="checkout-amount"><small i18n="@@amountToPayLabel">Monto a pagar</small><strong>{{ money(data.payment.amount, data.payment.currency) }}</strong></div>
-        <div class="sandbox-notice" role="note"><kaklen-icon name="settings" /><span i18n="@@sandboxPaymentNotice">Entorno sandbox. No se realizará ningún cargo real.</span></div>
+        <div class="sandbox-notice" role="note" *ngIf="data.mode === 'sandbox'"><kaklen-icon name="settings" /><span i18n="@@sandboxPaymentNotice">Entorno sandbox. No se realizará ningún cargo real.</span></div>
+        <div class="checkout-unavailable" role="note" *ngIf="data.mode !== 'sandbox' && result() !== 'PAID'"><kaklen-icon name="clock" /><span i18n="@@paymentUnavailableNotice">El pago en línea no está disponible en este momento. Contáctanos para coordinar el pago.</span></div>
         <p class="form-error" *ngIf="error()">{{ error() }}</p>
         <div class="checkout-result success" *ngIf="result() === 'PAID'" role="status"><kaklen-icon name="check-circle" /><div><strong i18n="@@paymentConfirmedTitle">Pago confirmado</strong><p i18n="@@paymentConfirmedBody">El webhook sandbox confirmó el pago y generó el recibo.</p></div></div>
         <div class="checkout-result danger" *ngIf="result() === 'FAILED'" role="status"><kaklen-icon name="x-circle" /><div><strong i18n="@@paymentFailedTitle">Pago no completado</strong><p i18n="@@paymentFailedBody">Puedes volver a intentarlo de forma segura.</p></div></div>
-        <div class="row-actions" *ngIf="result() !== 'PAID'">
+        <div class="row-actions" *ngIf="data.mode === 'sandbox' && result() !== 'PAID'">
           <button type="button" class="success" [disabled]="processing()" (click)="complete('PAID')"><kaklen-icon name="check" /><span i18n="@@sandboxApprovePaymentButton">Confirmar pago sandbox</span></button>
           <button type="button" class="secondary" [disabled]="processing()" (click)="complete('FAILED')"><kaklen-icon name="x-circle" /><span i18n="@@sandboxFailPaymentButton">Simular rechazo</span></button>
         </div>

@@ -1,10 +1,17 @@
 import { ActivatedRoute } from "@angular/router";
+import { RUNTIME_CONFIG } from "../config/runtime-config";
 import { LocaleService } from "../i18n/locale.service";
 import { PublicQuotationView } from "../portal/quotation-portal.models";
 import { QuotationPortalService } from "../portal/quotation-portal.service";
 import { PublicQuotationComponent } from "./public-quotation.component";
 
 describe("PublicQuotationComponent", () => {
+  const previousPaymentsMode = RUNTIME_CONFIG.paymentsMode;
+
+  afterEach(() => {
+    RUNTIME_CONFIG.paymentsMode = previousPaymentsMode;
+  });
+
   it("loads an obsolete version as read-only", async () => {
     const portal = portalSpy();
     portal.view.and.resolveTo(view({ isLatestVersion: false, canRequestChanges: false, canApproveAndPay: false }));
@@ -57,6 +64,30 @@ describe("PublicQuotationComponent", () => {
     );
     expect(component.providerSuccess()).toBeTrue();
     expect(component.providerOpen()).toBeFalse();
+  });
+
+  it("reports payments enabled when the runtime mode is sandbox or provider", () => {
+    const component = createComponent(portalSpy());
+
+    RUNTIME_CONFIG.paymentsMode = "sandbox";
+    expect(component.paymentsEnabled()).toBeTrue();
+
+    RUNTIME_CONFIG.paymentsMode = "provider";
+    expect(component.paymentsEnabled()).toBeTrue();
+  });
+
+  it("never navigates to checkout when payments are disabled, even if approveAndPay is invoked directly", async () => {
+    RUNTIME_CONFIG.paymentsMode = "disabled";
+    const portal = portalSpy();
+    portal.view.and.resolveTo(view({ canApproveAndPay: true }));
+    const component = createComponent(portal);
+    await component.ngOnInit();
+
+    expect(component.paymentsEnabled()).toBeFalse();
+
+    await component.approveAndPay();
+
+    expect(portal.createPayment).not.toHaveBeenCalled();
   });
 });
 

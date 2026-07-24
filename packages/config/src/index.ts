@@ -62,7 +62,7 @@ export interface PasswordRecoveryConfig {
 export interface ProductIntegrationsConfig {
   whatsappMode: "manual" | "provider";
   whatsappHashSecret: string;
-  paymentGateway: "sandbox";
+  paymentGateway: "disabled" | "sandbox" | "provider";
   paymentSandboxSecret: string;
 }
 
@@ -304,26 +304,36 @@ export function readProductIntegrationsConfig(
   env: Record<string, string | undefined>
 ): ProductIntegrationsConfig {
   const nodeEnv = parseNodeEnv(env.NODE_ENV);
+  const isProduction = nodeEnv === "production";
   const whatsappMode = env.WHATSAPP_MODE ?? "manual";
-  const paymentGateway = env.PAYMENT_GATEWAY ?? "sandbox";
+  // No production default of "sandbox": until a real adapter is registered,
+  // production must run with payments disabled rather than silently exposing
+  // the sandbox lifecycle. Non-production keeps defaulting to sandbox so
+  // local/dev/test workflows are unaffected.
+  const paymentGateway = env.PAYMENT_GATEWAY ?? (isProduction ? "disabled" : "sandbox");
   const whatsappHashSecret = requireString(
     env,
     "WHATSAPP_HASH_SECRET",
-    nodeEnv === "production",
+    isProduction,
     "local-whatsapp-hash-secret-change-me"
   );
   const paymentSandboxSecret = requireString(
     env,
     "PAYMENT_SANDBOX_SECRET",
-    nodeEnv === "production",
+    isProduction,
     "local-payment-sandbox-secret-change-me"
   );
 
   if (whatsappMode !== "manual" && whatsappMode !== "provider") {
     throw new Error("WHATSAPP_MODE must be manual or provider");
   }
-  if (paymentGateway !== "sandbox") {
-    throw new Error("PAYMENT_GATEWAY must be sandbox until a production provider is configured");
+  if (paymentGateway !== "disabled" && paymentGateway !== "sandbox" && paymentGateway !== "provider") {
+    throw new Error("PAYMENT_GATEWAY must be disabled, sandbox, or provider");
+  }
+  // Sandbox is a development/test convenience — it must never be reachable
+  // in production, regardless of what an operator sets explicitly.
+  if (isProduction && paymentGateway === "sandbox") {
+    throw new Error("PAYMENT_GATEWAY must not be sandbox in production");
   }
   if (whatsappHashSecret.length < 32) {
     throw new Error("WHATSAPP_HASH_SECRET must be at least 32 characters");
@@ -331,7 +341,7 @@ export function readProductIntegrationsConfig(
   if (paymentSandboxSecret.length < 32) {
     throw new Error("PAYMENT_SANDBOX_SECRET must be at least 32 characters");
   }
-  if (nodeEnv === "production") {
+  if (isProduction) {
     assertCryptographicSecret("WHATSAPP_HASH_SECRET", whatsappHashSecret);
     assertCryptographicSecret("PAYMENT_SANDBOX_SECRET", paymentSandboxSecret);
   }

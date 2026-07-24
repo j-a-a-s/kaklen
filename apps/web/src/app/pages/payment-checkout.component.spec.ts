@@ -30,6 +30,16 @@ describe("PaymentCheckoutComponent", () => {
     expect(component.error()).toContain("pago");
     expect(component.loading()).toBeFalse();
   });
+
+  it("loads a disabled-gateway checkout without claiming sandbox", async () => {
+    const portal = jasmine.createSpyObj<QuotationPortalService>("QuotationPortalService", ["checkout", "completePayment"]);
+    portal.checkout.and.resolveTo(checkout({ mode: "disabled", sandbox: false }));
+    const component = createComponent(portal);
+
+    await component.ngOnInit();
+    expect(component.checkout()?.mode).toBe("disabled");
+    expect(component.result()).toBeNull();
+  });
 });
 
 function createComponent(portal: jasmine.SpyObj<QuotationPortalService>): PaymentCheckoutComponent {
@@ -40,11 +50,13 @@ function createComponent(portal: jasmine.SpyObj<QuotationPortalService>): Paymen
   );
 }
 
-function checkout(): PublicPaymentCheckout {
+function checkout(overrides: Partial<PublicPaymentCheckout> = {}): PublicPaymentCheckout {
   return {
     payment: { status: "PENDING", amount: "1190.00", currency: "CLP", createdAt: "2026-07-17T12:00:00.000Z" },
     quotation: { number: "QUO-000001", version: 1, clientName: "Cliente Demo" },
     organization: { name: "Kaklen Demo" },
-    sandbox: true
+    mode: "sandbox",
+    sandbox: true,
+    ...overrides
   };
 }
