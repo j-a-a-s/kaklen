@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { readProductIntegrationsConfig } from "../dist/index.js";
@@ -30,6 +31,19 @@ test("production boots with PAYMENT_GATEWAY unset, defaulting to disabled", () =
 test("production boots explicitly with PAYMENT_GATEWAY=disabled", () => {
   const config = readProductIntegrationsConfig(productionEnv({ PAYMENT_GATEWAY: "disabled" }));
   assert.equal(config.paymentGateway, "disabled");
+});
+
+test("the production environment contract keeps payments disabled while non-production defaults to sandbox", () => {
+  const manifest = JSON.parse(
+    readFileSync(new URL("../../../docs/configuration/environment-variables.json", import.meta.url), "utf8")
+  );
+  const paymentGateway = manifest.variables.find((variable) => variable.name === "PAYMENT_GATEWAY");
+  const productionExample = readFileSync(new URL("../../../.env.production.example", import.meta.url), "utf8");
+
+  assert.equal(paymentGateway.default, "sandbox");
+  assert.equal(paymentGateway.productionValue, "disabled");
+  assert.match(productionExample, /^PAYMENT_GATEWAY=disabled$/m);
+  assert.doesNotMatch(productionExample, /^PAYMENT_GATEWAY=sandbox$/m);
 });
 
 test("production accepts PAYMENT_GATEWAY=provider at the config layer (adapter registration is enforced at bootstrap, not here)", () => {
