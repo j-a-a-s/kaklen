@@ -16,6 +16,7 @@ import { PaymentsModule } from "./payments/payments.module";
 import { ProviderProfilesModule } from "./provider-profiles/provider-profiles.module";
 import { DistributedThrottlingModule } from "./security/distributed-throttling.module";
 import { LeadsModule } from "./leads/leads.module";
+import { CalendarModule } from "./calendar/calendar.module";
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { LeadsModule } from "./leads/leads.module";
     WhatsAppModule,
     PaymentsModule,
     ProviderProfilesModule,
-    LeadsModule
+    LeadsModule,
+    CalendarModule
   ]
 })
 export class AppModule {}

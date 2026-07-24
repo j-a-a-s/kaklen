@@ -8,7 +8,7 @@ import { validateRuntimeEnvironment, type ApiConfig } from "@kaklen/config";
 import { KAKLEN_API_PREFIX } from "@kaklen/shared";
 import { AppModule } from "./app.module";
 import { ApiErrorFilter } from "./common/api-error.filter";
-import { requestLoggingMiddleware } from "./common/runtime-logging";
+import { initLogger, createRequestLoggingMiddleware, type RequestLoggingConfig } from "@kokecore/logging";
 
 export async function bootstrap(): Promise<void> {
   const runtimeConfig = validateRuntimeEnvironment(process.env);
@@ -60,7 +60,12 @@ export function configureHttpSecurity(app: INestApplication, config: ApiConfig):
     })
   );
   app.use(cookieParser());
-  app.use(requestLoggingMiddleware);
+  const loggingConfig: RequestLoggingConfig = {
+    service: "kaklen-api",
+    environment: config.nodeEnv,
+  };
+  initLogger(loggingConfig);
+  app.use(createRequestLoggingMiddleware(loggingConfig));
   app.enableCors({
     origin: config.corsAllowedOrigins,
     credentials: true,

@@ -40,6 +40,7 @@ model User {
   createdQuotationPublicLinks  QuotationPublicLink[]    @relation("QuotationPublicLinkCreator")
   createdWhatsAppNotifications WhatsAppNotification[]   @relation("WhatsAppNotificationCreator")
   providerProfiles             ProviderProfile[]        @relation("ProviderProfileUser")
+  calendarIntegrations         CalendarIntegration[]
 }
 
 model EmailVerificationToken {
@@ -153,6 +154,7 @@ model Organization {
   paymentWebhookEvents    PaymentWebhookEvent[]
   providerProfiles        ProviderProfile[]
   providerAnalyticsEvents ProviderAnalyticsEvent[]
+  calendarIntegrations    CalendarIntegration[]
 
   @@index([createdByUserId])
 }
@@ -491,6 +493,7 @@ model Event {
   participants    EventParticipant[]
   resources       EventResource[]
   timeline        EventTimelineEntry[]
+  calendarSyncs   CalendarEventSync[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
@@ -951,4 +954,65 @@ enum LeadWhatsAppStatus {
   PENDING
   SENT
   FAILED
+}
+
+// ─── Calendar Integration ───────────────────────────────────────────────────
+
+enum CalendarProvider {
+  GOOGLE
+  MICROSOFT
+  APPLE
+}
+
+enum CalendarSyncStatus {
+  SYNCED
+  PENDING
+  FAILED
+  CONFLICT
+}
+
+model CalendarIntegration {
+  id                String            @id @default(uuid())
+  userId            String
+  organizationId    String
+  provider          CalendarProvider
+  externalAccountId String?
+  accessToken       String
+  refreshToken      String
+  tokenExpiresAt    DateTime
+  calendarId        String            @default("primary")
+  webhookChannelId  String?
+  webhookResourceId String?
+  webhookExpiresAt  DateTime?
+  enabled           Boolean           @default(true)
+  lastSyncAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  syncedEvents      CalendarEventSync[]
+
+  @@unique([userId, organizationId, provider])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([webhookChannelId])
+}
+
+model CalendarEventSync {
+  id                    String              @id @default(uuid())
+  calendarIntegrationId String
+  eventId               String
+  externalEventId       String
+  syncStatus            CalendarSyncStatus  @default(PENDING)
+  lastSyncedAt          DateTime?
+  syncError             String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  calendarIntegration   CalendarIntegration @relation(fields: [calendarIntegrationId], references: [id], onDelete: Cascade)
+  event                 Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarIntegrationId, eventId])
+  @@unique([calendarIntegrationId, externalEventId])
+  @@index([eventId])
+  @@index([syncStatus])
 }

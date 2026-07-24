@@ -59,6 +59,14 @@ export interface PasswordRecoveryConfig {
   mailPassword?: string;
 }
 
+export interface CalendarConfig {
+  enabled: boolean;
+  googleClientId: string;
+  googleClientSecret: string;
+  googleRedirectUri: string;
+  webhookBaseUrl: string;
+}
+
 export interface ProductIntegrationsConfig {
   whatsappMode: "manual" | "provider";
   whatsappHashSecret: string;
@@ -81,6 +89,7 @@ export interface RuntimeEnvironmentConfig {
   productIntegrations: ProductIntegrationsConfig;
   redis: RedisConfig;
   marketing: MarketingConfig;
+  calendar: CalendarConfig;
 }
 
 const LOCAL_DATABASE_URL = "postgresql://kaklen:kaklen_dev_password@localhost:5432/kaklen_dev?schema=public";
@@ -410,6 +419,27 @@ function isForbiddenProductionRedisHost(hostname: string): boolean {
   );
 }
 
+export function readCalendarConfig(env: Record<string, string | undefined>): CalendarConfig {
+  const enabled = parseStrictBoolean(env.CALENDAR_SYNC_ENABLED, false, "CALENDAR_SYNC_ENABLED");
+  const googleClientId = optionalString(env.GOOGLE_CALENDAR_CLIENT_ID) ?? "";
+  const googleClientSecret = optionalString(env.GOOGLE_CALENDAR_CLIENT_SECRET) ?? "";
+  const googleRedirectUri = optionalString(env.GOOGLE_CALENDAR_REDIRECT_URI) ?? "";
+  const webhookBaseUrl = optionalString(env.CALENDAR_WEBHOOK_BASE_URL) ?? "";
+
+  if (enabled) {
+    if (!googleClientId || !googleClientSecret || !googleRedirectUri) {
+      throw new Error(
+        "GOOGLE_CALENDAR_CLIENT_ID, GOOGLE_CALENDAR_CLIENT_SECRET, and GOOGLE_CALENDAR_REDIRECT_URI are required when CALENDAR_SYNC_ENABLED=true"
+      );
+    }
+    if (!webhookBaseUrl) {
+      throw new Error("CALENDAR_WEBHOOK_BASE_URL is required when CALENDAR_SYNC_ENABLED=true");
+    }
+  }
+
+  return { enabled, googleClientId, googleClientSecret, googleRedirectUri, webhookBaseUrl };
+}
+
 export function validateRuntimeEnvironment(
   env: Record<string, string | undefined>
 ): RuntimeEnvironmentConfig {
@@ -420,8 +450,9 @@ export function validateRuntimeEnvironment(
   const productIntegrations = readProductIntegrationsConfig(env);
   const redis = readRedisConfig(env);
   const marketing = readMarketingConfig(env);
+  const calendar = readCalendarConfig(env);
 
-  return { api, auth, organization, passwordRecovery, productIntegrations, redis, marketing };
+  return { api, auth, organization, passwordRecovery, productIntegrations, redis, marketing, calendar };
 }
 
 function parseTimeout(value: string | undefined, fallback: number, key: string): number {
